@@ -1,6 +1,6 @@
 = dynamoid
 
-Description goes here.
+Dynamoid is a framework for Amazon's DynamoDB in Ruby. It borrows heavily from mongoid's excellent implementation of an ODM for MongoDB to be just as awesome, but for DynamoDB.
 
 == Contributing to dynamoid
  
@@ -14,6 +14,6 @@ Description goes here.
 
 == Copyright
 
-Copyright (c) 2012 Josh Symonds. See LICENSE.txt for
+Copyright (c) 2012 Synthetic LLC. See LICENSE.txt for
 further details.
 
