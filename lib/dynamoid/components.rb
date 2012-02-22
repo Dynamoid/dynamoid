@@ -17,6 +17,8 @@ module Dynamoid #:nodoc
     include ActiveModel::Serializers::Xml
     include Dynamoid::Attributes
     include Dynamoid::Fields
+    include Dynamoid::Indexes
     include Dynamoid::Persistence
+    include Dynamoid::Finders
   end
 end

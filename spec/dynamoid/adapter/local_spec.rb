@@ -96,8 +96,44 @@ describe Dynamoid::Local do
   end
   
   # Query
+  it 'performs query on a table and returns items' do
+    Dynamoid::Adapter.create_table('Test Table', :id)
+    Dynamoid::Adapter.put_item('Test Table', {:id => 1, :name => 'Josh'})
+    
+    Dynamoid::Adapter.query('Test Table', 1).should == { :id=> 1, :name=>"Josh" }
+  end
+  
+  it 'performs query on a table and returns items if there are multiple items' do
+    Dynamoid::Adapter.create_table('Test Table', :id)
+    Dynamoid::Adapter.put_item('Test Table', {:id => 1, :name => 'Josh'})
+    Dynamoid::Adapter.put_item('Test Table', {:id => 2, :name => 'Justin'})
+    
+    Dynamoid::Adapter.query('Test Table', 1).should == { :id=> 1, :name=>"Josh" }
+  end
   
   # Scan
+  it 'performs scan on a table and returns items' do
+    Dynamoid::Adapter.create_table('Test Table', :id)
+    Dynamoid::Adapter.put_item('Test Table', {:id => 1, :name => 'Josh'})
+    
+    Dynamoid::Adapter.scan('Test Table', :name => 'Josh').should == [{ :id=> 1, :name=>"Josh" }]
+  end
+  
+  it 'performs scan on a table and returns items if there are multiple items but only one match' do
+    Dynamoid::Adapter.create_table('Test Table', :id)
+    Dynamoid::Adapter.put_item('Test Table', {:id => 1, :name => 'Josh'})
+    Dynamoid::Adapter.put_item('Test Table', {:id => 2, :name => 'Justin'})
+    
+    Dynamoid::Adapter.scan('Test Table', :name => 'Josh').should == [{ :id=> 1, :name=>"Josh" }]
+  end
+  
+  it 'performs scan on a table and returns multiple items if there are multiple matches' do
+    Dynamoid::Adapter.create_table('Test Table', :id)
+    Dynamoid::Adapter.put_item('Test Table', {:id => 1, :name => 'Josh'})
+    Dynamoid::Adapter.put_item('Test Table', {:id => 2, :name => 'Josh'})
+    
+    Dynamoid::Adapter.scan('Test Table', :name => 'Josh').should == [{ :id=> 1, :name=>"Josh" }, { :id=> 2, :name=>"Josh" }]
+  end
   
   # UpdateItem
   

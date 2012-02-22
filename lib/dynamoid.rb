@@ -8,10 +8,12 @@ require "active_support/lazy_load_hooks"
 require "active_support/time_with_zone"
 require "active_model"
 
+require 'dynamoid/errors'
 require 'dynamoid/attributes'
 require 'dynamoid/fields'
+require 'dynamoid/indexes'
 require 'dynamoid/persistence'
-
+require 'dynamoid/finders'
 require 'dynamoid/config'
 require 'dynamoid/components'
 require 'dynamoid/document'

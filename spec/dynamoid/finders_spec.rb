@@ -1,0 +1,106 @@
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+
+describe "Dynamoid::Finders" do
+
+  before do
+    @address = Address.create(:city => 'Chicago')
+  end
+
+  it 'finds an existing address' do
+    found = Address.find(@address.id)
+    
+    found.should == @address
+    found.city.should == 'Chicago'
+  end
+  
+  it 'is not a new object' do
+    found = Address.find(@address.id)
+    
+    found.new_record.should_not be_true
+  end
+  
+  it 'finds multiple ids' do
+    @address2 = Address.create(:city => 'Illinois')
+    
+    Address.find(@address.id, @address2.id).should == [@address, @address2]
+  end  
+  
+  context 'with users' do
+    before do
+      User.create_indexes
+    end
+    
+    it 'finds using method_missing for attributes' do
+      array = Address.find_by_city('Chicago')
+
+      array.should == @address
+    end
+
+    it 'finds using method_missing for multiple attributes' do
+      @user = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+
+      array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com')
+
+      array.should == [@user]
+    end
+
+    it 'finds using method_missing for single attributes and multiple results' do
+      @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      @user2 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+
+      array = User.find_all_by_name('Josh')
+
+      array.should == [@user2, @user1]
+    end
+
+    it 'finds using method_missing for multiple attributes and multiple results' do
+      @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      @user2 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+
+      array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com')
+
+      array.should == [@user2, @user1]
+    end
+
+    it 'finds using method_missing for multiple attributes and no results' do
+      @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      @user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
+
+      array = User.find_all_by_name_and_email('Gaga','josh@joshsymonds.com')
+
+      array.should be_empty
+    end
+    
+    it 'finds using method_missing for a single attribute and no results' do
+      @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      @user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
+
+      array = User.find_all_by_name('Gaga')
+
+      array.should be_empty
+    end
+
+    it 'should find on a query that is not indexed' do
+      @user = User.create(:password => 'Test')
+
+      array = User.find_all_by_password('Test')
+
+      array.should == [@user]
+    end
+
+    it 'should find on a query on multiple attributes that are not indexed' do
+      @user = User.create(:password => 'Test', :name => 'Josh')
+
+      array = User.find_all_by_password_and_name('Test', 'Josh')
+
+      array.should == [@user]
+    end
+    
+    it 'should return an empty array when fields exist but nothing is found' do
+      array = User.find_all_by_password('Test')
+      
+      array.should be_empty
+    end
+
+  end
+end

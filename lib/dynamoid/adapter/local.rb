@@ -57,8 +57,15 @@ module Dynamoid
     end
     
     # Query
+    def query(table_name, id)
+      data[table_name][:data][id]
+    end
     
     # Scan
+    def scan(table_name, scan_hash)
+      return [] if data[table_name].nil?
+      data[table_name][:data].values.select{|d| scan_hash.all?{|k, v| !d[k].nil? && d[k] == v}}
+    end
     
     # UpdateItem
     

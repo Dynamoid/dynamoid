@@ -7,14 +7,25 @@ module Dynamoid #:nodoc:
     extend ActiveSupport::Concern
     include Dynamoid::Components
 
-    attr_reader :new_record
+    attr_accessor :new_record
     
-    def initialize(attrs = {}, options = nil)
+    def initialize(attrs = {})
       @new_record = true
       @attributes ||= {}
       self.class.attributes.each {|att| write_attribute(att, attrs[att])}
     end
     
+    def ==(other)
+      other.respond_to?(:id) && other.id == self.id
+    end
+    
+    module ClassMethods
+      def create(attrs = {})
+        obj = self.new(attrs)
+        obj.save && obj.new_record = false
+        obj
+      end
+    end
   end
   
 end

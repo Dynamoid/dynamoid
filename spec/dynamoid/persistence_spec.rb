@@ -7,10 +7,6 @@ describe "Dynamoid::Persistence" do
     @address = Address.new
   end
   
-  after do
-    Dynamoid::Adapter.reset_data
-  end
-  
   it 'creates a table when it saves to the datastore' do
     @address.save
     
@@ -35,9 +31,23 @@ describe "Dynamoid::Persistence" do
   end
   
   it 'creates a table' do
-    Address.create_table
+    Address.create_table(Address.table_name)
     
     Dynamoid::Adapter.data.should == {"dynamoid_addresses" => { :id => :id, :data => {} }}
+  end
+  
+  it 'checks if a table already exists' do
+    Address.create_table(Address.table_name)
+    
+    Address.table_exists?(Address.table_name).should be_true
+    Address.table_exists?('crazytable').should be_false
+  end
+  
+  it 'saves indexes along with itself' do
+    @user = User.new(:name => 'Josh')
+    
+    @user.expects(:save_indexes).once.returns(true)
+    @user.save
   end
 
 end

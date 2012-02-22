@@ -18,5 +18,9 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require file }
 
 RSpec.configure do |config|
-  config.mock_with(:mocha)  
+  config.mock_with(:mocha)
+  
+  config.before(:each) do
+    Dynamoid::Adapter.reset_data
+  end
 end
