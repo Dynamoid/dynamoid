@@ -27,8 +27,6 @@ describe "Dynamoid::Indexes" do
   end
   
   it 'creates a table after an index is created' do
-    User.table_exists?(User.index_table_name([:password])).should be_false
-    
     User.send(:index, :password)
     
     User.table_exists?(User.index_table_name([:password])).should be_true

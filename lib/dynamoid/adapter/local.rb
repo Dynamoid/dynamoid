@@ -9,7 +9,7 @@ module Dynamoid
       end
     
       def reset_data
-        @data = {}
+        self.data.each {|k, v| v[:data] = {}}
       end
     
       # BatchGetItem

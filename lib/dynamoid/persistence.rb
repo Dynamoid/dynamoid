@@ -7,8 +7,11 @@ module Dynamoid #:nodoc:
   module Persistence
     extend ActiveSupport::Concern
     
+    included do
+      self.create_table(self.table_name) unless self.table_exists?(self.table_name)
+    end
+    
     def save
-      self.class.create_table(self.class.table_name) unless self.class.table_exists?(self.class.table_name)
       self.id = SecureRandom.uuid if self.id.nil? || self.id.blank?
       Dynamoid::Adapter.put_item(self.class.table_name, self.attributes)
       save_indexes

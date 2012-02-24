@@ -12,12 +12,6 @@ describe "Dynamoid::Persistence" do
         Dynamoid::Adapter.delete_table(Address.table_name) if Dynamoid::Adapter.list_tables.include?(Address.table_name)
       end
     
-      it 'creates a table when it saves to the datastore' do
-        @address.save
-
-        Dynamoid::Adapter.list_tables.should include 'dynamoid_tests_addresses'
-      end
-    
       it 'creates a table' do
         Address.create_table(Address.table_name)
 

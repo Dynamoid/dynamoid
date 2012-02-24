@@ -25,6 +25,10 @@ module Dynamoid #:nodoc:
         obj.save && obj.new_record = false
         obj
       end
+      
+      def build(attrs = {})
+        self.new(attrs)
+      end
     end
   end
   

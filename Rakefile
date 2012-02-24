@@ -14,12 +14,12 @@ require 'rake'
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-  gem.name = "dynamoid"
-  gem.homepage = "http://github.com/Veraticus/dynamoid"
+  gem.name = "Dynamoid"
+  gem.homepage = "http://github.com/Veraticus/Dynamoid"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
-  gem.email = "veraticus@gmail.com"
+  gem.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
+  gem.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
+  gem.email = "josh@joshsymonds.com"
   gem.authors = ["Josh Symonds"]
   # dependencies defined in Gemfile
 end

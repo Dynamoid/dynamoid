@@ -12,7 +12,10 @@ describe Dynamoid::Adapter::Local do
       Dynamoid::Adapter.create_table('table2', :id)
       Dynamoid::Adapter.put_item('table2', {:id => '1', :name => 'Justin'})    
     
-      Dynamoid::Adapter.batch_get_item('table1' => '1', 'table2' => '1').should == {'table1' => [{:id => '1', :name => 'Josh'}], 'table2' => [{:id => '1', :name => 'Justin'}]}
+      results = Dynamoid::Adapter.batch_get_item('table1' => '1', 'table2' => '1')
+      results.size.should == 2
+      results['table1'].should include({:name => 'Josh', :id => '1'})
+      results['table2'].should include({:name => 'Justin', :id => '1'})
     end
   
     it 'performs BatchGetItem with multiple keys' do
@@ -20,14 +23,17 @@ describe Dynamoid::Adapter::Local do
       Dynamoid::Adapter.put_item('table1', {:id => '1', :name => 'Josh'})
       Dynamoid::Adapter.put_item('table1', {:id => '2', :name => 'Justin'})
     
-      Dynamoid::Adapter.batch_get_item('table1' => ['1', '2']).should == {'table1' => [{:id => '1', :name => 'Josh'}, {:id => '2', :name => 'Justin'}]}
+      results = Dynamoid::Adapter.batch_get_item('table1' => ['1', '2'])
+      results.size.should == 1
+      results['table1'].should include({:name => 'Josh', :id => '1'})
+      results['table1'].should include({:name => 'Justin', :id => '2'})
     end
   
     # CreateTable
     it 'performs CreateTable' do
       Dynamoid::Adapter.create_table('Test Table', :id)
     
-      Dynamoid::Adapter.data.should == {"Test Table" => { :id => :id, :data => {} }}
+      Dynamoid::Adapter.list_tables.should include 'Test Table'
     end
   
     # DeleteItem
@@ -78,7 +84,8 @@ describe Dynamoid::Adapter::Local do
       Dynamoid::Adapter.create_table('Table1', :id)
       Dynamoid::Adapter.create_table('Table2', :id)
     
-      Dynamoid::Adapter.list_tables.should == ['Table1', 'Table2']
+      Dynamoid::Adapter.list_tables.should include 'Table1'
+      Dynamoid::Adapter.list_tables.should include 'Table2'
     end
   
     # PutItem
@@ -86,7 +93,7 @@ describe Dynamoid::Adapter::Local do
       Dynamoid::Adapter.create_table('Test Table', :id)
       Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Josh'})
     
-      Dynamoid::Adapter.data.should == {"Test Table" => { :id => :id, :data => { '1' => { :id=> '1', :name=>"Josh" }}}}
+      Dynamoid::Adapter.data['Test Table'].should == { :id => :id, :data => { '1' => { :id=> '1', :name=>"Josh" }}}
     end
   
     # Query

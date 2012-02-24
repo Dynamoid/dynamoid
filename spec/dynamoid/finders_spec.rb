@@ -22,7 +22,7 @@ describe "Dynamoid::Finders" do
   it 'finds multiple ids' do
     @address2 = Address.create(:city => 'Illinois')
     
-    Address.find(@address.id, @address2.id).should == [@address, @address2]
+    Address.find(@address.id, @address2.id).should include @address, @address2
   end  
   
   context 'with users' do

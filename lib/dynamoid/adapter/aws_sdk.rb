@@ -15,6 +15,17 @@ module Dynamoid
       end
     
       # BatchGetItem
+      def batch_get_item(options)
+        batch = AWS::DynamoDB::BatchGet.new(:config => @@connection.config)
+        options.each do |t, ids|
+          batch.table(t, :all, Array(ids))
+        end
+        hash = Hash.new{|h, k| h[k] = []}
+        batch.each do |table_name, attributes|
+          hash[table_name] << attributes.symbolize_keys!
+        end
+        hash
+      end
     
       # CreateTable
       def create_table(table_name, key)

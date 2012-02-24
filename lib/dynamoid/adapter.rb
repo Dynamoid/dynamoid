@@ -16,7 +16,8 @@ module Dynamoid #:nodoc:
     end
     
     def method_missing(method, *args)
-      @adapter.send(method, *args) if @adapter.respond_to?(method)
+      return @adapter.send(method, *args) if @adapter.respond_to?(method)
+      super
     end
   end
   
