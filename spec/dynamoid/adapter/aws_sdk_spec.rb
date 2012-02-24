@@ -5,16 +5,16 @@ describe Dynamoid::Adapter::AwsSdk do
   
   if ENV['ACCESS_KEY'] && ENV['SECRET_KEY']
     
-    #context 'without a preexisting table' do
-    #  # CreateTable and DeleteTable
-    #  it 'performs CreateTable and DeleteTable' do
-    #    table = Dynamoid::Adapter.create_table('CreateTable', :id)
-    #
-    #    Dynamoid::Adapter.connection.tables.collect{|t| t.name}.should include 'CreateTable'
-    #
-    #    Dynamoid::Adapter.delete_table('CreateTable')
-    #  end
-    #end
+    context 'without a preexisting table' do
+      # CreateTable and DeleteTable
+      it 'performs CreateTable and DeleteTable' do
+        table = Dynamoid::Adapter.create_table('CreateTable', :id)
+
+        Dynamoid::Adapter.connection.tables.collect{|t| t.name}.should include 'CreateTable'
+
+        Dynamoid::Adapter.delete_table('CreateTable')
+      end
+    end
     
     context 'with a preexisting table' do
       before(:all) do
