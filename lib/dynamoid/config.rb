@@ -11,6 +11,9 @@ module Dynamoid #:nodoc
 
     option :adapter, :default => 'local'
     option :namespace, :default => 'dynamoid'
+    option :access_key
+    option :secret_key
+    option :warn_on_scan, :default => true
 
   end
 end

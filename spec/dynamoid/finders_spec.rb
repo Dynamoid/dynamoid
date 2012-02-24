@@ -50,7 +50,9 @@ describe "Dynamoid::Finders" do
 
       array = User.find_all_by_name('Josh')
 
-      array.should == [@user2, @user1]
+      array.size.should == 2
+      array.should include @user1
+      array.should include @user2
     end
 
     it 'finds using method_missing for multiple attributes and multiple results' do
@@ -59,7 +61,9 @@ describe "Dynamoid::Finders" do
 
       array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com')
 
-      array.should == [@user2, @user1]
+      array.size.should == 2
+      array.should include @user1
+      array.should include @user2
     end
 
     it 'finds using method_missing for multiple attributes and no results' do

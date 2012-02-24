@@ -1,6 +1,7 @@
 source "http://rubygems.org"
 gem 'activemodel'
 gem 'tzinfo'
+gem 'aws-sdk'
 
 # Add dependencies required to use your gem here.
 # Example:

@@ -32,11 +32,13 @@ module Dynamoid #:nodoc:
             if ids.nil? || ids.empty?
               []
             else
-              self.find(ids[:ids])
+              self.find(ids[:ids].to_a)
             end
           else
-            puts 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
-            puts "You can index this query by adding this to #{self.to_s.downcase}.rb: index [#{attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
+            if Dynamoid::Config.warn_on_scan
+              puts 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
+              puts "You can index this query by adding this to #{self.to_s.downcase}.rb: index [#{attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
+            end
             scan_hash = {}
             attributes.each_with_index {|attr, index| scan_hash[attr.to_sym] = args[index]}
             Dynamoid::Adapter.scan(self.table_name, scan_hash).collect {|hash| self.new(hash)}

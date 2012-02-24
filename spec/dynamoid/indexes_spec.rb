@@ -19,7 +19,7 @@ describe "Dynamoid::Indexes" do
   end
   
   it 'creates a name for a table index' do
-    User.index_table_name([:email, :name]).should == 'dynamoid_index_user_emails_and_names'
+    User.index_table_name([:email, :name]).should == 'dynamoid_tests_index_user_emails_and_names'
   end
   
   it 'creates a key name for a table index' do
@@ -43,14 +43,14 @@ describe "Dynamoid::Indexes" do
   it 'saves indexes to their tables' do
     @user = User.create(:name => 'Josh')
     
-    Dynamoid::Adapter.data["dynamoid_index_user_names"][:data].should == {@user.key_for_index([:name]) => {@user.class.index_key_name([:name]).to_sym => @user.key_for_index([:name]), :ids => [@user.id]}}
+    Dynamoid::Adapter.get_item("dynamoid_tests_index_user_names", @user.key_for_index([:name])).should == {@user.class.index_key_name([:name]).to_sym => @user.key_for_index([:name]), :ids => Set[@user.id]}
   end
   
   it 'saves multiple indexes with the same value as an array' do
     @user1 = User.create(:name => 'Josh')
     @user2 = User.create(:name => 'Josh')
     
-    Dynamoid::Adapter.data["dynamoid_index_user_names"][:data].should == {@user1.key_for_index([:name]) => {@user1.class.index_key_name([:name]).to_sym => @user1.key_for_index([:name]), :ids => [@user2.id, @user1.id]}}
+    Dynamoid::Adapter.get_item("dynamoid_tests_index_user_names", @user1.key_for_index([:name])).should == {@user1.class.index_key_name([:name]).to_sym => @user1.key_for_index([:name]), :ids => Set[@user2.id, @user1.id]}
   end
     
 end

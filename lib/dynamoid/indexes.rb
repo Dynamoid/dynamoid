@@ -50,8 +50,8 @@ module Dynamoid #:nodoc:
     def save_indexes
       self.class.indexes.each do |index|
         existing = Dynamoid::Adapter.get_item(self.class.index_table_name(index), self.key_for_index(index))
-        ids = existing[:ids] if existing
-        Dynamoid::Adapter.put_item(self.class.index_table_name(index), {self.class.index_key_name(index).to_sym => self.key_for_index(index), :ids => [[self.id] + [ids]].flatten.uniq.compact})
+        ids = existing ? existing[:ids] : Set.new
+        Dynamoid::Adapter.put_item(self.class.index_table_name(index), {self.class.index_key_name(index).to_sym => self.key_for_index(index), :ids => ids.merge([self.id])})
       end
     end
   end
