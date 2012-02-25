@@ -24,6 +24,18 @@ describe "Dynamoid::Attributes" do
     @address[:city].should == 'Chicago'
   end
   
+  it 'should update all attributes' do
+    @address.expects(:save).once.returns(true)
+    @address.update_attributes(:city => 'Chicago')
+    @address[:city].should == 'Chicago'
+  end
+  
+  it 'should update one attribute' do
+    @address.expects(:save).once.returns(true)
+    @address.update_attribute(:city, 'Chicago')
+    @address[:city].should == 'Chicago'
+  end
+  
   it 'returns all attributes' do
     Address.attributes.should == [:id, :city]
   end

@@ -18,9 +18,13 @@ module Dynamoid #:nodoc:
       end
       
       def find_by_id(id)
-        obj = self.new(Dynamoid::Adapter.get_item(self.table_name, id))
-        obj.new_record = false
-        obj    
+        if item = Dynamoid::Adapter.get_item(self.table_name, id)
+          obj = self.new(Dynamoid::Adapter.get_item(self.table_name, id))
+          obj.new_record = false
+          return obj
+        else
+          return nil
+        end
       end
       
       def method_missing(method, *args)

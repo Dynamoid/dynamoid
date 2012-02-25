@@ -17,10 +17,11 @@ module Dynamoid
       # BatchGetItem
       def batch_get_item(options)
         batch = AWS::DynamoDB::BatchGet.new(:config => @@connection.config)
-        options.each do |t, ids|
-          batch.table(t, :all, Array(ids))
-        end
         hash = Hash.new{|h, k| h[k] = []}
+        return hash if options.all?{|k, v| v.empty?}
+        options.each do |t, ids|
+          batch.table(t, :all, Array(ids)) unless ids.nil? || ids.empty?
+        end
         batch.each do |table_name, attributes|
           hash[table_name] << attributes.symbolize_keys!
         end
@@ -71,7 +72,7 @@ module Dynamoid
       def put_item(table_name, object)
         table = @@connection.tables[table_name]
         table.load_schema
-        table.items.create(object.delete_if{|k, v| v.nil?})
+        table.items.create(object.delete_if{|k, v| v.nil? || v.empty?})
       end
     
       # Query

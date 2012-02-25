@@ -20,5 +20,6 @@ module Dynamoid #:nodoc
     include Dynamoid::Indexes
     include Dynamoid::Persistence
     include Dynamoid::Finders
+    include Dynamoid::Associations
   end
 end

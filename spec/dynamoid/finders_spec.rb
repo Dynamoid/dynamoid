@@ -19,6 +19,10 @@ describe "Dynamoid::Finders" do
     found.new_record.should_not be_true
   end
   
+  it 'returns nil when nothing is found' do
+    Address.find('1234').should be_nil
+  end
+  
   it 'finds multiple ids' do
     @address2 = Address.create(:city => 'Illinois')
     
