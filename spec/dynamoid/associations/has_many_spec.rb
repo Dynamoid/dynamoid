@@ -5,6 +5,12 @@ describe "Dynamoid::Associations::HasMany" do
   before do
     @magazine = Magazine.create
   end
+  
+  it 'determines equality from its records' do
+    @subscription = @magazine.subscriptions.create
+    
+    @magazine.subscriptions.should == @subscription
+  end
 
   it 'determines target association correctly' do
     @magazine.subscriptions.send(:target_association).should == :magazine

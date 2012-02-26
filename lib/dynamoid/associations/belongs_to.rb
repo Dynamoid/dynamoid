@@ -10,11 +10,6 @@ module Dynamoid #:nodoc:
         target == other
       end
       
-      def nil?
-        records.empty?
-      end
-      alias :nil? :empty?
-      
       private
       
       def target
@@ -22,10 +17,13 @@ module Dynamoid #:nodoc:
       end
       
       def target_association
-        key_name = source.class.to_s.pluralize.downcase.to_sym
-        guess = target_class.associations[key_name]
-        return nil if guess.nil? || guess[:type] != :has_many
-        key_name
+        has_many_key_name = source.class.to_s.pluralize.downcase.to_sym
+        has_one_key_name = source.class.to_s.downcase.to_sym
+        if !target_class.associations[has_many_key_name].nil?
+          return has_many_key_name if target_class.associations[has_many_key_name][:type] == :has_many
+        elsif !target_class.associations[has_one_key_name].nil?
+          return has_one_key_name if target_class.associations[has_one_key_name][:type] == :has_one
+        end
       end
       
       def associate_target(object)

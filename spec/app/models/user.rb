@@ -8,4 +8,6 @@ class User
   index :name
   index :email
   index [:name, :email]
+  
+  has_and_belongs_to_many :subscriptions
 end

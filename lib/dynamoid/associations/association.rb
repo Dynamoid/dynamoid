@@ -15,10 +15,12 @@ module Dynamoid #:nodoc:
       def empty?
         records.empty?
       end
+      alias :nil? :empty?
       
       def size
         records.count
       end
+      alias :count :size
       
       def include?(object)
         records.include?(object)
@@ -26,13 +28,13 @@ module Dynamoid #:nodoc:
       
       def delete(object)
         source.update_attribute(source_attribute, source_ids - Array(object).collect(&:id))
-        Array(object).collect{|o| self.send(:disassociate_target, o)}
+        Array(object).collect{|o| self.send(:disassociate_target, o)} if target_association
         object
       end
       
       def <<(object)
         source.update_attribute(source_attribute, source_ids.merge(Array(object).collect(&:id)))
-        Array(object).collect{|o| self.send(:associate_target, o)}
+        Array(object).collect{|o| self.send(:associate_target, o)} if target_association
         object
       end
       

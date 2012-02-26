@@ -1,6 +1,8 @@
 require 'dynamoid/associations/association'
 require 'dynamoid/associations/has_many'
 require 'dynamoid/associations/belongs_to'
+require 'dynamoid/associations/has_one'
+require 'dynamoid/associations/has_and_belongs_to_many'
 
 # encoding: utf-8
 module Dynamoid #:nodoc:
@@ -40,6 +42,9 @@ module Dynamoid #:nodoc:
         define_method(name) do
           @associations ||= {}
           @associations[name] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
+        end
+        define_method("#{name}=".to_sym) do |objects|
+          self.send(name) << objects
         end
       end
     end

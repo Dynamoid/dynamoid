@@ -4,11 +4,17 @@ Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It provides simi
 
 ## Warning!
 
-I'm still working on this gem a lot. Associations aren't working and that's a bummer, and you can only use the old-school ActiveRecord style finders like ```find_all_by_<attribute_name>``` or directly finding by an ID.
+I'm still working on this gem a lot. You can only use the old-school ActiveRecord style finders like ```find_all_by_<attribute_name>``` or directly finding by an ID.
 
-## Usage
+## Installation
 
-Using Dynamoid is pretty simple. First you need to initialize it to get it going, so put code similar to this somewhere (a Rails initializer would be a great place for this if you're using Rails):
+Installing Dynamoid is pretty simple. First include the Gem in your Gemfile:
+
+```ruby
+gem 'dynamoid'
+```
+
+Then you need to initialize it to get it going, so put code similar to this somewhere (a Rails initializer would be a great place for this if you're using Rails):
 
 ```ruby
   Dynamoid.configure do |config|
@@ -22,21 +28,31 @@ Using Dynamoid is pretty simple. First you need to initialize it to get it going
 
 ```
 
-Inside your model:
+Once you have the configuration set up, just define models like this:
 
 ```ruby
 class User
-   include Dynamoid::Document
+   include Dynamoid::Document # Documents automatically receive an 'id' field: you don't have to specify it.
    
-   field :name
-   field :email
+   field :name           # Every field you have on the object must be specified here.
+   field :email          # If you have fields that aren't specified they won't be attached to the object as methods.
    
-   index :name
-   index :email
-   index [:name, :email]
+   index :name           # Only specify indexes if you intend to perform queries on the specified fields.
+   index :email          # Fields without indexes enjoy extremely poor performance as they must use 
+   index [:name, :email] # scan rather than query.
    
+   has_many :addresses   # Associations do not accept any options presently. The referenced
+                         # model name must match exactly and the foreign key is always id.
+   belongs_to :group     # If they detect a matching association on 
+                         # the referenced model they'll auto-update that association.
+   has_one :role         # Contrary to ActiveRecord, all associations are stored on the object,
+                         # even if it seems like they'd be a foreign key association.
+   has_and_belongs_to_many :friends
+                         # There's no concept of embedding models yet but it's coming!
 end
 ```
+
+### Usage
 
 Right now, you can only do a couple things with this amazing functionality:
 
@@ -45,9 +61,13 @@ u = User.new(:name => 'Josh')
 u.email = 'josh@joshsymonds.com'
 u.save
 
+address = u.addresses.create
+address.city = 'Chicago'
+address.save
+
 u == User.find(u.id)
 u == User.find_by_name('Josh')
-u == User.find_by_name_and_email('Josh','josh@joshsymonds.com')
+u.addresses == User.find_by_name_and_email('Josh','josh@joshsymonds.com').addresses
 ```
 
 Not super exciting yet, true... but it's getting there!
