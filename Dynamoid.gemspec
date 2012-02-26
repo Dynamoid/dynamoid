@@ -4,12 +4,12 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = "Dynamoid"
-  s.version = "0.0.1"
+  s.name = "dynamoid"
+  s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Josh Symonds"]
-  s.date = "2012-02-24"
+  s.date = "2012-02-26"
   s.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   s.email = "josh@joshsymonds.com"
   s.extra_rdoc_files = [
@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.files = [
     ".document",
     ".rspec",
+    "Dynamoid.gemspec",
     "Gemfile",
     "Gemfile.lock",
     "LICENSE.txt",
@@ -29,6 +30,12 @@ Gem::Specification.new do |s|
     "lib/dynamoid/adapter.rb",
     "lib/dynamoid/adapter/aws_sdk.rb",
     "lib/dynamoid/adapter/local.rb",
+    "lib/dynamoid/associations.rb",
+    "lib/dynamoid/associations/association.rb",
+    "lib/dynamoid/associations/belongs_to.rb",
+    "lib/dynamoid/associations/has_and_belongs_to_many.rb",
+    "lib/dynamoid/associations/has_many.rb",
+    "lib/dynamoid/associations/has_one.rb",
     "lib/dynamoid/attributes.rb",
     "lib/dynamoid/components.rb",
     "lib/dynamoid/config.rb",
@@ -41,10 +48,19 @@ Gem::Specification.new do |s|
     "lib/dynamoid/persistence.rb",
     "lib/dynamoid/relations.rb",
     "spec/app/models/address.rb",
+    "spec/app/models/magazine.rb",
+    "spec/app/models/sponsor.rb",
+    "spec/app/models/subscription.rb",
     "spec/app/models/user.rb",
     "spec/dynamoid/adapter/aws_sdk_spec.rb",
     "spec/dynamoid/adapter/local_spec.rb",
     "spec/dynamoid/adapter_spec.rb",
+    "spec/dynamoid/associations/association_spec.rb",
+    "spec/dynamoid/associations/belongs_to_spec.rb",
+    "spec/dynamoid/associations/has_and_belongs_to_many_spec.rb",
+    "spec/dynamoid/associations/has_many_spec.rb",
+    "spec/dynamoid/associations/has_one_spec.rb",
+    "spec/dynamoid/associations_spec.rb",
     "spec/dynamoid/attributes_spec.rb",
     "spec/dynamoid/document_spec.rb",
     "spec/dynamoid/fields_spec.rb",
