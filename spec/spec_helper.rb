@@ -19,6 +19,8 @@ Dynamoid.configure do |config|
   config.warn_on_scan = false
 end
 
+Dynamoid.logger.level = Logger::FATAL
+
 # Requires supporting files with custom matchers and macros, etc,
 # in ./support/ and its subdirectories.
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}

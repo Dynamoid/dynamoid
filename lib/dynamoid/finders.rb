@@ -41,8 +41,8 @@ module Dynamoid #:nodoc:
             end
           else
             if Dynamoid::Config.warn_on_scan
-              puts 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
-              puts "You can index this query by adding this to #{self.to_s.downcase}.rb: index [#{attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
+              Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
+              Dynamoid.logger.warn "You can index this query by adding this to #{self.to_s.downcase}.rb: index [#{attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
             end
             scan_hash = {}
             attributes.each_with_index {|attr, index| scan_hash[attr.to_sym] = args[index]}

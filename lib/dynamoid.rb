@@ -24,9 +24,13 @@ module Dynamoid
   extend self
   
   def configure
-    block_given? ? yield(Config) : Config
+    block_given? ? yield(Dynamoid::Config) : Dynamoid::Config
     Dynamoid::Adapter.reconnect!
   end
   alias :config :configure
+  
+  def logger
+    Dynamoid::Config.logger
+  end
   
 end
