@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "dynamoid"
-  s.version = "0.0.2"
+  s.version = "0.0.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Josh Symonds"]
@@ -62,6 +62,7 @@ Gem::Specification.new do |s|
     "spec/dynamoid/associations/has_one_spec.rb",
     "spec/dynamoid/associations_spec.rb",
     "spec/dynamoid/attributes_spec.rb",
+    "spec/dynamoid/config_spec.rb",
     "spec/dynamoid/document_spec.rb",
     "spec/dynamoid/fields_spec.rb",
     "spec/dynamoid/finders_spec.rb",
