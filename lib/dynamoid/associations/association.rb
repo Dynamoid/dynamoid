@@ -38,6 +38,12 @@ module Dynamoid #:nodoc:
         object
       end
       
+      def setter(object)
+        source.update_attribute(source_attribute, Array(object).collect(&:id))
+        Array(object).collect{|o| self.send(:associate_target, o)} if target_association
+        object
+      end
+      
       def create(attributes = {})
         object = target_class.create(attributes)
         self << object

@@ -44,7 +44,9 @@ module Dynamoid #:nodoc:
           @associations[name] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
         end
         define_method("#{name}=".to_sym) do |objects|
-          self.send(name) << objects
+          @associations ||= {}
+          @associations[name] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
+          @associations[name].setter(objects)
         end
       end
     end

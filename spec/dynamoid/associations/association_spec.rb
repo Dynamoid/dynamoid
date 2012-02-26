@@ -67,5 +67,16 @@ describe "Dynamoid::Associations::Association" do
     @subscription.should_not respond_to :sponsors_ids
     @subscription.should_not respond_to :sponsor_ids
   end
+  
+  it 'deletes all items from the association' do
+    @magazine.subscriptions << Subscription.create
+    @magazine.subscriptions << Subscription.create
+    @magazine.subscriptions << Subscription.create
+    
+    @magazine.subscriptions.size.should == 3
+    
+    @magazine.subscriptions = nil
+    @magazine.subscriptions.size.should == 0
+  end
 
 end

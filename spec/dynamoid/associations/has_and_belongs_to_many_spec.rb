@@ -26,5 +26,15 @@ describe "Dynamoid::Associations::HasAndBelongsToMany" do
     
     @user.subscriptions.size.should == 1
     @user.subscriptions.should include @subscription
+    @subscription.users.size.should == 1
+    @subscription.users.should include @user
+  end
+  
+  it 'disassociates has_and_belongs_to_many automatically' do
+    @user = @subscription.users.create
+    
+    @subscription.users.delete(@user)
+    @subscription.users.size.should == 0
+    @user.subscriptions.size.should == 0
   end
 end
