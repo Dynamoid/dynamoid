@@ -52,7 +52,7 @@ class User
 end
 ```
 
-### Usage
+## Usage
 
 Dynamoid's syntax is very similar to ActiveRecord's.
 
