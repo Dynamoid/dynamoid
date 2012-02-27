@@ -4,7 +4,7 @@ Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It provides simi
 
 ## Warning!
 
-I'm still working on this gem a lot. You can only use the old-school ActiveRecord style finders like ```find_all_by_<attribute_name>``` or directly finding by an ID.
+I'm still working on this gem a lot. It only provides .where(arguments) in its criteria chaining so far. More is coming though!
 
 ## Installation
 
@@ -14,11 +14,11 @@ Installing Dynamoid is pretty simple. First include the Gem in your Gemfile:
 gem 'dynamoid'
 ```
 
-Then you need to initialize it to get it going, so put code similar to this somewhere (a Rails initializer would be a great place for this if you're using Rails):
+Then you need to initialize it to get it going. Put code similar to this somewhere (a Rails initializer would be a great place for this if you're using Rails):
 
 ```ruby
   Dynamoid.configure do |config|
-    config.adapter = 'local' # This adapter allows offline development without connecting to the DynamoDB servers.
+    config.adapter = 'local' # This adapter allows offline development without connecting to the DynamoDB servers. Data is NOT persisted.
     # config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using's Amazon's own awful AWS gem.
     # config.access_key = 'access_key' # If connecting to DynamoDB, your access key is required.
     # config.secret_key = 'secret_key' # So is your secret key. 
@@ -54,23 +54,35 @@ end
 
 ### Usage
 
-Right now, you can only do a couple things with this amazing functionality:
+Dynamoid's syntax is very similar to ActiveRecord's.
 
 ```ruby
 u = User.new(:name => 'Josh')
 u.email = 'josh@joshsymonds.com'
 u.save
+```
 
+Save forces persistence to the datastore: a unique ID is also assigned, but it is a string and not an auto-incrementing number.
+
+```ruby
+u.id # => "3a9f7216-4726-4aea-9fbc-8554ae9292cb"
+```
+
+Along with persisting the model's attributes, indexes are automatically updated on save. To use associations, you use association methods very similar to ActiveRecord's:
+
+```ruby
 address = u.addresses.create
 address.city = 'Chicago'
 address.save
-
-u == User.find(u.id)
-u == User.find_by_name('Josh')
-u.addresses == User.find_by_name_and_email('Josh','josh@joshsymonds.com').addresses
 ```
 
-Not super exciting yet, true... but it's getting there!
+Querying can be done in one of three ways:
+
+```ruby
+Address.find(address.id)              # Find directly by ID.
+Address.where(:city => 'Chicago').all # Find by any number of matching criteria... though presently only "where" is supported.
+Address.find_by_city('Chicago')       # The same as above, but using ActiveRecord's older syntax.
+```
 
 ## Credits
 

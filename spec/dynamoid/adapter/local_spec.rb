@@ -135,6 +135,14 @@ describe Dynamoid::Adapter::Local do
     
       Dynamoid::Adapter.scan('Test Table', :name => 'Josh').should == [{ :id=> '1', :name=>"Josh" }, { :id=> '2', :name=>"Josh" }]
     end
+    
+    it 'performs scan on a table and returns all items if no criteria are specified' do
+      Dynamoid::Adapter.create_table('Test Table', :id)
+      Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Josh'})
+      Dynamoid::Adapter.put_item('Test Table', {:id => '2', :name => 'Josh'})
+    
+      Dynamoid::Adapter.scan('Test Table', {}).should == [{ :id=> '1', :name=>"Josh" }, { :id=> '2', :name=>"Josh" }]
+    end
   
     # UpdateItem
   

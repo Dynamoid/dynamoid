@@ -111,6 +111,14 @@ describe Dynamoid::Adapter::AwsSdk do
         Dynamoid::Adapter.scan('dynamoid_tests_TestTable1', :name => 'Josh').should == [{:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"}] 
       end
       
+      it 'performs scan on a table and returns all items if no criteria are specified' do
+        Dynamoid::Adapter.put_item('dynamoid_tests_TestTable1', {:id => '1', :name => 'Josh'})
+        Dynamoid::Adapter.put_item('dynamoid_tests_TestTable1', {:id => '2', :name => 'Josh'})
+
+        Dynamoid::Adapter.scan('dynamoid_tests_TestTable1', {}).should == [{:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"}] 
+      end
+      
+      
     end
     
     # DescribeTable

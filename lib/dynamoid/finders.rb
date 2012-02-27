@@ -31,29 +31,17 @@ module Dynamoid #:nodoc:
         if method =~ /find/
           finder = method.to_s.split('_by_').first
           attributes = method.to_s.split('_by_').last.split('_and_')
-          
-          results = if index = self.indexes.find {|i| i == attributes.sort.collect(&:to_sym)}
-            ids = Dynamoid::Adapter.get_item(self.index_table_name(index), self.key_for_index(index, args))
-            if ids.nil? || ids.empty?
-              []
-            else
-              self.find(ids[:ids].to_a)
-            end
-          else
-            if Dynamoid::Config.warn_on_scan
-              Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
-              Dynamoid.logger.warn "You can index this query by adding this to #{self.to_s.downcase}.rb: index [#{attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
-            end
-            scan_hash = {}
-            attributes.each_with_index {|attr, index| scan_hash[attr.to_sym] = args[index]}
-            Dynamoid::Adapter.scan(self.table_name, scan_hash).collect {|hash| self.new(hash)}
-          end
+
+          chain = Dynamoid::Criteria::Chain.new(self)
+          chain.query = Hash.new.tap {|h| attributes.each_with_index {|attr, index| h[attr.to_sym] = args[index]}}
           
           if finder =~ /all/
-            return Array(results)
+            return chain.all
           else
-            return results.first
+            return chain.first
           end
+        else
+          super
         end
       end
     end

@@ -85,9 +85,8 @@ module Dynamoid
         table = @@connection.tables[table_name]
         table.load_schema
         results = []
-        table.items.select do |data|
-          attributes = data.attributes.symbolize_keys!
-          results << attributes if scan_hash.all?{|k, v| !attributes[k].nil? && attributes[k] == v}
+        table.items.where(scan_hash).select do |data|
+          results << data.attributes.symbolize_keys!
         end
         results
       end

@@ -21,5 +21,6 @@ module Dynamoid #:nodoc
     include Dynamoid::Persistence
     include Dynamoid::Finders
     include Dynamoid::Associations
+    include Dynamoid::Criteria
   end
 end
