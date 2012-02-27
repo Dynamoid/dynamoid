@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "dynamoid"
-  s.version = "0.0.3"
+  s.version = "0.0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Josh Symonds"]
-  s.date = "2012-02-26"
+  s.date = "2012-02-27"
   s.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   s.email = "josh@joshsymonds.com"
   s.extra_rdoc_files = [
@@ -40,6 +40,8 @@ Gem::Specification.new do |s|
     "lib/dynamoid/components.rb",
     "lib/dynamoid/config.rb",
     "lib/dynamoid/config/options.rb",
+    "lib/dynamoid/criteria.rb",
+    "lib/dynamoid/criteria/chain.rb",
     "lib/dynamoid/document.rb",
     "lib/dynamoid/errors.rb",
     "lib/dynamoid/fields.rb",
@@ -63,6 +65,8 @@ Gem::Specification.new do |s|
     "spec/dynamoid/associations_spec.rb",
     "spec/dynamoid/attributes_spec.rb",
     "spec/dynamoid/config_spec.rb",
+    "spec/dynamoid/criteria/chain_spec.rb",
+    "spec/dynamoid/criteria_spec.rb",
     "spec/dynamoid/document_spec.rb",
     "spec/dynamoid/fields_spec.rb",
     "spec/dynamoid/finders_spec.rb",
