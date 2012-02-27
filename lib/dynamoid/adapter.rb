@@ -19,7 +19,7 @@ module Dynamoid #:nodoc:
       if @adapter.respond_to?(method)
         start = Time.now
         result = @adapter.send(method, *args)
-        Dynamoid.logger.info "((#{((Time.now - start) * 1000.0).round(2)} ms) #{method.to_s.split('_').collect(&:upcase).join(' ')}#{ " - #{args.join(',')}" unless args.empty? }"
+        Dynamoid.logger.info "(#{((Time.now - start) * 1000.0).round(2)} ms) #{method.to_s.split('_').collect(&:upcase).join(' ')}#{ " - #{args.join(',')}" unless args.empty? }"
         return result
       end
       super

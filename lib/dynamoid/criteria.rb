@@ -9,9 +9,13 @@ module Dynamoid #:nodoc:
     
     module ClassMethods
       [:where, :all, :first, :each].each do |meth|
-        define_method(meth) do |opts|
+        define_method(meth) do |*args|
           chain = Dynamoid::Criteria::Chain.new(self)
-          chain.send(meth, opts)
+          if args
+            chain.send(meth, *args)
+          else
+            chain.send(meth)
+          end
         end
       end
     end

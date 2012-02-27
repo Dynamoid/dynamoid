@@ -14,5 +14,9 @@ describe "Dynamoid::Criteria" do
   it 'finds all using where' do
     User.where(:name => 'Josh').all.should == [@user1]
   end
+  
+  it 'returns all records' do
+    User.all.should == [@user1, @user2]
+  end
 
 end
