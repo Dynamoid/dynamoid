@@ -3,7 +3,8 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe "Dynamoid::Attributes" do
 
   before do
-    @address = Address.new
+    @address = Address.create
+    @original_id = @address.id
   end
 
   it 'should write an attribute correctly' do
@@ -28,12 +29,14 @@ describe "Dynamoid::Attributes" do
     @address.expects(:save).once.returns(true)
     @address.update_attributes(:city => 'Chicago')
     @address[:city].should == 'Chicago'
+    @address.id.should == @original_id
   end
   
   it 'should update one attribute' do
     @address.expects(:save).once.returns(true)
     @address.update_attribute(:city, 'Chicago')
     @address[:city].should == 'Chicago'
+    @address.id.should == @original_id
   end
   
   it 'returns all attributes' do

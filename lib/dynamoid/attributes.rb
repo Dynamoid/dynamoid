@@ -18,7 +18,7 @@ module Dynamoid #:nodoc:
     alias :[] :read_attribute
     
     def update_attributes(attributes)
-      self.attributes = attributes
+      self.attributes = self.attributes.merge(attributes)
       save
     end
     
