@@ -8,13 +8,16 @@ module Dynamoid #:nodoc:
     include Dynamoid::Components
 
     attr_accessor :new_record
-    alias :persisted? :new_record 
     alias :new_record? :new_record
     
     def initialize(attrs = {})
       @new_record = true
       @attributes ||= {}
       self.class.attributes.each {|att| write_attribute(att, attrs[att])}
+    end
+    
+    def persisted?
+      !new_record?
     end
     
     def ==(other)
