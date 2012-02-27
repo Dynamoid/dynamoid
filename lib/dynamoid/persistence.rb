@@ -12,9 +12,22 @@ module Dynamoid #:nodoc:
     end
     
     def save
-      self.id = SecureRandom.uuid if self.id.nil? || self.id.blank?
-      Dynamoid::Adapter.put_item(self.class.table_name, self.attributes)
-      save_indexes
+      run_callbacks(:save) do
+        self.id = SecureRandom.uuid if self.id.nil? || self.id.blank?
+        Dynamoid::Adapter.put_item(self.class.table_name, self.attributes)
+        save_indexes
+      end
+    end
+    
+    def destroy
+      run_callbacks(:destroy) do
+        self.delete
+      end
+    end
+    
+    def delete
+      delete_indexes
+      Dynamoid::Adapter.delete_item(self.class.table_name, self.id)
     end
     
     module ClassMethods

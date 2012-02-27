@@ -51,5 +51,12 @@ describe "Dynamoid::Persistence" do
     @user.expects(:save_indexes).once.returns(true)
     @user.save
   end
+  
+  it 'deletes an item completely' do
+    @user = User.create(:name => 'Josh')
+    @user.destroy
+    
+    Dynamoid::Adapter.get_item("dynamoid_tests_users", @user.id).should be_nil
+  end
 
 end

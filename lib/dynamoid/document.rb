@@ -27,7 +27,9 @@ module Dynamoid #:nodoc:
     module ClassMethods
       def create(attrs = {})
         obj = self.new(attrs)
-        obj.save && obj.new_record = false
+        obj.run_callbacks(:create) do
+          obj.save && obj.new_record = false
+        end
         obj
       end
       

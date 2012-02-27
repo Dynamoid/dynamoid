@@ -7,6 +7,9 @@ module Dynamoid #:nodoc
     # module, to keep the document class from getting too cluttered.
     included do
       extend ActiveModel::Translation
+      extend ActiveModel::Callbacks
+
+      define_model_callbacks :create, :save, :destroy
     end
 
     include ActiveModel::Conversion
