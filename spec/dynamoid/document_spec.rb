@@ -25,7 +25,9 @@ describe "Dynamoid::Document" do
   end
   
   it 'tests equivalency with itself' do
-    @addres.should == @address
+    @address = Address.create(:city => 'Chicago')
+    
+    @address.should == @address
   end
   
   it 'is not equivalent to another document' do
@@ -33,6 +35,14 @@ describe "Dynamoid::Document" do
   end
   
   it 'is not equivalent to another object' do
+    @address = Address.create(:city => 'Chicago')
     @address.should_not == "test"
+  end
+  
+  it 'gets errors courtesy of ActiveModel' do
+    @address = Address.create(:city => 'Chicago')
+    
+    @address.errors.should be_empty
+    @address.errors.full_messages.should be_empty
   end
 end

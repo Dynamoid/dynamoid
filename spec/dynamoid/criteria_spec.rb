@@ -18,5 +18,14 @@ describe "Dynamoid::Criteria" do
   it 'returns all records' do
     User.all.should == [@user1, @user2]
   end
+  
+  it 'returns empty attributes for where' do
+    Magazine.where(:name => 'Josh').all.should == []
+  end
+  
+  it 'returns empty attributes for all' do
+    Magazine.all.should == []
+  end
+  
 
 end
