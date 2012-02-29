@@ -5,6 +5,7 @@ module Dynamoid #:nodoc:
   module Associations
     module Association
       attr_accessor :name, :options, :source, :query
+      include Enumerable
 
       def initialize(source, name, options)
         @name = name
@@ -61,6 +62,10 @@ module Dynamoid #:nodoc:
       def where(args)
         args.each {|k, v| query[k] = v}
         self
+      end
+      
+      def each(&block)
+        records.each(&block)
       end
       
       private

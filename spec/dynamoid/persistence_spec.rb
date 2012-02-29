@@ -27,7 +27,6 @@ describe "Dynamoid::Persistence" do
     end
   end
   
-  
   it 'assigns itself an id on save' do
     @address.save
     

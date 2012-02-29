@@ -92,5 +92,13 @@ describe "Dynamoid::Associations::Association" do
     
     @magazine.subscriptions.where(:length => 6).all.should be_empty
   end
+  
+  it 'includes enumerable' do
+    @subscription1 = @magazine.subscriptions.create
+    @subscription2 = @magazine.subscriptions.create
+    @subscription3 = @magazine.subscriptions.create
+    
+    @magazine.subscriptions.collect(&:id).should =~ [@subscription1.id, @subscription2.id, @subscription3.id]
+  end
 
 end

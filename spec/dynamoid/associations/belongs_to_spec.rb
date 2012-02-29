@@ -23,6 +23,14 @@ describe "Dynamoid::Associations::BelongsTo" do
       @magazine.subscriptions.size.should == 1
       @magazine.subscriptions.should include @subscription
     end
+    
+    it 'behaves like the object it is trying to be' do
+      @magazine = @subscription.magazine.create
+
+      @subscription.magazine.update_attribute(:title, 'Test Title')
+
+      Magazine.first.title.should == 'Test Title'
+    end
   end
   
   context 'has one' do
