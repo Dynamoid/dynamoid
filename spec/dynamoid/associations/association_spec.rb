@@ -78,5 +78,19 @@ describe "Dynamoid::Associations::Association" do
     @magazine.subscriptions = nil
     @magazine.subscriptions.size.should == 0
   end
+  
+  it 'uses where inside an association and returns a result' do
+    @included_subscription = @magazine.subscriptions.create(:length => 10)
+    @unincldued_subscription = @magazine.subscriptions.create(:length => 8)
+    
+    @magazine.subscriptions.where(:length => 10).all.should == [@included_subscription]
+  end
+  
+  it 'uses where inside an association and returns an empty set' do
+    @included_subscription = @magazine.subscriptions.create(:length => 10)
+    @unincldued_subscription = @magazine.subscriptions.create(:length => 8)
+    
+    @magazine.subscriptions.where(:length => 6).all.should be_empty
+  end
 
 end

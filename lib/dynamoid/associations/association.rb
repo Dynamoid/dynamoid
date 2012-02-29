@@ -4,13 +4,22 @@ module Dynamoid #:nodoc:
   # The base association module.
   module Associations
     module Association
-      attr_accessor :name, :options, :source
+      attr_accessor :name, :options, :source, :query
 
       def initialize(source, name, options)
         @name = name
         @options = options
         @source = source
+        @query = {}
       end
+      
+      def records
+        results = target_class.find(source_ids.to_a)
+        results = results.nil? ? [] : Array(results)
+        return results if query.empty?
+        results_with_query(results)
+      end
+      alias :all :records
       
       def empty?
         records.empty?
@@ -49,11 +58,19 @@ module Dynamoid #:nodoc:
         self << object
       end
       
+      def where(args)
+        args.each {|k, v| query[k] = v}
+        self
+      end
+      
       private
       
-      def records
-        results = target_class.find(source_ids.to_a)
-        results.nil? ? [] : Array(results)
+      def results_with_query(results)
+        results.find_all do |result|
+          query.all? do |attribute, value|
+            result.send(attribute) == value
+          end
+        end
       end
       
       def target_class
