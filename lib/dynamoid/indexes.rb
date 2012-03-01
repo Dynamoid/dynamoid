@@ -16,7 +16,7 @@ module Dynamoid #:nodoc:
     module ClassMethods
       def index(name, options = {})
         name = Array(name).collect(&:to_s).sort.collect(&:to_sym)
-        raise Dynamoid::Errors::InvalidField, 'A key specified for an index is not a field' unless name.all?{|n| self.fields.include?(n)}
+        raise Dynamoid::Errors::InvalidField, 'A key specified for an index is not a field' unless name.all?{|n| self.attributes.include?(n)}
         self.indexes << name
         create_indexes
       end

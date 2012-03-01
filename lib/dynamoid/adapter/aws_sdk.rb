@@ -72,7 +72,7 @@ module Dynamoid
       def put_item(table_name, object)
         table = @@connection.tables[table_name]
         table.load_schema
-        table.items.create(object.delete_if{|k, v| v.nil? || v.empty?})
+        table.items.create(object.delete_if{|k, v| v.nil? || (v.respond_to?(:empty?) && v.empty?)})
       end
     
       # Query

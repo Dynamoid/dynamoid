@@ -54,7 +54,7 @@ module Dynamoid
       # PutItem
       def put_item(table_name, object)
         table = data[table_name]
-        table[:data][object[table[:id]]] = object
+        table[:data][object[table[:id]]] = object.delete_if{|k, v| v.nil? || (v.respond_to?(:empty?) && v.empty?)}
       end
     
       # Query

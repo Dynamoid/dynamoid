@@ -6,7 +6,7 @@ describe "Dynamoid::Document" do
     @address = Address.new
     
     @address.new_record.should be_true
-    @address.attributes.should == {:id => nil, :city => nil}
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil}
   end
   
   it 'initializes a new document with attributes' do
@@ -14,7 +14,7 @@ describe "Dynamoid::Document" do
     
     @address.new_record.should be_true
     
-    @address.attributes.should == {:id => nil, :city => 'Chicago'}
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago"}
   end
   
   it 'creates a new document' do
@@ -44,5 +44,14 @@ describe "Dynamoid::Document" do
     
     @address.errors.should be_empty
     @address.errors.full_messages.should be_empty
+  end
+  
+  it 'reloads itself and sees persisted changes' do
+    @address = Address.create
+    
+    Address.first.update_attributes(:city => 'Chicago')
+    
+    @address.city.should be_nil
+    @address.reload.city.should == 'Chicago'
   end
 end

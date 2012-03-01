@@ -55,7 +55,7 @@ describe "Dynamoid::Indexes" do
     @user = User.create(:name => 'Josh')
     @user.destroy
     
-    Dynamoid::Adapter.get_item("dynamoid_tests_index_user_names", @user.key_for_index([:name])).should == {@user.class.index_key_name([:name]).to_sym => @user.key_for_index([:name]), :ids => Set.new}
+    Dynamoid::Adapter.get_item("dynamoid_tests_index_user_names", @user.key_for_index([:name])).should == {@user.class.index_key_name([:name]).to_sym => @user.key_for_index([:name])}
   end
     
 end

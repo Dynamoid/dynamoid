@@ -10,6 +10,9 @@ module Dynamoid #:nodoc
       extend ActiveModel::Callbacks
 
       define_model_callbacks :create, :save, :destroy
+      
+      before_create :set_created_at
+      before_save :set_updated_at
     end
 
     include ActiveModel::Conversion
@@ -19,7 +22,6 @@ module Dynamoid #:nodoc
     include ActiveModel::Validations
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml
-    include Dynamoid::Attributes
     include Dynamoid::Fields
     include Dynamoid::Indexes
     include Dynamoid::Persistence

@@ -57,5 +57,35 @@ describe "Dynamoid::Persistence" do
     
     Dynamoid::Adapter.get_item("dynamoid_tests_users", @user.id).should be_nil
   end
+  
+  it 'keeps string attributes as strings' do
+    @user = User.new(:name => 'Josh')
+    @user.send(:dump)[:name].should == 'Josh'
+  end
+  
+  it 'dumps datetime attributes' do
+    @user = User.create(:name => 'Josh')
+    @user.send(:dump)[:name].should == 'Josh'
+  end
+  
+  it 'dumps integer attributes' do
+    @subscription = Subscription.create(:length => 10)
+    @subscription.send(:dump)[:length].should == 10
+  end
+  
+  it 'dumps set attributes' do
+    @subscription = Subscription.create(:length => 10)
+    @magazine = @subscription.magazine.create
+    
+    @subscription.send(:dump)[:magazine_ids].should == Set[@magazine.id]
+  end
+  
+  it 'loads attributes from a hash' do
+    @time = DateTime.now
+    @hash = {:name => 'Josh', :created_at => @time.to_s}
+    
+    User.undump(@hash)[:name].should == 'Josh'
+    User.undump(@hash)[:created_at].to_i == @time.to_i
+  end
 
 end

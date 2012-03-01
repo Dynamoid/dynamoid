@@ -9,7 +9,6 @@ require "active_support/time_with_zone"
 require "active_model"
 
 require 'dynamoid/errors'
-require 'dynamoid/attributes'
 require 'dynamoid/fields'
 require 'dynamoid/indexes'
 require 'dynamoid/associations'

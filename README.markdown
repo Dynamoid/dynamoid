@@ -2,6 +2,10 @@
 
 Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It provides similar functionality to ActiveRecord and improves on Amazon's existing [HashModel](http://docs.amazonwebservices.com/AWSRubySDK/latest/AWS/Record/HashModel.html) by providing better searching tools, native association support, and a local adapter for offline development.
 
+DynamoDB is not like other document-based databases you might know, and is very different indeed from relational databases. It sacrifices anything beyond the simplest relational queries and transactional support to provide a fast, cost-efficient, and highly durable storage solution. If your database requires complicated relational queries and transaction support, then this modest Gem cannot provide them for you, and neither can DynamoDB. In those cases you would do better to look elsewhere for your database needs.
+
+But if you want a fast, scalable, simple, easy-to-use database (and a Gem that supports it) then look no further!
+
 ## Warning!
 
 I'm still working on this gem a lot. It only provides .where(arguments) in its criteria chaining so far. More is coming though!
@@ -18,12 +22,12 @@ Then you need to initialize it to get it going. Put code similar to this somewhe
 
 ```ruby
   Dynamoid.configure do |config|
-    config.adapter = 'local' # This adapter allows offline development without connecting to the DynamoDB servers. Data is NOT persisted.
-    # config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using's Amazon's own awful AWS gem.
+    config.adapter = 'local' # This adapter allows offline development without connecting to the DynamoDB servers. Data is *NOT* persisted.
+    # config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using's Amazon's own AWS gem.
     # config.access_key = 'access_key' # If connecting to DynamoDB, your access key is required.
     # config.secret_key = 'secret_key' # So is your secret key. 
     config.namespace = "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" # To namespace tables created by Dynamoid from other tables you might have.
-    config.warn_on_scan = true # Output a warning to stdout when you perform a scan rather than a query on a table
+    config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table
   end
 
 ```
@@ -36,9 +40,12 @@ class User
    
    field :name           # Every field you have on the object must be specified here.
    field :email          # If you have fields that aren't specified they won't be attached to the object as methods.
+   field :rank, :integer # Every field is assumed to be a string unless otherwise specified.
+                         # created_at and updated_at with a type of :datetime are automatically added.
+                         # So is ID with a type of :string.
    
    index :name           # Only specify indexes if you intend to perform queries on the specified fields.
-   index :email          # Fields without indexes enjoy extremely poor performance as they must use 
+   index :email          # Fields without indexes suffer extremely poor performance as they must use 
    index [:name, :email] # scan rather than query.
    
    has_many :addresses   # Associations do not accept any options presently. The referenced
@@ -83,6 +90,14 @@ Address.find(address.id)              # Find directly by ID.
 Address.where(:city => 'Chicago').all # Find by any number of matching criteria... though presently only "where" is supported.
 Address.find_by_city('Chicago')       # The same as above, but using ActiveRecord's older syntax.
 ```
+
+And you can also query on associations:
+
+```ruby
+u.addresses.where(:city => 'Chicago').all
+```
+
+But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.
 
 ## Credits
 

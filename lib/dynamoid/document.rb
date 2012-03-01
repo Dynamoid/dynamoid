@@ -6,22 +6,20 @@ module Dynamoid #:nodoc:
   module Document
     extend ActiveSupport::Concern
     include Dynamoid::Components
-
-    attr_accessor :new_record
-    alias :new_record? :new_record
     
     def initialize(attrs = {})
       @new_record = true
       @attributes ||= {}
-      self.class.attributes.each {|att| write_attribute(att, attrs[att])}
-    end
-    
-    def persisted?
-      !new_record?
+      attrs = self.class.undump(attrs)
+      self.class.attributes.keys.each {|att| write_attribute(att, attrs[att])}
     end
     
     def ==(other)
       other.respond_to?(:id) && other.id == self.id
+    end
+    
+    def reload
+      self.class.find(self.id)
     end
     
     module ClassMethods

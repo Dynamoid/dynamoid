@@ -27,5 +27,8 @@ describe "Dynamoid::Criteria" do
     Magazine.all.should == []
   end
   
+  it 'passes each to all members' do
+    User.each{|u| u.id.should == @user1.id || @user2.id}
+  end
 
 end
