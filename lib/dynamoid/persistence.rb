@@ -16,7 +16,7 @@ module Dynamoid #:nodoc:
       end
       
       def create_table(table_name, id = :id)
-        Dynamoid::Adapter.create_table(table_name, id.to_sym)
+        Dynamoid::Adapter.tables << table_name if Dynamoid::Adapter.create_table(table_name, id.to_sym)
       end
       
       def table_exists?(table_name)

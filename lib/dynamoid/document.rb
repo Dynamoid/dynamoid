@@ -37,8 +37,9 @@ module Dynamoid #:nodoc:
     end
     
     def reload
-      self.class.find(self.id)
-    end    
+      self.attributes = self.class.find(self.id).attributes
+      self
+    end
   end
   
 end
