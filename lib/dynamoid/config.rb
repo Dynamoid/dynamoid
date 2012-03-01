@@ -15,6 +15,7 @@ module Dynamoid #:nodoc
     option :access_key
     option :secret_key
     option :warn_on_scan, :default => true
+    option :included_models, :default => []
     
     def default_logger
       defined?(Rails) && Rails.respond_to?(:logger) ? Rails.logger : ::Logger.new($stdout)

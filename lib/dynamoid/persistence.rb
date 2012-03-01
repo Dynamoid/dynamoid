@@ -20,7 +20,7 @@ module Dynamoid #:nodoc:
       end
       
       def table_exists?(table_name)
-        Dynamoid::Adapter.list_tables.include?(table_name)
+        Dynamoid::Adapter.tables.include?(table_name)
       end
       
       def undump(incoming = {})

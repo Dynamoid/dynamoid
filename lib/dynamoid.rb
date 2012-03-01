@@ -33,4 +33,8 @@ module Dynamoid
     Dynamoid::Config.logger
   end
   
+  def included_models
+    @included_models ||= []
+  end
+  
 end

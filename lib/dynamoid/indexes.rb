@@ -1,5 +1,3 @@
-require 'digest/sha2'
-
 # encoding: utf-8
 module Dynamoid #:nodoc:
 
@@ -36,10 +34,7 @@ module Dynamoid #:nodoc:
       end
       
       def key_for_index(index, values = [])
-        values = values.collect(&:to_s).sort
-        Digest::SHA2.new.tap do |sha|
-          index.each_with_index {|i, index| sha << values[index] if values[index]}
-        end.to_s
+        values = values.collect(&:to_s).sort.join('.')
       end
     end
     

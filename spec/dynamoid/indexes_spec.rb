@@ -26,16 +26,10 @@ describe "Dynamoid::Indexes" do
     User.index_key_name([:email, :name]).should == 'user_emails_and_names'
   end
   
-  it 'creates a table after an index is created' do
-    User.send(:index, :password)
-    
-    User.table_exists?(User.index_table_name([:password])).should be_true
-  end
-  
   it 'assembles a hashed value for the key of an index' do
     @user = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
     
-    @user.key_for_index([:email, :name]).should == (Digest::SHA2.new << 'Josh' << 'josh@joshsymonds.com').to_s
+    @user.key_for_index([:email, :name]).should == "Josh.josh@joshsymonds.com"
   end
   
   it 'saves indexes to their tables' do

@@ -7,19 +7,8 @@ module Dynamoid #:nodoc:
     extend ActiveSupport::Concern
     include Dynamoid::Components
     
-    def initialize(attrs = {})
-      @new_record = true
-      @attributes ||= {}
-      attrs = self.class.undump(attrs)
-      self.class.attributes.keys.each {|att| write_attribute(att, attrs[att])}
-    end
-    
-    def ==(other)
-      other.respond_to?(:id) && other.id == self.id
-    end
-    
-    def reload
-      self.class.find(self.id)
+    included do
+      Dynamoid::Config.included_models << self
     end
     
     module ClassMethods
@@ -35,6 +24,21 @@ module Dynamoid #:nodoc:
         self.new(attrs)
       end
     end
+    
+    def initialize(attrs = {})
+      @new_record = true
+      @attributes ||= {}
+      attrs = self.class.undump(attrs)
+      self.class.attributes.keys.each {|att| write_attribute(att, attrs[att])}
+    end
+    
+    def ==(other)
+      other.respond_to?(:id) && other.id == self.id
+    end
+    
+    def reload
+      self.class.find(self.id)
+    end    
   end
   
 end
