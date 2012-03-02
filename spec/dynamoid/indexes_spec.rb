@@ -2,7 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe "Dynamoid::Indexes" do
   
-  before do
+  before(:all) do
     User.create_indexes
   end
 
@@ -22,10 +22,6 @@ describe "Dynamoid::Indexes" do
     User.index_table_name([:email, :name]).should == 'dynamoid_tests_index_user_emails_and_names'
   end
   
-  it 'creates a key name for a table index' do
-    User.index_key_name([:email, :name]).should == 'user_emails_and_names'
-  end
-  
   it 'assembles a hashed value for the key of an index' do
     @user = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
     
@@ -35,21 +31,23 @@ describe "Dynamoid::Indexes" do
   it 'saves indexes to their tables' do
     @user = User.create(:name => 'Josh')
     
-    Dynamoid::Adapter.get_item("dynamoid_tests_index_user_names", @user.key_for_index([:name])).should == {@user.class.index_key_name([:name]).to_sym => @user.key_for_index([:name]), :ids => Set[@user.id]}
+    Dynamoid::Adapter.read("dynamoid_tests_index_user_names", @user.key_for_index([:name]))[:id].should == @user.key_for_index([:name])
+    Dynamoid::Adapter.read("dynamoid_tests_index_user_names", @user.key_for_index([:name]))[:ids].should == Set[@user.id]
   end
   
   it 'saves multiple indexes with the same value as an array' do
     @user1 = User.create(:name => 'Josh')
     @user2 = User.create(:name => 'Josh')
     
-    Dynamoid::Adapter.get_item("dynamoid_tests_index_user_names", @user1.key_for_index([:name])).should == {@user1.class.index_key_name([:name]).to_sym => @user1.key_for_index([:name]), :ids => Set[@user2.id, @user1.id]}
+    Dynamoid::Adapter.read("dynamoid_tests_index_user_names", @user1.key_for_index([:name]))[:id].should == @user1.key_for_index([:name])
+    Dynamoid::Adapter.read("dynamoid_tests_index_user_names", @user1.key_for_index([:name]))[:ids].should == Set[@user2.id, @user1.id]
   end
   
   it 'deletes indexes when the object is destroyed' do
     @user = User.create(:name => 'Josh')
     @user.destroy
     
-    Dynamoid::Adapter.get_item("dynamoid_tests_index_user_names", @user.key_for_index([:name])).should == {@user.class.index_key_name([:name]).to_sym => @user.key_for_index([:name])}
+    Dynamoid::Adapter.read("dynamoid_tests_index_user_names", @user.key_for_index([:name]))[:id].should == @user.key_for_index([:name])
   end
     
 end

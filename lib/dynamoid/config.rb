@@ -15,6 +15,8 @@ module Dynamoid #:nodoc
     option :access_key
     option :secret_key
     option :warn_on_scan, :default => true
+    option :partitioning, :default => false
+    option :partition_size, :default => 200
     option :included_models, :default => []
     
     def default_logger

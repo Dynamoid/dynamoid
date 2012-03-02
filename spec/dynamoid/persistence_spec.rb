@@ -3,6 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe "Dynamoid::Persistence" do
   
   before do
+    Random.stubs(:rand).with(Dynamoid::Config.partition_size).returns(0)
     @address = Address.new
   end
   
@@ -30,14 +31,14 @@ describe "Dynamoid::Persistence" do
   it 'assigns itself an id on save' do
     @address.save
     
-    Dynamoid::Adapter.get_item("dynamoid_tests_addresses", @address.id)[:id].should == @address.id
+    Dynamoid::Adapter.read("dynamoid_tests_addresses", @address.id)[:id].should == @address.id
   end
   
   it 'assigns itself an id on save only if it does not have one' do
     @address.id = 'test123'
     @address.save
     
-    Dynamoid::Adapter.get_item("dynamoid_tests_addresses", 'test123').should_not be_empty
+    Dynamoid::Adapter.read("dynamoid_tests_addresses", 'test123').should_not be_empty
   end
   
   it 'has a table name' do
@@ -55,7 +56,7 @@ describe "Dynamoid::Persistence" do
     @user = User.create(:name => 'Josh')
     @user.destroy
     
-    Dynamoid::Adapter.get_item("dynamoid_tests_users", @user.id).should be_nil
+    Dynamoid::Adapter.read("dynamoid_tests_users", @user.id).should be_nil
   end
   
   it 'keeps string attributes as strings' do
@@ -82,10 +83,10 @@ describe "Dynamoid::Persistence" do
   
   it 'loads attributes from a hash' do
     @time = DateTime.now
-    @hash = {:name => 'Josh', :created_at => @time.to_s}
+    @hash = {:name => 'Josh', :created_at => @time.to_f}
     
     User.undump(@hash)[:name].should == 'Josh'
-    User.undump(@hash)[:created_at].to_i == @time.to_i
+    User.undump(@hash)[:created_at].to_f == @time.to_f
   end
 
 end

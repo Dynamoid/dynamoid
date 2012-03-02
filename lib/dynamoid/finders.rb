@@ -12,14 +12,14 @@ module Dynamoid #:nodoc:
         if id.count == 1
           self.find_by_id(id.first)
         else
-          items = Dynamoid::Adapter.batch_get_item(self.table_name => id)
+          items = Dynamoid::Adapter.read(self.table_name, id)
           items[self.table_name].collect{|i| o = self.build(i); o.new_record = false; o}
         end
       end
       
       def find_by_id(id)
-        if item = Dynamoid::Adapter.get_item(self.table_name, id)
-          obj = self.new(Dynamoid::Adapter.get_item(self.table_name, id))
+        if item = Dynamoid::Adapter.read(self.table_name, id)
+          obj = self.new(item)
           obj.new_record = false
           return obj
         else

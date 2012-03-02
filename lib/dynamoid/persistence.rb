@@ -43,7 +43,7 @@ module Dynamoid #:nodoc:
                 hash[attribute] = Set[value]
               end
             when :datetime
-              hash[attribute] = DateTime.parse(value)
+              hash[attribute] = Time.at(value).to_datetime
             end
           end
         end
@@ -83,7 +83,7 @@ module Dynamoid #:nodoc:
     
     def delete
       delete_indexes
-      Dynamoid::Adapter.delete_item(self.class.table_name, self.id)
+      Dynamoid::Adapter.delete(self.class.table_name, self.id)
     end
     
     def dump
@@ -105,7 +105,7 @@ module Dynamoid #:nodoc:
               hash[attribute] = Set[value]
             end
           when :datetime
-            hash[attribute] = value.to_s
+            hash[attribute] = value.to_time.to_f
           end
         end
       end
@@ -115,7 +115,7 @@ module Dynamoid #:nodoc:
     
     def persist
       self.id = SecureRandom.uuid if self.id.nil? || self.id.blank?
-      Dynamoid::Adapter.put_item(self.class.table_name, self.dump)
+      Dynamoid::Adapter.write(self.class.table_name, self.dump)
       save_indexes
     end
         

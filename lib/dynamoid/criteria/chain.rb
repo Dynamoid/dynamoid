@@ -38,7 +38,7 @@ module Dynamoid #:nodoc:
       end
       
       def records_with_index
-        ids = Dynamoid::Adapter.get_item(source.index_table_name(index), source.key_for_index(index, values_for_index))
+        ids = Dynamoid::Adapter.read(source.index_table_name(index), source.key_for_index(index, values_for_index))
         if ids.nil? || ids.empty?
           []
         else

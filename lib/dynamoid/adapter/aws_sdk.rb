@@ -16,14 +16,16 @@ module Dynamoid
     
       # BatchGetItem
       def batch_get_item(options)
-        batch = AWS::DynamoDB::BatchGet.new(:config => @@connection.config)
         hash = Hash.new{|h, k| h[k] = []}
         return hash if options.all?{|k, v| v.empty?}
         options.each do |t, ids|
-          batch.table(t, :all, Array(ids)) unless ids.nil? || ids.empty?
-        end
-        batch.each do |table_name, attributes|
-          hash[table_name] << attributes.symbolize_keys!
+          Array(ids).in_groups_of(100, false) do |group|
+            batch = AWS::DynamoDB::BatchGet.new(:config => @@connection.config)
+            batch.table(t, :all, Array(group)) unless group.nil? || group.empty?
+            batch.each do |table_name, attributes|
+              hash[table_name] << attributes.symbolize_keys!
+            end
+          end
         end
         hash
       end
