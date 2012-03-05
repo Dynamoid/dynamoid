@@ -40,6 +40,7 @@ module Dynamoid #:nodoc:
     
     def save_indexes
       self.class.indexes.each do |index|
+        next if self.key_for_index(index).blank?
         existing = Dynamoid::Adapter.read(self.class.index_table_name(index), self.key_for_index(index))
         ids = existing ? existing[:ids] : Set.new
         Dynamoid::Adapter.write(self.class.index_table_name(index), {:id => self.key_for_index(index), :ids => ids.merge([self.id])})
@@ -48,6 +49,7 @@ module Dynamoid #:nodoc:
     
     def delete_indexes
       self.class.indexes.each do |index|
+        next if self.key_for_index(index).blank?
         existing = Dynamoid::Adapter.read(self.class.index_table_name(index), self.key_for_index(index))
         next unless existing && existing[:ids]
         Dynamoid::Adapter.write(self.class.index_table_name(index), {:id => self.key_for_index(index), :ids => existing[:ids] - [self.id]})

@@ -32,7 +32,7 @@ module Dynamoid
     
       # CreateTable
       def create_table(table_name, key)
-        table = @@connection.tables.create(table_name, 10, 5, :hash_key => {key.to_sym => :string})
+        table = @@connection.tables.create(table_name, 100, 20, :hash_key => {key.to_sym => :string})
         sleep 0.5 while table.status == :creating
         return table
       end

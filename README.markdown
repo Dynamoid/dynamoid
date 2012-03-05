@@ -23,11 +23,13 @@ Then you need to initialize it to get it going. Put code similar to this somewhe
 ```ruby
   Dynamoid.configure do |config|
     config.adapter = 'local' # This adapter allows offline development without connecting to the DynamoDB servers. Data is *NOT* persisted.
-    # config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using's Amazon's own AWS gem.
+    # config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using Amazon's own AWS gem.
     # config.access_key = 'access_key' # If connecting to DynamoDB, your access key is required.
     # config.secret_key = 'secret_key' # So is your secret key. 
     config.namespace = "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" # To namespace tables created by Dynamoid from other tables you might have.
-    config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table
+    config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table.
+    config.partitioning = true # Spread writes randomly across the database. See "partitioning" below for more.
+    config.partition_size = 200  # Determine the key space size that writes are randomly spread across.
   end
 
 ```
@@ -42,7 +44,6 @@ class User
    field :email          # If you have fields that aren't specified they won't be attached to the object as methods.
    field :rank, :integer # Every field is assumed to be a string unless otherwise specified.
                          # created_at and updated_at with a type of :datetime are automatically added.
-                         # So is ID with a type of :string.
    
    index :name           # Only specify indexes if you intend to perform queries on the specified fields.
    index :email          # Fields without indexes suffer extremely poor performance as they must use 
@@ -98,6 +99,14 @@ u.addresses.where(:city => 'Chicago').all
 ```
 
 But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.
+
+## Partitioning, Provisioning, and Performance
+
+DynamoDB achieves much of its speed by relying on a random pattern of writes and reads: internally, hash keys are distributed across servers, and reading from two consecutive servers is much faster than reading from the same server twice. Of course, many of our applications request one key (like a commonly used role, a superuser, or a very popular product) much more frequently than other keys. In DynamoDB, this will result in lowered throughput and slower response times, and is a design pattern we should try to avoid.
+
+Dynamoid attempts to obviate this problem transparently by employing a partitioning strategy to divide up keys randomly across DynamoDB's servers. Each ID is assigned an additional number (by default 0 to 199, but you can increase the partition size in Dynamoid's configuration) upon save; when read, all 200 hashes are retrieved simultaneously and the most recently updated one is returned to the application. This results in a significant net performance increase, and is usually invisible to the application itself. It does, however, bring up the important issue of provisioning your DynamoDB tables correctly.
+
+When your read or write provisioning exceed your table's allowed throughput, DynamoDB will wait on connections until throughput is available again. This will appear as very, very slow requests and can be somewhat frustrating. Partitioning significantly increases the amount of throughput tables will experience; though DynamoDB will ignore keys that don't exist, if you have 20 partitioned keys representing one object, all will be retrieved every time the object is requested. Ensure that your tables are set up for this kind of throughput, or turn provisioning off, to make sure that DynamoDB doesn't throttle your requests.
 
 ## Credits
 
