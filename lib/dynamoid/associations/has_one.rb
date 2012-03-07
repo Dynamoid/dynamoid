@@ -9,6 +9,14 @@ module Dynamoid #:nodoc:
       def ==(other)
         target == other
       end
+
+      def method_missing(method, *args)
+        if target.respond_to?(method)
+          target.send(method, *args)
+        else
+          super
+        end
+      end
       
       private
       
