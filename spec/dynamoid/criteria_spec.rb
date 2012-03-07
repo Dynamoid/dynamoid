@@ -16,7 +16,7 @@ describe "Dynamoid::Criteria" do
   end
   
   it 'returns all records' do
-    User.all.should == [@user1, @user2]
+    User.all.should =~ [@user1, @user2]
   end
   
   it 'returns empty attributes for where' do
