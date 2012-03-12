@@ -59,7 +59,10 @@ module Dynamoid #:nodoc:
       end
       
       def index
-        Array(source.indexes.find {|i| i == query.keys.sort.collect(&:to_sym)})
+        key = query.keys.sort.collect(&:to_sym)
+        index = source.indexes.select {|k, v| v[:hash_key] == query.keys.sort.collect(&:to_sym)}
+        return [] if index.blank?
+        index[key][:hash_key]
       end
     end
     

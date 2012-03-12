@@ -11,11 +11,11 @@ describe "Dynamoid::Indexes" do
   end
   
   it 'adds indexes to the index array' do
-    User.indexes.should == [[:name], [:email], [:email, :name]]
+    User.indexes.should == {[:name]=>{:range_key=>nil, :hash_key=>[:name]}, [:email]=>{:range_key=>nil, :hash_key=>[:email]}, [:email, :name]=>{:range_key=>nil, :hash_key=>[:email, :name]}}
   end
   
   it 'reorders index names alphabetically' do
-    User.indexes.last.should == [:email, :name]
+    User.indexes[[:email, :name]][:hash_key].should == [:email, :name]
   end
   
   it 'creates a name for a table index' do
