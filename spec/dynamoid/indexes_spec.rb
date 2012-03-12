@@ -49,5 +49,10 @@ describe "Dynamoid::Indexes" do
     
     Dynamoid::Adapter.read("dynamoid_tests_index_user_names", @user.key_for_index([:name]))[:id].should == @user.key_for_index([:name])
   end
-    
+
+  it 'handles empty indexes' do
+    @user = User.create(:name => 'Josh')
+    @user.destroy
+    @user = User.create(:name => 'Josh')
+  end
 end

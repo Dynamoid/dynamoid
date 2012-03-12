@@ -42,7 +42,7 @@ module Dynamoid #:nodoc:
       self.class.indexes.each do |index|
         next if self.key_for_index(index).blank?
         existing = Dynamoid::Adapter.read(self.class.index_table_name(index), self.key_for_index(index))
-        ids = existing ? existing[:ids] : Set.new
+        ids = ((existing and existing[:ids]) or Set.new)
         Dynamoid::Adapter.write(self.class.index_table_name(index), {:id => self.key_for_index(index), :ids => ids.merge([self.id])})
       end
     end
