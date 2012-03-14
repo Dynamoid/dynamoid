@@ -31,7 +31,7 @@ describe "Dynamoid::Adapter" do
     end
 
     it 'reads through the adapter for one ID' do
-      Dynamoid::Adapter.expects(:get_item).with('dynamoid_tests_TestTable', '123').returns(true)
+      Dynamoid::Adapter.expects(:get_item).with('dynamoid_tests_TestTable', '123', nil).returns(true)
 
       Dynamoid::Adapter.read('dynamoid_tests_TestTable', '123')
     end
@@ -40,6 +40,18 @@ describe "Dynamoid::Adapter" do
       Dynamoid::Adapter.expects(:batch_get_item).with({'dynamoid_tests_TestTable' => ['1', '2']}).returns(true)
 
       Dynamoid::Adapter.read('dynamoid_tests_TestTable', ['1', '2'])
+    end
+    
+    it 'reads through the adapter for one ID and a range key' do
+      Dynamoid::Adapter.expects(:get_item).with('dynamoid_tests_TestTable', '123', 2.0).returns(true)
+
+      Dynamoid::Adapter.read('dynamoid_tests_TestTable', '123', 2.0)      
+    end
+    
+    it 'reads through the adapter for many IDs and a range key' do
+      Dynamoid::Adapter.expects(:batch_get_item).with({'dynamoid_tests_TestTable' => [['1', 2.0], ['2', 2.0]]}).returns(true)
+
+      Dynamoid::Adapter.read('dynamoid_tests_TestTable', ['1', '2'], 2.0)
     end
   end
   
@@ -72,9 +84,25 @@ describe "Dynamoid::Adapter" do
     
       Dynamoid::Adapter.read('dynamoid_tests_TestTable', ['1', '2'])
     end
+    
+    it 'reads through the adapter for one ID and a range key' do
+      Dynamoid::Adapter.expects(:batch_get_item).with('dynamoid_tests_TestTable' => (0...Dynamoid::Config.partition_size).collect{|n| ["123.#{n}", 2.0]}).returns({})
+    
+      Dynamoid::Adapter.read('dynamoid_tests_TestTable', '123', 2.0)
+    end
+  
+    it 'reads through the adapter for many IDs and a range key' do
+      Dynamoid::Adapter.expects(:batch_get_item).with('dynamoid_tests_TestTable' => (0...Dynamoid::Config.partition_size).collect{|n| ["1.#{n}", 2.0]} + (0...Dynamoid::Config.partition_size).collect{|n| ["2.#{n}", 2.0]}).returns({})
+    
+      Dynamoid::Adapter.read('dynamoid_tests_TestTable', ['1', '2'], 2.0)
+    end
   
     it 'returns an ID with all partitions' do
       Dynamoid::Adapter.id_with_partitions('1').should =~ (0...Dynamoid::Config.partition_size).collect{|n| "1.#{n}"}
+    end
+    
+    it 'returns an ID and range key with all partitions' do
+      Dynamoid::Adapter.id_with_partitions([['1', 1.0]]).should =~ (0...Dynamoid::Config.partition_size).collect{|n| ["1.#{n}", 1.0]}
     end
   
     it 'returns a result for one partitioned element' do

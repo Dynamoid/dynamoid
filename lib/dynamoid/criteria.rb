@@ -1,6 +1,6 @@
+# encoding: utf-8
 require 'dynamoid/criteria/chain'
 
-# encoding: utf-8
 module Dynamoid #:nodoc:
 
   # This module defines criteria and criteria chains.

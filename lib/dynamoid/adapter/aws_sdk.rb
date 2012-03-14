@@ -31,8 +31,10 @@ module Dynamoid
       end
     
       # CreateTable
-      def create_table(table_name, key)
-        table = @@connection.tables.create(table_name, 100, 20, :hash_key => {key.to_sym => :string})
+      def create_table(table_name, key = :id, options = {})
+        options[:hash_key] ||= {key.to_sym => :string}
+        options[:range_key] = {options[:range_key].to_sym => :number} if options[:range_key]
+        table = @@connection.tables.create(table_name, 100, 20, options)
         sleep 0.5 while table.status == :creating
         return table
       end

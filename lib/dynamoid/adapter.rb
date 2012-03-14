@@ -32,8 +32,9 @@ module Dynamoid #:nodoc:
       benchmark('Put Item', object) {put_item(table, object)}
     end
     
-    def read(table, ids)
+    def read(table, ids, range_key = nil)
       if ids.respond_to?(:each)
+        ids = ids.collect{|id| range_key ? [id, range_key] : id}
         if Dynamoid::Config.partitioning?
           results = benchmark('Partitioned Batch Get Item', ids) {batch_get_item(table => id_with_partitions(ids))}
           {table => result_for_partition(results[table])}
@@ -42,10 +43,11 @@ module Dynamoid #:nodoc:
         end
       else
         if Dynamoid::Config.partitioning?
+          ids = range_key ? [[ids, range_key]] : ids
           results = benchmark('Partitioned Get Item', ids) {batch_get_item(table => id_with_partitions(ids))}
           result_for_partition(results[table]).first
         else
-          benchmark('Get Item', ids) {get_item(table, ids)}
+          benchmark('Get Item', ids) {get_item(table, ids, range_key)}
         end
       end
     end
@@ -69,14 +71,14 @@ module Dynamoid #:nodoc:
       end
     end
     
-    [:batch_get_item, :create_table, :delete_item, :delete_table, :get_item, :list_tables, :put_item, :query].each do |m|
+    [:batch_get_item, :create_table, :delete_item, :delete_table, :get_item, :list_tables, :put_item].each do |m|
       define_method(m) do |*args|
         benchmark("#{m.to_s}", args) {adapter.send(m, *args)}
       end
     end
     
     def id_with_partitions(ids)
-      Array(ids).collect {|id| (0...Dynamoid::Config.partition_size).collect{|n| "#{id}.#{n}"}}.flatten
+      Array(ids).collect {|id| (0...Dynamoid::Config.partition_size).collect{|n| id.is_a?(Array) ? ["#{id.first}.#{n}", id.last] : "#{id}.#{n}"}}.flatten(1)
     end
     
     def result_for_partition(results)

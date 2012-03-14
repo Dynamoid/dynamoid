@@ -15,8 +15,8 @@ module Dynamoid #:nodoc:
         "#{Dynamoid::Config.namespace}_#{self.to_s.downcase.pluralize}"
       end
       
-      def create_table(table_name, id = :id)
-        Dynamoid::Adapter.tables << table_name if Dynamoid::Adapter.create_table(table_name, id.to_sym)
+      def create_table(table_name, id = :id, options = {})
+        Dynamoid::Adapter.tables << table_name if Dynamoid::Adapter.create_table(table_name, id.to_sym, options)
       end
       
       def table_exists?(table_name)
@@ -43,7 +43,11 @@ module Dynamoid #:nodoc:
                 hash[attribute] = Set[value]
               end
             when :datetime
-              hash[attribute] = Time.at(value).to_datetime
+              if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
+                hash[attribute] = value
+              else
+                hash[attribute] = Time.at(value).to_datetime
+              end
             end
           end
         end

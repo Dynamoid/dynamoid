@@ -28,6 +28,28 @@ describe Dynamoid::Adapter::Local do
       results['table1'].should include({:name => 'Josh', :id => '1'})
       results['table1'].should include({:name => 'Justin', :id => '2'})
     end
+    
+    it 'performs BatchGetItem with range keys' do
+      Dynamoid::Adapter.create_table('table1', :id, :range_key => :range)
+      Dynamoid::Adapter.put_item('table1', {:id => '1', :range => 1.0})
+      Dynamoid::Adapter.put_item('table1', {:id => '2', :range => 2.0})
+    
+      results = Dynamoid::Adapter.batch_get_item('table1' => [['1', 1.0], ['2', 2.0]])
+      results.size.should == 1
+      results['table1'].should include({:id => '1', :range => 1.0})
+      results['table1'].should include({:id => '2', :range => 2.0})
+    end
+    
+    it 'performs BatchGetItem with range keys on one primary key' do
+      Dynamoid::Adapter.create_table('table1', :id, :range_key => :range)
+      Dynamoid::Adapter.put_item('table1', {:id => '1', :range => 1.0})
+      Dynamoid::Adapter.put_item('table1', {:id => '1', :range => 2.0})
+    
+      results = Dynamoid::Adapter.batch_get_item('table1' => [['1', 1.0], ['1', 2.0]])
+      results.size.should == 1
+      results['table1'].should include({:id => '1', :range => 1.0})
+      results['table1'].should include({:id => '1', :range => 2.0})
+    end
   
     # CreateTable
     it 'performs CreateTable' do
@@ -78,6 +100,14 @@ describe Dynamoid::Adapter::Local do
     
       Dynamoid::Adapter.get_item('Test Table', '1').should == {:id => '1', :name => 'Josh'}
     end
+    
+    it "performs GetItem for an item with a range key" do
+      Dynamoid::Adapter.create_table('Test Table', :id, :range_key => :range)
+      Dynamoid::Adapter.put_item('Test Table', {:id => '1', :range => 1.0})
+      
+      Dynamoid::Adapter.get_item('Test Table', '1').should be_nil
+      Dynamoid::Adapter.get_item('Test Table', '1', 1.0).should == {:id => '1', :range => 1.0}
+    end
   
     # ListTables
     it 'performs ListTables' do
@@ -93,15 +123,40 @@ describe Dynamoid::Adapter::Local do
       Dynamoid::Adapter.create_table('Test Table', :id)
       Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Josh'})
     
-      Dynamoid::Adapter.data['Test Table'].should == { :id => :id, :data => { '1' => { :id=> '1', :name=>"Josh" }}}
+      Dynamoid::Adapter.data['Test Table'].should == {:hash_key=>:id, :range_key=>nil, :data=>{"1."=>{:id=>"1", :name=>"Josh"}}}
     end
+    
+    it 'puts an item twice and overwrites an existing item' do
+      Dynamoid::Adapter.create_table('Test Table', :id)
+      Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Josh'})
+      Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Justin'})
+    
+      Dynamoid::Adapter.data['Test Table'].should == {:hash_key=>:id, :range_key=>nil, :data=>{"1."=>{:id=>"1", :name=>"Justin"}}}      
+    end
+    
+    it 'puts an item twice and does not overwrite an existing item if the range key is not the same' do
+      Dynamoid::Adapter.create_table('Test Table', :id, :range_key => :range)
+      Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Justin', :range => 1.0})
+      Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Justin', :range => 2.0})
+    
+      Dynamoid::Adapter.data['Test Table'].should == {:hash_key=>:id, :range_key=>:range, :data=>{"1.1.0"=>{:id=>"1", :name=>"Justin", :range => 1.0}, "1.2.0" => {:id=>"1", :name=>"Justin", :range => 2.0}}}
+    end
+    
+    it 'puts an item twice and does overwrite an existing item if the range key is the same' do
+      Dynamoid::Adapter.create_table('Test Table', :id, :range_key => :range)
+      Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Josh', :range => 1.0})
+      Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Justin', :range => 1.0})
+    
+      Dynamoid::Adapter.data['Test Table'].should == {:hash_key=>:id, :range_key=>:range, :data=>{"1.1.0"=>{:id=>"1", :name=>"Justin", :range => 1.0}}}      
+    end
+    
   
     # Query
     it 'performs query on a table and returns items' do
       Dynamoid::Adapter.create_table('Test Table', :id)
       Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Josh'})
     
-      Dynamoid::Adapter.query('Test Table', '1').should == { :id=> '1', :name=>"Josh" }
+      Dynamoid::Adapter.query('Test Table', :hash_value => '1').should == { :id=> '1', :name=>"Josh" }
     end
   
     it 'performs query on a table and returns items if there are multiple items' do
@@ -109,9 +164,38 @@ describe Dynamoid::Adapter::Local do
       Dynamoid::Adapter.put_item('Test Table', {:id => '1', :name => 'Josh'})
       Dynamoid::Adapter.put_item('Test Table', {:id => '2', :name => 'Justin'})
     
-      Dynamoid::Adapter.query('Test Table', '1').should == { :id=> '1', :name=>"Josh" }
+      Dynamoid::Adapter.query('Test Table', :hash_value => '1').should == { :id=> '1', :name=>"Josh" }
     end
-  
+    
+    context 'range queries' do
+      before do
+        Dynamoid::Adapter.create_table('Test Table', :id, :range_key => :range)
+        Dynamoid::Adapter.put_item('Test Table', {:id => '1', :range => 1.0})
+        Dynamoid::Adapter.put_item('Test Table', {:id => '1', :range => 2.0})        
+      end
+      
+      it 'performs query on a table with a range and selects items in a range' do      
+        Dynamoid::Adapter.query('Test Table', :hash_value => '1', :range_value => 0.0..3.0).should =~ [{:id => '1', :range => 1.0}, {:id => '1', :range => 2.0}]
+      end
+      
+      it 'performs query on a table with a range and selects items greater than' do      
+        Dynamoid::Adapter.query('Test Table', :hash_value => '1', :range_greater_than => 1.0).should =~ [{:id => '1', :range => 2.0}]
+      end
+      
+      it 'performs query on a table with a range and selects items less than' do      
+        Dynamoid::Adapter.query('Test Table', :hash_value => '1', :range_less_than => 2.0).should =~ [{:id => '1', :range => 1.0}]
+      end
+      
+      it 'performs query on a table with a range and selects items gte' do      
+        Dynamoid::Adapter.query('Test Table', :hash_value => '1', :range_gte => 1.0).should =~ [{:id => '1', :range => 1.0}, {:id => '1', :range => 2.0}]
+      end
+      
+      it 'performs query on a table with a range and selects items lte' do      
+        Dynamoid::Adapter.query('Test Table', :hash_value => '1', :range_lte => 2.0).should =~ [{:id => '1', :range => 1.0}, {:id => '1', :range => 2.0}]
+      end
+      
+    end
+      
     # Scan
     it 'performs scan on a table and returns items' do
       Dynamoid::Adapter.create_table('Test Table', :id)

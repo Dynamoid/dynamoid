@@ -3,37 +3,52 @@ require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 describe "Dynamoid::Associations::Chain" do
 
   before(:each) do
+    @time = DateTime.now
     @user = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com', :password => 'Test123')
     @chain = Dynamoid::Criteria::Chain.new(User)
   end
   
   it 'finds matching index for a query' do
     @chain.query = {:name => 'Josh'}
-    @chain.send(:index).should == [:name]
+    @chain.send(:index).should == User.indexes[[:name]]
     
     @chain.query = {:email => 'josh@joshsymonds.com'}
-    @chain.send(:index).should == [:email]
+    @chain.send(:index).should == User.indexes[[:email]]
     
     @chain.query = {:name => 'Josh', :email => 'josh@joshsymonds.com'}
-    @chain.send(:index).should == [:email, :name]
+    @chain.send(:index).should == User.indexes[[:email, :name]]
+  end
+  
+  it 'finds matching index for a range query' do
+    @chain.query = {"created_at.gt" => @time - 1.day}
+    @chain.send(:index).should == User.indexes[[:created_at]]
+    
+    @chain.query = {:name => 'Josh', "created_at.lt" => @time - 1.day}
+    @chain.send(:index).should == User.indexes[[:created_at, :name]]
   end
   
   it 'does not find an index if there is not an appropriate one' do
     @chain.query = {:password => 'Test123'}
-    @chain.send(:index).should == []
+    @chain.send(:index).should be_nil
+    
+    @chain.query = {:password => 'Test123', :created_at => @time}
+    @chain.send(:index).should be_nil
   end
   
   it 'returns values for index for a query' do
     @chain.query = {:name => 'Josh'}
-    @chain.send(:values_for_index).should == ['Josh']
+    @chain.send(:index_query).should == {:hash_value => 'Josh'}
     
     @chain.query = {:email => 'josh@joshsymonds.com'}
-    @chain.send(:values_for_index).should == ['josh@joshsymonds.com']
+    @chain.send(:index_query).should == {:hash_value => 'josh@joshsymonds.com'}
     
     @chain.query = {:name => 'Josh', :email => 'josh@joshsymonds.com'}
-    @chain.send(:values_for_index).should == ['josh@joshsymonds.com', 'Josh']
+    @chain.send(:index_query).should == {:hash_value => 'josh@joshsymonds.com.Josh'}
+    
+    @chain.query = {:name => 'Josh', 'created_at.gt' => @time}
+    @chain.send(:index_query).should == {:hash_value => 'Josh', :range_greater_than => @time.to_f}
   end
-  
+    
   it 'finds records with an index' do
     @chain.query = {:name => 'Josh'}
     @chain.send(:records_with_index).should == [@user]
@@ -42,6 +57,14 @@ describe "Dynamoid::Associations::Chain" do
     @chain.send(:records_with_index).should == [@user]
     
     @chain.query = {:name => 'Josh', :email => 'josh@joshsymonds.com'}
+    @chain.send(:records_with_index).should == [@user]
+  end
+  
+  it 'returns records with an index for a ranged query' do
+    @chain.query = {:name => 'Josh', "created_at.gt" => @time - 1.day}
+    @chain.send(:records_with_index).should == [@user]
+    
+    @chain.query = {:name => 'Josh', "created_at.lt" => @time + 1.day}
     @chain.send(:records_with_index).should == [@user]
   end
   

@@ -8,7 +8,7 @@ describe Dynamoid::Adapter::AwsSdk do
     context 'without a preexisting table' do
       # CreateTable and DeleteTable
       it 'performs CreateTable and DeleteTable' do
-        table = Dynamoid::Adapter.create_table('CreateTable', :id)
+        table = Dynamoid::Adapter.create_table('CreateTable', :id, :range_key => :created_at)
 
         Dynamoid::Adapter.connection.tables.collect{|t| t.name}.should include 'CreateTable'
 
