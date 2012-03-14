@@ -40,10 +40,14 @@ module Dynamoid
       end
     
       # DeleteItem
-      def delete_item(table_name, key)
+      def delete_item(table_name, key, range_key = nil)
         table = @@connection.tables[table_name]
         table.load_schema
-        result = table.items[key]
+        result = if table.composite_key?
+          table.items.at(key, range_key)
+        else
+          table.items[key]
+        end
         result.delete unless result.attributes.to_h.empty?
         true
       end
@@ -56,15 +60,21 @@ module Dynamoid
       # DescribeTable
     
       # GetItem
-      def get_item(table_name, key)
+      def get_item(table_name, key, range_key = nil)
         table = @@connection.tables[table_name]
         table.load_schema
-        result = table.items[key].attributes.to_h
+        result = if table.composite_key?
+          table.items.at(key, range_key)
+        else
+          table.items[key]
+        end.attributes.to_h
         if result.empty?
           nil
         else
           result.symbolize_keys!
         end
+      rescue
+        raise [table_name, key, range_key].inspect
       end
     
       # ListTables
@@ -80,8 +90,17 @@ module Dynamoid
       end
     
       # Query
-      def query(table_name, id)
-        get_item(table_name, id)
+      def query(table_name, opts = {})
+        table = @@connection.tables[table_name]
+        table.load_schema
+        
+        if table.composite_key?
+          results = []
+          table.items.query(opts).each {|data| results << data.attributes.to_h.symbolize_keys!}
+          results
+        else
+          get_item(table_name, opts[:hash_value])
+        end
       end
     
       # Scan

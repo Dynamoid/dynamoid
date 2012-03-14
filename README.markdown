@@ -6,10 +6,6 @@ DynamoDB is not like other document-based databases you might know, and is very 
 
 But if you want a fast, scalable, simple, easy-to-use database (and a Gem that supports it) then look no further!
 
-## Warning!
-
-I'm still working on this gem a lot. It only provides .where(arguments) in its criteria chaining so far. More is coming though!
-
 ## Installation
 
 Installing Dynamoid is pretty simple. First include the Gem in your Gemfile:
@@ -48,6 +44,10 @@ class User
    index :name           # Only specify indexes if you intend to perform queries on the specified fields.
    index :email          # Fields without indexes suffer extremely poor performance as they must use 
    index [:name, :email] # scan rather than query.
+   index :created_at, :range => true
+   index :name, :range => :created_at
+                         # You can only provide one range query for each index, or specify an index
+                         # to be only a range query with :range => true.
    
    has_many :addresses   # Associations do not accept any options presently. The referenced
                          # model name must match exactly and the foreign key is always id.
@@ -99,6 +99,15 @@ u.addresses.where(:city => 'Chicago').all
 ```
 
 But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.
+
+If you have a range index, Dynamoid provides a number of additional other convenience methods to make your life a little easier:
+
+```ruby
+User.where("created_at.gt" => DateTime.now - 1.day).all
+User.where("created_at.lt" => DateTime.now - 1.day).all
+```
+
+It also supports .gte and .lte. Turning those into symbols and allowing a Rails SQL-style string syntax is in the works. You can only have one range argument per query, because of DynamoDB's inherent limitations, so use it sensibly!
 
 ## Partitioning, Provisioning, and Performance
 
