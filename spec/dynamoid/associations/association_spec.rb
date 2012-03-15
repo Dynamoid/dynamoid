@@ -101,4 +101,8 @@ describe "Dynamoid::Associations::Association" do
     @magazine.subscriptions.collect(&:id).should =~ [@subscription1.id, @subscription2.id, @subscription3.id]
   end
 
+  it 'works for camel-cased associations' do
+    @magazine.camel_cases.create.class.should == CamelCase
+  end
+
 end

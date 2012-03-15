@@ -27,32 +27,38 @@ module Dynamoid #:nodoc:
         incoming.symbolize_keys!
         Hash.new.tap do |hash|
           self.attributes.each do |attribute, options|
-            value = incoming[attribute]
-            next if value.nil? || (value.respond_to?(:empty?) && value.empty?)
-            case options[:type]
-            when :string
-              hash[attribute] = value.to_s
-            when :integer
-              hash[attribute] = value.to_i
-            when :float
-              hash[attribute] = value.to_f
-            when :set, :array
-              if value.is_a?(Set) || value.is_a?(Array)
-                hash[attribute] = value
-              else
-                hash[attribute] = Set[value]
-              end
-            when :datetime
-              if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
-                hash[attribute] = value
-              else
-                hash[attribute] = Time.at(value).to_datetime
-              end
-            end
+            hash[attribute] = undump_field(incoming[attribute], options[:type])
           end
         end
       end
-      
+
+      def undump_field(value, type)
+        return if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+
+        case type
+        when :string
+          value.to_s
+        when :integer
+          value.to_i
+        when :float
+          value.to_f
+        when :set, :array
+          if value.is_a?(Set) || value.is_a?(Array)
+            value
+          else
+            Set[value]
+          end
+        when :datetime
+          if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
+            value
+          else
+            Time.at(value).to_datetime
+          end
+        when :serialized
+          YAML.load(value)
+        end
+      end
+
     end
     
     included do
@@ -77,6 +83,10 @@ module Dynamoid #:nodoc:
       end
       self
     end
+
+    def save!
+      raise unless save
+    end
     
     def destroy
       run_callbacks(:destroy) do
@@ -93,30 +103,36 @@ module Dynamoid #:nodoc:
     def dump
       Hash.new.tap do |hash|
         self.class.attributes.each do |attribute, options|
-          value = self.read_attribute(attribute)
-          next if value.nil? || (value.respond_to?(:empty?) && value.empty?)
-          case options[:type]
-          when :string
-            hash[attribute] = value.to_s
-          when :integer
-            hash[attribute] = value.to_i
-          when :float
-            hash[attribute] = value.to_f
-          when :set, :array
-            if value.is_a?(Set) || value.is_a?(Array)
-              hash[attribute] = value
-            else
-              hash[attribute] = Set[value]
-            end
-          when :datetime
-            hash[attribute] = value.to_time.to_f
-          end
+          hash[attribute] = dump_field(self.read_attribute(attribute), options[:type])
         end
       end
     end
     
     private
-    
+
+    def dump_field value, type
+      return if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+
+      case type
+      when :string
+        value.to_s
+      when :integer
+        value.to_i
+      when :float
+        value.to_f
+      when :set, :array
+        if value.is_a?(Set) || value.is_a?(Array)
+          value
+        else
+          Set[value]
+        end
+      when :datetime
+        value.to_time.to_f
+      when :serialized
+        value.to_yaml
+      end
+    end
+
     def persist
       self.id = SecureRandom.uuid if self.id.nil? || self.id.blank?
       Dynamoid::Adapter.write(self.class.table_name, self.dump)

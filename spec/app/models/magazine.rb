@@ -4,5 +4,6 @@ class Magazine
   field :title
   
   has_many :subscriptions
+  has_many :camel_cases
   has_one :sponsor
 end

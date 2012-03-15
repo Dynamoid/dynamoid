@@ -6,7 +6,7 @@ describe "Dynamoid::Document" do
     @address = Address.new
     
     @address.new_record.should be_true
-    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil}
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil, :options=>nil}
   end
   
   it 'initializes a new document with attributes' do
@@ -14,7 +14,7 @@ describe "Dynamoid::Document" do
     
     @address.new_record.should be_true
     
-    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago"}
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil}
   end
   
   it 'creates a new document' do

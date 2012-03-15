@@ -79,7 +79,7 @@ module Dynamoid #:nodoc:
       end
       
       def target_class
-        name.to_s.singularize.capitalize.constantize
+        name.to_s.singularize.camelize.constantize
       end
       
       def target_attribute
