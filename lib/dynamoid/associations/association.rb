@@ -15,10 +15,13 @@ module Dynamoid #:nodoc:
       end
       
       def records
-        results = target_class.find(source_ids.to_a)
-        results = results.nil? ? [] : Array(results)
-        return results if query.empty?
-        results_with_query(results)
+        results = Array.wrap(target_class.find(source_ids.to_a))
+
+        if query.empty?
+          results
+        else
+          results_with_query(results)
+        end
       end
       alias :all :records
       
