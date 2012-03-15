@@ -23,6 +23,9 @@ module Dynamoid #:nodoc:
       def build(attrs = {})
         self.new(attrs)
       end
+
+      def count
+      end
     end
     
     def initialize(attrs = {})
@@ -33,6 +36,7 @@ module Dynamoid #:nodoc:
     end
     
     def ==(other)
+      return false if other.nil?
       other.respond_to?(:id) && other.id == self.id
     end
     

@@ -10,6 +10,10 @@ module Dynamoid #:nodoc:
         records == Array(other)
       end
 
+      def build attrs
+        self.<< target_class.new(attrs)
+      end
+
       private
 
       def target_association
