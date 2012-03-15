@@ -46,3 +46,6 @@ pkg
 
 # For rubinius:
 #*.rbc
+
+# for RVM
+.rvmrc

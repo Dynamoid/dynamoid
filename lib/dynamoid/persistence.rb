@@ -77,6 +77,10 @@ module Dynamoid #:nodoc:
       end
       self
     end
+
+    def save!
+      raise unless save
+    end
     
     def destroy
       run_callbacks(:destroy) do
