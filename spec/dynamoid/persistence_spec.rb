@@ -80,6 +80,11 @@ describe "Dynamoid::Persistence" do
     
     @subscription.send(:dump)[:magazine_ids].should == Set[@magazine.id]
   end
+
+  it 'dumps and undump a serialized field' do
+    @address.options = (hash = {:x => [1, 2], "foobar" => 3.14})
+    Address.undump(@address.send(:dump))[:options].should == hash
+  end
   
   it 'loads attributes from a hash' do
     @time = DateTime.now
