@@ -94,7 +94,7 @@ module Dynamoid #:nodoc:
       end
       self
     end
-    
+
     def delete
       delete_indexes
       Dynamoid::Adapter.delete(self.class.table_name, self.id)

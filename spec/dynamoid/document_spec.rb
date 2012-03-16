@@ -23,6 +23,12 @@ describe "Dynamoid::Document" do
     @address.new_record.should be_false
     @address.id.should_not be_nil
   end
+
+  it 'knows if a document exists or not' do
+    @address = Address.create(:city => 'Chicago')
+    Address.exists?(@address.id).should be_true
+    Address.exists?("does-not-exist").should be_false
+  end
   
   it 'tests equivalency with itself' do
     @address = Address.create(:city => 'Chicago')

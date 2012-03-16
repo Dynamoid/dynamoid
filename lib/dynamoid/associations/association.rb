@@ -53,7 +53,11 @@ module Dynamoid #:nodoc:
         Array(object).collect{|o| self.send(:associate_target, o)} if target_association
         object
       end
-      
+
+      def build(attributes = {})
+        self.<< target_class.new(attributes)
+      end
+
       def create(attributes = {})
         object = target_class.create(attributes)
         self << object
@@ -66,6 +70,14 @@ module Dynamoid #:nodoc:
       
       def each(&block)
         records.each(&block)
+      end
+
+      def destroy_all
+        records.each(&:destroy)
+      end
+
+      def delete_all
+        records.each(&:delete)
       end
       
       private

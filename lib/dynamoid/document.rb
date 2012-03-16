@@ -24,7 +24,8 @@ module Dynamoid #:nodoc:
         self.new(attrs)
       end
 
-      def count
+      def exists?(id)
+        !! find(id)
       end
     end
     
