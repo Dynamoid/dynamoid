@@ -120,4 +120,13 @@ describe "Dynamoid::Associations::Association" do
 
     @magazine.subscriptions.delete_all
   end
+
+  it 'returns the first and last record when they exist' do
+    @subscription1 = @magazine.subscriptions.create
+    @subscription2 = @magazine.subscriptions.create
+    @subscription3 = @magazine.subscriptions.create
+
+    @magazine.subscriptions.instance_eval { [first, last] }.should == [@subscription1, @subscription3]
+  end
+
 end

@@ -7,12 +7,17 @@ module Dynamoid #:nodoc:
       attr_accessor :name, :options, :source, :query
       include Enumerable
 
+      delegate :first, :last, :empty?, :size, :to => :records
+
       def initialize(source, name, options)
         @name = name
         @options = options
         @source = source
         @query = {}
       end
+      
+      alias :nil? :empty?
+      alias :count :size
       
       def records
         results = target_class.find(source_ids.to_a)
@@ -21,16 +26,6 @@ module Dynamoid #:nodoc:
         results_with_query(results)
       end
       alias :all :records
-      
-      def empty?
-        records.empty?
-      end
-      alias :nil? :empty?
-      
-      def size
-        records.count
-      end
-      alias :count :size
       
       def include?(object)
         records.include?(object)
