@@ -19,7 +19,6 @@ module Dynamoid #:nodoc
     include ActiveModel::MassAssignmentSecurity
     include ActiveModel::Naming
     include ActiveModel::Observing
-    include ActiveModel::Validations
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml
     include Dynamoid::Fields
@@ -28,5 +27,6 @@ module Dynamoid #:nodoc
     include Dynamoid::Finders
     include Dynamoid::Associations
     include Dynamoid::Criteria
+    include Dynamoid::Validations
   end
 end

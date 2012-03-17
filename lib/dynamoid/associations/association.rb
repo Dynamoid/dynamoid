@@ -60,6 +60,11 @@ module Dynamoid #:nodoc:
         object = target_class.create(attributes)
         self << object
       end
+
+      def create!(attributes = {})
+        object = target_class.create!(attributes)
+        self << object
+      end
       
       def where(args)
         args.each {|k, v| query[k] = v}

@@ -17,6 +17,7 @@ describe "Dynamoid::Criteria" do
   
   it 'returns all records' do
     User.all.should =~ [@user1, @user2]
+    User.all.first.new_record.should be_false
   end
   
   it 'returns empty attributes for where' do
@@ -28,7 +29,10 @@ describe "Dynamoid::Criteria" do
   end
   
   it 'passes each to all members' do
-    User.each{|u| u.id.should == @user1.id || @user2.id}
+    User.each do |u|
+      u.id.should == @user1.id || @user2.id
+      u.new_record.should be_false
+    end
   end
 
 end
