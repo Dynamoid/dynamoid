@@ -20,7 +20,7 @@ module Dynamoid #:nodoc:
       alias :count :size
       
       def records
-        results = Array.wrap(target_class.find(source_ids.to_a))
+        results = Array(target_class.find(source_ids.to_a))
 
         if query.empty?
           results
@@ -53,7 +53,7 @@ module Dynamoid #:nodoc:
       end
 
       def build(attributes = {})
-        self.<< target_class.new(attributes)
+        self << target_class.new(attributes)
       end
 
       def create(attributes = {})
