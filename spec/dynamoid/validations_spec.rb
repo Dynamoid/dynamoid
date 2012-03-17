@@ -2,8 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe "Dynamoid::Validations" do
   before do
-    @document = Class.new
-    @document.class_eval do
+    @document = Class.new do
       include Dynamoid::Document
 
       def self.name
