@@ -105,6 +105,22 @@ describe "Dynamoid::Associations::Association" do
     @magazine.camel_cases.create.class.should == CamelCase
   end
 
+  it 'destroys associations' do
+    @subscription = Subscription.new
+    @magazine.subscriptions.expects(:records).returns([@subscription])
+    @subscription.expects(:destroy)
+
+    @magazine.subscriptions.destroy_all
+  end
+
+  it 'deletes associations' do
+    @subscription = Subscription.new
+    @magazine.subscriptions.expects(:records).returns([@subscription])
+    @subscription.expects(:delete)
+
+    @magazine.subscriptions.delete_all
+  end
+
   it 'returns the first and last record when they exist' do
     @subscription1 = @magazine.subscriptions.create
     @subscription2 = @magazine.subscriptions.create
