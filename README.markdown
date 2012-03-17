@@ -121,6 +121,11 @@ When your read or write provisioning exceed your table's allowed throughput, Dyn
 
 Dynamoid borrows code, structure, and even its name very liberally from the truly amazing [Mongoid](https://github.com/mongoid/mongoid). Without Mongoid to crib from none of this would have been possible, and I hope they don't mind me reusing their very awesome ideas to make DynamoDB just as accessible to the Ruby world as MongoDB.
 
+Also, without contributors the project wouldn't be nearly as awesome. So many thanks to:
+
+* [Anantha Kumaran](https://github.com/ananthakumaran)
+* [Jason Dew](https://github.com/jasondew)
+
 ## Running the tests
 
 The tests can be run in the simple predictable way with ```rake```. However, if you provide environment variables for ACCESS_KEY and SECRET_KEY, the tests will use the aws_sdk adapter rather than the local adapter: ```ACCESS_KEY=<accesskey> SECRET_KEY=<secretkey> rake```. Keep in mind this takes much, much longer than the local tests.

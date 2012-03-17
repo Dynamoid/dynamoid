@@ -1,20 +1,39 @@
+# encoding: utf-8
 require 'aws'
 
 module Dynamoid
   module Adapter
+    
+    # The AwsSdk adapter provides support for the AWS-SDK for Ruby gem.
+    # More information is available at that Gem's Github page:
+    # https://github.com/amazonwebservices/aws-sdk-for-ruby
+    # 
     module AwsSdk
       extend self
       @@connection = nil
     
+      # Establish the connection to DynamoDB.
+      #
+      # @since 0.2.0
       def connect!
         @@connection = AWS::DynamoDB.new(:access_key_id => Dynamoid::Config.access_key, :secret_access_key => Dynamoid::Config.secret_key)
       end
     
+      # Return the established connection.
+      #
+      # @since 0.2.0
       def connection
         @@connection
       end
     
-      # BatchGetItem
+      # Get many items at once from DynamoDB. More efficient than getting each item individually.
+      # 
+      # @example Retrieve IDs 1 and 2 from the table testtable
+      #   Dynamoid::Adapter::AwsSdk.batch_get_item('table1' => ['1', '2'])
+      #
+      # @param [Hash] options the hash of tables and IDs to retrieve
+      #
+      # @since 0.2.0
       def batch_get_item(options)
         hash = Hash.new{|h, k| h[k] = []}
         return hash if options.all?{|k, v| v.empty?}
@@ -30,7 +49,13 @@ module Dynamoid
         hash
       end
     
-      # CreateTable
+      # Create a table on DynamoDB. This usually takes a long time to complete.
+      #
+      # @param [String] table_name the name of the table to create
+      # @param [Symbol] key the table's primary key (defaults to :id)
+      # @param [Hash] options provide a range_key here if you want one for the table
+      #
+      # @since 0.2.0
       def create_table(table_name, key = :id, options = {})
         options[:hash_key] ||= {key.to_sym => :string}
         options[:range_key] = {options[:range_key].to_sym => :number} if options[:range_key]
@@ -39,7 +64,13 @@ module Dynamoid
         return table
       end
     
-      # DeleteItem
+      # Removes an item from DynamoDB.
+      #
+      # @param [String] table_name the name of the table
+      # @param [String] key the hash key of the item to delete
+      # @param [Number] range_key the range key of the item to delete, required if the table has a composite key
+      #
+      # @since 0.2.0
       def delete_item(table_name, key, range_key = nil)
         table = @@connection.tables[table_name]
         table.load_schema
@@ -52,14 +83,25 @@ module Dynamoid
         true
       end
     
-      # DeleteTable
+      # Deletes an entire table from DynamoDB. Only 10 tables can be in the deleting state at once, 
+      # so if you have more this method may raise an exception.
+      #
+      # @param [String] table_name the name of the table to destroy
+      #
+      # @since 0.2.0
       def delete_table(table_name)
         @@connection.tables[table_name].delete
       end
     
-      # DescribeTable
+      # @todo Add a DescribeTable method.
     
-      # GetItem
+      # Fetches an item from DynamoDB.
+      #
+      # @param [String] table_name the name of the table
+      # @param [String] key the hash key of the item to find
+      # @param [Number] range_key the range key of the item to find, required if the table has a composite key
+      #
+      # @since 0.2.0
       def get_item(table_name, key, range_key = nil)
         table = @@connection.tables[table_name]
         table.load_schema
@@ -73,23 +115,41 @@ module Dynamoid
         else
           result.symbolize_keys!
         end
-      rescue
-        raise [table_name, key, range_key].inspect
       end
     
-      # ListTables
+      # List all tables on DynamoDB.
+      #
+      # @since 0.2.0
       def list_tables
         @@connection.tables.collect(&:name)
       end
     
-      # PutItem
+      # Persists an item on DynamoDB.
+      #
+      # @param [String] table_name the name of the table
+      # @param [Object] object a hash or Dynamoid object to persist
+      #
+      # @since 0.2.0
       def put_item(table_name, object)
         table = @@connection.tables[table_name]
         table.load_schema
         table.items.create(object.delete_if{|k, v| v.nil? || (v.respond_to?(:empty?) && v.empty?)})
       end
     
-      # Query
+      # Query the DynamoDB table. This employs DynamoDB's indexes so is generally faster than scanning, but is 
+      # only really useful for range queries, since it can only find by one hash key at once. Only provide 
+      # one range key to the hash.
+      #
+      # @param [String] table_name the name of the table
+      # @param [Hash] opts the options to query the table with
+      # @option opts [String] :hash_value the value of the hash key to find
+      # @option opts [Range] :range_value find the range key within this range
+      # @option opts [Number] :range_greater_than find range keys greater than this
+      # @option opts [Number] :range_less_than find range keys less than this
+      # @option opts [Number] :range_gte find range keys greater than or equal to this
+      # @option opts [Number] :range_lte find range keys less than or equal to this
+      #
+      # @since 0.2.0
       def query(table_name, opts = {})
         table = @@connection.tables[table_name]
         table.load_schema
@@ -103,7 +163,13 @@ module Dynamoid
         end
       end
     
-      # Scan
+      # Scan the DynamoDB table. This is usually a very slow operation as it naively filters all data on
+      # the DynamoDB servers.
+      #
+      # @param [String] table_name the name of the table
+      # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
+      #
+      # @since 0.2.0
       def scan(table_name, scan_hash)
         table = @@connection.tables[table_name]
         table.load_schema
@@ -114,9 +180,9 @@ module Dynamoid
         results
       end
     
-      # UpdateItem
+      # @todo Add an UpdateItem method.
     
-      # UpdateTable
+      # @todo Add an UpdateTable method.
     end
   end
 end

@@ -1,18 +1,33 @@
 module Dynamoid
   module Adapter
+    
+    # This gimpy hash construct should be equivalent to Amazon's actual DynamoDB, for offline development.
+    # All tests pass with either this or connecting to the real DynamoDB, and that's good enough for me.
     module Local
       extend self
-      # Gimpy hash that should be somewhat equivalent to what Amazon's actual DynamoDB, for offline development.
-    
+      
+      # The hash holding all of our data.
+      #
+      # @since 0.2.0
       def data
         @data ||= {}
       end
     
+      # A convenience method for testing that destroys all table data without destroying their structure.
+      #
+      # @since 0.2.0
       def reset_data
         self.data.each {|k, v| v[:data] = {}}
       end
     
-      # BatchGetItem
+      # Get many items at once from the hash.
+      # 
+      # @example Retrieve IDs 1 and 2 from the table testtable
+      #   Dynamoid::Adapter::Local.batch_get_item('table1' => ['1', '2'])
+      #
+      # @param [Hash] options the hash of tables and IDs to retrieve
+      #
+      # @since 0.2.0
       def batch_get_item(options)
         Hash.new { |h, k| h[k] = Array.new }.tap do |hash|
           options.each do |table_name, keys|
@@ -30,24 +45,46 @@ module Dynamoid
         end
       end
     
-      # CreateTable
+      # Create a table.
+      #
+      # @param [String] table_name the name of the table to create
+      # @param [Symbol] key the table's primary key (defaults to :id)
+      # @param [Hash] options provide a range_key here if you want one for the table
+      #
+      # @since 0.2.0
       def create_table(table_name, key, options = {})
         data[table_name] = {:hash_key => key, :range_key => options[:range_key], :data => {}}
       end
     
-      # DeleteItem
+      # Removes an item from the hash.
+      #
+      # @param [String] table_name the name of the table
+      # @param [String] key the hash key of the item to delete
+      # @param [Number] range_key the range key of the item to delete, required if the table has a composite key
+      #
+      # @since 0.2.0
       def delete_item(table_name, key, range_key = nil)
         data[table_name][:data].delete("#{key}.#{range_key}")
       end
     
-      # DeleteTable
+      # Deletes an entire table from the hash.
+      #
+      # @param [String] table_name the name of the table to destroy
+      #
+      # @since 0.2.0
       def delete_table(table_name)
         data.delete(table_name)
       end
     
-      # DescribeTable
+      # @todo Add a DescribeTable method.
     
-      # GetItem
+      # Fetches an item from the hash.
+      #
+      # @param [String] table_name the name of the table
+      # @param [String] key the hash key of the item to find
+      # @param [Number] range_key the range key of the item to find, required if the table has a composite key
+      #
+      # @since 0.2.0
       def get_item(table_name, key, range_key = nil)
         if data[table_name][:data]
           data[table_name][:data]["#{key}.#{range_key}"]
@@ -56,19 +93,37 @@ module Dynamoid
         end
       end
     
-      # ListTables
+      # List all tables on DynamoDB.
+      #
+      # @since 0.2.0
       def list_tables
         data.keys
       end
     
-      # PutItem
+      # Persists an item in the hash.
+      #
+      # @param [String] table_name the name of the table
+      # @param [Object] object a hash or Dynamoid object to persist
+      #
+      # @since 0.2.0
       def put_item(table_name, object)
         table = data[table_name]
         table[:data][object[table[:hash_key]]]
         table[:data]["#{object[table[:hash_key]]}.#{object[table[:range_key]]}"] = object.delete_if{|k, v| v.nil? || (v.respond_to?(:empty?) && v.empty?)}
       end
     
-      # Query
+      # Query the hash.
+      #
+      # @param [String] table_name the name of the table
+      # @param [Hash] opts the options to query the table with
+      # @option opts [String] :hash_value the value of the hash key to find
+      # @option opts [Range] :range_value find the range key within this range
+      # @option opts [Number] :range_greater_than find range keys greater than this
+      # @option opts [Number] :range_less_than find range keys less than this
+      # @option opts [Number] :range_gte find range keys greater than or equal to this
+      # @option opts [Number] :range_lte find range keys less than or equal to this
+      #
+      # @since 0.2.0
       def query(table_name, opts = {})
         id = opts[:hash_value]
         range_key = data[table_name][:range_key]
@@ -87,16 +142,20 @@ module Dynamoid
         end
       end
     
-      # Scan
+      # Scan the hash.
+      #
+      # @param [String] table_name the name of the table
+      # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
+      #
+      # @since 0.2.0
       def scan(table_name, scan_hash)
         return [] if data[table_name].nil?
         data[table_name][:data].values.flatten.select{|d| scan_hash.all?{|k, v| !d[k].nil? && d[k] == v}}
       end
     
-      # UpdateItem
+      # @todo Add an UpdateItem method.
     
-      # UpdateTable
-    
+      # @todo Add an UpdateTable method.
     end
   end
 end

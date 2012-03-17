@@ -16,4 +16,6 @@ group :development do
   gem "bundler"
   gem "jeweler"
   gem "rcov"
+  gem "yard"
+  gem "redcarpet"
 end
