@@ -13,7 +13,7 @@ module Dynamoid #:nodoc:
           self.find_by_id(id.first)
         else
           items = Dynamoid::Adapter.read(self.table_name, id)
-          items[self.table_name].collect{|i| o = self.build(i); o.new_record = false; o}
+          items[self.table_name].collect{|i| self.build(i).tap { |o| o.new_record = false } }
         end
       end
       

@@ -84,10 +84,6 @@ module Dynamoid #:nodoc:
       self
     end
 
-    def save!
-      raise unless save
-    end
-    
     def destroy
       run_callbacks(:destroy) do
         self.delete
@@ -137,6 +133,7 @@ module Dynamoid #:nodoc:
       self.id = SecureRandom.uuid if self.id.nil? || self.id.blank?
       Dynamoid::Adapter.write(self.class.table_name, self.dump)
       save_indexes
+      @new_record = false
     end
         
   end

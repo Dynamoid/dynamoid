@@ -15,7 +15,15 @@ module Dynamoid #:nodoc:
       def create(attrs = {})
         obj = self.new(attrs)
         obj.run_callbacks(:create) do
-          obj.save && obj.new_record = false
+          obj.save
+        end
+        obj
+      end
+
+      def create!(attrs = {})
+        obj = self.new(attrs)
+        obj.run_callbacks(:create) do
+          obj.save!
         end
         obj
       end
