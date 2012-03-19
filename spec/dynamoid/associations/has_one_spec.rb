@@ -4,6 +4,7 @@ describe "Dynamoid::Associations::HasOne" do
 
   before do
     @magazine = Magazine.create
+    @user = User.create
   end
   
   it 'determines nil if it has no associated record' do
@@ -30,8 +31,11 @@ describe "Dynamoid::Associations::HasOne" do
   
   it 'associates belongs_to automatically' do
     @sponsor = @magazine.sponsor.create
-    
+    @sponsor.magazine.should == @magazine
     @magazine.sponsor.size.should == 1
     @magazine.sponsor.should == @sponsor
+
+    @subscription = @user.monthly.create
+    @subscription.customer.should == @user
   end
 end

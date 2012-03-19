@@ -92,9 +92,13 @@ module Dynamoid #:nodoc:
           end
         end
       end
-      
+
+      def target_class_name
+        options[:class_name] || name.to_s.singularize.camelize
+      end
+
       def target_class
-        name.to_s.singularize.camelize.constantize
+        options[:class] || target_class_name.constantize
       end
       
       def target_attribute

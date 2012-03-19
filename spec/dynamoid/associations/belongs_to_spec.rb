@@ -22,6 +22,11 @@ describe "Dynamoid::Associations::BelongsTo" do
     
       @magazine.subscriptions.size.should == 1
       @magazine.subscriptions.should include @subscription
+
+      @magazine = Magazine.create
+      @user = @magazine.owner.create
+      @user.books.size.should == 1
+      @user.books.should include @magazine
     end
     
     it 'behaves like the object it is trying to be' do
@@ -36,6 +41,7 @@ describe "Dynamoid::Associations::BelongsTo" do
   context 'has one' do
     before do
       @sponsor = Sponsor.create
+      @subscription = Subscription.create
     end
     
     it 'determins nil if it has no associated record' do
@@ -53,6 +59,9 @@ describe "Dynamoid::Associations::BelongsTo" do
       
       @magazine.sponsor.size.should == 1
       @magazine.sponsor.should == @sponsor
+
+      @user = @subscription.customer.create
+      @user.monthly.should == @subscription
     end
   end
 end

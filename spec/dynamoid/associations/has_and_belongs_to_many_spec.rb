@@ -28,6 +28,11 @@ describe "Dynamoid::Associations::HasAndBelongsToMany" do
     @user.subscriptions.should include @subscription
     @subscription.users.size.should == 1
     @subscription.users.should include @user
+
+    @user = User.create
+    @follower = @user.followers.create
+    @follower.following.should include @user
+    @user.followers.should include @follower
   end
   
   it 'disassociates has_and_belongs_to_many automatically' do
