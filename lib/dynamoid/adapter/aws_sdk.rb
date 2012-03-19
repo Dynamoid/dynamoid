@@ -59,7 +59,9 @@ module Dynamoid
       def create_table(table_name, key = :id, options = {})
         options[:hash_key] ||= {key.to_sym => :string}
         options[:range_key] = {options[:range_key].to_sym => :number} if options[:range_key]
-        table = @@connection.tables.create(table_name, 100, 20, options)
+        read_capacity = options[:read_capacity] || Dynamoid::Config.read_capacity
+        write_capacity = options[:write_capacity] || Dynamoid::Config.write_capacity
+        table = @@connection.tables.create(table_name, read_capacity, write_capacity, options)
         sleep 0.5 while table.status == :creating
         return table
       end

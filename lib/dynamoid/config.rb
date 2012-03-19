@@ -14,6 +14,8 @@ module Dynamoid #:nodoc
     option :logger, :default => defined?(Rails)
     option :access_key
     option :secret_key
+    option :read_capacity, :default => 100
+    option :write_capacity, :default => 20
     option :warn_on_scan, :default => true
     option :partitioning, :default => false
     option :partition_size, :default => 200
