@@ -14,4 +14,11 @@ class User
   index :created_at, :range => true
   
   has_and_belongs_to_many :subscriptions
+
+  has_many :books, :class_name => 'Magazine', :inverse_of => :owner
+  has_one :monthly, :class_name => 'Subscription', :inverse_of => :customer
+
+  has_and_belongs_to_many :followers, :class_name => 'User', :inverse_of => :following
+  has_and_belongs_to_many :following, :class_name => 'User', :inverse_of => :followers
+
 end
