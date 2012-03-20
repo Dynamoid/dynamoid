@@ -5,10 +5,15 @@ describe "Dynamoid::Associations::HasOne" do
   before do
     @magazine = Magazine.create
     @user = User.create
+    @camel_case = CamelCase.create
   end
   
   it 'determines nil if it has no associated record' do
     @magazine.sponsor.should be_nil
+  end
+
+  it 'determines target association correctly' do
+    @camel_case.sponsor.send(:target_association).should == :camel_case
   end
   
   it 'returns only one object when associated' do

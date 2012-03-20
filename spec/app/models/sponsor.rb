@@ -3,4 +3,6 @@ class Sponsor
   
   belongs_to :magazine
   has_many :subscriptions
+
+  belongs_to :camel_case
 end
