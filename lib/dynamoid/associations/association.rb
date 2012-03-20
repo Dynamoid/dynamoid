@@ -94,7 +94,7 @@ module Dynamoid #:nodoc:
       end
 
       def target_class_name
-        options[:class_name] || name.to_s.singularize.camelize
+        options[:class_name] || name.to_s.classify
       end
 
       def target_class
