@@ -81,6 +81,10 @@ describe "Dynamoid::Persistence" do
     @subscription.send(:dump)[:magazine_ids].should == Set[@magazine.id]
   end
 
+  it 'handles nil attributes properly' do
+    Address.undump(nil).should be_a(Hash)
+  end
+
   it 'dumps and undump a serialized field' do
     @address.options = (hash = {:x => [1, 2], "foobar" => 3.14})
     Address.undump(@address.send(:dump))[:options].should == hash
