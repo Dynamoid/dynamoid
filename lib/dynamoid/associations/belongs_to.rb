@@ -25,8 +25,8 @@ module Dynamoid #:nodoc:
       end
       
       def target_association
-        has_many_key_name = options[:inverse_of] || source.class.to_s.pluralize.downcase.to_sym
-        has_one_key_name = options[:inverse_of] || source.class.to_s.downcase.to_sym
+        has_many_key_name = options[:inverse_of] || source.class.to_s.underscore.pluralize.to_sym
+        has_one_key_name = options[:inverse_of] || source.class.to_s.underscore.to_sym
         if !target_class.associations[has_many_key_name].nil?
           return has_many_key_name if target_class.associations[has_many_key_name][:type] == :has_many
         end

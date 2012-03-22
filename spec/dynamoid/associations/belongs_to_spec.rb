@@ -5,11 +5,17 @@ describe "Dynamoid::Associations::BelongsTo" do
   context 'has many' do
     before do
       @subscription = Subscription.create
+      @camel_case = CamelCase.create
     end
   
-    it 'determins nil if it has no associated record' do
+    it 'determines nil if it has no associated record' do
       @subscription.magazine.should be_nil
     end
+
+    it 'determines target association correctly' do
+      @camel_case.magazine.send(:target_association).should == :camel_cases
+    end
+
   
     it 'delegates equality to its source record' do
       @magazine = @subscription.magazine.create

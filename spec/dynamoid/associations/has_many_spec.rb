@@ -5,6 +5,7 @@ describe "Dynamoid::Associations::HasMany" do
   before do
     @magazine = Magazine.create
     @user = User.create
+    @camel_case = CamelCase.create
   end
   
   it 'determines equality from its records' do
@@ -16,6 +17,7 @@ describe "Dynamoid::Associations::HasMany" do
   it 'determines target association correctly' do
     @magazine.subscriptions.send(:target_association).should == :magazine
     @user.books.send(:target_association).should == :owner
+    @camel_case.users.send(:target_association).should == :camel_case
   end
 
   it 'determins target class correctly' do

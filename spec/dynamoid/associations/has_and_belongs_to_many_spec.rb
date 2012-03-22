@@ -4,6 +4,7 @@ describe "Dynamoid::Associations::HasAndBelongsToMany" do
 
   before do
     @subscription = Subscription.create
+    @camel_case = CamelCase.create
   end
   
   it 'determines equality from its records' do
@@ -15,6 +16,7 @@ describe "Dynamoid::Associations::HasAndBelongsToMany" do
 
   it 'determines target association correctly' do
     @subscription.users.send(:target_association).should == :subscriptions
+    @camel_case.subscriptions.send(:target_association).should == :camel_cases
   end
   
   it 'determines target attribute' do

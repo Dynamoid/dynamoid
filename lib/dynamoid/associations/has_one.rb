@@ -25,7 +25,7 @@ module Dynamoid #:nodoc:
       end
       
       def target_association
-        key_name = options[:inverse_of] || source.class.to_s.singularize.downcase.to_sym
+        key_name = options[:inverse_of] || source.class.to_s.singularize.underscore.to_sym
         guess = target_class.associations[key_name]
         return nil if guess.nil? || guess[:type] != :belongs_to
         key_name
