@@ -55,7 +55,11 @@ module Dynamoid #:nodoc:
             Time.at(value).to_datetime
           end
         when :serialized
-          YAML.load(value)
+          if value.is_a?(String)
+            YAML.load(value)
+          else
+            value
+          end
         end
       end
 

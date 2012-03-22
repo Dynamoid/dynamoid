@@ -85,6 +85,11 @@ describe "Dynamoid::Persistence" do
     @address.options = (hash = {:x => [1, 2], "foobar" => 3.14})
     Address.undump(@address.send(:dump))[:options].should == hash
   end
+
+  it 'loads a hash into a serialized field' do
+    hash = {foo: :bar}
+    Address.new(options: hash).options.should == hash
+  end
   
   it 'loads attributes from a hash' do
     @time = DateTime.now
