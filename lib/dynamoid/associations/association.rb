@@ -52,18 +52,12 @@ module Dynamoid #:nodoc:
         object
       end
 
-      def build(attributes = {})
-        self << target_class.new(attributes)
-      end
-
       def create(attributes = {})
-        object = target_class.create(attributes)
-        self << object
+        self << target_class.create(attributes)
       end
 
       def create!(attributes = {})
-        object = target_class.create!(attributes)
-        self << object
+        self << target_class.create!(attributes)
       end
       
       def where(args)
