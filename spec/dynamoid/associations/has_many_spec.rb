@@ -37,9 +37,4 @@ describe "Dynamoid::Associations::HasMany" do
     @magazine.owner.should == @user
   end
 
-  it 'builds new objects and associates them' do
-    @subscription = @magazine.subscriptions.build
-
-    @subscription.magazine.should == @magazine
-  end
 end

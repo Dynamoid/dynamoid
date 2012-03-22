@@ -33,7 +33,7 @@ describe "Dynamoid::Associations::Association" do
     @magazine.subscriptions.size.should == 1
     @magazine.subscriptions.should include @subscription
   end
-  
+
   it 'returns the number of items in the association' do
     @magazine.subscriptions.create
     
