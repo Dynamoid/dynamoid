@@ -23,8 +23,8 @@ module Dynamoid #:nodoc:
         Dynamoid::Adapter.tables.include?(table_name)
       end
       
-      def undump(incoming = {})
-        incoming.symbolize_keys!
+      def undump(incoming = nil)
+        (incoming ||= {}).symbolize_keys!
         Hash.new.tap do |hash|
           self.attributes.each do |attribute, options|
             hash[attribute] = undump_field(incoming[attribute], options[:type])
