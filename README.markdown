@@ -26,37 +26,123 @@ Then you need to initialize it to get it going. Put code similar to this somewhe
     config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table.
     config.partitioning = true # Spread writes randomly across the database. See "partitioning" below for more.
     config.partition_size = 200  # Determine the key space size that writes are randomly spread across.
+    config.read_capacity = 100 # Read capacity for your tables
+    config.write_capacity = 20 # Write capacity for your tables
   end
 
 ```
 
-Once you have the configuration set up, just define models like this:
+Once you have the configuration set up, you need to move on to making models.
+
+## Setup
+
+You *must* include ```Dynamoid::Document``` in every Dynamoid model.
 
 ```ruby
 class User
-   include Dynamoid::Document # Documents automatically receive an 'id' field: you don't have to specify it.
+  include Dynamoid::Document
+  
+end
+```
+
+### Fields
+
+You'll have to define all the fields on the model and the data type of each field. Every field on the object must be included here; if you miss any they'll be completely bypassed during DynamoDB's initialization and will not appear on the model objects.
+
+By default, fields are assumed to be of type ```:string```. But you can also use ```:integer```, ```:float```, ```:set```, ```:array```, ```:datetime```, and ```:serialized```. You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
+
+```ruby
+class User
+  include Dynamoid::Document
+
+  field :name
+  field :email
+  field :rank, :integer
+  field :number, :float
+  field :joined_at, :datetime
+  field :hash, :serialized
    
-   field :name           # Every field you have on the object must be specified here.
-   field :email          # If you have fields that aren't specified they won't be attached to the object as methods.
-   field :rank, :integer # Every field is assumed to be a string unless otherwise specified.
-                         # created_at and updated_at with a type of :datetime are automatically added.
+end
+```
+
+### Indexes
+
+You can also define indexes on fields, combinations of fields, and one range field. Yes, only one range field: in DynamoDB tables can have at most one range index, so make good use of it! To make an index, just specify the fields you want it on, either single or in an array. If the entire index is a range, pass ```:range => true```. Otherwise, pass the attribute that will become the range key. The only range attributes you can use right now are integers, floats, and datetimes. If you pass a string as a range key likely DynamoDB will complain a lot.
+
+```ruby
+class User
+  include Dynamoid::Document
+
+  ...
    
-   index :name           # Only specify indexes if you intend to perform queries on the specified fields.
-   index :email          # Fields without indexes suffer extremely poor performance as they must use 
-   index [:name, :email] # scan rather than query.
-   index :created_at, :range => true
-   index :name, :range => :created_at
-                         # You can only provide one range query for each index, or specify an index
-                         # to be only a range query with :range => true.
+  index :name           
+  index :email          
+  index [:name, :email] 
+  index :created_at, :range => true
+  index :name, :range => :joined_at
+```
+
+### Associations
+
+Just like in ActiveRecord (or your other favorite ORM), Dynamoid uses associations to create links between models.
+
+The only supported associations (so far) are ```has_many```, ```has_one```, ```has_and_belongs_to_many```, and ```belongs_to```. Associations are very simple to create: just specify the type, the name, and then any options you'd like to pass to the association. If there's an inverse association either inferred or specified directly, Dynamoid will update both objects to point at each other.
+
+```ruby
+class User
+  include Dynamoid::Document
+
+  ...
    
-   has_many :addresses   # Associations do not accept any options presently. The referenced
-                         # model name must match exactly and the foreign key is always id.
-   belongs_to :group     # If they detect a matching association on 
-                         # the referenced model they'll auto-update that association.
-   has_one :role         # Contrary to ActiveRecord, all associations are stored on the object,
-                         # even if it seems like they'd be a foreign key association.
-   has_and_belongs_to_many :friends
-                         # There's no concept of embedding models yet but it's coming!
+  has_many :addresses
+  has_many :students, :class => User
+  belongs_to :teacher, :class_name => :user
+  belongs_to :group
+  has_one :role
+  has_and_belongs_to_many :friends, :inverse_of => :friending_users
+   
+end
+
+class Address
+  include Dynamoid::Document
+  
+  ...
+  
+  belongs_to :address # Automatically links up with the user model
+```
+
+Contrary to what you'd expect, association information is always contained on the object specifying the association, even if it seems like the association has a foreign key. This is a side effect of DynamoDB's structure: it's very difficult to find foreign keys without an index. Usually you won't find this to be a problem, but it does mean that association methods that build new models will not work correctly -- for example, ```user.addresses.new``` returns an address that is not associated to the user. We'll be correcting this soon.
+
+### Validations
+
+Dynamoid bakes in ActiveModel validations, just like ActiveRecord does.
+
+```ruby
+class User
+  include Dynamoid::Document
+
+  ...
+  
+  validates_presence_of :name
+  validates_format_of :email, :with => /@/
+end
+```
+
+To see more usage and examples of ActiveModel validations, check out the [ActiveModel validation documentation](http://api.rubyonrails.org/classes/ActiveModel/Validations.html).
+
+### Callbacks
+
+Dynamoid also employs ActiveModel callbacks. Right now, callbacks are defined on ```save```, ```update```, ```destroy```, which allows you to do ```before_``` or ```after_``` any of those.
+
+```ruby
+class User
+  include Dynamoid::Document
+
+  ...
+  
+  before_save :set_default_password
+  after_create :notify_friends
+  after_destroy :delete_addresses
 end
 ```
 

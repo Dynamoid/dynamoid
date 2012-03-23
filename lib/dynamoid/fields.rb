@@ -19,10 +19,10 @@ module Dynamoid #:nodoc:
     module ClassMethods
       
       # Specify a field for a document. Its type determines how it is coerced when read in and out of the datastore: 
-      # default is string, but you can also specify :integer, :float, :set, :array: datetime, and :serialized.
+      # default is string, but you can also specify :integer, :float, :set, :array, :datetime, and :serialized.
       #
       # @param [Symbol] name the name of the field
-      # @param [Symbol] type the type of the field (one of :integer, :float, :set, :array: datetime, or :serialized)
+      # @param [Symbol] type the type of the field (one of :integer, :float, :set, :array, :datetime, or :serialized)
       # @param [Hash] options any additional options for the field
       #
       # @since 0.2.0
