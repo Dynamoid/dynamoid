@@ -8,8 +8,8 @@ module Dynamoid #:nodoc:
       include ManyAssociation
 
       private
-      
-      # Find the target association, always another :has_and_belongs_to_many association. Uses either options[:inverse_of] or the source class name 
+
+      # Find the target association, always another :has_and_belongs_to_many association. Uses either options[:inverse_of] or the source class name
       # and default parsing to return the most likely name for the target association.
       #
       # @since 0.2.0
@@ -19,15 +19,15 @@ module Dynamoid #:nodoc:
         return nil if guess.nil? || guess[:type] != :has_and_belongs_to_many
         key_name
       end
-            
+
       # Associate a source object to this association.
       #
-      # @since 0.2.0      
+      # @since 0.2.0
       def associate_target(object)
         ids = object.send(target_attribute) || Set.new
         object.update_attribute(target_attribute, ids.merge(Array(source.id)))
       end
-      
+
       # Disassociate a source object from this association.
       #
       # @since 0.2.0
@@ -37,5 +37,5 @@ module Dynamoid #:nodoc:
       end
     end
   end
-  
+
 end

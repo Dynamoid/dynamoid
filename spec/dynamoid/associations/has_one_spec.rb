@@ -37,7 +37,6 @@ describe "Dynamoid::Associations::HasOne" do
   it 'associates belongs_to automatically' do
     @sponsor = @magazine.sponsor.create
     @sponsor.magazine.should == @magazine
-    @magazine.sponsor.size.should == 1
     @magazine.sponsor.should == @sponsor
 
     @subscription = @user.monthly.create
