@@ -3,6 +3,30 @@ module Dynamoid #:nodoc:
 
   module Associations
     module SingleAssociation
+
+
+      def setter(object)
+        delete
+        source.update_attribute(source_attribute, Set[object.id])
+        self.send(:associate_target, object) if target_association
+        object
+      end
+
+      def delete
+        source.update_attribute(source_attribute, nil)
+        self.send(:disassociate_target, target) if target && target_association
+        target
+      end
+
+      def create!(attributes = {})
+        setter(target_class.create!(attributes))
+      end
+
+      def create(attributes = {})
+        setter(target_class.create!(attributes))
+      end
+
+
       # Is this object equal to the association's target?
       #
       # @return [Boolean] true/false
@@ -23,6 +47,10 @@ module Dynamoid #:nodoc:
         end
       end
 
+      def nil?
+        target.nil?
+      end
+
       private
 
       # Find the target of the has_one association.
@@ -31,7 +59,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def target
-        records.first
+        target_class.find(source_ids.first)
       end
     end
   end

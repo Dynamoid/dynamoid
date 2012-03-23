@@ -19,14 +19,13 @@ describe "Dynamoid::Associations::BelongsTo" do
   
     it 'delegates equality to its source record' do
       @magazine = @subscription.magazine.create
-    
+
       @subscription.magazine.should == @magazine
     end
   
     it 'associates has_many automatically' do
       @magazine = @subscription.magazine.create
     
-      @magazine.subscriptions.size.should == 1
       @magazine.subscriptions.should include @subscription
 
       @magazine = Magazine.create
@@ -63,7 +62,6 @@ describe "Dynamoid::Associations::BelongsTo" do
     it 'associates has_one automatically' do
       @magazine = @sponsor.magazine.create
       
-      @magazine.sponsor.size.should == 1
       @magazine.sponsor.should == @sponsor
 
       @user = @subscription.customer.create

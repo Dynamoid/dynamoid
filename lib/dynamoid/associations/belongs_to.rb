@@ -8,6 +8,8 @@ module Dynamoid #:nodoc:
       include Association
       include SingleAssociation
 
+      private
+
       # Find the target association, either has_many or has_one. Uses either options[:inverse_of] or the source class name and default parsing to
       # return the most likely name for the target association.
       #
