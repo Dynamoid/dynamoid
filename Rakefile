@@ -52,7 +52,6 @@ task :publish do
   `git checkout master -- doc`
   `cp -R doc/* .`
   `git rm -rf doc/`
-  `mv file.README.html index.html`
   `git add .`
   `git commit -m 'Regenerated documentation'`
   `git pull`
