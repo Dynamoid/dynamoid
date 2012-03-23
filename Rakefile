@@ -36,10 +36,25 @@ RSpec::Core::RakeTask.new(:rcov) do |spec|
   spec.rcov = true
 end
 
-task :default => :spec
-
 require 'yard'
 YARD::Rake::YardocTask.new do |t|
   t.files   = ['lib/**/*.rb', "README", "LICENSE"]   # optional
   t.options = ['-m', 'markdown'] # optional
 end
+
+desc 'Publish documentation to gh-pages'
+task :publish do
+  Rake::Task['yard'].invoke
+  `git checkout gh-pages`
+  `git clean -fdx`
+  `git checkout master -- doc`
+  `mv doc/ .`
+  `rm -rf doc/`
+  `git mv file.README.html index.html`
+  `git commit -m 'Regenerated docs'`
+  `git pull`
+  `git push`
+  `git checkout master`
+end
+
+task :default => :spec

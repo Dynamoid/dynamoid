@@ -4,8 +4,7 @@ coverage
 # rdoc generated
 rdoc
 
-# yard generated
-doc
+# yardoc generated
 .yardoc
 
 # bundler

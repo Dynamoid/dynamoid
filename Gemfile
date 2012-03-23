@@ -19,5 +19,4 @@ group :development do
   gem "yard"
   gem "redcarpet", '1.17.2'
   gem 'github-markup'
-  gem 'grit'
 end

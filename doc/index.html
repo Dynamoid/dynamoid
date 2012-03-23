@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>
+  File: README
+  
+    &mdash; Documentation by YARD 0.7.5
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" media="screen" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  relpath = '';
+  if (relpath != '') relpath += '/';
+</script>
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+    
+    <div id="header">
+      <div id="menu">
+  
+    <a href="_index.html" title="Index">Index</a> &raquo; 
+    <span class="title">File: README</span>
+  
+  
+  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+</div>
+
+      <div id="search">
+  
+    <a id="class_list_link" href="#">Class List</a>
+  
+    <a id="method_list_link" href="#">Method List</a>
+  
+    <a id="file_list_link" href="#">File List</a>
+  
+</div>
+      <div class="clear"></div>
+    </div>
+    
+    <iframe id="search_frame"></iframe>
+    
+    <div id="content"><div id='filecontents'><h1>Dynamoid</h1>
+
+<p>Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It provides similar functionality to ActiveRecord and improves on Amazon's existing <a href="http://docs.amazonwebservices.com/AWSRubySDK/latest/AWS/Record/HashModel.html">HashModel</a> by providing better searching tools, native association support, and a local adapter for offline development.</p>
+
+<p>DynamoDB is not like other document-based databases you might know, and is very different indeed from relational databases. It sacrifices anything beyond the simplest relational queries and transactional support to provide a fast, cost-efficient, and highly durable storage solution. If your database requires complicated relational queries and transaction support, then this modest Gem cannot provide them for you, and neither can DynamoDB. In those cases you would do better to look elsewhere for your database needs.</p>
+
+<p>But if you want a fast, scalable, simple, easy-to-use database (and a Gem that supports it) then look no further!</p>
+
+<h2>Installation</h2>
+
+<p>Installing Dynamoid is pretty simple. First include the Gem in your Gemfile:</p>
+
+<pre class="code ruby"><code><span class='id identifier rubyid_gem'>gem</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>dynamoid</span><span class='tstring_end'>'</span></span>
+</code></pre>
+
+<p>Then you need to initialize it to get it going. Put code similar to this somewhere (a Rails initializer would be a great place for this if you're using Rails):</p>
+
+<pre class="code ruby"><code>  <span class='const'>Dynamoid</span><span class='period'>.</span><span class='id identifier rubyid_configure'>configure</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_config'>config</span><span class='op'>|</span>
+    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_adapter'>adapter</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>local</span><span class='tstring_end'>'</span></span> <span class='comment'># This adapter allows offline development without connecting to the DynamoDB servers. Data is *NOT* persisted.
+</span>    <span class='comment'># config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using Amazon's own AWS gem.
+</span>    <span class='comment'># config.access_key = 'access_key' # If connecting to DynamoDB, your access key is required.
+</span>    <span class='comment'># config.secret_key = 'secret_key' # So is your secret key. 
+</span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_namespace'>namespace</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>dynamoid_app_development</span><span class='tstring_end'>&quot;</span></span> <span class='comment'># To namespace tables created by Dynamoid from other tables you might have.
+</span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_warn_on_scan'>warn_on_scan</span> <span class='op'>=</span> <span class='kw'>true</span> <span class='comment'># Output a warning to the logger when you perform a scan rather than a query on a table.
+</span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_partitioning'>partitioning</span> <span class='op'>=</span> <span class='kw'>true</span> <span class='comment'># Spread writes randomly across the database. See &quot;partitioning&quot; below for more.
+</span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_partition_size'>partition_size</span> <span class='op'>=</span> <span class='int'>200</span>  <span class='comment'># Determine the key space size that writes are randomly spread across.
+</span>  <span class='kw'>end</span>
+
+</code></pre>
+
+<p>Once you have the configuration set up, just define models like this:</p>
+
+<pre class="code ruby"><code><span class='kw'>class</span> <span class='const'>User</span>
+   <span class='id identifier rubyid_include'>include</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Document</span> <span class='comment'># Documents automatically receive an 'id' field: you don't have to specify it.
+</span>
+   <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:name</span>           <span class='comment'># Every field you have on the object must be specified here.
+</span>   <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:email</span>          <span class='comment'># If you have fields that aren't specified they won't be attached to the object as methods.
+</span>   <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:rank</span><span class='comma'>,</span> <span class='symbol'>:integer</span> <span class='comment'># Every field is assumed to be a string unless otherwise specified.
+</span>                         <span class='comment'># created_at and updated_at with a type of :datetime are automatically added.
+</span>
+   <span class='id identifier rubyid_index'>index</span> <span class='symbol'>:name</span>           <span class='comment'># Only specify indexes if you intend to perform queries on the specified fields.
+</span>   <span class='id identifier rubyid_index'>index</span> <span class='symbol'>:email</span>          <span class='comment'># Fields without indexes suffer extremely poor performance as they must use 
+</span>   <span class='id identifier rubyid_index'>index</span> <span class='lbracket'>[</span><span class='symbol'>:name</span><span class='comma'>,</span> <span class='symbol'>:email</span><span class='rbracket'>]</span> <span class='comment'># scan rather than query.
+</span>   <span class='id identifier rubyid_index'>index</span> <span class='symbol'>:created_at</span><span class='comma'>,</span> <span class='symbol'>:range</span> <span class='op'>=&gt;</span> <span class='kw'>true</span>
+   <span class='id identifier rubyid_index'>index</span> <span class='symbol'>:name</span><span class='comma'>,</span> <span class='symbol'>:range</span> <span class='op'>=&gt;</span> <span class='symbol'>:created_at</span>
+                         <span class='comment'># You can only provide one range query for each index, or specify an index
+</span>                         <span class='comment'># to be only a range query with :range =&gt; true.
+</span>
+   <span class='id identifier rubyid_has_many'>has_many</span> <span class='symbol'>:addresses</span>   <span class='comment'># Associations do not accept any options presently. The referenced
+</span>                         <span class='comment'># model name must match exactly and the foreign key is always id.
+</span>   <span class='id identifier rubyid_belongs_to'>belongs_to</span> <span class='symbol'>:group</span>     <span class='comment'># If they detect a matching association on 
+</span>                         <span class='comment'># the referenced model they'll auto-update that association.
+</span>   <span class='id identifier rubyid_has_one'>has_one</span> <span class='symbol'>:role</span>         <span class='comment'># Contrary to ActiveRecord, all associations are stored on the object,
+</span>                         <span class='comment'># even if it seems like they'd be a foreign key association.
+</span>   <span class='id identifier rubyid_has_and_belongs_to_many'>has_and_belongs_to_many</span> <span class='symbol'>:friends</span>
+                         <span class='comment'># There's no concept of embedding models yet but it's coming!
+</span><span class='kw'>end</span>
+</code></pre>
+
+<h2>Usage</h2>
+
+<p>Dynamoid's syntax is very similar to ActiveRecord's.</p>
+
+<pre class="code ruby"><code><span class='id identifier rubyid_u'>u</span> <span class='op'>=</span> <span class='const'>User</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='symbol'>:name</span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Josh</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span>
+<span class='id identifier rubyid_u'>u</span><span class='period'>.</span><span class='id identifier rubyid_email'>email</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>josh@joshsymonds.com</span><span class='tstring_end'>'</span></span>
+<span class='id identifier rubyid_u'>u</span><span class='period'>.</span><span class='id identifier rubyid_save'>save</span>
+</code></pre>
+
+<p>Save forces persistence to the datastore: a unique ID is also assigned, but it is a string and not an auto-incrementing number.</p>
+
+<pre class="code ruby"><code><span class='id identifier rubyid_u'>u</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span> <span class='comment'># =&gt; &quot;3a9f7216-4726-4aea-9fbc-8554ae9292cb&quot;
+</span></code></pre>
+
+<p>Along with persisting the model's attributes, indexes are automatically updated on save. To use associations, you use association methods very similar to ActiveRecord's:</p>
+
+<pre class="code ruby"><code><span class='id identifier rubyid_address'>address</span> <span class='op'>=</span> <span class='id identifier rubyid_u'>u</span><span class='period'>.</span><span class='id identifier rubyid_addresses'>addresses</span><span class='period'>.</span><span class='id identifier rubyid_create'>create</span>
+<span class='id identifier rubyid_address'>address</span><span class='period'>.</span><span class='id identifier rubyid_city'>city</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Chicago</span><span class='tstring_end'>'</span></span>
+<span class='id identifier rubyid_address'>address</span><span class='period'>.</span><span class='id identifier rubyid_save'>save</span>
+</code></pre>
+
+<p>Querying can be done in one of three ways:</p>
+
+<pre class="code ruby"><code><span class='const'>Address</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span><span class='id identifier rubyid_address'>address</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>              <span class='comment'># Find directly by ID.
+</span><span class='const'>Address</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='symbol'>:city</span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Chicago</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_all'>all</span> <span class='comment'># Find by any number of matching criteria... though presently only &quot;where&quot; is supported.
+</span><span class='const'>Address</span><span class='period'>.</span><span class='id identifier rubyid_find_by_city'>find_by_city</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Chicago</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span>       <span class='comment'># The same as above, but using ActiveRecord's older syntax.
+</span></code></pre>
+
+<p>And you can also query on associations:</p>
+
+<pre class="code ruby"><code><span class='id identifier rubyid_u'>u</span><span class='period'>.</span><span class='id identifier rubyid_addresses'>addresses</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='symbol'>:city</span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Chicago</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_all'>all</span>
+</code></pre>
+
+<p>But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.</p>
+
+<p>If you have a range index, Dynamoid provides a number of additional other convenience methods to make your life a little easier:</p>
+
+<pre class="code ruby"><code><span class='const'>User</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>created_at.gt</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='const'>DateTime</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span> <span class='op'>-</span> <span class='int'>1</span><span class='period'>.</span><span class='id identifier rubyid_day'>day</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_all'>all</span>
+<span class='const'>User</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>created_at.lt</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='const'>DateTime</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span> <span class='op'>-</span> <span class='int'>1</span><span class='period'>.</span><span class='id identifier rubyid_day'>day</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_all'>all</span>
+</code></pre>
+
+<p>It also supports .gte and .lte. Turning those into symbols and allowing a Rails SQL-style string syntax is in the works. You can only have one range argument per query, because of DynamoDB's inherent limitations, so use it sensibly!</p>
+
+<h2>Partitioning, Provisioning, and Performance</h2>
+
+<p>DynamoDB achieves much of its speed by relying on a random pattern of writes and reads: internally, hash keys are distributed across servers, and reading from two consecutive servers is much faster than reading from the same server twice. Of course, many of our applications request one key (like a commonly used role, a superuser, or a very popular product) much more frequently than other keys. In DynamoDB, this will result in lowered throughput and slower response times, and is a design pattern we should try to avoid.</p>
+
+<p>Dynamoid attempts to obviate this problem transparently by employing a partitioning strategy to divide up keys randomly across DynamoDB's servers. Each ID is assigned an additional number (by default 0 to 199, but you can increase the partition size in Dynamoid's configuration) upon save; when read, all 200 hashes are retrieved simultaneously and the most recently updated one is returned to the application. This results in a significant net performance increase, and is usually invisible to the application itself. It does, however, bring up the important issue of provisioning your DynamoDB tables correctly.</p>
+
+<p>When your read or write provisioning exceed your table's allowed throughput, DynamoDB will wait on connections until throughput is available again. This will appear as very, very slow requests and can be somewhat frustrating. Partitioning significantly increases the amount of throughput tables will experience; though DynamoDB will ignore keys that don't exist, if you have 20 partitioned keys representing one object, all will be retrieved every time the object is requested. Ensure that your tables are set up for this kind of throughput, or turn provisioning off, to make sure that DynamoDB doesn't throttle your requests.</p>
+
+<h2>Credits</h2>
+
+<p>Dynamoid borrows code, structure, and even its name very liberally from the truly amazing <a href="https://github.com/mongoid/mongoid">Mongoid</a>. Without Mongoid to crib from none of this would have been possible, and I hope they don't mind me reusing their very awesome ideas to make DynamoDB just as accessible to the Ruby world as MongoDB.</p>
+
+<p>Also, without contributors the project wouldn't be nearly as awesome. So many thanks to:</p>
+
+<ul>
+<li><a href="https://github.com/ananthakumaran">Anantha Kumaran</a></li>
+<li><a href="https://github.com/jasondew">Jason Dew</a></li>
+</ul>
+
+<h2>Running the tests</h2>
+
+<p>The tests can be run in the simple predictable way with <code>rake</code>. However, if you provide environment variables for ACCESS_KEY and SECRET_KEY, the tests will use the aws_sdk adapter rather than the local adapter: <code>ACCESS_KEY=&lt;accesskey&gt; SECRET_KEY=&lt;secretkey&gt; rake</code>. Keep in mind this takes much, much longer than the local tests.</p>
+
+<h2>Copyright</h2>
+
+<p>Copyright (c) 2012 Josh Symonds. See LICENSE.txt for further details.</p>
+</div></div>
+    
+    <div id="footer">
+  Generated on Thu Mar 22 19:51:01 2012 by 
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.7.5 (ruby-1.9.3).
+</div>
+
+  </body>
+</html>
