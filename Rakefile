@@ -50,9 +50,10 @@ task :publish do
   `git checkout gh-pages`
   `git clean -fdx`
   `git checkout master -- doc`
-  `mv doc/ .`
-  `rm -rf doc/`
+  `mv doc/* .`
+  `git rm -rf doc/`
   `git mv file.README.html index.html`
+  `git add .`
   `git commit -m 'Regenerated documentation'`
   `git pull`
   `git push`
