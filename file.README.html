@@ -80,37 +80,118 @@
 </span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_warn_on_scan'>warn_on_scan</span> <span class='op'>=</span> <span class='kw'>true</span> <span class='comment'># Output a warning to the logger when you perform a scan rather than a query on a table.
 </span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_partitioning'>partitioning</span> <span class='op'>=</span> <span class='kw'>true</span> <span class='comment'># Spread writes randomly across the database. See &quot;partitioning&quot; below for more.
 </span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_partition_size'>partition_size</span> <span class='op'>=</span> <span class='int'>200</span>  <span class='comment'># Determine the key space size that writes are randomly spread across.
+</span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_read_capacity'>read_capacity</span> <span class='op'>=</span> <span class='int'>100</span> <span class='comment'># Read capacity for your tables
+</span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_write_capacity'>write_capacity</span> <span class='op'>=</span> <span class='int'>20</span> <span class='comment'># Write capacity for your tables
 </span>  <span class='kw'>end</span>
 
 </code></pre>
 
-<p>Once you have the configuration set up, just define models like this:</p>
+<p>Once you have the configuration set up, you need to move on to making models.</p>
+
+<h2>Setup</h2>
+
+<p>You <em>must</em> include <code>Dynamoid::Document</code> in every Dynamoid model.</p>
 
 <pre class="code ruby"><code><span class='kw'>class</span> <span class='const'>User</span>
-   <span class='id identifier rubyid_include'>include</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Document</span> <span class='comment'># Documents automatically receive an 'id' field: you don't have to specify it.
-</span>
-   <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:name</span>           <span class='comment'># Every field you have on the object must be specified here.
-</span>   <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:email</span>          <span class='comment'># If you have fields that aren't specified they won't be attached to the object as methods.
-</span>   <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:rank</span><span class='comma'>,</span> <span class='symbol'>:integer</span> <span class='comment'># Every field is assumed to be a string unless otherwise specified.
-</span>                         <span class='comment'># created_at and updated_at with a type of :datetime are automatically added.
-</span>
-   <span class='id identifier rubyid_index'>index</span> <span class='symbol'>:name</span>           <span class='comment'># Only specify indexes if you intend to perform queries on the specified fields.
-</span>   <span class='id identifier rubyid_index'>index</span> <span class='symbol'>:email</span>          <span class='comment'># Fields without indexes suffer extremely poor performance as they must use 
-</span>   <span class='id identifier rubyid_index'>index</span> <span class='lbracket'>[</span><span class='symbol'>:name</span><span class='comma'>,</span> <span class='symbol'>:email</span><span class='rbracket'>]</span> <span class='comment'># scan rather than query.
-</span>   <span class='id identifier rubyid_index'>index</span> <span class='symbol'>:created_at</span><span class='comma'>,</span> <span class='symbol'>:range</span> <span class='op'>=&gt;</span> <span class='kw'>true</span>
-   <span class='id identifier rubyid_index'>index</span> <span class='symbol'>:name</span><span class='comma'>,</span> <span class='symbol'>:range</span> <span class='op'>=&gt;</span> <span class='symbol'>:created_at</span>
-                         <span class='comment'># You can only provide one range query for each index, or specify an index
-</span>                         <span class='comment'># to be only a range query with :range =&gt; true.
-</span>
-   <span class='id identifier rubyid_has_many'>has_many</span> <span class='symbol'>:addresses</span>   <span class='comment'># Associations do not accept any options presently. The referenced
-</span>                         <span class='comment'># model name must match exactly and the foreign key is always id.
-</span>   <span class='id identifier rubyid_belongs_to'>belongs_to</span> <span class='symbol'>:group</span>     <span class='comment'># If they detect a matching association on 
-</span>                         <span class='comment'># the referenced model they'll auto-update that association.
-</span>   <span class='id identifier rubyid_has_one'>has_one</span> <span class='symbol'>:role</span>         <span class='comment'># Contrary to ActiveRecord, all associations are stored on the object,
-</span>                         <span class='comment'># even if it seems like they'd be a foreign key association.
-</span>   <span class='id identifier rubyid_has_and_belongs_to_many'>has_and_belongs_to_many</span> <span class='symbol'>:friends</span>
-                         <span class='comment'># There's no concept of embedding models yet but it's coming!
-</span><span class='kw'>end</span>
+  <span class='id identifier rubyid_include'>include</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Document</span>
+
+<span class='kw'>end</span>
+</code></pre>
+
+<h3>Fields</h3>
+
+<p>You'll have to define all the fields on the model and the data type of each field. Every field on the object must be included here; if you miss any they'll be completely bypassed during DynamoDB's initialization and will not appear on the model objects.</p>
+
+<p>By default, fields are assumed to be of type <code>:string</code>. But you can also use <code>:integer</code>, <code>:float</code>, <code>:set</code>, <code>:array</code>, <code>:datetime</code>, and <code>:serialized</code>. You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.</p>
+
+<pre class="code ruby"><code><span class='kw'>class</span> <span class='const'>User</span>
+  <span class='id identifier rubyid_include'>include</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Document</span>
+
+  <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:name</span>
+  <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:email</span>
+  <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:rank</span><span class='comma'>,</span> <span class='symbol'>:integer</span>
+  <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:number</span><span class='comma'>,</span> <span class='symbol'>:float</span>
+  <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:joined_at</span><span class='comma'>,</span> <span class='symbol'>:datetime</span>
+  <span class='id identifier rubyid_field'>field</span> <span class='symbol'>:hash</span><span class='comma'>,</span> <span class='symbol'>:serialized</span>
+
+<span class='kw'>end</span>
+</code></pre>
+
+<h3>Indexes</h3>
+
+<p>You can also define indexes on fields, combinations of fields, and one range field. Yes, only one range field: in DynamoDB tables can have at most one range index, so make good use of it! To make an index, just specify the fields you want it on, either single or in an array. If the entire index is a range, pass <code>:range =&gt; true</code>. Otherwise, pass the attribute that will become the range key. The only range attributes you can use right now are integers, floats, and datetimes. If you pass a string as a range key likely DynamoDB will complain a lot.</p>
+
+<pre class="code ruby"><code>class User
+  include Dynamoid::Document
+
+  ...
+
+  index :name           
+  index :email          
+  index [:name, :email] 
+  index :created_at, :range =&gt; true
+  index :name, :range =&gt; :joined_at
+</code></pre>
+
+<h3>Associations</h3>
+
+<p>Just like in ActiveRecord (or your other favorite ORM), Dynamoid uses associations to create links between models.</p>
+
+<p>The only supported associations (so far) are <code>has_many</code>, <code>has_one</code>, <code>has_and_belongs_to_many</code>, and <code>belongs_to</code>. Associations are very simple to create: just specify the type, the name, and then any options you'd like to pass to the association. If there's an inverse association either inferred or specified directly, Dynamoid will update both objects to point at each other.</p>
+
+<pre class="code ruby"><code>class User
+  include Dynamoid::Document
+
+  ...
+
+  has_many :addresses
+  has_many :students, :class =&gt; User
+  belongs_to :teacher, :class_name =&gt; :user
+  belongs_to :group
+  has_one :role
+  has_and_belongs_to_many :friends, :inverse_of =&gt; :friending_users
+
+end
+
+class Address
+  include Dynamoid::Document
+
+  ...
+
+  belongs_to :address # Automatically links up with the user model
+</code></pre>
+
+<p>Contrary to what you'd expect, association information is always contained on the object specifying the association, even if it seems like the association has a foreign key. This is a side effect of DynamoDB's structure: it's very difficult to find foreign keys without an index. Usually you won't find this to be a problem, but it does mean that association methods that build new models will not work correctly -- for example, <code>user.addresses.new</code> returns an address that is not associated to the user. We'll be correcting this soon.</p>
+
+<h3>Validations</h3>
+
+<p>Dynamoid bakes in ActiveModel validations, just like ActiveRecord does.</p>
+
+<pre class="code ruby"><code>class User
+  include Dynamoid::Document
+
+  ...
+
+  validates_presence_of :name
+  validates_format_of :email, :with =&gt; /@/
+end
+</code></pre>
+
+<p>To see more usage and examples of ActiveModel validations, check out the <a href="http://api.rubyonrails.org/classes/ActiveModel/Validations.html">ActiveModel validation documentation</a>.</p>
+
+<h3>Callbacks</h3>
+
+<p>Dynamoid also employs ActiveModel callbacks. Right now, callbacks are defined on <code>save</code>, <code>update</code>, <code>destroy</code>, which allows you to do <code>before_</code> or <code>after_</code> any of those.</p>
+
+<pre class="code ruby"><code>class User
+  include Dynamoid::Document
+
+  ...
+
+  before_save :set_default_password
+  after_create :notify_friends
+  after_destroy :delete_addresses
+end
 </code></pre>
 
 <h2>Usage</h2>
@@ -185,7 +266,7 @@
 </div></div>
     
     <div id="footer">
-  Generated on Thu Mar 22 20:05:21 2012 by 
+  Generated on Thu Mar 22 21:06:26 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>
