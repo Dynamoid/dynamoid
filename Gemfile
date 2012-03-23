@@ -17,5 +17,7 @@ group :development do
   gem "jeweler"
   gem "rcov"
   gem "yard"
-  gem "redcarpet"
+  gem "redcarpet", '1.17.2'
+  gem 'github-markup'
+  gem 'grit'
 end

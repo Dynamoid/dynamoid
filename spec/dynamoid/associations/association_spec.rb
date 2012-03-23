@@ -128,5 +128,43 @@ describe "Dynamoid::Associations::Association" do
 
     @magazine.subscriptions.instance_eval { [first, last] }.should == [@subscription1, @subscription3]
   end
+  
+  it 'replaces existing associations when using the setter' do
+    @subscription1 = @magazine.subscriptions.create
+    @subscription2 = @magazine.subscriptions.create
+    @subscription3 = Subscription.create
+    
+    @subscription1.reload.magazine_ids.should_not be_nil
+    @subscription2.reload.magazine_ids.should_not be_nil
+
+    @magazine.subscriptions = @subscription3
+    @magazine.subscriptions_ids.should == Set[@subscription3.id]
+    
+    @subscription1.reload.magazine_ids.should be_nil
+    @subscription2.reload.magazine_ids.should be_nil
+    @subscription3.reload.magazine_ids.should == Set[@magazine.id]
+  end
+  
+  it 'destroys all objects and removes them from the association' do
+    @subscription1 = @magazine.subscriptions.create
+    @subscription2 = @magazine.subscriptions.create
+    @subscription3 = @magazine.subscriptions.create
+
+    @magazine.subscriptions.destroy_all
+    
+    @magazine.subscriptions.should be_empty
+    Subscription.all.should be_empty
+  end
+  
+  it 'deletes all objects and removes them from the association' do
+    @subscription1 = @magazine.subscriptions.create
+    @subscription2 = @magazine.subscriptions.create
+    @subscription3 = @magazine.subscriptions.create
+
+    @magazine.subscriptions.delete_all
+    
+    @magazine.subscriptions.should be_empty
+    Subscription.all.should be_empty
+  end
 
 end

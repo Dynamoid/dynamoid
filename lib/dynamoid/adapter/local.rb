@@ -8,6 +8,8 @@ module Dynamoid
       
       # The hash holding all of our data.
       #
+      # @return [Hash] a hash of raw values
+      #
       # @since 0.2.0
       def data
         @data ||= {}
@@ -26,6 +28,8 @@ module Dynamoid
       #   Dynamoid::Adapter::Local.batch_get_item('table1' => ['1', '2'])
       #
       # @param [Hash] options the hash of tables and IDs to retrieve
+      #
+      # @return [Hash] a hash where keys are the table names and the values are the retrieved items
       #
       # @since 0.2.0
       def batch_get_item(options)
@@ -84,6 +88,8 @@ module Dynamoid
       # @param [String] key the hash key of the item to find
       # @param [Number] range_key the range key of the item to find, required if the table has a composite key
       #
+      # @return [Hash] a hash representing the raw item
+      #
       # @since 0.2.0
       def get_item(table_name, key, range_key = nil)
         if data[table_name][:data]
@@ -123,6 +129,8 @@ module Dynamoid
       # @option opts [Number] :range_gte find range keys greater than or equal to this
       # @option opts [Number] :range_lte find range keys less than or equal to this
       #
+      # @return [Array] an array of all matching items
+      #
       # @since 0.2.0
       def query(table_name, opts = {})
         id = opts[:hash_value]
@@ -146,6 +154,8 @@ module Dynamoid
       #
       # @param [String] table_name the name of the table
       # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
+      #
+      # @return [Array] an array of all matching items
       #
       # @since 0.2.0
       def scan(table_name, scan_hash)

@@ -31,6 +31,8 @@ module Dynamoid
     # @param [Array] args the arguments to the method to appear in the log
     # @yield the actual code to benchmark
     #
+    # @return the result of the yield
+    #
     # @since 0.2.0
     def benchmark(method, *args)
       start = Time.now
@@ -43,6 +45,8 @@ module Dynamoid
     #
     # @param [String] table the name of the table to write the object to
     # @param [Object] object the object itself
+    #
+    # @return [Object] the persisted object
     #
     # @since 0.2.0
     def write(table, object)

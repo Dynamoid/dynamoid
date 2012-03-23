@@ -9,7 +9,7 @@ module Dynamoid #:nodoc:
     def save(options = {})
       options.reverse_merge!(:validate => true)
       return false if options[:validate] and (not valid?)
-      super()
+      super
     end
 
     def valid?(context = nil)

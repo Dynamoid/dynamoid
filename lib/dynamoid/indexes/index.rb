@@ -2,11 +2,12 @@
 module Dynamoid #:nodoc:
   module Indexes
 
-    # The class abstracts information about an index
+    # The class contains all the information an index contains, including its keys and which attributes it covers.
     class Index
       attr_accessor :source, :name, :hash_keys, :range_keys
       alias_method :range_key?, :range_keys
       
+      # Create a new index.
       def initialize(source, name, options = {})
         @source = source
         

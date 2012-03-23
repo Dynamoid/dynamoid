@@ -14,12 +14,16 @@ module Dynamoid
     
       # Establish the connection to DynamoDB.
       #
+      # @return [AWS::DynamoDB::Connection] the raw DynamoDB connection
+      #
       # @since 0.2.0
       def connect!
         @@connection = AWS::DynamoDB.new(:access_key_id => Dynamoid::Config.access_key, :secret_access_key => Dynamoid::Config.secret_key)
       end
     
       # Return the established connection.
+      #
+      # @return [AWS::DynamoDB::Connection] the raw DynamoDB connection
       #
       # @since 0.2.0
       def connection
@@ -33,6 +37,8 @@ module Dynamoid
       #
       # @param [Hash] options the hash of tables and IDs to retrieve
       #
+      # @return [Hash] a hash where keys are the table names and the values are the retrieved items
+      # 
       # @since 0.2.0
       def batch_get_item(options)
         hash = Hash.new{|h, k| h[k] = []}
@@ -54,7 +60,7 @@ module Dynamoid
       # @param [String] table_name the name of the table to create
       # @param [Symbol] key the table's primary key (defaults to :id)
       # @param [Hash] options provide a range_key here if you want one for the table
-      #
+      # 
       # @since 0.2.0
       def create_table(table_name, key = :id, options = {})
         options[:hash_key] ||= {key.to_sym => :string}
@@ -102,6 +108,8 @@ module Dynamoid
       # @param [String] table_name the name of the table
       # @param [String] key the hash key of the item to find
       # @param [Number] range_key the range key of the item to find, required if the table has a composite key
+      #
+      # @return [Hash] a hash representing the raw item in DynamoDB
       #
       # @since 0.2.0
       def get_item(table_name, key, range_key = nil)
@@ -151,6 +159,8 @@ module Dynamoid
       # @option opts [Number] :range_gte find range keys greater than or equal to this
       # @option opts [Number] :range_lte find range keys less than or equal to this
       #
+      # @return [Array] an array of all matching items
+      #
       # @since 0.2.0
       def query(table_name, opts = {})
         table = @@connection.tables[table_name]
@@ -170,6 +180,8 @@ module Dynamoid
       #
       # @param [String] table_name the name of the table
       # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
+      #
+      # @return [Array] an array of all matching items
       #
       # @since 0.2.0
       def scan(table_name, scan_hash)

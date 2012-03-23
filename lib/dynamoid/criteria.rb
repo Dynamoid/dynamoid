@@ -1,14 +1,16 @@
 # encoding: utf-8
 require 'dynamoid/criteria/chain'
 
-module Dynamoid #:nodoc:
+module Dynamoid
 
-  # This module defines criteria and criteria chains.
+  # Allows classes to be queried by where, all, first, and each and return criteria chains.
   module Criteria
     extend ActiveSupport::Concern
     
     module ClassMethods
+      
       [:where, :all, :first, :each].each do |meth|
+        # Return a criteria chain in response to a method that will begin or end a chain.
         define_method(meth) do |*args|
           chain = Dynamoid::Criteria::Chain.new(self)
           if args

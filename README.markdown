@@ -22,7 +22,7 @@ Then you need to initialize it to get it going. Put code similar to this somewhe
     # config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using Amazon's own AWS gem.
     # config.access_key = 'access_key' # If connecting to DynamoDB, your access key is required.
     # config.secret_key = 'secret_key' # So is your secret key. 
-    config.namespace = "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" # To namespace tables created by Dynamoid from other tables you might have.
+    config.namespace = "dynamoid_app_development" # To namespace tables created by Dynamoid from other tables you might have.
     config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table.
     config.partitioning = true # Spread writes randomly across the database. See "partitioning" below for more.
     config.partition_size = 200  # Determine the key space size that writes are randomly spread across.

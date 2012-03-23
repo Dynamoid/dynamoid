@@ -11,6 +11,8 @@ module Dynamoid #:nodoc
       #   options.defaults
       #
       # @return [ Hash ] The default options.
+      #
+      # @since 0.2.0
       def defaults
         @defaults ||= {}
       end
@@ -24,6 +26,8 @@ module Dynamoid #:nodoc
       # @param [ Hash ] options Extras for the option.
       #
       # @option options [ Object ] :default The default value.
+      #
+      # @since 0.2.0
       def option(name, options = {})
         defaults[name] = settings[name] = options[:default]
 
@@ -52,6 +56,8 @@ module Dynamoid #:nodoc
       #   config.reset
       #
       # @return [ Hash ] The defaults.
+      #
+      # @since 0.2.0
       def reset
         settings.replace(defaults)
       end
@@ -62,6 +68,8 @@ module Dynamoid #:nodoc
       #   options.settings
       #
       # @return [ Hash ] The setting options.
+      #
+      # @since 0.2.0
       def settings
         @settings ||= {}
       end

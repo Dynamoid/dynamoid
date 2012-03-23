@@ -73,7 +73,7 @@ module Dynamoid #:nodoc:
       !new_record?
     end
     
-    def save
+    def save(options = {})
       if self.new_record?
         run_callbacks(:create) do
           run_callbacks(:save) do

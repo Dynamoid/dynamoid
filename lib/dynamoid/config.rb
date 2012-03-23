@@ -2,13 +2,15 @@
 require "uri"
 require "dynamoid/config/options"
 
-module Dynamoid #:nodoc
+module Dynamoid
   
+  # Contains all the basic configuration information required for Dynamoid: both sensible defaults and required fields.
   module Config
     extend self
     extend Options
     include ActiveModel::Observing
 
+    # All the default options.
     option :adapter, :default => 'local'
     option :namespace, :default => defined?(Rails) ? "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" : "dynamoid"
     option :logger, :default => defined?(Rails)
@@ -21,14 +23,23 @@ module Dynamoid #:nodoc
     option :partition_size, :default => 200
     option :included_models, :default => []
     
+    # The default logger for Dynamoid: either the Rails logger or just stdout.
+    #
+    # @since 0.2.0
     def default_logger
       defined?(Rails) && Rails.respond_to?(:logger) ? Rails.logger : ::Logger.new($stdout)
     end
 
+    # Returns the assigned logger instance.
+    #
+    # @since 0.2.0
     def logger
       @logger ||= default_logger
     end
     
+    # If you want to, set the logger manually to any output you'd like. Or pass false or nil to disable logging entirely.
+    #
+    # @since 0.2.0
     def logger=(logger)
       case logger
       when false, nil then @logger = nil
