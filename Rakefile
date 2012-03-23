@@ -50,7 +50,7 @@ task :publish do
   `git checkout gh-pages`
   `git clean -fdx`
   `git checkout master -- doc`
-  `mv doc/* .`
+  `mv -f doc/* .`
   `git rm -rf doc/`
   `mv file.README.html index.html`
   `git add .`
