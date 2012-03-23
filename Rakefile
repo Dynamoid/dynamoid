@@ -45,16 +45,9 @@ end
 desc 'Publish documentation to gh-pages'
 task :publish do
   Rake::Task['yard'].invoke
+  `git add .`
+  `git commit -m 'Regenerated documentation'`
   `git checkout gh-pages`
-  `git clean -fdx`
-  `git checkout master -- doc`
-  `mv doc/ .`
-  `rm -rf doc/`
-  `git mv file.README.html index.html`
-  `git commit -m 'Regenerated docs'`
-  `git pull`
-  `git push`
-  `git checkout master`
 end
 
 task :default => :spec
