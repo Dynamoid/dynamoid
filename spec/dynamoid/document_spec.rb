@@ -16,6 +16,15 @@ describe "Dynamoid::Document" do
     
     @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil}
   end
+
+  it 'allows interception of write_attribute on load' do
+    class Model
+      include Dynamoid::Document
+      field :city
+      def city=(value); self[:city] = value.downcase; end
+    end
+    Model.new(:city => "Chicago").city.should == "chicago"
+  end
   
   it 'creates a new document' do
     @address = Address.create(:city => 'Chicago')
