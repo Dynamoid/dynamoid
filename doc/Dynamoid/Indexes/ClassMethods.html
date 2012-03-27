@@ -108,7 +108,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'><p>Helper function to create indexes (if they don't exist already).</p>
+</div></span>
   
 </li>
 
@@ -129,7 +130,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'><p>Helper function to find indexes.</p>
+</div></span>
   
 </li>
 
@@ -150,7 +152,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'><p>The call to create an index.</p>
+</div></span>
   
 </li>
 
@@ -171,21 +174,46 @@
   
 
   
-</p><table class="source_code">
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Helper function to create indexes (if they don't exist already).</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<h3>Since:</h3>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-27
-28
-29
-30
-31
-32</pre>
+41
+42
+43
+44
+45
+46</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 27</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 41</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_create_indexes'>create_indexes</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_indexes'>indexes</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_index'>index</span><span class='op'>|</span>
@@ -205,18 +233,43 @@
   
 
   
-</p><table class="source_code">
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Helper function to find indexes.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<h3>Since:</h3>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-23
-24
-25</pre>
+34
+35
+36</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 23</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 34</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_find_index'>find_index</span><span class='lparen'>(</span><span class='id identifier rubyid_index'>index</span><span class='rparen'>)</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_indexes'>indexes</span><span class='lbracket'>[</span><span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_index'>index</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:to_s</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_sort'>sort</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:to_sym</span><span class='rparen'>)</span><span class='rbracket'>]</span>
@@ -233,20 +286,46 @@
   
 
   
-</p><table class="source_code">
+</p><div class="docstring">
+  <div class="discussion">
+    <p>The call to create an index. Generates a new index with the specified options -- for more information, see Dynamoid::Indexes::Index.
+This function also attempts to immediately create the indexing table if it does not exist already.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<h3>Since:</h3>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-17
-18
-19
-20
-21</pre>
+25
+26
+27
+28
+29</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 17</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 25</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_index'>index</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_index'>index</span> <span class='op'>=</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Indexes</span><span class='op'>::</span><span class='const'>Index</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='kw'>self</span><span class='comma'>,</span> <span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
@@ -263,7 +342,7 @@
 </div>
     
     <div id="footer">
-  Generated on Thu Mar 22 21:06:26 2012 by 
+  Generated on Tue Mar 27 17:52:44 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

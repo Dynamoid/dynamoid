@@ -89,7 +89,9 @@
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    <p>Builds all indexes present on the model.</p>
+    <p>Indexes are quick ways of performing queries by anything other than id in DynamoDB. They are denormalized tables; 
+that is, data is duplicated in the initial table (where the object is saved) and the index table (where 
+we perform indexing).</p>
 
 
   </div>
@@ -140,7 +142,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'><p>Callback for an object to delete itself from each of a class' indexes.</p>
+</div></span>
   
 </li>
 
@@ -161,7 +164,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'><p>Callback for an object to save itself to each of a class' indexes.</p>
+</div></span>
   
 </li>
 
@@ -183,20 +187,45 @@
   
 
   
-</p><table class="source_code">
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Callback for an object to delete itself from each of a class' indexes.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<h3>Since:</h3>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-41
-42
-43
-44
-45</pre>
+61
+62
+63
+64
+65</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 41</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 61</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_delete_indexes'>delete_indexes</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_indexes'>indexes</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_index'>index</span><span class='op'>|</span>
@@ -215,20 +244,45 @@
   
 
   
-</p><table class="source_code">
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Callback for an object to save itself to each of a class' indexes.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<h3>Since:</h3>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-35
-36
-37
-38
-39</pre>
+52
+53
+54
+55
+56</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 35</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 52</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_save_indexes'>save_indexes</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_indexes'>indexes</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_index'>index</span><span class='op'>|</span>
@@ -245,7 +299,7 @@
 </div>
     
     <div id="footer">
-  Generated on Thu Mar 22 21:06:26 2012 by 
+  Generated on Tue Mar 27 17:52:44 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

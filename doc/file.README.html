@@ -131,6 +131,8 @@
   index [:name, :email] 
   index :created_at, :range =&gt; true
   index :name, :range =&gt; :joined_at
+
+end
 </code></pre>
 
 <h3>Associations</h3>
@@ -159,6 +161,8 @@ class Address
   ...
 
   belongs_to :address # Automatically links up with the user model
+
+end
 </code></pre>
 
 <p>Contrary to what you'd expect, association information is always contained on the object specifying the association, even if it seems like the association has a foreign key. This is a side effect of DynamoDB's structure: it's very difficult to find foreign keys without an index. Usually you won't find this to be a problem, but it does mean that association methods that build new models will not work correctly -- for example, <code>user.addresses.new</code> returns an address that is not associated to the user. We'll be correcting this soon.</p>
@@ -266,7 +270,7 @@ end
 </div></div>
     
     <div id="footer">
-  Generated on Thu Mar 22 21:06:26 2012 by 
+  Generated on Tue Mar 27 17:52:43 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

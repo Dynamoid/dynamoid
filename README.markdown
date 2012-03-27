@@ -80,6 +80,8 @@ class User
   index [:name, :email] 
   index :created_at, :range => true
   index :name, :range => :joined_at
+  
+end
 ```
 
 ### Associations
@@ -109,6 +111,8 @@ class Address
   ...
   
   belongs_to :address # Automatically links up with the user model
+  
+end
 ```
 
 Contrary to what you'd expect, association information is always contained on the object specifying the association, even if it seems like the association has a foreign key. This is a side effect of DynamoDB's structure: it's very difficult to find foreign keys without an index. Usually you won't find this to be a problem, but it does mean that association methods that build new models will not work correctly -- for example, ```user.addresses.new``` returns an address that is not associated to the user. We'll be correcting this soon.

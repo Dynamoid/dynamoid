@@ -7,7 +7,12 @@ module Dynamoid #:nodoc:
       attr_accessor :source, :name, :hash_keys, :range_keys
       alias_method :range_key?, :range_keys
       
-      # Create a new index.
+      # Create a new index. Pass either :range => true or :range => :column_name to create a ranged index on that column.
+      #
+      # @param [Class] source the source class for the index
+      # @param [Symbol] name the name of the index
+      #
+      # @since 0.2.0      
       def initialize(source, name, options = {})
         @source = source
         
@@ -22,18 +27,37 @@ module Dynamoid #:nodoc:
         raise Dynamoid::Errors::InvalidField, 'A key specified for an index is not a field' unless keys.all?{|n| source.attributes.include?(n)}
       end
       
+      # Sort objects into alphabetical strings, used for composing index names correctly (since we always assume they're alphabetical).
+      #
+      # @example find all users by first and last name
+      #   sort([:gamma, :alpha, :beta, :omega]) # => [:alpha, :beta, :gamma, :omega]
+      #
+      # @since 0.2.0         
       def sort(objs)
         Array(objs).flatten.compact.uniq.collect(&:to_s).sort.collect(&:to_sym)
       end
-      
+
+      # Return the array of keys this index uses for its table.
+      #
+      # @since 0.2.0      
       def keys
         [Array(hash_keys) + Array(range_keys)].flatten.uniq
       end
       
+      # Return the table name for this index.
+      #
+      # @since 0.2.0
       def table_name
         "#{Dynamoid::Config.namespace}_index_#{source.to_s.downcase}_#{name.collect(&:to_s).collect(&:pluralize).join('_and_')}"
       end
-      
+
+      # Given either an object or a list of attributes, generate a hash key and a range key for the index.
+      #
+      # @param [Object] attrs either an object that responds to :attributes, or a hash of attributes
+      #
+      # @return [Hash] a hash with the keys :hash_value and :range_value
+      #
+      # @since 0.2.0      
       def values(attrs)
         attrs = attrs.send(:attributes) if attrs.respond_to?(:attributes)
         {}.tap do |hash|
@@ -42,6 +66,9 @@ module Dynamoid #:nodoc:
         end
       end
       
+      # Save an object to this index, merging it with existing ids if there's already something present at this index location.
+      #
+      # @since 0.2.0
       def save(obj)
         values = values(obj)
         return true if values[:hash_value].blank? || (!values[:range_value].nil? && values[:range_value].blank?)
@@ -49,7 +76,11 @@ module Dynamoid #:nodoc:
         ids = ((existing and existing[:ids]) or Set.new)
         Dynamoid::Adapter.write(self.table_name, {:id => values[:hash_value], :ids => ids.merge([obj.id]), :range => values[:range_value]})
       end
-      
+
+      # Delete an object from this index, preserving existing ids if there are any, and failing gracefully if for some reason the 
+      # index doesn't already have this object in it.
+      #
+      # @since 0.2.0      
       def delete(obj)
         values = values(obj)
         return true if values[:hash_value].blank? || (!values[:range_value].nil? && values[:range_value].blank?)
