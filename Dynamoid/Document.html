@@ -322,13 +322,13 @@ changes to be reflected immediately, you would call this method.</p>
       <pre class="lines">
 
 
-86
-87
-88
-89</pre>
+89
+90
+91
+92</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/document.rb', line 86</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/document.rb', line 89</span>
 
 <span class='kw'>def</span> <span class='op'>==</span><span class='lparen'>(</span><span class='id identifier rubyid_other'>other</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>false</span> <span class='kw'>if</span> <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
@@ -403,7 +403,10 @@ changes to be reflected immediately, you would call this method.</p>
 78
 79
 80
-81</pre>
+81
+82
+83
+84</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'lib/dynamoid/document.rb', line 76</span>
@@ -411,8 +414,11 @@ changes to be reflected immediately, you would call this method.</p>
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_attrs'>attrs</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='ivar'>@new_record</span> <span class='op'>=</span> <span class='kw'>true</span>
   <span class='ivar'>@attributes</span> <span class='op'>||=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
-  <span class='id identifier rubyid_attrs'>attrs</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_undump'>undump</span><span class='lparen'>(</span><span class='id identifier rubyid_attrs'>attrs</span><span class='rparen'>)</span>
-  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_keys'>keys</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_att'>att</span><span class='op'>|</span> <span class='id identifier rubyid_write_attribute'>write_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_att'>att</span><span class='comma'>,</span> <span class='id identifier rubyid_attrs'>attrs</span><span class='lbracket'>[</span><span class='id identifier rubyid_att'>att</span><span class='rbracket'>]</span><span class='rparen'>)</span><span class='rbrace'>}</span>
+  <span class='id identifier rubyid_incoming_attributes'>incoming_attributes</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_undump'>undump</span><span class='lparen'>(</span><span class='id identifier rubyid_attrs'>attrs</span><span class='rparen'>)</span>
+
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_keys'>keys</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_attribute'>attribute</span><span class='op'>|</span>
+    <span class='id identifier rubyid_send'>send</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_attribute'>attribute</span><span class='rbrace'>}</span><span class='tstring_content'>=</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_incoming_attributes'>incoming_attributes</span><span class='lbracket'>[</span><span class='id identifier rubyid_attribute'>attribute</span><span class='rbracket'>]</span>
+  <span class='kw'>end</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -475,13 +481,13 @@ changes to be reflected immediately, you would call this method.</p>
       <pre class="lines">
 
 
-97
-98
-99
-100</pre>
+100
+101
+102
+103</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/document.rb', line 97</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/document.rb', line 100</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_reload'>reload</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span>
@@ -497,7 +503,7 @@ changes to be reflected immediately, you would call this method.</p>
 </div>
     
     <div id="footer">
-  Generated on Thu Mar 22 21:06:26 2012 by 
+  Generated on Tue Mar 27 17:53:06 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

@@ -87,7 +87,8 @@
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    <p>This module saves things!</p>
+    <p>Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize 
+values to be of the same type as when they were passed in, based on the fields in the class.</p>
 
 
   </div>
@@ -168,7 +169,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'><p>Delete this object from the datastore and all indexes.</p>
+</div></span>
   
 </li>
 
@@ -189,7 +191,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'><p>Delete this object, but only after running callbacks for it.</p>
+</div></span>
   
 </li>
 
@@ -210,7 +213,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'><p>Dump this object's attributes into hash form, fit to be persisted into the datastore.</p>
+</div></span>
   
 </li>
 
@@ -231,7 +235,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'><p>Is this object persisted in the datastore? Required for some ActiveModel integration stuff.</p>
+</div></span>
   
 </li>
 
@@ -252,7 +257,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'><p>Run the callbacks and then persist this object in the datastore.</p>
+</div></span>
   
 </li>
 
@@ -295,12 +301,12 @@
       <pre class="lines">
 
 
-10
 11
-12</pre>
+12
+13</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 10</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 11</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_new_record'>new_record</span>
   <span class='ivar'>@new_record</span>
@@ -324,19 +330,44 @@
   
 
   
-</p><table class="source_code">
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Delete this object from the datastore and all indexes.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<h3>Since:</h3>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-98
-99
-100
-101</pre>
+129
+130
+131
+132</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 98</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 129</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_delete'>delete</span>
   <span class='id identifier rubyid_delete_indexes'>delete_indexes</span>
@@ -354,21 +385,46 @@
   
 
   
-</p><table class="source_code">
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Delete this object, but only after running callbacks for it.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<h3>Since:</h3>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-91
-92
-93
-94
-95
-96</pre>
+119
+120
+121
+122
+123
+124</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 91</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 119</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_destroy'>destroy</span>
   <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:destroy</span><span class='rparen'>)</span> <span class='kw'>do</span>
@@ -388,22 +444,47 @@
   
 
   
-</p><table class="source_code">
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Dump this object's attributes into hash form, fit to be persisted into the datastore.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<h3>Since:</h3>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-103
-104
-105
-106
-107
-108
-109</pre>
+137
+138
+139
+140
+141
+142
+143</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 103</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 137</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_dump'>dump</span>
   <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='period'>.</span><span class='id identifier rubyid_tap'>tap</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_hash'>hash</span><span class='op'>|</span>
@@ -426,7 +507,8 @@
   
 </p><div class="docstring">
   <div class="discussion">
-    
+    <p>Is this object persisted in the datastore? Required for some ActiveModel integration stuff.</p>
+
 
   </div>
 </div>
@@ -445,6 +527,21 @@
     </li>
   
 </ul>
+<h3>Since:</h3>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
 
 </div><table class="source_code">
   <tr>
@@ -452,12 +549,12 @@
       <pre class="lines">
 
 
-72
-73
-74</pre>
+94
+95
+96</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 72</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 94</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_persisted?'>persisted?</span>
   <span class='op'>!</span><span class='id identifier rubyid_new_record?'>new_record?</span>
@@ -474,29 +571,54 @@
   
 
   
-</p><table class="source_code">
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Run the callbacks and then persist this object in the datastore.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<h3>Since:</h3>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89</pre>
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 76</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 101</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_save'>save</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='kw'>if</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_new_record?'>new_record?</span>
@@ -522,7 +644,7 @@
 </div>
     
     <div id="footer">
-  Generated on Thu Mar 22 21:06:27 2012 by 
+  Generated on Tue Mar 27 17:53:06 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>
