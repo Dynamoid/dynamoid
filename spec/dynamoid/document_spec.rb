@@ -8,6 +8,14 @@ describe "Dynamoid::Document" do
     @address.new_record.should be_true
     @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil, :options=>nil}
   end
+
+  it 'responds to will_change! methods for all fields' do
+    @address = Address.new
+    @address.should respond_to(:id_will_change!)
+    @address.should respond_to(:options_will_change!)
+    @address.should respond_to(:created_at_will_change!)
+    @address.should respond_to(:updated_at_will_change!)
+  end
   
   it 'initializes a new document with attributes' do
     @address = Address.new(:city => 'Chicago')
