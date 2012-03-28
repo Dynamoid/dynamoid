@@ -21,11 +21,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def create(attrs = {})
-        obj = self.new(attrs)
-        obj.run_callbacks(:create) do
-          obj.save
-        end
-        obj
+        new(attrs).tap(&:save)
       end
 
       # Initialize a new object and immediately save it to the database. Raise an exception if persistence failed.
@@ -36,11 +32,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def create!(attrs = {})
-        obj = self.new(attrs)
-        obj.run_callbacks(:create) do
-          obj.save!
-        end
-        obj
+        new(attrs).tap(&:save!)
       end
       
       # Initialize a new object.
@@ -51,7 +43,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def build(attrs = {})
-        self.new(attrs)
+        new(attrs)
       end
 
       # Does this object exist?

@@ -100,17 +100,13 @@ module Dynamoid
     # @since 0.2.0
     def save(options = {})
       @previously_changed = changes
-      if self.new_record?
-        run_callbacks(:create) do
-          run_callbacks(:save) do
-            persist
-          end
-        end
+
+      if new_record?
+        run_callbacks(:create) { persist }
       else
-        run_callbacks(:save) do
-          persist
-        end
+        persist
       end
+
       self
     end
 
@@ -177,10 +173,12 @@ module Dynamoid
     #
     # @since 0.2.0
     def persist
-      self.id = SecureRandom.uuid if self.id.nil? || self.id.blank?
-      Dynamoid::Adapter.write(self.class.table_name, self.dump)
-      save_indexes
-      @new_record = false
+      run_callbacks(:save) do
+        self.id = SecureRandom.uuid if self.id.nil? || self.id.blank?
+        Dynamoid::Adapter.write(self.class.table_name, self.dump)
+        save_indexes
+        !(@new_record = false)
+      end
     end
         
   end
