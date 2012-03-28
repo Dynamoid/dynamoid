@@ -1,12 +1,14 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe "Dynamoid::Persistence" do
-  
+
+  let(:document_class) { Class.new.send :include, Dynamoid::Document }
+
   before do
     Random.stubs(:rand).with(Dynamoid::Config.partition_size).returns(0)
     @address = Address.new
   end
-  
+
   context 'without AWS keys' do
     unless ENV['ACCESS_KEY'] && ENV['SECRET_KEY']
       before do
@@ -101,6 +103,30 @@ describe "Dynamoid::Persistence" do
     
     User.undump(@hash)[:name].should == 'Josh'
     User.undump(@hash)[:created_at].to_f == @time.to_f
+  end
+
+  it 'runs the before_create callback only once' do
+    document_class.before_create { doing_before_create }
+
+    document_class.any_instance.expects(:doing_before_create)
+
+    document_class.create
+  end
+
+  it 'runs after save callbacks when doing #create' do
+    document_class.after_create { doing_after_create }
+
+    document_class.any_instance.expects(:doing_after_create)
+
+    document_class.create
+  end
+
+  it 'runs after save callbacks when doing #save' do
+    document_class.after_create { doing_after_create }
+
+    document_class.any_instance.expects(:doing_after_create)
+
+    document_class.new.save
   end
   
   it 'tracks previous changes on save or update' do
