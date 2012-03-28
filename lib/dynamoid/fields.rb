@@ -29,15 +29,12 @@ module Dynamoid #:nodoc:
       def field(name, type = :string, options = {})
         named = name.to_s
         self.attributes[name] = {:type => type}.merge(options)
-        define_method(named) do
-          read_attribute(named)
-        end
-        define_method("#{named}=") do |value|
-          write_attribute(named, value)
-        end
-        define_method("#{named}?") do
-          !read_attribute(named).nil?
-        end
+
+        define_method(named) { read_attribute(named) }
+        define_method("#{named}?") { !read_attribute(named).nil? }
+        define_method("#{named}=") {|value| write_attribute(named, value) }
+
+        undefine_attribute_methods
         define_attribute_methods(self.attributes.keys)
       end
     end
@@ -53,7 +50,7 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def write_attribute(name, value)
-      self.send("#{name}_will_change!".to_sym) unless self.read_attribute(name) == value
+      attribute_will_change!(name) unless self.read_attribute(name) == value
       attributes[name.to_sym] = value
     end
     alias :[]= :write_attribute
