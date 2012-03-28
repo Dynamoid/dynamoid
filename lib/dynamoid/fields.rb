@@ -34,8 +34,7 @@ module Dynamoid #:nodoc:
         define_method("#{named}?") { !read_attribute(named).nil? }
         define_method("#{named}=") {|value| write_attribute(named, value) }
 
-        undefine_attribute_methods
-        define_attribute_methods(self.attributes.keys)
+        define_attribute_method(name)
       end
     end
     
