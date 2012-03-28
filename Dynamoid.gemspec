@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "dynamoid"
-  s.version = "0.2.0"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Josh Symonds"]
-  s.date = "2012-03-15"
+  s.date = "2012-03-28"
   s.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   s.email = "josh@joshsymonds.com"
   s.extra_rdoc_files = [
@@ -26,6 +26,56 @@ Gem::Specification.new do |s|
     "README.markdown",
     "Rakefile",
     "VERSION",
+    "doc/.nojekyll",
+    "doc/Dynamoid.html",
+    "doc/Dynamoid/Adapter.html",
+    "doc/Dynamoid/Adapter/AwsSdk.html",
+    "doc/Dynamoid/Adapter/Local.html",
+    "doc/Dynamoid/Associations.html",
+    "doc/Dynamoid/Associations/Association.html",
+    "doc/Dynamoid/Associations/BelongsTo.html",
+    "doc/Dynamoid/Associations/ClassMethods.html",
+    "doc/Dynamoid/Associations/HasAndBelongsToMany.html",
+    "doc/Dynamoid/Associations/HasMany.html",
+    "doc/Dynamoid/Associations/HasOne.html",
+    "doc/Dynamoid/Components.html",
+    "doc/Dynamoid/Config.html",
+    "doc/Dynamoid/Config/Options.html",
+    "doc/Dynamoid/Criteria.html",
+    "doc/Dynamoid/Criteria/Chain.html",
+    "doc/Dynamoid/Criteria/ClassMethods.html",
+    "doc/Dynamoid/Document.html",
+    "doc/Dynamoid/Document/ClassMethods.html",
+    "doc/Dynamoid/Errors.html",
+    "doc/Dynamoid/Errors/DocumentNotValid.html",
+    "doc/Dynamoid/Errors/Error.html",
+    "doc/Dynamoid/Errors/InvalidField.html",
+    "doc/Dynamoid/Errors/MissingRangeKey.html",
+    "doc/Dynamoid/Fields.html",
+    "doc/Dynamoid/Fields/ClassMethods.html",
+    "doc/Dynamoid/Finders.html",
+    "doc/Dynamoid/Finders/ClassMethods.html",
+    "doc/Dynamoid/Indexes.html",
+    "doc/Dynamoid/Indexes/ClassMethods.html",
+    "doc/Dynamoid/Indexes/Index.html",
+    "doc/Dynamoid/Persistence.html",
+    "doc/Dynamoid/Persistence/ClassMethods.html",
+    "doc/Dynamoid/Validations.html",
+    "doc/_index.html",
+    "doc/class_list.html",
+    "doc/css/common.css",
+    "doc/css/full_list.css",
+    "doc/css/style.css",
+    "doc/file.LICENSE.html",
+    "doc/file.README.html",
+    "doc/file_list.html",
+    "doc/frames.html",
+    "doc/index.html",
+    "doc/js/app.js",
+    "doc/js/full_list.js",
+    "doc/js/jquery.js",
+    "doc/method_list.html",
+    "doc/top-level-namespace.html",
     "lib/dynamoid.rb",
     "lib/dynamoid/adapter.rb",
     "lib/dynamoid/adapter/aws_sdk.rb",
@@ -48,7 +98,9 @@ Gem::Specification.new do |s|
     "lib/dynamoid/indexes.rb",
     "lib/dynamoid/indexes/index.rb",
     "lib/dynamoid/persistence.rb",
+    "lib/dynamoid/validations.rb",
     "spec/app/models/address.rb",
+    "spec/app/models/camel_case.rb",
     "spec/app/models/magazine.rb",
     "spec/app/models/sponsor.rb",
     "spec/app/models/subscription.rb",
@@ -71,13 +123,14 @@ Gem::Specification.new do |s|
     "spec/dynamoid/indexes/index_spec.rb",
     "spec/dynamoid/indexes_spec.rb",
     "spec/dynamoid/persistence_spec.rb",
+    "spec/dynamoid/validations_spec.rb",
     "spec/dynamoid_spec.rb",
     "spec/spec_helper.rb"
   ]
   s.homepage = "http://github.com/Veraticus/Dynamoid"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.18"
+  s.rubygems_version = "1.8.19"
   s.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
 
   if s.respond_to? :specification_version then
@@ -93,6 +146,9 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<bundler>, [">= 0"])
       s.add_development_dependency(%q<jeweler>, [">= 0"])
       s.add_development_dependency(%q<rcov>, [">= 0"])
+      s.add_development_dependency(%q<yard>, [">= 0"])
+      s.add_development_dependency(%q<redcarpet>, ["= 1.17.2"])
+      s.add_development_dependency(%q<github-markup>, [">= 0"])
     else
       s.add_dependency(%q<activemodel>, [">= 0"])
       s.add_dependency(%q<tzinfo>, [">= 0"])
@@ -103,6 +159,9 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bundler>, [">= 0"])
       s.add_dependency(%q<jeweler>, [">= 0"])
       s.add_dependency(%q<rcov>, [">= 0"])
+      s.add_dependency(%q<yard>, [">= 0"])
+      s.add_dependency(%q<redcarpet>, ["= 1.17.2"])
+      s.add_dependency(%q<github-markup>, [">= 0"])
     end
   else
     s.add_dependency(%q<activemodel>, [">= 0"])
@@ -114,6 +173,9 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bundler>, [">= 0"])
     s.add_dependency(%q<jeweler>, [">= 0"])
     s.add_dependency(%q<rcov>, [">= 0"])
+    s.add_dependency(%q<yard>, [">= 0"])
+    s.add_dependency(%q<redcarpet>, ["= 1.17.2"])
+    s.add_dependency(%q<github-markup>, [">= 0"])
   end
 end
 
