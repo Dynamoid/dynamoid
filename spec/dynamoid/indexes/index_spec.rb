@@ -53,6 +53,15 @@ describe "Dynamoid::Indexes::Index" do
     @index.values(@user).should == {:hash_value => 'Josh.test123', :range_value => @time.to_f}
   end
   
+  it 'accepts values from an object and returns changed values' do
+    @user = User.new(:name => 'Josh', :password => 'test123', :created_at => @time)
+    @user.name = 'Justin'
+    
+    @index.values(@user, true).should == {:hash_value => 'Josh.test123', :range_value => @time.to_f}
+    
+    @index.values(@user).should == {:hash_value => 'Justin.test123', :range_value => @time.to_f}
+  end
+  
   it 'saves an object to the index it is associated with' do
     @index = Dynamoid::Indexes::Index.new(User, :name)
     @user = User.new(:name => 'Josh', :password => 'test123', :created_at => @time, :id => 'test123')
@@ -79,6 +88,16 @@ describe "Dynamoid::Indexes::Index" do
     @index.delete(@user)
     
     Dynamoid::Adapter.read("dynamoid_tests_index_user_names", 'Josh')[:ids].should be_nil
+  end
+  
+  it 'updates an object by removing it from its previous index and adding it to its new one' do
+    @index = Dynamoid::Indexes::Index.new(User, :name)
+    @user = User.create(:name => 'Josh', :password => 'test123', :last_logged_in_at => @time, :id => 'test123')
+
+    @user.update_attributes(:name => 'Justin')
+    
+    Dynamoid::Adapter.read("dynamoid_tests_index_user_names", 'Josh')[:ids].should be_nil
+    Dynamoid::Adapter.read("dynamoid_tests_index_user_names", 'Justin')[:ids].should == Set['test123']
   end
   
 end

@@ -38,6 +38,7 @@ module Dynamoid #:nodoc:
         define_method("#{named}?") do
           !read_attribute(named).nil?
         end
+        define_attribute_methods(self.attributes.keys)
       end
     end
     
@@ -45,13 +46,14 @@ module Dynamoid #:nodoc:
     attr_accessor :attributes
     alias :raw_attributes :attributes
 
-    # Write an attribute on the object.
+    # Write an attribute on the object. Also marks the previous value as dirty.
     #
     # @param [Symbol] name the name of the field
     # @param [Object] value the value to assign to that field
     #
     # @since 0.2.0
     def write_attribute(name, value)
+      self.send("#{name}_will_change!".to_sym) unless self.read_attribute(name) == value
       attributes[name.to_sym] = value
     end
     alias :[]= :write_attribute

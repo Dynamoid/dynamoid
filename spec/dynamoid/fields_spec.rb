@@ -74,6 +74,15 @@ describe "Dynamoid::Fields" do
       @address[:city].should == 'Chicago'
       @address.id.should == @original_id
     end
+    
+    it 'adds in dirty methods for attributes' do
+      @address.city = 'Chicago'
+      @address.save
+
+      @address.city = 'San Francisco'
+
+      @address.city_was.should == 'Chicago'
+    end
   
     it 'returns all attributes' do
       Address.attributes.should == {:id=>{:type=>:string}, :created_at=>{:type=>:datetime}, :updated_at=>{:type=>:datetime}, :city=>{:type=>:string}, :options=>{:type=>:serialized}}

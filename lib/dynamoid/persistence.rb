@@ -99,6 +99,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def save(options = {})
+      @previously_changed = changes
       if self.new_record?
         run_callbacks(:create) do
           run_callbacks(:save) do

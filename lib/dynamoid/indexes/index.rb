@@ -51,14 +51,21 @@ module Dynamoid #:nodoc:
         "#{Dynamoid::Config.namespace}_index_#{source.to_s.downcase}_#{name.collect(&:to_s).collect(&:pluralize).join('_and_')}"
       end
 
-      # Given either an object or a list of attributes, generate a hash key and a range key for the index.
+      # Given either an object or a list of attributes, generate a hash key and a range key for the index. Optionally pass in 
+      # true to changed_attributes for a list of all the object's dirty attributes in convenient index form (for deleting stale 
+      # information from the indexes).
       #
       # @param [Object] attrs either an object that responds to :attributes, or a hash of attributes
       #
       # @return [Hash] a hash with the keys :hash_value and :range_value
       #
-      # @since 0.2.0      
-      def values(attrs)
+      # @since 0.2.0
+      def values(attrs, changed_attributes = false)
+        if changed_attributes
+          hash = {}
+          attrs.changes.each {|k, v| hash[k.to_sym] = (v.first || v.last)}
+          attrs = hash
+        end
         attrs = attrs.send(:attributes) if attrs.respond_to?(:attributes)
         {}.tap do |hash|
           hash[:hash_value] = hash_keys.collect{|key| attrs[key]}.join('.')
@@ -67,9 +74,11 @@ module Dynamoid #:nodoc:
       end
       
       # Save an object to this index, merging it with existing ids if there's already something present at this index location.
+      # First, though, delete this object from its old indexes (so the object isn't listed in an erroneous index).
       #
       # @since 0.2.0
       def save(obj)
+        self.delete(obj, true)
         values = values(obj)
         return true if values[:hash_value].blank? || (!values[:range_value].nil? && values[:range_value].blank?)
         existing = Dynamoid::Adapter.read(self.table_name, values[:hash_value], values[:range_value])
@@ -81,8 +90,8 @@ module Dynamoid #:nodoc:
       # index doesn't already have this object in it.
       #
       # @since 0.2.0      
-      def delete(obj)
-        values = values(obj)
+      def delete(obj, changed_attributes = false)
+        values = values(obj, changed_attributes)
         return true if values[:hash_value].blank? || (!values[:range_value].nil? && values[:range_value].blank?)
         existing = Dynamoid::Adapter.read(self.table_name, values[:hash_value], values[:range_value])
         return true unless existing && existing[:ids] && existing[:ids].include?(obj.id)

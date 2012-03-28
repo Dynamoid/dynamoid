@@ -102,5 +102,15 @@ describe "Dynamoid::Persistence" do
     User.undump(@hash)[:name].should == 'Josh'
     User.undump(@hash)[:created_at].to_f == @time.to_f
   end
+  
+  it 'tracks previous changes on save or update' do
+    @address.city = 'Chicago'
+    @address.save
+    
+    @address.city = 'San Francisco'
+    @address.save
+    
+    @address.city_was.should == 'Chicago'
+  end
 
 end
