@@ -1,5 +1,7 @@
 # encoding: utf-8
 require 'dynamoid/associations/association'
+require 'dynamoid/associations/single_association'
+require 'dynamoid/associations/many_association'
 require 'dynamoid/associations/has_many'
 require 'dynamoid/associations/belongs_to'
 require 'dynamoid/associations/has_one'
