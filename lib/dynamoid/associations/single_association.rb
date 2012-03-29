@@ -59,6 +59,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def target
+        return if source_ids.empty?
         target_class.find(source_ids.first)
       end
     end
