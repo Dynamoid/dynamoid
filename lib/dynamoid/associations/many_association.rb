@@ -13,7 +13,7 @@ module Dynamoid #:nodoc:
 
       include Enumerable
       # Delegate methods to the records the association represents.
-      delegate :first, :last, :empty?, :size, :to => :records
+      delegate :first, :last, :empty?, :size, :class, :to => :records
 
       # The records associated to the source.
       #
