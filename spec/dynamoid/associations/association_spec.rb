@@ -167,4 +167,14 @@ describe "Dynamoid::Associations::Association" do
     Subscription.all.should be_empty
   end
 
+  it 'delegates class to the association object' do
+    @magazine.sponsor.class.should == nil.class
+    @magazine.sponsor.create
+    @magazine.sponsor.class.should == Sponsor
+
+    @magazine.subscriptions.class.should == Array
+    @magazine.subscriptions.create
+    @magazine.subscriptions.class.should == Array
+  end
+
 end
