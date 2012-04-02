@@ -34,8 +34,7 @@ RSpec.configure do |config|
     config.before(:each) do
       Dynamoid::Adapter.list_tables.each do |table|
         if table =~ /^#{Dynamoid::Config.namespace}/
-          table = Dynamoid::Adapter.connection.tables[table]
-          table.load_schema
+          table = Dynamoid::Adapter.get_table(table)
           table.items.each {|i| i.delete}
         end
       end      
