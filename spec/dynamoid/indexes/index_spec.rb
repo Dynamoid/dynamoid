@@ -94,6 +94,9 @@ describe "Dynamoid::Indexes::Index" do
     @index = Dynamoid::Indexes::Index.new(User, :name)
     @user = User.create(:name => 'Josh', :password => 'test123', :last_logged_in_at => @time, :id => 'test123')
 
+    Dynamoid::Adapter.read("dynamoid_tests_index_user_names", 'Josh')[:ids].should == Set['test123']
+    Dynamoid::Adapter.read("dynamoid_tests_index_user_names", 'Justin').should be_nil
+
     @user.update_attributes(:name => 'Justin')
     
     Dynamoid::Adapter.read("dynamoid_tests_index_user_names", 'Josh')[:ids].should be_nil
