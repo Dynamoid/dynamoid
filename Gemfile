@@ -15,7 +15,6 @@ group :development do
   gem "rspec"
   gem "bundler"
   gem "jeweler"
-  gem "rcov"
   gem "yard"
   gem "redcarpet", '1.17.2'
   gem 'github-markup'
