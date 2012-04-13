@@ -80,8 +80,7 @@ module Dynamoid
       #
       # @since 0.2.0
       def delete_item(table_name, key, range_key = nil)
-        table = @@connection.tables[table_name]
-        table.load_schema
+        table = get_table(table_name)
         result = if table.composite_key?
           table.items.at(key, range_key)
         else
@@ -113,8 +112,7 @@ module Dynamoid
       #
       # @since 0.2.0
       def get_item(table_name, key, range_key = nil)
-        table = @@connection.tables[table_name]
-        table.load_schema
+        table = get_table(table_name)
         result = if table.composite_key?
           table.items.at(key, range_key)
         else
@@ -141,8 +139,7 @@ module Dynamoid
       #
       # @since 0.2.0
       def put_item(table_name, object)
-        table = @@connection.tables[table_name]
-        table.load_schema
+        table = get_table(table_name)
         table.items.create(object.delete_if{|k, v| v.nil? || (v.respond_to?(:empty?) && v.empty?)})
       end
     
@@ -163,8 +160,7 @@ module Dynamoid
       #
       # @since 0.2.0
       def query(table_name, opts = {})
-        table = @@connection.tables[table_name]
-        table.load_schema
+        table = get_table(table_name)
         
         if table.composite_key?
           results = []
@@ -185,8 +181,7 @@ module Dynamoid
       #
       # @since 0.2.0
       def scan(table_name, scan_hash)
-        table = @@connection.tables[table_name]
-        table.load_schema
+        table = get_table(table_name)
         results = []
         table.items.where(scan_hash).select do |data|
           results << data.attributes.symbolize_keys!
@@ -197,6 +192,19 @@ module Dynamoid
       # @todo Add an UpdateItem method.
     
       # @todo Add an UpdateTable method.
+
+      def get_table(table_name)
+        unless table = table_cache[table_name]
+          table = @@connection.tables[table_name]
+          table.load_schema
+          table_cache[table_name] = table
+        end
+        table
+      end
+
+      def table_cache
+        @table_cache ||= {}
+      end
     end
   end
 end
