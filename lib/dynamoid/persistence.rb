@@ -178,7 +178,8 @@ module Dynamoid
         self.id = SecureRandom.uuid if self.id.nil? || self.id.blank?
         Dynamoid::Adapter.write(self.class.table_name, self.dump)
         save_indexes
-        !(@new_record = false)
+        @new_record = false
+        true
       end
     end
         
