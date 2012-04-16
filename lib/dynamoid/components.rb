@@ -16,6 +16,7 @@ module Dynamoid
       before_save :set_updated_at
     end
 
+    include ActiveModel::AttributeMethods
     include ActiveModel::Conversion
     include ActiveModel::Dirty
     include ActiveModel::MassAssignmentSecurity
