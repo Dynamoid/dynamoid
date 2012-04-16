@@ -140,7 +140,7 @@ describe "Dynamoid::Persistence" do
   end
   
   it 'works with a HashWithIndifferentAccess' do
-    hash = ActiveSupport::HashWithIndifferentAccess.new("test" => "hi", "hello" => "there")
+    hash = ActiveSupport::HashWithIndifferentAccess.new("city" => "Atlanta")
     
     lambda {Address.create(hash)}.should_not raise_error
   end
