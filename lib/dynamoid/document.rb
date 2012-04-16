@@ -68,11 +68,8 @@ module Dynamoid #:nodoc:
     def initialize(attrs = {})
       @new_record = true
       @attributes ||= {}
-      incoming_attributes = self.class.undump(attrs)
 
-      self.class.attributes.keys.each do |attribute|
-        send "#{attribute}=", incoming_attributes[attribute]
-      end
+      self.class.undump(attrs).each {|key, value| send "#{key}=", value }
     end
 
     # An object is equal to another object if their ids are equal.
