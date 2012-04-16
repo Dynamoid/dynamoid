@@ -25,6 +25,14 @@ describe "Dynamoid::Document" do
     @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil}
   end
 
+  it 'initializes a new document with a virtual attribute' do
+    @address = Address.new(:zip_code => '12345')
+    
+    @address.new_record.should be_true
+    
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil}
+  end
+
   it 'allows interception of write_attribute on load' do
     class Model
       include Dynamoid::Document
