@@ -8,7 +8,7 @@ describe Dynamoid::Adapter::AwsSdk do
     context 'without a preexisting table' do
       # CreateTable and DeleteTable
       it 'performs CreateTable and DeleteTable' do
-        table = Dynamoid::Adapter.create_table('CreateTable', :id, :range_key => :created_at)
+        table = Dynamoid::Adapter.create_table('CreateTable', :id, :range_key =>  { :created_at => :number })
     
         Dynamoid::Adapter.connection.tables.collect{|t| t.name}.should include 'CreateTable'
     
@@ -20,7 +20,7 @@ describe Dynamoid::Adapter::AwsSdk do
       before(:all) do
         Dynamoid::Adapter.create_table('dynamoid_tests_TestTable1', :id) unless Dynamoid::Adapter.list_tables.include?('dynamoid_tests_TestTable1')
         Dynamoid::Adapter.create_table('dynamoid_tests_TestTable2', :id) unless Dynamoid::Adapter.list_tables.include?('dynamoid_tests_TestTable2')
-        Dynamoid::Adapter.create_table('dynamoid_tests_TestTable3', :id, :range_key => :range) unless Dynamoid::Adapter.list_tables.include?('dynamoid_tests_TestTable3')
+        Dynamoid::Adapter.create_table('dynamoid_tests_TestTable3', :id, :range_key => { :range => :number }) unless Dynamoid::Adapter.list_tables.include?('dynamoid_tests_TestTable3')
       end
 
       # GetItem, PutItem and DeleteItem

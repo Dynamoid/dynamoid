@@ -57,7 +57,8 @@ module Dynamoid
       #
       # @since 0.2.0
       def create_table(table_name, key, options = {})
-        data[table_name] = {:hash_key => key, :range_key => options[:range_key], :data => {}}
+        range_key = options[:range_key] && options[:range_key].keys.first
+        data[table_name] = {:hash_key => key, :range_key => range_key, :data => {}}
       end
     
       # Removes an item from the hash.
@@ -146,7 +147,7 @@ module Dynamoid
         elsif opts[:range_lte]  
           data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && v[range_key] <= opts[:range_lte]}
         else
-          get_item(table_name, id)
+          data[table_name][:data].values.find_all{|v| v[:id] == id}
         end
       end
     

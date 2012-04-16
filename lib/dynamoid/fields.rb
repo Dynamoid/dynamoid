@@ -9,6 +9,8 @@ module Dynamoid #:nodoc:
     # Initialize the attributes we know the class has, in addition to our magic attributes: id, created_at, and updated_at.
     included do
       class_attribute :attributes
+      class_attribute :range_key
+
       self.attributes = {}
 
       field :id
@@ -35,6 +37,11 @@ module Dynamoid #:nodoc:
         define_method("#{named}=") {|value| write_attribute(named, value) }
 
         respond_to?(:define_attribute_method) ? define_attribute_method(name) : define_attribute_methods([name])
+      end
+
+      def range(name, type = :string)
+        field(name, type)
+        self.range_key = name
       end
     end
     
