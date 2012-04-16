@@ -9,8 +9,8 @@ module Dynamoid #:nodoc:
     # Initialize the attributes we know the class has, in addition to our magic attributes: id, created_at, and updated_at.
     included do
       class_attribute :attributes
-      
       self.attributes = {}
+
       field :id
       field :created_at, :datetime
       field :updated_at, :datetime
@@ -34,7 +34,7 @@ module Dynamoid #:nodoc:
         define_method("#{named}?") { !read_attribute(named).nil? }
         define_method("#{named}=") {|value| write_attribute(named, value) }
 
-        define_attribute_method(name)
+        respond_to?(:define_attribute_method) ? define_attribute_method(name) : define_attribute_methods([name])
       end
     end
     
