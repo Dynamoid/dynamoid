@@ -179,10 +179,13 @@ module Dynamoid
       # @return [Array] an array of all matching items
       #
       # @since 0.2.0
-      def scan(table_name, scan_hash)
+      def scan(table_name, scan_hash, limit = nil)
         table = get_table(table_name)
         results = []
-        table.items.where(scan_hash).select do |data|
+
+        select_opts = {}
+        select_opts.merge!(:limit => limit) if limit
+        table.items.where(scan_hash).select(select_opts) do |data|
           results << data.attributes.symbolize_keys!
         end
         results

@@ -6,7 +6,7 @@ module Dynamoid #:nodoc:
     # chain to relation). It is a chainable object that builds up a query and eventually executes it either on an index
     # or by a full table scan.
     class Chain
-      attr_accessor :query, :source, :index, :values
+      attr_accessor :query, :source, :index, :values, :limit
       include Enumerable
 
       # Create a new criteria chain.
@@ -44,7 +44,12 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def first
-        records.first
+        limit(1).first
+      end
+
+      def limit(limit)
+        @limit = limit
+        records
       end
 
       # Allows you to use the results of a search as an enumerable over the results found.
@@ -90,7 +95,9 @@ module Dynamoid #:nodoc:
         if ids.nil? || ids.empty?
           []
         else
-          Array(source.find(ids.to_a))
+          ids = ids.to_a
+          ids = ids.take(@limit) if @limit
+          Array(source.find(ids))
         end
       end
 
@@ -108,7 +115,8 @@ module Dynamoid #:nodoc:
           Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
           Dynamoid.logger.warn "You can index this query by adding this to #{source.to_s.downcase}.rb: index [#{source.attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
         end
-        Dynamoid::Adapter.scan(source.table_name, query).collect {|hash| source.new(hash).tap { |r| r.new_record = false } }
+
+        Dynamoid::Adapter.scan(source.table_name, query, @limit).collect {|hash| source.new(hash).tap { |r| r.new_record = false } }
       end
 
       # Format the provided query so that it can be used to query results from DynamoDB.
@@ -155,6 +163,7 @@ module Dynamoid #:nodoc:
         if key = query.keys.find { |k| k.to_s.include?('.') }
           opts.merge!(range_key(key))
         end
+        opts[:limit] = @limit if @limit
         opts
       end
 

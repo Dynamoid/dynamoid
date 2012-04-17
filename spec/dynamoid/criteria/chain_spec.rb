@@ -109,8 +109,11 @@ describe "Dynamoid::Associations::Chain" do
     @chain = Dynamoid::Criteria::Chain.new(Tweet)
     @chain.query = { :id => "x" }
     @chain.send(:records_with_range).size.should == 2
+
+    @chain.all.size.should == 2
+    @chain.limit(1).size.should == 1
+
     @chain.query = { :id => "xx", :group => "two" }
     @chain.send(:records_with_range).should == [@tweet]
   end
-
 end

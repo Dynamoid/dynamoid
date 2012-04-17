@@ -136,7 +136,7 @@ module Dynamoid
       def query(table_name, opts = {})
         id = opts[:hash_value]
         range_key = data[table_name][:range_key]
-        if opts[:range_value]
+        results = if opts[:range_value]
           data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && opts[:range_value].include?(v[range_key])}
         elsif opts[:range_greater_than]
           data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && v[range_key] > opts[:range_greater_than]}
@@ -149,6 +149,9 @@ module Dynamoid
         else
           data[table_name][:data].values.find_all{|v| v[:id] == id}
         end
+
+        results = results.take(opts[:limit]) if opts[:limit]
+        results
       end
     
       # Scan the hash.
@@ -159,9 +162,11 @@ module Dynamoid
       # @return [Array] an array of all matching items
       #
       # @since 0.2.0
-      def scan(table_name, scan_hash)
+      def scan(table_name, scan_hash, limit)
         return [] if data[table_name].nil?
-        data[table_name][:data].values.flatten.select{|d| scan_hash.all?{|k, v| !d[k].nil? && d[k] == v}}
+        results = data[table_name][:data].values.flatten.select{|d| scan_hash.all?{|k, v| !d[k].nil? && d[k] == v}}
+        results = results.take(limit) if limit
+        results
       end
     
       # @todo Add an UpdateItem method.
