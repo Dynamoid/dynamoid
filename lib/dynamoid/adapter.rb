@@ -110,12 +110,12 @@ module Dynamoid
     # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
     #
     # @since 0.2.0    
-    def scan(table, query, limit = nil)
+    def scan(table, query, opts = {})
       if Dynamoid::Config.partitioning?
-        results = benchmark('Scan', table, query) {adapter.scan(table, query, limit)}
+        results = benchmark('Scan', table, query) {adapter.scan(table, query, opts)}
         result_for_partition(results)
       else
-        adapter.scan(table, query, limit)
+        adapter.scan(table, query, opts)
       end
     end
     

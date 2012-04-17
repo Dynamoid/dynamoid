@@ -6,7 +6,7 @@ module Dynamoid #:nodoc:
     # chain to relation). It is a chainable object that builds up a query and eventually executes it either on an index
     # or by a full table scan.
     class Chain
-      attr_accessor :query, :source, :index, :values, :limit
+      attr_accessor :query, :source, :index, :values, :limit, :start
       include Enumerable
 
       # Create a new criteria chain.
@@ -50,6 +50,11 @@ module Dynamoid #:nodoc:
       def limit(limit)
         @limit = limit
         records
+      end
+
+      def start(start)
+        @start = start
+        self
       end
 
       # Allows you to use the results of a search as an enumerable over the results found.
@@ -96,6 +101,11 @@ module Dynamoid #:nodoc:
           []
         else
           ids = ids.to_a
+
+          if @start
+            ids = ids.drop_while { |id| id != @start.id }.drop(1)
+          end
+
           ids = ids.take(@limit) if @limit
           Array(source.find(ids))
         end
@@ -116,7 +126,7 @@ module Dynamoid #:nodoc:
           Dynamoid.logger.warn "You can index this query by adding this to #{source.to_s.downcase}.rb: index [#{source.attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
         end
 
-        Dynamoid::Adapter.scan(source.table_name, query, @limit).collect {|hash| source.new(hash).tap { |r| r.new_record = false } }
+        Dynamoid::Adapter.scan(source.table_name, query, query_opts).collect {|hash| source.new(hash).tap { |r| r.new_record = false } }
       end
 
       # Format the provided query so that it can be used to query results from DynamoDB.
@@ -163,8 +173,7 @@ module Dynamoid #:nodoc:
         if key = query.keys.find { |k| k.to_s.include?('.') }
           opts.merge!(range_key(key))
         end
-        opts[:limit] = @limit if @limit
-        opts
+        opts.merge(query_opts)
       end
 
       # Return an index that fulfills all the attributes the criteria is querying, or nil if none is found.
@@ -183,6 +192,22 @@ module Dynamoid #:nodoc:
       def range?
         return false unless source.range_key
         query_keys == ['id'] || (query_keys.to_set == ['id', source.range_key.to_s].to_set)
+      end
+
+      def start_key
+        key = { :hash_key_element => { 'S' => @start.id } }
+        if range_key = @start.class.range_key
+          range_key_type = @start.class.attributes[range_key][:type] == :string ? 'S' : 'N'
+          key.merge!({:range_key_element => { range_key_type => @start.send(range_key) } })
+        end
+        key
+      end
+
+      def query_opts
+        opts = {}
+        opts[:limit] = @limit if @limit
+        opts[:next_token] = start_key if @start
+        opts
       end
     end
 
