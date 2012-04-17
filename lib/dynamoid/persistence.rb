@@ -27,6 +27,17 @@ module Dynamoid
         Dynamoid::Adapter.tables << table_name if Dynamoid::Adapter.create_table(table_name, id.to_sym, options)
       end
 
+      def create_table_if_neccessary
+        return if table_exists?(table_name)
+
+        opts = {}
+        if range_key
+          opts[:range_key] = { range_key => attributes[range_key][:type] }
+        end
+
+        create_table(table_name, :id, opts)
+      end
+
       # Does a table with this name exist?
       #
       # @since 0.2.0      
@@ -84,11 +95,6 @@ module Dynamoid
 
     end
     
-    # Create the table if it doesn't exist already upon loading the class.
-    included do
-      self.create_table(self.table_name) unless self.table_exists?(self.table_name)
-    end
-    
     # Is this object persisted in the datastore? Required for some ActiveModel integration stuff.
     #
     # @since 0.2.0
@@ -100,6 +106,8 @@ module Dynamoid
     #
     # @since 0.2.0
     def save(options = {})
+      self.class.create_table_if_neccessary
+
       @previously_changed = changes
 
       if new_record?

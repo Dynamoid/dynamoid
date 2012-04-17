@@ -57,7 +57,8 @@ module Dynamoid
       #
       # @since 0.2.0
       def create_table(table_name, key, options = {})
-        data[table_name] = {:hash_key => key, :range_key => options[:range_key], :data => {}}
+        range_key = options[:range_key] && options[:range_key].keys.first
+        data[table_name] = {:hash_key => key, :range_key => range_key, :data => {}}
       end
     
       # Removes an item from the hash.
@@ -135,7 +136,8 @@ module Dynamoid
       def query(table_name, opts = {})
         id = opts[:hash_value]
         range_key = data[table_name][:range_key]
-        if opts[:range_value]
+
+        results = if opts[:range_value]
           data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && opts[:range_value].include?(v[range_key])}
         elsif opts[:range_greater_than]
           data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && v[range_key] > opts[:range_greater_than]}
@@ -146,8 +148,12 @@ module Dynamoid
         elsif opts[:range_lte]  
           data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && v[range_key] <= opts[:range_lte]}
         else
-          get_item(table_name, id)
+          data[table_name][:data].values.find_all{|v| v[:id] == id}
         end
+
+        results = drop_till_start(results, opts[:next_token], range_key)
+        results = results.take(opts[:limit]) if opts[:limit]
+        results
       end
     
       # Scan the hash.
@@ -158,9 +164,23 @@ module Dynamoid
       # @return [Array] an array of all matching items
       #
       # @since 0.2.0
-      def scan(table_name, scan_hash)
+      def scan(table_name, scan_hash, opts = {})
         return [] if data[table_name].nil?
-        data[table_name][:data].values.flatten.select{|d| scan_hash.all?{|k, v| !d[k].nil? && d[k] == v}}
+        results = data[table_name][:data].values.flatten.select{|d| scan_hash.all?{|k, v| !d[k].nil? && d[k] == v}}
+        results = drop_till_start(results, opts[:next_token], data[table_name][:range_key])
+        results = results.take(opts[:limit]) if opts[:limit]
+        results
+      end
+
+      def drop_till_start(results, next_token, range_key)
+        return results unless next_token
+
+        hash_value = next_token[:hash_key_element].values.first
+        range_value = next_token[:range_key_element].values.first if next_token[:range_key_element]
+
+        results = results.drop_while do |r|
+          (r[:id] != hash_value or r[range_key] != range_value)
+        end.drop(1)
       end
     
       # @todo Add an UpdateItem method.

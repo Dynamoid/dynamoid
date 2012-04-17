@@ -9,7 +9,7 @@ module Dynamoid
     
     module ClassMethods
       
-      [:where, :all, :first, :each].each do |meth|
+      [:where, :all, :first, :each, :limit, :start].each do |meth|
         # Return a criteria chain in response to a method that will begin or end a chain. For more information, 
         # see Dynamoid::Criteria::Chain.
         #

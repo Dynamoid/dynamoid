@@ -64,7 +64,6 @@ module Dynamoid
       # @since 0.2.0
       def create_table(table_name, key = :id, options = {})
         options[:hash_key] ||= {key.to_sym => :string}
-        options[:range_key] = {options[:range_key].to_sym => :number} if options[:range_key]
         read_capacity = options[:read_capacity] || Dynamoid::Config.read_capacity
         write_capacity = options[:write_capacity] || Dynamoid::Config.write_capacity
         table = @@connection.tables.create(table_name, read_capacity, write_capacity, options)
@@ -180,10 +179,10 @@ module Dynamoid
       # @return [Array] an array of all matching items
       #
       # @since 0.2.0
-      def scan(table_name, scan_hash)
+      def scan(table_name, scan_hash, select_opts)
         table = get_table(table_name)
         results = []
-        table.items.where(scan_hash).select do |data|
+        table.items.where(scan_hash).select(select_opts) do |data|
           results << data.attributes.symbolize_keys!
         end
         results

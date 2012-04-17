@@ -35,4 +35,20 @@ describe "Dynamoid::Criteria" do
     end
   end
 
+  it 'returns n records' do
+    User.limit(1).size.should eq(1)
+    5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }
+    User.where(:name => 'Josh').all.size.should == 6
+    User.where(:name => 'Josh').limit(2).size.should == 2
+  end
+
+  it 'start with a reord' do
+    5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }
+    all = User.all
+    User.start(all[3]).all.should eq(all[4..-1])
+
+    all = User.where(:name => 'Josh').all
+    User.where(:name => 'Josh').start(all[3]).all.should eq(all[4..-1])
+  end
+
 end
