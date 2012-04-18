@@ -78,7 +78,8 @@ module Dynamoid
       # @param [Number] range_key the range key of the item to delete, required if the table has a composite key
       #
       # @since 0.2.0
-      def delete_item(table_name, key, range_key = nil)
+      def delete_item(table_name, key, options = {})
+        range_key = options.delete(:range_key)
         table = get_table(table_name)
         result = if table.composite_key?
           table.items.at(key, range_key)
@@ -110,13 +111,18 @@ module Dynamoid
       # @return [Hash] a hash representing the raw item in DynamoDB
       #
       # @since 0.2.0
-      def get_item(table_name, key, range_key = nil)
+
+
+
+      def get_item(table_name, key, options = {})
+        range_key = options.delete(:range_key)
         table = get_table(table_name)
+
         result = if table.composite_key?
           table.items.at(key, range_key)
         else
           table.items[key]
-        end.attributes.to_h
+        end.attributes.to_h(options)
         if result.empty?
           nil
         else
@@ -160,10 +166,11 @@ module Dynamoid
       # @since 0.2.0
       def query(table_name, opts = {})
         table = get_table(table_name)
-        
+
+        consistent_opts = { :consistent_read => opts[:consistent_read] || false }
         if table.composite_key?
           results = []
-          table.items.query(opts).each {|data| results << data.attributes.to_h.symbolize_keys!}
+          table.items.query(opts).each {|data| results << data.attributes.to_h(consistent_opts).symbolize_keys!}
           results
         else
           get_item(table_name, opts[:hash_value])

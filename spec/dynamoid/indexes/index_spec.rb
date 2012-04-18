@@ -77,7 +77,7 @@ describe "Dynamoid::Indexes::Index" do
     
     @index.save(@user)
     
-    Dynamoid::Adapter.read("dynamoid_tests_index_user_last_logged_in_ats_and_names", 'Josh', @time.to_f)[:ids].should == Set[@user.id]
+    Dynamoid::Adapter.read("dynamoid_tests_index_user_last_logged_in_ats_and_names", 'Josh', :range_key => @time.to_f)[:ids].should == Set[@user.id]
   end
   
   it 'deletes an object from the index it is associated with' do

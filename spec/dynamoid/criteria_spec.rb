@@ -51,4 +51,15 @@ describe "Dynamoid::Criteria" do
     User.where(:name => 'Josh').start(all[3]).all.should eq(all[4..-1])
   end
 
+  it 'send consistent option to adapter' do
+    Dynamoid::Adapter.expects(:get_item).with { |table_name, key, options| options[:consistent_read] == true }
+    User.where(:name => 'x').consistent.first
+
+    Dynamoid::Adapter.expects(:query).with { |table_name, options| options[:consistent_read] == true }.returns([])
+    Tweet.where(:id => 'xx', :group => 'two').consistent.all
+
+    Dynamoid::Adapter.expects(:query).with { |table_name, options| options[:consistent_read] == false }.returns([])
+    Tweet.where(:id => 'xx', :group => 'two').all
+  end
+    
 end

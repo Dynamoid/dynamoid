@@ -67,7 +67,8 @@ module Dynamoid
     # @param [Number] range_key the range key of the record
     #
     # @since 0.2.0
-    def read(table, ids, range_key = nil)
+    def read(table, ids, options = {})
+      range_key = options[:range_key]
       if ids.respond_to?(:each)
         ids = ids.collect{|id| range_key ? [id, range_key] : id}
         if Dynamoid::Config.partitioning?
@@ -82,7 +83,7 @@ module Dynamoid
           results = benchmark('Partitioned Get Item', ids) {batch_get_item(table => id_with_partitions(ids))}
           result_for_partition(results[table]).first
         else
-          benchmark('Get Item', ids) {get_item(table, ids, range_key)}
+          benchmark('Get Item', ids) {get_item(table, ids, options)}
         end
       end
     end
@@ -94,13 +95,13 @@ module Dynamoid
     # @param [Number] range_key the range key of the record
     #
     # @since 0.2.0
-    def delete(table, id, range_key = nil)
+    def delete(table, id, options = {})
       if Dynamoid::Config.partitioning?
         benchmark('Delete Item', id) do
-          id_with_partitions(id).each {|i| delete_item(table, i, range_key)}
+          id_with_partitions(id).each {|i| delete_item(table, i, options)}
         end
       else
-        benchmark('Delete Item', id) {delete_item(table, id, range_key)}
+        benchmark('Delete Item', id) {delete_item(table, id, options)}
       end
     end
     

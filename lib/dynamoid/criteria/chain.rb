@@ -6,7 +6,7 @@ module Dynamoid #:nodoc:
     # chain to relation). It is a chainable object that builds up a query and eventually executes it either on an index
     # or by a full table scan.
     class Chain
-      attr_accessor :query, :source, :index, :values, :limit, :start
+      attr_accessor :query, :source, :index, :values, :limit, :start, :consistent_read
       include Enumerable
 
       # Create a new criteria chain.
@@ -15,6 +15,7 @@ module Dynamoid #:nodoc:
       def initialize(source)
         @query = {}
         @source = source
+        @consistent_read = false
       end
 
       # The workhorse method of the criteria chain. Each key in the passed in hash will become another criteria that the
@@ -30,6 +31,11 @@ module Dynamoid #:nodoc:
       # @since 0.2.0
       def where(args)
         args.each {|k, v| query[k] = v}
+        self
+      end
+
+      def consistent
+        @consistent_read = true
         self
       end
 
@@ -64,6 +70,10 @@ module Dynamoid #:nodoc:
         records.each(&block)
       end
 
+      def consistent_opts
+        { :consistent_read => consistent_read }
+      end
+
       private
 
       # The actual records referenced by the association.
@@ -90,7 +100,7 @@ module Dynamoid #:nodoc:
         ids = if index.range_key?
           Dynamoid::Adapter.query(index.table_name, index_query).collect{|r| r[:ids]}.inject(Set.new) {|set, result| set + result}
         else
-          results = Dynamoid::Adapter.read(index.table_name, index_query[:hash_value])
+          results = Dynamoid::Adapter.read(index.table_name, index_query[:hash_value], consistent_opts)
           if results
             results[:ids]
           else
@@ -100,6 +110,7 @@ module Dynamoid #:nodoc:
         if ids.nil? || ids.empty?
           []
         else
+
           ids = ids.to_a
 
           if @start
@@ -107,7 +118,7 @@ module Dynamoid #:nodoc:
           end
 
           ids = ids.take(@limit) if @limit
-          Array(source.find(ids))
+          Array(source.find(ids, consistent_opts))
         end
       end
 
@@ -173,7 +184,7 @@ module Dynamoid #:nodoc:
         if key = query.keys.find { |k| k.to_s.include?('.') }
           opts.merge!(range_key(key))
         end
-        opts.merge(query_opts)
+        opts.merge(query_opts).merge(consistent_opts)
       end
 
       # Return an index that fulfills all the attributes the criteria is querying, or nil if none is found.

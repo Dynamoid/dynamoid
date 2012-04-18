@@ -38,7 +38,7 @@ module Dynamoid
             table = data[table_name]
             if table[:range_key]
               Array(keys).each do |hash_key, range_key|
-                hash[table_name] << get_item(table_name, hash_key, range_key)
+                hash[table_name] << get_item(table_name, hash_key, :range_key => range_key)
               end
             else
               Array(keys).each do |key|
@@ -68,7 +68,8 @@ module Dynamoid
       # @param [Number] range_key the range key of the item to delete, required if the table has a composite key
       #
       # @since 0.2.0
-      def delete_item(table_name, key, range_key = nil)
+      def delete_item(table_name, key, options = {})
+        range_key = options.delete(:range_key)
         data[table_name][:data].delete("#{key}.#{range_key}")
       end
     
@@ -92,7 +93,8 @@ module Dynamoid
       # @return [Hash] a hash representing the raw item
       #
       # @since 0.2.0
-      def get_item(table_name, key, range_key = nil)
+      def get_item(table_name, key, options = {})
+        range_key = options[:range_key]
         if data[table_name][:data]
           data[table_name][:data]["#{key}.#{range_key}"]
         else

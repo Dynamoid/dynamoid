@@ -106,7 +106,7 @@ describe Dynamoid::Adapter::Local do
       Dynamoid::Adapter.put_item('Test Table', {:id => '1', :range => 1.0})
 
       Dynamoid::Adapter.get_item('Test Table', '1').should be_nil
-      Dynamoid::Adapter.get_item('Test Table', '1', 1.0).should == {:id => '1', :range => 1.0}
+      Dynamoid::Adapter.get_item('Test Table', '1', :range_key => 1.0).should == {:id => '1', :range => 1.0}
     end
 
     # ListTables

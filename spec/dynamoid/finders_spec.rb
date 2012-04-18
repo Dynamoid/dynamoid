@@ -27,7 +27,12 @@ describe "Dynamoid::Finders" do
     @address2 = Address.create(:city => 'Illinois')
     
     Address.find(@address.id, @address2.id).should include @address, @address2
-  end  
+  end
+
+  it 'sends consistent option to the adapter' do
+    Dynamoid::Adapter.expects(:get_item).with { |table_name, key, options| options[:consistent_read] == true }
+    Address.find('x', :consistent_read => true)
+  end
   
   context 'with users' do
     before do
