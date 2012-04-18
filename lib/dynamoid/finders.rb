@@ -15,12 +15,19 @@ module Dynamoid
       # @return [Dynamoid::Document] one object or an array of objects, depending on whether the input was an array or not
       #
       # @since 0.2.0
-      def find(*id)
-        id = Array(id.flatten.uniq)
-        if id.count == 1
-          self.find_by_id(id.first)
+      def find(*ids)
+
+        options = if ids.last.is_a? Hash
+                    ids.slice!(-1)
+                  else
+                    {}
+                  end
+
+        ids = Array(ids.flatten.uniq)
+        if ids.count == 1
+          self.find_by_id(ids.first, options)
         else
-          items = Dynamoid::Adapter.read(self.table_name, id)
+          items = Dynamoid::Adapter.read(self.table_name, ids, options)
           items[self.table_name].collect{|i| self.build(i).tap { |o| o.new_record = false } }
         end
       end
@@ -32,8 +39,8 @@ module Dynamoid
       # @return [Dynamoid::Document] the found object, or nil if nothing was found
       #
       # @since 0.2.0      
-      def find_by_id(id)
-        if item = Dynamoid::Adapter.read(self.table_name, id)
+      def find_by_id(id, options = {})
+        if item = Dynamoid::Adapter.read(self.table_name, id, options)
           obj = self.new(item)
           obj.new_record = false
           return obj

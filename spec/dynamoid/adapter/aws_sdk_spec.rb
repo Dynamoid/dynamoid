@@ -41,11 +41,11 @@ describe Dynamoid::Adapter::AwsSdk do
       it 'performs GetItem for an item that does exist with a range key' do
         Dynamoid::Adapter.put_item('dynamoid_tests_TestTable3', {:id => '1', :name => 'Josh', :range => 2.0})
 
-        Dynamoid::Adapter.get_item('dynamoid_tests_TestTable3', '1', 2.0).should == {:name => 'Josh', :id => '1', :range => 2.0}
+        Dynamoid::Adapter.get_item('dynamoid_tests_TestTable3', '1', :range_key => 2.0).should == {:name => 'Josh', :id => '1', :range => 2.0}
 
-        Dynamoid::Adapter.delete_item('dynamoid_tests_TestTable3', '1', 2.0)
+        Dynamoid::Adapter.delete_item('dynamoid_tests_TestTable3', '1', :range_key => 2.0)
         
-        Dynamoid::Adapter.get_item('dynamoid_tests_TestTable3', '1', 2.0).should be_nil        
+        Dynamoid::Adapter.get_item('dynamoid_tests_TestTable3', '1', :range_key => 2.0).should be_nil        
       end
       
       it 'performs DeleteItem for an item that does not exist' do
