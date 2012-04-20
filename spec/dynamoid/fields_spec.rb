@@ -88,5 +88,10 @@ describe "Dynamoid::Fields" do
       Address.attributes.should == {:id=>{:type=>:string}, :created_at=>{:type=>:datetime}, :updated_at=>{:type=>:datetime}, :city=>{:type=>:string}, :options=>{:type=>:serialized}}
     end
   end
+
+  it "gives a warning when setting a single value larger than the maximum item size" do
+    Dynamoid.logger.expects(:warn).with(regexp_matches(/city field has a length of 66000/))
+    Address.new city: ("Ten chars " * 6_600)
+  end
   
 end

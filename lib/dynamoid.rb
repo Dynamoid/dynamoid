@@ -23,6 +23,8 @@ require 'dynamoid/adapter'
 
 module Dynamoid
   extend self
+
+  MAX_ITEM_SIZE = 65_536
   
   def configure
     block_given? ? yield(Dynamoid::Config) : Dynamoid::Config
