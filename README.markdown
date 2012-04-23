@@ -79,7 +79,7 @@ class User
   index :email          
   index [:name, :email] 
   index :created_at, :range => true
-  index :name, :range => :joined_at
+  index :name, :range_key => :joined_at
   
 end
 ```
