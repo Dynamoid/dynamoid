@@ -21,6 +21,7 @@ module Dynamoid
     option :warn_on_scan, :default => true
     option :partitioning, :default => false
     option :partition_size, :default => 200
+    option :endpoint, :default => 'dynamodb.us-east-1.amazonaws.com'
     option :included_models, :default => []
     
     # The default logger for Dynamoid: either the Rails logger or just stdout.

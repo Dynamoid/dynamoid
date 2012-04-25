@@ -28,6 +28,7 @@ Then you need to initialize it to get it going. Put code similar to this somewhe
     config.partition_size = 200  # Determine the key space size that writes are randomly spread across.
     config.read_capacity = 100 # Read capacity for your tables
     config.write_capacity = 20 # Write capacity for your tables
+    config.endpoint = 'dynamodb.us-east-1.amazonaws.com' # Set the regional endpoint
   end
 
 ```
