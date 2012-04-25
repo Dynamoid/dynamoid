@@ -5,7 +5,6 @@ module Dynamoid #:nodoc:
   # object to which the association object is associated.
   module Associations
     class BelongsTo
-      include Association
       include SingleAssociation
 
       private

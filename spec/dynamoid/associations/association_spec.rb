@@ -37,12 +37,16 @@ describe "Dynamoid::Associations::Association" do
 
   it 'returns the number of items in the association' do
     @magazine.subscriptions.create
-    
     @magazine.subscriptions.size.should == 1
     
-    @magazine.subscriptions.create
-    
+    @second = @magazine.subscriptions.create
     @magazine.subscriptions.size.should == 2
+
+    @magazine.subscriptions.delete(@second)
+    @magazine.subscriptions.size.should == 1
+
+    @magazine.subscriptions = []
+    @magazine.subscriptions.size.should == 0
   end
   
   it 'assigns directly via the equals operator' do
@@ -108,7 +112,7 @@ describe "Dynamoid::Associations::Association" do
 
   it 'destroys associations' do
     @subscription = Subscription.new
-    @magazine.subscriptions.expects(:records).returns([@subscription])
+    @magazine.subscriptions.expects(:target).returns([@subscription])
     @subscription.expects(:destroy)
 
     @magazine.subscriptions.destroy_all
@@ -116,7 +120,7 @@ describe "Dynamoid::Associations::Association" do
 
   it 'deletes associations' do
     @subscription = Subscription.new
-    @magazine.subscriptions.expects(:records).returns([@subscription])
+    @magazine.subscriptions.expects(:target).returns([@subscription])
     @subscription.expects(:delete)
 
     @magazine.subscriptions.delete_all
@@ -176,6 +180,14 @@ describe "Dynamoid::Associations::Association" do
     @magazine.subscriptions.class.should == Array
     @magazine.subscriptions.create
     @magazine.subscriptions.class.should == Array
+  end
+
+  it 'loads association one time only' do
+    @sponsor = @magazine.sponsor.create
+    @magazine.sponsor.expects(:find_target).once.returns(@sponsor)
+
+    @magazine.sponsor.id
+    @magazine.sponsor.id
   end
 
 end

@@ -68,6 +68,7 @@ module Dynamoid #:nodoc:
     def initialize(attrs = {})
       @new_record = true
       @attributes ||= {}
+      @associations ||= {}
 
       self.class.undump(attrs).each {|key, value| send "#{key}=", value }
     end
@@ -88,6 +89,7 @@ module Dynamoid #:nodoc:
     # @since 0.2.0        
     def reload
       self.attributes = self.class.find(self.id).attributes
+      @associations.values.each(&:reset)
       self
     end
   end

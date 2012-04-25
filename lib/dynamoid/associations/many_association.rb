@@ -3,6 +3,7 @@ module Dynamoid #:nodoc:
 
   module Associations
     module ManyAssociation
+      include Association
 
       attr_accessor :query
 
@@ -20,13 +21,15 @@ module Dynamoid #:nodoc:
       # @return the association records; depending on which association this is, either a single instance or an array
       #
       # @since 0.2.0
-      def records
-        results = Array(target_class.find(source_ids.to_a))
+      def find_target
+        Array(target_class.find(source_ids.to_a))
+      end
 
+      def records
         if query.empty?
-          results
+          target
         else
-          results_with_query(results)
+          results_with_query(target)
         end
       end
 
@@ -78,7 +81,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def setter(object)
-        records.each {|o| delete(o)}
+        target.each {|o| delete(o)}
         self << (object)
         object
       end
@@ -120,7 +123,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def destroy_all
-        objs = records
+        objs = target
         source.update_attribute(source_attribute, nil)
         objs.each(&:destroy)
       end
@@ -129,7 +132,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def delete_all
-        objs = records
+        objs = target
         source.update_attribute(source_attribute, nil)
         objs.each(&:delete)
       end
