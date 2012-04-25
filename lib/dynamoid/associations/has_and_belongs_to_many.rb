@@ -4,7 +4,6 @@ module Dynamoid #:nodoc:
   # The has and belongs to many association.
   module Associations
     class HasAndBelongsToMany
-      include Association
       include ManyAssociation
 
       private

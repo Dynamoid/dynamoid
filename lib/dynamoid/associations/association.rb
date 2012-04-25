@@ -6,7 +6,7 @@ module Dynamoid #:nodoc:
   # The target is the object which is referencing by this association.
   module Associations
     module Association
-      attr_accessor :name, :options, :source
+      attr_accessor :name, :options, :source, :loaded
 
       # Create a new association.
       #
@@ -24,7 +24,30 @@ module Dynamoid #:nodoc:
         @name = name
         @options = options
         @source = source
+        @loaded = false
       end
+
+      def loaded?
+        @loaded
+      end
+
+      def find_target
+      end
+
+      def target
+        unless loaded?
+          @target = find_target
+          @loaded = true
+        end
+
+        @target
+      end
+
+      def reset
+        @target = nil
+        @loaded = false
+      end
+
 
       private
 

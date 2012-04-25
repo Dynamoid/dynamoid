@@ -91,17 +91,16 @@ module Dynamoid
         field "#{name}_ids".to_sym, :set
         self.associations[name] = options.merge(:type => type)
         define_method(name) do
-          @associations ||= {}
-          @associations[name] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
+          @associations[:"#{name}_ids"] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
         end
         define_method("#{name}=".to_sym) do |objects|
-          @associations ||= {}
-          @associations[name] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
-          @associations[name].setter(objects)
+          @associations[:"#{name}_ids"] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
+          @associations[:"#{name}_ids"].setter(objects)
         end
       end
     end
-    
+
+
   end
   
 end

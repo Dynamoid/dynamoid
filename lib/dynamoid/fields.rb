@@ -61,6 +61,11 @@ module Dynamoid #:nodoc:
       end
 
       attribute_will_change!(name) unless self.read_attribute(name) == value
+
+      if association = @associations[name]
+        association.reset
+      end
+
       attributes[name.to_sym] = value
     end
     alias :[]= :write_attribute

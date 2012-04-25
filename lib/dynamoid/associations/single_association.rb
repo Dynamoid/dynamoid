@@ -3,6 +3,7 @@ module Dynamoid #:nodoc:
 
   module Associations
     module SingleAssociation
+      include Association
 
       delegate :class, :to => :target
 
@@ -59,7 +60,7 @@ module Dynamoid #:nodoc:
       # @return [Dynamoid::Document] the found target (or nil if nothing)
       #
       # @since 0.2.0
-      def target
+      def find_target
         return if source_ids.empty?
         target_class.find(source_ids.first)
       end
