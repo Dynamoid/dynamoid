@@ -46,6 +46,20 @@ class User
 end
 ```
 
+### Table
+
+Dynamoid has some sensible defaults for you when you create a new table, including the table name and the primary key column. But you can change those if you like on table creation.
+
+```ruby
+class User
+  include Dynamoid::Document
+  
+  table :name => :awesome_users, :key => :user_id, :read_capacity => 400, :write_capacity => 400
+end
+```
+
+These fields will not change an existing table: so specifying a new read_capacity and write_capacity here only works correctly for entirely new tables. Similarly, while Dynamoid will look for a table named `awesome_users` in your namespace, it won't change any existing tables to use that name; and if it does find a table with the correct name, it won't change its hash key, which it expects will be user_id. If this table doesn't exist yet, however, Dynamoid will create it with these options.
+
 ### Fields
 
 You'll have to define all the fields on the model and the data type of each field. Every field on the object must be included here; if you miss any they'll be completely bypassed during DynamoDB's initialization and will not appear on the model objects.

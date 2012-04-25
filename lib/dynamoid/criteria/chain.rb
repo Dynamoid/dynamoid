@@ -110,11 +110,10 @@ module Dynamoid #:nodoc:
         if ids.nil? || ids.empty?
           []
         else
-
           ids = ids.to_a
 
           if @start
-            ids = ids.drop_while { |id| id != @start.id }.drop(1)
+            ids = ids.drop_while { |id| id != @start.hash_key }.drop(1)
           end
 
           ids = ids.take(@limit) if @limit
@@ -126,7 +125,7 @@ module Dynamoid #:nodoc:
         Dynamoid::Adapter.query(source.table_name, range_query).collect {|hash| source.new(hash).tap { |r| r.new_record = false } }
       end
 
-      # If the query does not match an index, we'll manually scan the associated table to manually find results.
+      # If the query does not match an index, we'll manually scan the associated table to find results.
       #
       # @return [Array] an array of the found records.
       #
@@ -180,7 +179,7 @@ module Dynamoid #:nodoc:
       end
 
       def range_query
-        opts = { :hash_value => query[:id] }
+        opts = { :hash_value => query[source.hash_key] }
         if key = query.keys.find { |k| k.to_s.include?('.') }
           opts.merge!(range_key(key))
         end
@@ -206,7 +205,7 @@ module Dynamoid #:nodoc:
       end
 
       def start_key
-        key = { :hash_key_element => { 'S' => @start.id } }
+        key = { :hash_key_element => { 'S' => @start.hash_key } }
         if range_key = @start.class.range_key
           range_key_type = @start.class.attributes[range_key][:type] == :string ? 'S' : 'N'
           key.merge!({:range_key_element => { range_key_type => @start.send(range_key) } })

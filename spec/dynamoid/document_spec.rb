@@ -90,4 +90,25 @@ describe "Dynamoid::Document" do
     @address.city.should be_nil
     @address.reload.city.should == 'Chicago'
   end
+  
+  it 'has default table options' do
+    @address = Address.create
+    
+    @address.id.should_not be_nil
+    Address.table_name.should == 'dynamoid_tests_addresses'
+    Address.hash_key.should == :id
+    Address.read_capacity.should == 100
+    Address.write_capacity.should == 20
+  end
+  
+  it 'follows any table options provided to it' do
+    @tweet = Tweet.create
+    
+    lambda {@tweet.id}.should raise_error(NoMethodError)
+    @tweet.tweet_id.should_not be_nil
+    Tweet.table_name.should == 'dynamoid_tests_twitters'
+    Tweet.hash_key.should == :tweet_id
+    Tweet.read_capacity.should == 200
+    Tweet.write_capacity.should == 200
+  end
 end

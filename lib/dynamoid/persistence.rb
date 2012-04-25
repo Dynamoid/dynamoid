@@ -17,25 +17,31 @@ module Dynamoid
       #
       # @since 0.2.0
       def table_name
-        "#{Dynamoid::Config.namespace}_#{self.to_s.downcase.pluralize}"
+        "#{Dynamoid::Config.namespace}_#{options[:name] ? options[:name] : self.to_s.downcase.pluralize}"
       end
       
-      # Creates a table for a given table name, hash key, and range key.
+      # Creates a table.
       #
-      # @since 0.2.0
-      def create_table(table_name, id = :id, options = {})
-        Dynamoid::Adapter.tables << table_name if Dynamoid::Adapter.create_table(table_name, id.to_sym, options)
-      end
-
-      def create_table_if_neccessary
-        return if table_exists?(table_name)
-
-        opts = {}
-        if range_key
-          opts[:range_key] = { range_key => attributes[range_key][:type] }
-        end
-
-        create_table(table_name, :id, opts)
+      # @param [Hash] options options to pass for table creation
+      # @option options [Symbol] :id the id field for the table
+      # @option options [Symbol] :table_name the actual name for the table
+      # @option options [Integer] :read_capacity set the read capacity for the table; does not work on existing tables
+      # @option options [Integer] :write_capacity set the write capacity for the table; does not work on existing tables
+      # @option options [Hash] {range_key => :type} a hash of the name of the range key and a symbol of its type
+      #
+      # @since 0.4.0
+      def create_table(options = {})
+        options = {
+          :id => self.hash_key,
+          :table_name => self.table_name,
+          :write_capacity => self.write_capacity,
+          :read_capacity => self.read_capacity,
+          :range_key => self.range_key ? {range_key => attributes[range_key][:type]} : nil
+        }.merge(options)
+        
+        return true if table_exists?(options[:table_name])
+        
+        Dynamoid::Adapter.tables << table_name if Dynamoid::Adapter.create_table(options[:table_name], options[:id], options)
       end
 
       # Does a table with this name exist?
@@ -106,7 +112,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def save(options = {})
-      self.class.create_table_if_neccessary
+      self.class.create_table
 
       @previously_changed = changes
 
@@ -183,7 +189,7 @@ module Dynamoid
     # @since 0.2.0
     def persist
       run_callbacks(:save) do
-        self.id = SecureRandom.uuid if self.id.nil? || self.id.blank?
+        self.hash_key = SecureRandom.uuid if self.hash_key.nil? || self.hash_key.blank?
         Dynamoid::Adapter.write(self.class.table_name, self.dump)
         save_indexes
         @new_record = false

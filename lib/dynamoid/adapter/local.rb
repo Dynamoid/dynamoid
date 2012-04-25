@@ -119,6 +119,8 @@ module Dynamoid
         table = data[table_name]
         table[:data][object[table[:hash_key]]]
         table[:data]["#{object[table[:hash_key]]}.#{object[table[:range_key]]}"] = object.delete_if{|k, v| v.nil? || (v.respond_to?(:empty?) && v.empty?)}
+      rescue
+        raise data.inspect
       end
     
       # Query the hash.
@@ -137,23 +139,24 @@ module Dynamoid
       # @since 0.2.0
       def query(table_name, opts = {})
         id = opts[:hash_value]
+        hash_key = data[table_name][:hash_key]
         range_key = data[table_name][:range_key]
 
         results = if opts[:range_value]
-          data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && opts[:range_value].include?(v[range_key])}
+          data[table_name][:data].values.find_all{|v| v[hash_key] == id && !v[range_key].nil? && opts[:range_value].include?(v[range_key])}
         elsif opts[:range_greater_than]
-          data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && v[range_key] > opts[:range_greater_than]}
+          data[table_name][:data].values.find_all{|v| v[hash_key] == id && !v[range_key].nil? && v[range_key] > opts[:range_greater_than]}
         elsif opts[:range_less_than]
-          data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && v[range_key] < opts[:range_less_than]}
+          data[table_name][:data].values.find_all{|v| v[hash_key] == id && !v[range_key].nil? && v[range_key] < opts[:range_less_than]}
         elsif opts[:range_gte]
-          data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && v[range_key] >= opts[:range_gte]}
+          data[table_name][:data].values.find_all{|v| v[hash_key] == id && !v[range_key].nil? && v[range_key] >= opts[:range_gte]}
         elsif opts[:range_lte]  
-          data[table_name][:data].values.find_all{|v| v[:id] == id && !v[range_key].nil? && v[range_key] <= opts[:range_lte]}
+          data[table_name][:data].values.find_all{|v| v[hash_key] == id && !v[range_key].nil? && v[range_key] <= opts[:range_lte]}
         else
-          data[table_name][:data].values.find_all{|v| v[:id] == id}
+          data[table_name][:data].values.find_all{|v| v[hash_key] == id}
         end
 
-        results = drop_till_start(results, opts[:next_token], range_key)
+        results = drop_till_start(results, opts[:next_token], range_key, hash_key)
         results = results.take(opts[:limit]) if opts[:limit]
         results
       end
@@ -169,19 +172,19 @@ module Dynamoid
       def scan(table_name, scan_hash, opts = {})
         return [] if data[table_name].nil?
         results = data[table_name][:data].values.flatten.select{|d| scan_hash.all?{|k, v| !d[k].nil? && d[k] == v}}
-        results = drop_till_start(results, opts[:next_token], data[table_name][:range_key])
+        results = drop_till_start(results, opts[:next_token], data[table_name][:range_key], data[table_name][:hash_key])
         results = results.take(opts[:limit]) if opts[:limit]
         results
       end
 
-      def drop_till_start(results, next_token, range_key)
+      def drop_till_start(results, next_token, range_key, hash_key)
         return results unless next_token
 
         hash_value = next_token[:hash_key_element].values.first
         range_value = next_token[:range_key_element].values.first if next_token[:range_key_element]
 
         results = results.drop_while do |r|
-          (r[:id] != hash_value or r[range_key] != range_value)
+          (r[hash_key] != hash_value or r[range_key] != range_value)
         end.drop(1)
       end
     

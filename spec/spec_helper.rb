@@ -47,6 +47,7 @@ RSpec.configure do |config|
     end
   else
     config.before(:each) do
+      Dynamoid::Adapter.tables = []
       Dynamoid::Adapter.reset_data
     end
   end

@@ -3,7 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 describe "Dynamoid::Associations::Association" do
 
   before do
-    Subscription.create_table_if_neccessary
+    Subscription.create_table
     @magazine = Magazine.create
   end
   

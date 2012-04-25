@@ -13,7 +13,6 @@ module Dynamoid #:nodoc:
 
       self.attributes = {}
 
-      field :id
       field :created_at, :datetime
       field :updated_at, :datetime
     end

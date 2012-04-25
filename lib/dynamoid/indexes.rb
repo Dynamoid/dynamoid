@@ -40,8 +40,9 @@ module Dynamoid #:nodoc:
       # @since 0.2.0
       def create_indexes
         self.indexes.each do |name, index|
-          opts = index.range_key? ? {:range_key => { :range => :number }} : {}
-          self.create_table(index.table_name, :id, opts) unless self.table_exists?(index.table_name)
+          opts = {:table_name => index.table_name, :id => :id}
+          opts[:range_key] = { :range => :number } if index.range_key?
+          self.create_table(opts)
         end
       end
     end

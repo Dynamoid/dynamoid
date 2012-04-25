@@ -16,13 +16,13 @@ describe "Dynamoid::Persistence" do
       end
     
       it 'creates a table' do
-        Address.create_table(Address.table_name)
+        Address.create_table(:table_name => Address.table_name)
 
         Dynamoid::Adapter.list_tables.should include 'dynamoid_tests_addresses'
       end
 
       it 'checks if a table already exists' do
-        Address.create_table(Address.table_name)
+        Address.create_table(:table_name => Address.table_name)
 
         Address.table_exists?(Address.table_name).should be_true
         Address.table_exists?('crazytable').should be_false
