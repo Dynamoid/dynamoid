@@ -81,7 +81,7 @@
   
     <dt class="r1 last">Defined in:</dt>
     <dd class="r1 last">lib/dynamoid/fields.rb<span class="defines">,<br />
-  lib/dynamoid.rb,<br /> lib/dynamoid/errors.rb,<br /> lib/dynamoid/config.rb,<br /> lib/dynamoid/finders.rb,<br /> lib/dynamoid/adapter.rb,<br /> lib/dynamoid/indexes.rb,<br /> lib/dynamoid/document.rb,<br /> lib/dynamoid/criteria.rb,<br /> lib/dynamoid/components.rb,<br /> lib/dynamoid/persistence.rb,<br /> lib/dynamoid/validations.rb,<br /> lib/dynamoid/associations.rb,<br /> lib/dynamoid/indexes/index.rb,<br /> lib/dynamoid/adapter/local.rb,<br /> lib/dynamoid/criteria/chain.rb,<br /> lib/dynamoid/config/options.rb,<br /> lib/dynamoid/adapter/aws_sdk.rb,<br /> lib/dynamoid/associations/has_one.rb,<br /> lib/dynamoid/associations/has_many.rb,<br /> lib/dynamoid/associations/belongs_to.rb,<br /> lib/dynamoid/associations/association.rb,<br /> lib/dynamoid/associations/has_and_belongs_to_many.rb</span>
+  lib/dynamoid.rb,<br /> lib/dynamoid/config.rb,<br /> lib/dynamoid/errors.rb,<br /> lib/dynamoid/finders.rb,<br /> lib/dynamoid/indexes.rb,<br /> lib/dynamoid/adapter.rb,<br /> lib/dynamoid/criteria.rb,<br /> lib/dynamoid/document.rb,<br /> lib/dynamoid/components.rb,<br /> lib/dynamoid/validations.rb,<br /> lib/dynamoid/persistence.rb,<br /> lib/dynamoid/associations.rb,<br /> lib/dynamoid/adapter/local.rb,<br /> lib/dynamoid/indexes/index.rb,<br /> lib/dynamoid/criteria/chain.rb,<br /> lib/dynamoid/config/options.rb,<br /> lib/dynamoid/adapter/aws_sdk.rb,<br /> lib/dynamoid/associations/has_one.rb,<br /> lib/dynamoid/associations/has_many.rb,<br /> lib/dynamoid/associations/belongs_to.rb,<br /> lib/dynamoid/associations/association.rb,<br /> lib/dynamoid/associations/many_association.rb,<br /> lib/dynamoid/associations/single_association.rb,<br /> lib/dynamoid/associations/has_and_belongs_to_many.rb</span>
 </dd>
   
 </dl>
@@ -107,6 +107,18 @@
     
   
 </p>
+
+  <h2>Constant Summary</h2>
+  
+    <dl class="constants">
+      
+        <dt id="MAX_ITEM_SIZE-constant" class="">MAX_ITEM_SIZE =
+          
+        </dt>
+        <dd><pre class="code"><span class='int'>65_536</span></pre></dd>
+      
+    </dl>
+  
 
 
 
@@ -213,13 +225,13 @@
       <pre class="lines">
 
 
-27
-28
 29
-30</pre>
+30
+31
+32</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid.rb', line 27</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid.rb', line 29</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_configure'>configure</span>
   <span class='id identifier rubyid_block_given?'>block_given?</span> <span class='op'>?</span> <span class='kw'>yield</span><span class='lparen'>(</span><span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='rparen'>)</span> <span class='op'>:</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span>
@@ -243,12 +255,12 @@
       <pre class="lines">
 
 
-37
-38
-39</pre>
+39
+40
+41</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid.rb', line 37</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid.rb', line 39</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_included_models'>included_models</span>
   <span class='ivar'>@included_models</span> <span class='op'>||=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
@@ -271,12 +283,12 @@
       <pre class="lines">
 
 
-33
-34
-35</pre>
+35
+36
+37</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid.rb', line 33</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid.rb', line 35</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_logger'>logger</span>
   <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_logger'>logger</span>
@@ -291,7 +303,7 @@
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:05 2012 by 
+  Generated on Thu Apr 26 01:26:24 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

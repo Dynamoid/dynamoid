@@ -361,13 +361,13 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-129
-130
-131
-132</pre>
+141
+142
+143
+144</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 129</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 141</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_delete'>delete</span>
   <span class='id identifier rubyid_delete_indexes'>delete_indexes</span>
@@ -416,15 +416,15 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-119
-120
-121
-122
-123
-124</pre>
+131
+132
+133
+134
+135
+136</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 119</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 131</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_destroy'>destroy</span>
   <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:destroy</span><span class='rparen'>)</span> <span class='kw'>do</span>
@@ -475,16 +475,16 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-137
-138
-139
-140
-141
-142
-143</pre>
+149
+150
+151
+152
+153
+154
+155</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 137</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 149</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_dump'>dump</span>
   <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='period'>.</span><span class='id identifier rubyid_tap'>tap</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_hash'>hash</span><span class='op'>|</span>
@@ -549,12 +549,12 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-94
-95
-96</pre>
+107
+108
+109</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 94</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 107</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_persisted?'>persisted?</span>
   <span class='op'>!</span><span class='id identifier rubyid_new_record?'>new_record?</span>
@@ -602,36 +602,34 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114</pre>
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 101</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 114</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_save'>save</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
-  <span class='kw'>if</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_new_record?'>new_record?</span>
-    <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:create</span><span class='rparen'>)</span> <span class='kw'>do</span>
-      <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:save</span><span class='rparen'>)</span> <span class='kw'>do</span>
-        <span class='id identifier rubyid_persist'>persist</span>
-      <span class='kw'>end</span>
-    <span class='kw'>end</span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_create_table'>create_table</span>
+
+  <span class='ivar'>@previously_changed</span> <span class='op'>=</span> <span class='id identifier rubyid_changes'>changes</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_new_record?'>new_record?</span>
+    <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:create</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_persist'>persist</span> <span class='rbrace'>}</span>
   <span class='kw'>else</span>
-    <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:save</span><span class='rparen'>)</span> <span class='kw'>do</span>
-      <span class='id identifier rubyid_persist'>persist</span>
-    <span class='kw'>end</span>
+    <span class='id identifier rubyid_persist'>persist</span>
   <span class='kw'>end</span>
+
   <span class='kw'>self</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -644,7 +642,7 @@ values to be of the same type as when they were passed in, based on the fields i
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:06 2012 by 
+  Generated on Thu Apr 26 01:26:25 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

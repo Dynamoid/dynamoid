@@ -200,7 +200,7 @@ to Dynamoid.</p>
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#delete-instance_method" title="#delete (instance method)">- (Object) <strong>delete</strong>(table, id, range_key = nil) </a>
+      <a href="#delete-instance_method" title="#delete (instance method)">- (Object) <strong>delete</strong>(table, id, options = {}) </a>
     
 
     
@@ -266,7 +266,7 @@ to Dynamoid.</p>
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#read-instance_method" title="#read (instance method)">- (Object) <strong>read</strong>(table, ids, range_key = nil) </a>
+      <a href="#read-instance_method" title="#read (instance method)">- (Object) <strong>read</strong>(table, ids, options = {}) </a>
     
 
     
@@ -332,7 +332,7 @@ to Dynamoid.</p>
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#scan-instance_method" title="#scan (instance method)">- (Object) <strong>scan</strong>(table, query) </a>
+      <a href="#scan-instance_method" title="#scan (instance method)">- (Object) <strong>scan</strong>(table, query, opts = {}) </a>
     
 
     
@@ -421,13 +421,13 @@ to Dynamoid.</p>
       <pre class="lines">
 
 
-168
 169
 170
-171</pre>
+171
+172</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 168</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 169</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_method_missing'>method_missing</span><span class='lparen'>(</span><span class='id identifier rubyid_method'>method</span><span class='comma'>,</span> <span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='id identifier rubyid_method'>method</span><span class='comma'>,</span> <span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span> <span class='lbrace'>{</span><span class='id identifier rubyid_adapter'>adapter</span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='id identifier rubyid_method'>method</span><span class='comma'>,</span> <span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span><span class='rbrace'>}</span> <span class='kw'>if</span> <span class='ivar'>@adapter</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='id identifier rubyid_method'>method</span><span class='rparen'>)</span>
@@ -676,7 +676,7 @@ to Dynamoid.</p>
       <div class="method_details ">
   <p class="signature " id="delete-instance_method">
   
-    - (<tt>Object</tt>) <strong>delete</strong>(table, id, range_key = nil) 
+    - (<tt>Object</tt>) <strong>delete</strong>(table, id, options = {}) 
   
 
   
@@ -729,8 +729,6 @@ to Dynamoid.</p>
         <span class='type'>(<tt>Number</tt>)</span>
       
       
-        <em class="default">(defaults to: <tt>nil</tt>)</em>
-      
       
         &mdash;
         <div class='inline'><p>the range key of the record</p>
@@ -762,7 +760,6 @@ to Dynamoid.</p>
       <pre class="lines">
 
 
-97
 98
 99
 100
@@ -770,18 +767,19 @@ to Dynamoid.</p>
 102
 103
 104
-105</pre>
+105
+106</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 97</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 98</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='kw'>if</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_partitioning?'>partitioning?</span>
     <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Delete Item</span><span class='tstring_end'>'</span></span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span> <span class='kw'>do</span>
-      <span class='id identifier rubyid_id_with_partitions'>id_with_partitions</span><span class='lparen'>(</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_i'>i</span><span class='op'>|</span> <span class='id identifier rubyid_delete_item'>delete_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_i'>i</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='rparen'>)</span><span class='rbrace'>}</span>
+      <span class='id identifier rubyid_id_with_partitions'>id_with_partitions</span><span class='lparen'>(</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_i'>i</span><span class='op'>|</span> <span class='id identifier rubyid_delete_item'>delete_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_i'>i</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span><span class='rbrace'>}</span>
     <span class='kw'>end</span>
   <span class='kw'>else</span>
-    <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Delete Item</span><span class='tstring_end'>'</span></span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span> <span class='lbrace'>{</span><span class='id identifier rubyid_delete_item'>delete_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='rparen'>)</span><span class='rbrace'>}</span>
+    <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Delete Item</span><span class='tstring_end'>'</span></span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span> <span class='lbrace'>{</span><span class='id identifier rubyid_delete_item'>delete_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span><span class='rbrace'>}</span>
   <span class='kw'>end</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -860,12 +858,12 @@ and pass it in unchanged.</p>
       <pre class="lines">
 
 
-142
 143
-144</pre>
+144
+145</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 142</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 143</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_id_with_partitions'>id_with_partitions</span><span class='lparen'>(</span><span class='id identifier rubyid_ids'>ids</span><span class='rparen'>)</span>
   <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_ids'>ids</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_id'>id</span><span class='op'>|</span> <span class='lparen'>(</span><span class='int'>0</span><span class='op'>...</span><span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_partition_size'>partition_size</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_n'>n</span><span class='op'>|</span> <span class='id identifier rubyid_id'>id</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Array</span><span class='rparen'>)</span> <span class='op'>?</span> <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_id'>id</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span><span class='rbrace'>}</span><span class='tstring_content'>.</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_n'>n</span><span class='rbrace'>}</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='period'>.</span><span class='id identifier rubyid_last'>last</span><span class='rbracket'>]</span> <span class='op'>:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_id'>id</span><span class='rbrace'>}</span><span class='tstring_content'>.</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_n'>n</span><span class='rbrace'>}</span><span class='tstring_end'>&quot;</span></span><span class='rbrace'>}</span><span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_flatten'>flatten</span><span class='lparen'>(</span><span class='int'>1</span><span class='rparen'>)</span>
@@ -878,7 +876,7 @@ and pass it in unchanged.</p>
       <div class="method_details ">
   <p class="signature " id="read-instance_method">
   
-    - (<tt>Object</tt>) <strong>read</strong>(table, ids, range_key = nil) 
+    - (<tt>Object</tt>) <strong>read</strong>(table, ids, options = {}) 
   
 
   
@@ -934,8 +932,6 @@ correct record.</p>
         <span class='type'>(<tt>Number</tt>)</span>
       
       
-        <em class="default">(defaults to: <tt>nil</tt>)</em>
-      
       
         &mdash;
         <div class='inline'><p>the range key of the record</p>
@@ -985,12 +981,14 @@ correct record.</p>
 85
 86
 87
-88</pre>
+88
+89</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 70</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_read'>read</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_ids'>ids</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_read'>read</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_ids'>ids</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_ids'>ids</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:each</span><span class='rparen'>)</span>
     <span class='id identifier rubyid_ids'>ids</span> <span class='op'>=</span> <span class='id identifier rubyid_ids'>ids</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_id'>id</span><span class='op'>|</span> <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>?</span> <span class='lbracket'>[</span><span class='id identifier rubyid_id'>id</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span> <span class='op'>:</span> <span class='id identifier rubyid_id'>id</span><span class='rbrace'>}</span>
     <span class='kw'>if</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_partitioning?'>partitioning?</span>
@@ -1005,7 +1003,7 @@ correct record.</p>
       <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Partitioned Get Item</span><span class='tstring_end'>'</span></span><span class='comma'>,</span> <span class='id identifier rubyid_ids'>ids</span><span class='rparen'>)</span> <span class='lbrace'>{</span><span class='id identifier rubyid_batch_get_item'>batch_get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_id_with_partitions'>id_with_partitions</span><span class='lparen'>(</span><span class='id identifier rubyid_ids'>ids</span><span class='rparen'>)</span><span class='rparen'>)</span><span class='rbrace'>}</span>
       <span class='id identifier rubyid_result_for_partition'>result_for_partition</span><span class='lparen'>(</span><span class='id identifier rubyid_results'>results</span><span class='lbracket'>[</span><span class='id identifier rubyid_table'>table</span><span class='rbracket'>]</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span>
     <span class='kw'>else</span>
-      <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Get Item</span><span class='tstring_end'>'</span></span><span class='comma'>,</span> <span class='id identifier rubyid_ids'>ids</span><span class='rparen'>)</span> <span class='lbrace'>{</span><span class='id identifier rubyid_get_item'>get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_ids'>ids</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='rparen'>)</span><span class='rbrace'>}</span>
+      <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Get Item</span><span class='tstring_end'>'</span></span><span class='comma'>,</span> <span class='id identifier rubyid_ids'>ids</span><span class='rparen'>)</span> <span class='lbrace'>{</span><span class='id identifier rubyid_get_item'>get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_ids'>ids</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span><span class='rbrace'>}</span>
     <span class='kw'>end</span>
   <span class='kw'>end</span>
 <span class='kw'>end</span></pre>
@@ -1131,7 +1129,6 @@ their id and updated_at attributes; if the updated_at is the greatest, then it m
       <pre class="lines">
 
 
-152
 153
 154
 155
@@ -1142,10 +1139,11 @@ their id and updated_at attributes; if the updated_at is the greatest, then it m
 160
 161
 162
-163</pre>
+163
+164</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 152</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 153</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_result_for_partition'>result_for_partition</span><span class='lparen'>(</span><span class='id identifier rubyid_results'>results</span><span class='rparen'>)</span>
   <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_tap'>tap</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_hash'>hash</span><span class='op'>|</span>
@@ -1167,7 +1165,7 @@ their id and updated_at attributes; if the updated_at is the greatest, then it m
       <div class="method_details ">
   <p class="signature " id="scan-instance_method">
   
-    - (<tt>Object</tt>) <strong>scan</strong>(table, query) 
+    - (<tt>Object</tt>) <strong>scan</strong>(table, query, opts = {}) 
   
 
   
@@ -1236,24 +1234,24 @@ their id and updated_at attributes; if the updated_at is the greatest, then it m
       <pre class="lines">
 
 
-113
 114
 115
 116
 117
 118
 119
-120</pre>
+120
+121</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 113</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter.rb', line 114</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_scan'>scan</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_query'>query</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_scan'>scan</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_query'>query</span><span class='comma'>,</span> <span class='id identifier rubyid_opts'>opts</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='kw'>if</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_partitioning?'>partitioning?</span>
-    <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Scan</span><span class='tstring_end'>'</span></span><span class='comma'>,</span> <span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_query'>query</span><span class='rparen'>)</span> <span class='lbrace'>{</span><span class='id identifier rubyid_adapter'>adapter</span><span class='period'>.</span><span class='id identifier rubyid_scan'>scan</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_query'>query</span><span class='rparen'>)</span><span class='rbrace'>}</span>
+    <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='id identifier rubyid_benchmark'>benchmark</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Scan</span><span class='tstring_end'>'</span></span><span class='comma'>,</span> <span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_query'>query</span><span class='rparen'>)</span> <span class='lbrace'>{</span><span class='id identifier rubyid_adapter'>adapter</span><span class='period'>.</span><span class='id identifier rubyid_scan'>scan</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_query'>query</span><span class='comma'>,</span> <span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span><span class='rbrace'>}</span>
     <span class='id identifier rubyid_result_for_partition'>result_for_partition</span><span class='lparen'>(</span><span class='id identifier rubyid_results'>results</span><span class='rparen'>)</span>
   <span class='kw'>else</span>
-    <span class='id identifier rubyid_adapter'>adapter</span><span class='period'>.</span><span class='id identifier rubyid_scan'>scan</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_query'>query</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_adapter'>adapter</span><span class='period'>.</span><span class='id identifier rubyid_scan'>scan</span><span class='lparen'>(</span><span class='id identifier rubyid_table'>table</span><span class='comma'>,</span> <span class='id identifier rubyid_query'>query</span><span class='comma'>,</span> <span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span>
   <span class='kw'>end</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -1378,7 +1376,7 @@ their id and updated_at attributes; if the updated_at is the greatest, then it m
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:06 2012 by 
+  Generated on Thu Apr 26 01:26:24 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

@@ -250,12 +250,12 @@
       <pre class="lines">
 
 
-29
 30
-31</pre>
+31
+32</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/config.rb', line 29</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/config.rb', line 30</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_default_logger'>default_logger</span>
   <span class='kw'>defined?</span><span class='lparen'>(</span><span class='const'>Rails</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='const'>Rails</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:logger</span><span class='rparen'>)</span> <span class='op'>?</span> <span class='const'>Rails</span><span class='period'>.</span><span class='id identifier rubyid_logger'>logger</span> <span class='op'>:</span> <span class='op'>::</span><span class='const'>Logger</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='gvar'>$stdout</span><span class='rparen'>)</span>
@@ -303,12 +303,12 @@
       <pre class="lines">
 
 
-36
 37
-38</pre>
+38
+39</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/config.rb', line 36</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/config.rb', line 37</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_logger'>logger</span>
   <span class='ivar'>@logger</span> <span class='op'>||=</span> <span class='id identifier rubyid_default_logger'>default_logger</span>
@@ -356,17 +356,17 @@
       <pre class="lines">
 
 
-43
 44
 45
 46
 47
 48
 49
-50</pre>
+50
+51</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/config.rb', line 43</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/config.rb', line 44</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_logger='>logger=</span><span class='lparen'>(</span><span class='id identifier rubyid_logger'>logger</span><span class='rparen'>)</span>
   <span class='kw'>case</span> <span class='id identifier rubyid_logger'>logger</span>
@@ -386,7 +386,7 @@
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:05 2012 by 
+  Generated on Thu Apr 26 01:26:24 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

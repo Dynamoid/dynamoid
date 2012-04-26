@@ -95,7 +95,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#create_table-instance_method" title="#create_table (instance method)">- (Object) <strong>create_table</strong>(table_name, id = :id, options = {}) </a>
+      <a href="#create_table-instance_method" title="#create_table (instance method)">- (Object) <strong>create_table</strong>(options = {}) </a>
     
 
     
@@ -108,7 +108,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Creates a table for a given table name, hash key, and range key.</p>
+    <span class="summary_desc"><div class='inline'><p>Creates a table.</p>
 </div></span>
   
 </li>
@@ -214,19 +214,99 @@
       <div class="method_details first">
   <p class="signature first" id="create_table-instance_method">
   
-    - (<tt>Object</tt>) <strong>create_table</strong>(table_name, id = :id, options = {}) 
+    - (<tt>Object</tt>) <strong>create_table</strong>(options = {}) 
   
 
   
 </p><div class="docstring">
   <div class="discussion">
-    <p>Creates a table for a given table name, hash key, and range key.</p>
+    <p>Creates a table.</p>
 
 
   </div>
 </div>
 <div class="tags">
+  <h3>Parameters:</h3>
+<ul class="param">
   
+    <li>
+      
+        <span class='name'>options</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>{}</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>options to pass for table creation</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+  
+    
+    
+    <h3>Options Hash (<tt>options</tt>):</h3>
+    <ul class="option">
+      
+        <li>
+          <span class="name">:id</span>
+          <span class="type">(<tt>Symbol</tt>)</span>
+          <span class="default">
+            
+          </span>
+          &mdash; <div class='inline'><p>the id field for the table</p>
+</div>
+        </li>
+      
+        <li>
+          <span class="name">:table_name</span>
+          <span class="type">(<tt>Symbol</tt>)</span>
+          <span class="default">
+            
+          </span>
+          &mdash; <div class='inline'><p>the actual name for the table</p>
+</div>
+        </li>
+      
+        <li>
+          <span class="name">:read_capacity</span>
+          <span class="type">(<tt>Integer</tt>)</span>
+          <span class="default">
+            
+          </span>
+          &mdash; <div class='inline'><p>set the read capacity for the table; does not work on existing tables</p>
+</div>
+        </li>
+      
+        <li>
+          <span class="name">:write_capacity</span>
+          <span class="type">(<tt>Integer</tt>)</span>
+          <span class="default">
+            
+          </span>
+          &mdash; <div class='inline'><p>set the write capacity for the table; does not work on existing tables</p>
+</div>
+        </li>
+      
+        <li>
+          <span class="name">{range_key</span>
+          <span class="type">(<tt>Hash</tt>)</span>
+          <span class="default">
+            
+          </span>
+          &mdash; <div class='inline'><p>=&gt; :type} a hash of the name of the range key and a symbol of its type</p>
+</div>
+        </li>
+      
+    </ul>
+  
+
 <h3>Since:</h3>
 <ul class="since">
   
@@ -236,7 +316,7 @@
       
       
         
-        <div class='inline'><p>0.2.0</p>
+        <div class='inline'><p>0.4.0</p>
 </div>
       
     </li>
@@ -249,15 +329,35 @@
       <pre class="lines">
 
 
-26
-27
-28</pre>
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 26</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 33</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_create_table'>create_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>=</span> <span class='symbol'>:id</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
-  <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_table_name'>table_name</span> <span class='kw'>if</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_create_table'>create_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_create_table'>create_table</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span>
+    <span class='symbol'>:id</span> <span class='op'>=&gt;</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='comma'>,</span>
+    <span class='symbol'>:table_name</span> <span class='op'>=&gt;</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span>
+    <span class='symbol'>:write_capacity</span> <span class='op'>=&gt;</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_write_capacity'>write_capacity</span><span class='comma'>,</span>
+    <span class='symbol'>:read_capacity</span> <span class='op'>=&gt;</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_read_capacity'>read_capacity</span><span class='comma'>,</span>
+    <span class='symbol'>:range_key</span> <span class='op'>=&gt;</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>?</span> <span class='lbrace'>{</span><span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_attributes'>attributes</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:type</span><span class='rbracket'>]</span><span class='rbrace'>}</span> <span class='op'>:</span> <span class='kw'>nil</span>
+  <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
+  
+  <span class='kw'>return</span> <span class='kw'>true</span> <span class='kw'>if</span> <span class='id identifier rubyid_table_exists?'>table_exists?</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:table_name</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  
+  <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:table_name</span><span class='rbracket'>]</span> <span class='kw'>if</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_create_table'>create_table</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:table_name</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:id</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -315,12 +415,12 @@
       <pre class="lines">
 
 
-33
-34
-35</pre>
+50
+51
+52</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 33</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 50</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_table_exists?'>table_exists?</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
   <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
@@ -376,7 +476,7 @@
       <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 19</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_table_name'>table_name</span>
-  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_namespace'>namespace</span><span class='rbrace'>}</span><span class='tstring_content'>_</span><span class='embexpr_beg'>#{</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='period'>.</span><span class='id identifier rubyid_downcase'>downcase</span><span class='period'>.</span><span class='id identifier rubyid_pluralize'>pluralize</span><span class='rbrace'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_namespace'>namespace</span><span class='rbrace'>}</span><span class='tstring_content'>_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:name</span><span class='rbracket'>]</span> <span class='op'>?</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:name</span><span class='rbracket'>]</span> <span class='op'>:</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_downcase'>downcase</span><span class='period'>.</span><span class='id identifier rubyid_pluralize'>pluralize</span><span class='rbrace'>}</span><span class='tstring_end'>&quot;</span></span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -421,24 +521,26 @@
       <pre class="lines">
 
 
-40
-41
-42
-43
-44
-45
-46
-47</pre>
+57
+58
+59
+60
+61
+62
+63
+64
+65</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 40</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 57</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_undump'>undump</span><span class='lparen'>(</span><span class='id identifier rubyid_incoming'>incoming</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
-  <span class='lparen'>(</span><span class='id identifier rubyid_incoming'>incoming</span> <span class='op'>||=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_symbolize_keys!'>symbolize_keys!</span>
+  <span class='id identifier rubyid_incoming'>incoming</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_incoming'>incoming</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_symbolize_keys'>symbolize_keys</span>
   <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='period'>.</span><span class='id identifier rubyid_tap'>tap</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_hash'>hash</span><span class='op'>|</span>
     <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_attribute'>attribute</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='op'>|</span>
       <span class='id identifier rubyid_hash'>hash</span><span class='lbracket'>[</span><span class='id identifier rubyid_attribute'>attribute</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_undump_field'>undump_field</span><span class='lparen'>(</span><span class='id identifier rubyid_incoming'>incoming</span><span class='lbracket'>[</span><span class='id identifier rubyid_attribute'>attribute</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:type</span><span class='rbracket'>]</span><span class='rparen'>)</span>
     <span class='kw'>end</span>
+    <span class='id identifier rubyid_incoming'>incoming</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_attribute'>attribute</span><span class='comma'>,</span> <span class='id identifier rubyid_value'>value</span><span class='op'>|</span> <span class='id identifier rubyid_hash'>hash</span><span class='lbracket'>[</span><span class='id identifier rubyid_attribute'>attribute</span><span class='rbracket'>]</span> <span class='op'>||=</span> <span class='id identifier rubyid_value'>value</span> <span class='rbrace'>}</span>
   <span class='kw'>end</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -485,24 +587,6 @@ string, integer, float, set, array, datetime, or serialized return value.</p>
       <pre class="lines">
 
 
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
 71
 72
 73
@@ -514,10 +598,28 @@ string, integer, float, set, array, datetime, or serialized return value.</p>
 79
 80
 81
-82</pre>
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 53</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 71</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_undump_field'>undump_field</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='comma'>,</span> <span class='id identifier rubyid_type'>type</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>||</span> <span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:empty?</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span><span class='rparen'>)</span>
@@ -559,7 +661,7 @@ string, integer, float, set, array, datetime, or serialized return value.</p>
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:06 2012 by 
+  Generated on Thu Apr 26 01:26:25 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>
