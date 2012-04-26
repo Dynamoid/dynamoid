@@ -82,6 +82,7 @@
 </span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_partition_size'>partition_size</span> <span class='op'>=</span> <span class='int'>200</span>  <span class='comment'># Determine the key space size that writes are randomly spread across.
 </span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_read_capacity'>read_capacity</span> <span class='op'>=</span> <span class='int'>100</span> <span class='comment'># Read capacity for your tables
 </span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_write_capacity'>write_capacity</span> <span class='op'>=</span> <span class='int'>20</span> <span class='comment'># Write capacity for your tables
+</span>    <span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_endpoint'>endpoint</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>dynamodb.us-east-1.amazonaws.com</span><span class='tstring_end'>'</span></span> <span class='comment'># Set the regional endpoint
 </span>  <span class='kw'>end</span>
 
 </code></pre>
@@ -97,6 +98,19 @@
 
 <span class='kw'>end</span>
 </code></pre>
+
+<h3>Table</h3>
+
+<p>Dynamoid has some sensible defaults for you when you create a new table, including the table name and the primary key column. But you can change those if you like on table creation.</p>
+
+<pre class="code ruby"><code><span class='kw'>class</span> <span class='const'>User</span>
+  <span class='id identifier rubyid_include'>include</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Document</span>
+
+  <span class='id identifier rubyid_table'>table</span> <span class='symbol'>:name</span> <span class='op'>=&gt;</span> <span class='symbol'>:awesome_users</span><span class='comma'>,</span> <span class='symbol'>:key</span> <span class='op'>=&gt;</span> <span class='symbol'>:user_id</span><span class='comma'>,</span> <span class='symbol'>:read_capacity</span> <span class='op'>=&gt;</span> <span class='int'>400</span><span class='comma'>,</span> <span class='symbol'>:write_capacity</span> <span class='op'>=&gt;</span> <span class='int'>400</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<p>These fields will not change an existing table: so specifying a new read_capacity and write_capacity here only works correctly for entirely new tables. Similarly, while Dynamoid will look for a table named <code>awesome_users</code> in your namespace, it won't change any existing tables to use that name; and if it does find a table with the correct name, it won't change its hash key, which it expects will be user_id. If this table doesn't exist yet, however, Dynamoid will create it with these options.</p>
 
 <h3>Fields</h3>
 
@@ -130,7 +144,7 @@
   index :email          
   index [:name, :email] 
   index :created_at, :range =&gt; true
-  index :name, :range =&gt; :joined_at
+  index :name, :range_key =&gt; :joined_at
 
 end
 </code></pre>
@@ -200,7 +214,9 @@ end
 
 <h2>Usage</h2>
 
-<p>Dynamoid's syntax is very similar to ActiveRecord's.</p>
+<h3>Object Creation</h3>
+
+<p>Dynamoid's syntax is generally very similar to ActiveRecord's. Making new objects is simple:</p>
 
 <pre class="code ruby"><code><span class='id identifier rubyid_u'>u</span> <span class='op'>=</span> <span class='const'>User</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='symbol'>:name</span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Josh</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span>
 <span class='id identifier rubyid_u'>u</span><span class='period'>.</span><span class='id identifier rubyid_email'>email</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>josh@joshsymonds.com</span><span class='tstring_end'>'</span></span>
@@ -219,6 +235,8 @@ end
 <span class='id identifier rubyid_address'>address</span><span class='period'>.</span><span class='id identifier rubyid_save'>save</span>
 </code></pre>
 
+<h3>Querying</h3>
+
 <p>Querying can be done in one of three ways:</p>
 
 <pre class="code ruby"><code><span class='const'>Address</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span><span class='id identifier rubyid_address'>address</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>              <span class='comment'># Find directly by ID.
@@ -232,6 +250,21 @@ end
 </code></pre>
 
 <p>But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.</p>
+
+<p>You can also limit returned results, or select a record from which to start, to support pagination:</p>
+
+<pre class="code ruby"><code><span class='const'>Address</span><span class='period'>.</span><span class='id identifier rubyid_limit'>limit</span><span class='lparen'>(</span><span class='int'>5</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_start'>start</span><span class='lparen'>(</span><span class='id identifier rubyid_address'>address</span><span class='rparen'>)</span> <span class='comment'># Only 5 addresses.
+</span></code></pre>
+
+<h3>Consistent Reads</h3>
+
+<p>Querying supports consistent reading. By default, DynamoDB reads are eventually consistent: if you do a write and then a read immediately afterwards, the results of the previous write may not be reflected. If you need to do a consistent read (that is, you need to read the results of a write immediately) you can do so, but keep in mind that consistent reads are twice as expensive as regular reads for DynamoDB.</p>
+
+<pre class="code ruby"><code><span class='const'>Address</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span><span class='id identifier rubyid_address'>address</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='comma'>,</span> <span class='symbol'>:consistent_read</span> <span class='op'>=&gt;</span> <span class='kw'>true</span><span class='rparen'>)</span>  <span class='comment'># Find an address, ensure the read is consistent.
+</span><span class='const'>Address</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='symbol'>:city</span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Chicago</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_consistent'>consistent</span><span class='period'>.</span><span class='id identifier rubyid_all'>all</span>    <span class='comment'># Find all addresses where the city is Chicago, with a consistent read.
+</span></code></pre>
+
+<h3>Range Finding</h3>
 
 <p>If you have a range index, Dynamoid provides a number of additional other convenience methods to make your life a little easier:</p>
 
@@ -247,7 +280,7 @@ end
 
 <p>Dynamoid attempts to obviate this problem transparently by employing a partitioning strategy to divide up keys randomly across DynamoDB's servers. Each ID is assigned an additional number (by default 0 to 199, but you can increase the partition size in Dynamoid's configuration) upon save; when read, all 200 hashes are retrieved simultaneously and the most recently updated one is returned to the application. This results in a significant net performance increase, and is usually invisible to the application itself. It does, however, bring up the important issue of provisioning your DynamoDB tables correctly.</p>
 
-<p>When your read or write provisioning exceed your table's allowed throughput, DynamoDB will wait on connections until throughput is available again. This will appear as very, very slow requests and can be somewhat frustrating. Partitioning significantly increases the amount of throughput tables will experience; though DynamoDB will ignore keys that don't exist, if you have 20 partitioned keys representing one object, all will be retrieved every time the object is requested. Ensure that your tables are set up for this kind of throughput, or turn provisioning off, to make sure that DynamoDB doesn't throttle your requests.</p>
+<p>When your read or write throughput exceed your table's allowed provisioning, DynamoDB will wait on connections until throughput is available again. This will appear as very, very slow requests and can be somewhat frustrating. Partitioning significantly increases the amount of throughput tables will experience; though DynamoDB will ignore keys that don't exist, if you have 20 partitioned keys representing one object, all will be retrieved every time the object is requested. Ensure that your tables are set up for this kind of throughput, or turn provisioning off, to make sure that DynamoDB doesn't throttle your requests.</p>
 
 <h2>Credits</h2>
 
@@ -270,7 +303,7 @@ end
 </div></div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:05 2012 by 
+  Generated on Thu Apr 26 01:26:24 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

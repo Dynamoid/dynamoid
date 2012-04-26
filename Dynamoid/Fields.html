@@ -283,12 +283,12 @@ specified with field, then they will be ignored.</p>
       <pre class="lines">
 
 
-45
-46
-47</pre>
+48
+49
+50</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/fields.rb', line 45</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/fields.rb', line 48</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_attributes'>attributes</span>
   <span class='ivar'>@attributes</span>
@@ -366,12 +366,12 @@ specified with field, then they will be ignored.</p>
       <pre class="lines">
 
 
-64
-65
-66</pre>
+77
+78
+79</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/fields.rb', line 64</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/fields.rb', line 77</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_read_attribute'>read_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_attributes'>attributes</span><span class='lbracket'>[</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='rbracket'>]</span>
@@ -453,13 +453,13 @@ specified with field, then they will be ignored.</p>
       <pre class="lines">
 
 
-85
-86
-87
-88</pre>
+98
+99
+100
+101</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/fields.rb', line 85</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/fields.rb', line 98</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_update_attribute'>update_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_attribute'>attribute</span><span class='comma'>,</span> <span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_write_attribute'>write_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_attribute'>attribute</span><span class='comma'>,</span> <span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
@@ -527,13 +527,13 @@ specified with field, then they will be ignored.</p>
       <pre class="lines">
 
 
-74
-75
-76
-77</pre>
+87
+88
+89
+90</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/fields.rb', line 74</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/fields.rb', line 87</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_update_attributes'>update_attributes</span><span class='lparen'>(</span><span class='id identifier rubyid_attributes'>attributes</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_attribute'>attribute</span><span class='comma'>,</span> <span class='id identifier rubyid_value'>value</span><span class='op'>|</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_write_attribute'>write_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_attribute'>attribute</span><span class='comma'>,</span> <span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span><span class='rbrace'>}</span>
@@ -557,7 +557,7 @@ specified with field, then they will be ignored.</p>
   
 </p><div class="docstring">
   <div class="discussion">
-    <p>Write an attribute on the object.</p>
+    <p>Write an attribute on the object. Also marks the previous value as dirty.</p>
 
 
   </div>
@@ -620,14 +620,34 @@ specified with field, then they will be ignored.</p>
       <pre class="lines">
 
 
-54
-55
-56</pre>
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/fields.rb', line 54</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/fields.rb', line 57</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_write_attribute'>write_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='lparen'>(</span><span class='id identifier rubyid_size'>size</span> <span class='op'>=</span> <span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span><span class='rparen'>)</span> <span class='op'>&gt;</span> <span class='const'>MAX_ITEM_SIZE</span>
+    <span class='const'>Dynamoid</span><span class='period'>.</span><span class='id identifier rubyid_logger'>logger</span><span class='period'>.</span><span class='id identifier rubyid_warn'>warn</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>DynamoDB can't store items larger than </span><span class='embexpr_beg'>#{</span><span class='const'>MAX_ITEM_SIZE</span><span class='rbrace'>}</span><span class='tstring_content'> and the </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='rbrace'>}</span><span class='tstring_content'> field has a length of </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_size'>size</span><span class='rbrace'>}</span><span class='tstring_content'>.</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_attribute_will_change!'>attribute_will_change!</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_read_attribute'>read_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span> <span class='op'>==</span> <span class='id identifier rubyid_value'>value</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_association'>association</span> <span class='op'>=</span> <span class='ivar'>@associations</span><span class='lbracket'>[</span><span class='id identifier rubyid_name'>name</span><span class='rbracket'>]</span>
+    <span class='id identifier rubyid_association'>association</span><span class='period'>.</span><span class='id identifier rubyid_reset'>reset</span>
+  <span class='kw'>end</span>
+
   <span class='id identifier rubyid_attributes'>attributes</span><span class='lbracket'>[</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_value'>value</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -640,7 +660,7 @@ specified with field, then they will be ignored.</p>
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:05 2012 by 
+  Generated on Thu Apr 26 01:26:24 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

@@ -210,15 +210,17 @@
 43
 44
 45
-46</pre>
+46
+47</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes.rb', line 41</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_create_indexes'>create_indexes</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_indexes'>indexes</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_index'>index</span><span class='op'>|</span>
-    <span class='id identifier rubyid_opts'>opts</span> <span class='op'>=</span> <span class='id identifier rubyid_index'>index</span><span class='period'>.</span><span class='id identifier rubyid_range_key?'>range_key?</span> <span class='op'>?</span> <span class='lbrace'>{</span><span class='symbol'>:range_key</span> <span class='op'>=&gt;</span> <span class='symbol'>:range</span><span class='rbrace'>}</span> <span class='op'>:</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
-    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_create_table'>create_table</span><span class='lparen'>(</span><span class='id identifier rubyid_index'>index</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='symbol'>:id</span><span class='comma'>,</span> <span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_table_exists?'>table_exists?</span><span class='lparen'>(</span><span class='id identifier rubyid_index'>index</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_opts'>opts</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='symbol'>:table_name</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_index'>index</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='symbol'>:id</span> <span class='op'>=&gt;</span> <span class='symbol'>:id</span><span class='rbrace'>}</span>
+    <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='lbrace'>{</span> <span class='symbol'>:range</span> <span class='op'>=&gt;</span> <span class='symbol'>:number</span> <span class='rbrace'>}</span> <span class='kw'>if</span> <span class='id identifier rubyid_index'>index</span><span class='period'>.</span><span class='id identifier rubyid_range_key?'>range_key?</span>
+    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_create_table'>create_table</span><span class='lparen'>(</span><span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span>
   <span class='kw'>end</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -342,7 +344,7 @@ This function also attempts to immediately create the indexing table if it does 
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:06 2012 by 
+  Generated on Thu Apr 26 01:26:24 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

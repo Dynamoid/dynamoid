@@ -215,7 +215,7 @@ More information is available at that Gem's Github page:
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#delete_item-instance_method" title="#delete_item (instance method)">- (Object) <strong>delete_item</strong>(table_name, key, range_key = nil) </a>
+      <a href="#delete_item-instance_method" title="#delete_item (instance method)">- (Object) <strong>delete_item</strong>(table_name, key, options = {}) </a>
     
 
     
@@ -259,7 +259,7 @@ More information is available at that Gem's Github page:
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#get_item-instance_method" title="#get_item (instance method)">- (Hash) <strong>get_item</strong>(table_name, key, range_key = nil) </a>
+      <a href="#get_item-instance_method" title="#get_item (instance method)">- (Object) <strong>get_item</strong>(table_name, key, options = {}) </a>
     
 
     
@@ -272,8 +272,28 @@ More information is available at that Gem's Github page:
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Fetches an item from DynamoDB.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#get_table-instance_method" title="#get_table (instance method)">- (Object) <strong>get_table</strong>(table_name) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
   
 </li>
 
@@ -347,7 +367,7 @@ More information is available at that Gem's Github page:
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#scan-instance_method" title="#scan (instance method)">- (Array) <strong>scan</strong>(table_name, scan_hash) </a>
+      <a href="#scan-instance_method" title="#scan (instance method)">- (Array) <strong>scan</strong>(table_name, scan_hash, select_opts) </a>
     
 
     
@@ -362,6 +382,27 @@ More information is available at that Gem's Github page:
   
     <span class="summary_desc"><div class='inline'><p>Scan the DynamoDB table.</p>
 </div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#table_cache-instance_method" title="#table_cache (instance method)">- (Object) <strong>table_cache</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
   
 </li>
 
@@ -558,7 +599,7 @@ More information is available at that Gem's Github page:
       <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 20</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_connect!'>connect!</span>
-  <span class='cvar'>@@connection</span> <span class='op'>=</span> <span class='const'>AWS</span><span class='op'>::</span><span class='const'>DynamoDB</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='symbol'>:access_key_id</span> <span class='op'>=&gt;</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_access_key'>access_key</span><span class='comma'>,</span> <span class='symbol'>:secret_access_key</span> <span class='op'>=&gt;</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_secret_key'>secret_key</span><span class='rparen'>)</span>
+  <span class='cvar'>@@connection</span> <span class='op'>=</span> <span class='const'>AWS</span><span class='op'>::</span><span class='const'>DynamoDB</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='symbol'>:access_key_id</span> <span class='op'>=&gt;</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_access_key'>access_key</span><span class='comma'>,</span> <span class='symbol'>:secret_access_key</span> <span class='op'>=&gt;</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_secret_key'>secret_key</span><span class='comma'>,</span> <span class='symbol'>:dynamo_db_endpoint</span> <span class='op'>=&gt;</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_endpoint'>endpoint</span><span class='rparen'>)</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -733,15 +774,13 @@ More information is available at that Gem's Github page:
 69
 70
 71
-72
-73</pre>
+72</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 65</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_create_table'>create_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span> <span class='op'>=</span> <span class='symbol'>:id</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:hash_key</span><span class='rbracket'>]</span> <span class='op'>||=</span> <span class='lbrace'>{</span><span class='id identifier rubyid_key'>key</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span> <span class='op'>=&gt;</span> <span class='symbol'>:string</span><span class='rbrace'>}</span>
-  <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span> <span class='op'>=&gt;</span> <span class='symbol'>:number</span><span class='rbrace'>}</span> <span class='kw'>if</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span>
   <span class='id identifier rubyid_read_capacity'>read_capacity</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:read_capacity</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_read_capacity'>read_capacity</span>
   <span class='id identifier rubyid_write_capacity'>write_capacity</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:write_capacity</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_write_capacity'>write_capacity</span>
   <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='cvar'>@@connection</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span><span class='period'>.</span><span class='id identifier rubyid_create'>create</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_read_capacity'>read_capacity</span><span class='comma'>,</span> <span class='id identifier rubyid_write_capacity'>write_capacity</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
@@ -756,7 +795,7 @@ More information is available at that Gem's Github page:
       <div class="method_details ">
   <p class="signature " id="delete_item-instance_method">
   
-    - (<tt>Object</tt>) <strong>delete_item</strong>(table_name, key, range_key = nil) 
+    - (<tt>Object</tt>) <strong>delete_item</strong>(table_name, key, options = {}) 
   
 
   
@@ -809,8 +848,6 @@ More information is available at that Gem's Github page:
         <span class='type'>(<tt>Number</tt>)</span>
       
       
-        <em class="default">(defaults to: <tt>nil</tt>)</em>
-      
       
         &mdash;
         <div class='inline'><p>the range key of the item to delete, required if the table has a composite key</p>
@@ -842,6 +879,7 @@ More information is available at that Gem's Github page:
       <pre class="lines">
 
 
+81
 82
 83
 84
@@ -851,15 +889,14 @@ More information is available at that Gem's Github page:
 88
 89
 90
-91
-92</pre>
+91</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 82</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 81</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_delete_item'>delete_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='cvar'>@@connection</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span>
-  <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_load_schema'>load_schema</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_delete_item'>delete_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='symbol'>:range_key</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='id identifier rubyid_get_table'>get_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_composite_key?'>composite_key?</span>
     <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_items'>items</span><span class='period'>.</span><span class='id identifier rubyid_at'>at</span><span class='lparen'>(</span><span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='rparen'>)</span>
   <span class='kw'>else</span>
@@ -931,12 +968,12 @@ so if you have more this method may raise an exception.</p>
       <pre class="lines">
 
 
+99
 100
-101
-102</pre>
+101</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 100</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 99</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_delete_table'>delete_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
   <span class='cvar'>@@connection</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span>
@@ -949,111 +986,16 @@ so if you have more this method may raise an exception.</p>
       <div class="method_details ">
   <p class="signature " id="get_item-instance_method">
   
-    - (<tt>Hash</tt>) <strong>get_item</strong>(table_name, key, range_key = nil) 
+    - (<tt>Object</tt>) <strong>get_item</strong>(table_name, key, options = {}) 
   
 
   
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Fetches an item from DynamoDB.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <h3>Parameters:</h3>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>table_name</span>
-      
-      
-        <span class='type'>(<tt>String</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the name of the table</p>
-</div>
-      
-    </li>
-  
-    <li>
-      
-        <span class='name'>key</span>
-      
-      
-        <span class='type'>(<tt>String</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the hash key of the item to find</p>
-</div>
-      
-    </li>
-  
-    <li>
-      
-        <span class='name'>range_key</span>
-      
-      
-        <span class='type'>(<tt>Number</tt>)</span>
-      
-      
-        <em class="default">(defaults to: <tt>nil</tt>)</em>
-      
-      
-        &mdash;
-        <div class='inline'><p>the range key of the item to find, required if the table has a composite key</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>Hash</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>a hash representing the raw item in DynamoDB</p>
-</div>
-      
-    </li>
-  
-</ul>
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
+</p><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-115
-116
 117
 118
 119
@@ -1065,24 +1007,82 @@ so if you have more this method may raise an exception.</p>
 125
 126
 127
-128</pre>
+128
+129
+130
+131</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 115</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 117</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_get_item'>get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='cvar'>@@connection</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span>
-  <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_load_schema'>load_schema</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_get_item'>get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='symbol'>:range_key</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='id identifier rubyid_get_table'>get_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
+
   <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_composite_key?'>composite_key?</span>
     <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_items'>items</span><span class='period'>.</span><span class='id identifier rubyid_at'>at</span><span class='lparen'>(</span><span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='rparen'>)</span>
   <span class='kw'>else</span>
     <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_items'>items</span><span class='lbracket'>[</span><span class='id identifier rubyid_key'>key</span><span class='rbracket'>]</span>
-  <span class='kw'>end</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_to_h'>to_h</span>
+  <span class='kw'>end</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_to_h'>to_h</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
     <span class='kw'>nil</span>
   <span class='kw'>else</span>
     <span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_symbolize_keys!'>symbolize_keys!</span>
   <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="get_table-instance_method">
+  
+    - (<tt>Object</tt>) <strong>get_table</strong>(table_name) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    
+  <div class="note todo">
+    <strong>TODO:</strong> 
+    <div class='inline'><p>Add an UpdateTable method.</p>
+</div>
+  </div>
+
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+202
+203
+204
+205
+206
+207
+208
+209</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 202</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_get_table'>get_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
+  <span class='kw'>unless</span> <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='id identifier rubyid_table_cache'>table_cache</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span>
+    <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='cvar'>@@connection</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span>
+    <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_load_schema'>load_schema</span>
+    <span class='id identifier rubyid_table_cache'>table_cache</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_table'>table</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_table'>table</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1127,12 +1127,12 @@ so if you have more this method may raise an exception.</p>
       <pre class="lines">
 
 
-133
-134
-135</pre>
+136
+137
+138</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 133</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 136</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_list_tables'>list_tables</span>
   <span class='cvar'>@@connection</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:name</span><span class='rparen'>)</span>
@@ -1214,18 +1214,16 @@ so if you have more this method may raise an exception.</p>
       <pre class="lines">
 
 
-143
-144
-145
 146
-147</pre>
+147
+148
+149</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 143</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 146</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_put_item'>put_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='cvar'>@@connection</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span>
-  <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_load_schema'>load_schema</span>
+  <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='id identifier rubyid_get_table'>get_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_items'>items</span><span class='period'>.</span><span class='id identifier rubyid_create'>create</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='period'>.</span><span class='id identifier rubyid_delete_if'>delete_if</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='comma'>,</span> <span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>||</span> <span class='lparen'>(</span><span class='id identifier rubyid_v'>v</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:empty?</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_v'>v</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span><span class='rparen'>)</span><span class='rbrace'>}</span><span class='rparen'>)</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -1397,8 +1395,6 @@ one range key to the hash.</p>
       <pre class="lines">
 
 
-165
-166
 167
 168
 169
@@ -1408,18 +1404,20 @@ one range key to the hash.</p>
 173
 174
 175
-176</pre>
+176
+177
+178</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 165</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 167</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_query'>query</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_opts'>opts</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='cvar'>@@connection</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span>
-  <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_load_schema'>load_schema</span>
-  
+  <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='id identifier rubyid_get_table'>get_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_consistent_opts'>consistent_opts</span> <span class='op'>=</span> <span class='lbrace'>{</span> <span class='symbol'>:consistent_read</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:consistent_read</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='kw'>false</span> <span class='rbrace'>}</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_composite_key?'>composite_key?</span>
     <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
-    <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_items'>items</span><span class='period'>.</span><span class='id identifier rubyid_query'>query</span><span class='lparen'>(</span><span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_data'>data</span><span class='op'>|</span> <span class='id identifier rubyid_results'>results</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_data'>data</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_to_h'>to_h</span><span class='period'>.</span><span class='id identifier rubyid_symbolize_keys!'>symbolize_keys!</span><span class='rbrace'>}</span>
+    <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_items'>items</span><span class='period'>.</span><span class='id identifier rubyid_query'>query</span><span class='lparen'>(</span><span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_data'>data</span><span class='op'>|</span> <span class='id identifier rubyid_results'>results</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_data'>data</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_to_h'>to_h</span><span class='lparen'>(</span><span class='id identifier rubyid_consistent_opts'>consistent_opts</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_symbolize_keys!'>symbolize_keys!</span><span class='rbrace'>}</span>
     <span class='id identifier rubyid_results'>results</span>
   <span class='kw'>else</span>
     <span class='id identifier rubyid_get_item'>get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:hash_value</span><span class='rbracket'>]</span><span class='rparen'>)</span>
@@ -1433,7 +1431,7 @@ one range key to the hash.</p>
       <div class="method_details ">
   <p class="signature " id="scan-instance_method">
   
-    - (<tt>Array</tt>) <strong>scan</strong>(table_name, scan_hash) 
+    - (<tt>Array</tt>) <strong>scan</strong>(table_name, scan_hash, select_opts) 
   
 
   
@@ -1520,27 +1518,53 @@ the DynamoDB servers.</p>
       <pre class="lines">
 
 
-187
-188
 189
 190
 191
 192
 193
 194
-195</pre>
+195
+196</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 187</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 189</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_scan'>scan</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_scan_hash'>scan_hash</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='cvar'>@@connection</span><span class='period'>.</span><span class='id identifier rubyid_tables'>tables</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span>
-  <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_load_schema'>load_schema</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_scan'>scan</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_scan_hash'>scan_hash</span><span class='comma'>,</span> <span class='id identifier rubyid_select_opts'>select_opts</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='id identifier rubyid_get_table'>get_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
-  <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_items'>items</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='id identifier rubyid_scan_hash'>scan_hash</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_select'>select</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_data'>data</span><span class='op'>|</span>
+  <span class='id identifier rubyid_table'>table</span><span class='period'>.</span><span class='id identifier rubyid_items'>items</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='id identifier rubyid_scan_hash'>scan_hash</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_select'>select</span><span class='lparen'>(</span><span class='id identifier rubyid_select_opts'>select_opts</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_data'>data</span><span class='op'>|</span>
     <span class='id identifier rubyid_results'>results</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_data'>data</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_symbolize_keys!'>symbolize_keys!</span>
   <span class='kw'>end</span>
   <span class='id identifier rubyid_results'>results</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="table_cache-instance_method">
+  
+    - (<tt>Object</tt>) <strong>table_cache</strong> 
+  
+
+  
+</p><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+211
+212
+213</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/aws_sdk.rb', line 211</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_table_cache'>table_cache</span>
+  <span class='ivar'>@table_cache</span> <span class='op'>||=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1552,7 +1576,7 @@ the DynamoDB servers.</p>
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:07 2012 by 
+  Generated on Thu Apr 26 01:26:26 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

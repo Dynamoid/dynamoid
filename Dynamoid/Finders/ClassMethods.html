@@ -95,7 +95,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#find-instance_method" title="#find (instance method)">- (Dynamoid::Document) <strong>find</strong>(*id) </a>
+      <a href="#find-instance_method" title="#find (instance method)">- (Dynamoid::Document) <strong>find</strong>(*ids) </a>
     
 
     
@@ -117,7 +117,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#find_by_id-instance_method" title="#find_by_id (instance method)">- (Dynamoid::Document) <strong>find_by_id</strong>(id) </a>
+      <a href="#find_by_id-instance_method" title="#find_by_id (instance method)">- (Dynamoid::Document) <strong>find_by_id</strong>(id, options = {}) </a>
     
 
     
@@ -236,13 +236,6 @@
       <pre class="lines">
 
 
-56
-57
-58
-59
-60
-61
-62
 63
 64
 65
@@ -252,10 +245,17 @@
 69
 70
 71
-72</pre>
+72
+73
+74
+75
+76
+77
+78
+79</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/finders.rb', line 56</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/finders.rb', line 63</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_method_missing'>method_missing</span><span class='lparen'>(</span><span class='id identifier rubyid_method'>method</span><span class='comma'>,</span> <span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_method'>method</span> <span class='op'>=~</span> <span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>find</span><span class='regexp_end'>/</span></span>
@@ -289,7 +289,7 @@
       <div class="method_details first">
   <p class="signature first" id="find-instance_method">
   
-    - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>find</strong>(*id) 
+    - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>find</strong>(*ids) 
   
 
   
@@ -368,17 +368,31 @@
 23
 24
 25
-26</pre>
+26
+27
+28
+29
+30
+31
+32
+33</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'lib/dynamoid/finders.rb', line 18</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_id'>id</span> <span class='op'>=</span> <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_id'>id</span><span class='period'>.</span><span class='id identifier rubyid_flatten'>flatten</span><span class='period'>.</span><span class='id identifier rubyid_uniq'>uniq</span><span class='rparen'>)</span>
-  <span class='kw'>if</span> <span class='id identifier rubyid_id'>id</span><span class='period'>.</span><span class='id identifier rubyid_count'>count</span> <span class='op'>==</span> <span class='int'>1</span>
-    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_find_by_id'>find_by_id</span><span class='lparen'>(</span><span class='id identifier rubyid_id'>id</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_ids'>ids</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='id identifier rubyid_ids'>ids</span><span class='period'>.</span><span class='id identifier rubyid_last'>last</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span> <span class='const'>Hash</span>
+              <span class='id identifier rubyid_ids'>ids</span><span class='period'>.</span><span class='id identifier rubyid_slice!'>slice!</span><span class='lparen'>(</span><span class='op'>-</span><span class='int'>1</span><span class='rparen'>)</span>
+            <span class='kw'>else</span>
+              <span class='lbrace'>{</span><span class='rbrace'>}</span>
+            <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_ids'>ids</span> <span class='op'>=</span> <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_ids'>ids</span><span class='period'>.</span><span class='id identifier rubyid_flatten'>flatten</span><span class='period'>.</span><span class='id identifier rubyid_uniq'>uniq</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_ids'>ids</span><span class='period'>.</span><span class='id identifier rubyid_count'>count</span> <span class='op'>==</span> <span class='int'>1</span>
+    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_find_by_id'>find_by_id</span><span class='lparen'>(</span><span class='id identifier rubyid_ids'>ids</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
   <span class='kw'>else</span>
-    <span class='id identifier rubyid_items'>items</span> <span class='op'>=</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_read'>read</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_items'>items</span> <span class='op'>=</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_read'>read</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_ids'>ids</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
     <span class='id identifier rubyid_items'>items</span><span class='lbracket'>[</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_i'>i</span><span class='op'>|</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_build'>build</span><span class='lparen'>(</span><span class='id identifier rubyid_i'>i</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_tap'>tap</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_o'>o</span><span class='op'>|</span> <span class='id identifier rubyid_o'>o</span><span class='period'>.</span><span class='id identifier rubyid_new_record'>new_record</span> <span class='op'>=</span> <span class='kw'>false</span> <span class='rbrace'>}</span> <span class='rbrace'>}</span>
   <span class='kw'>end</span>
 <span class='kw'>end</span></pre>
@@ -390,7 +404,7 @@
       <div class="method_details ">
   <p class="signature " id="find_by_id-instance_method">
   
-    - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>find_by_id</strong>(id) 
+    - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>find_by_id</strong>(id, options = {}) 
   
 
   
@@ -461,21 +475,21 @@
       <pre class="lines">
 
 
-35
-36
-37
-38
-39
-40
-41
 42
-43</pre>
+43
+44
+45
+46
+47
+48
+49
+50</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/finders.rb', line 35</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/finders.rb', line 42</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_find_by_id'>find_by_id</span><span class='lparen'>(</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
-  <span class='kw'>if</span> <span class='id identifier rubyid_item'>item</span> <span class='op'>=</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_read'>read</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_find_by_id'>find_by_id</span><span class='lparen'>(</span><span class='id identifier rubyid_id'>id</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_item'>item</span> <span class='op'>=</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_read'>read</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
     <span class='id identifier rubyid_obj'>obj</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='id identifier rubyid_item'>item</span><span class='rparen'>)</span>
     <span class='id identifier rubyid_obj'>obj</span><span class='period'>.</span><span class='id identifier rubyid_new_record'>new_record</span> <span class='op'>=</span> <span class='kw'>false</span>
     <span class='kw'>return</span> <span class='id identifier rubyid_obj'>obj</span>
@@ -493,7 +507,7 @@
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:05 2012 by 
+  Generated on Thu Apr 26 01:26:24 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

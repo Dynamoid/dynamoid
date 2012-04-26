@@ -68,19 +68,15 @@
     
   
     
-      <dt class="r1">Includes:</dt>
-      <dd class="r1">Enumerable</dd>
-      
+  
+  
+    <dt class="r1">Included in:</dt>
+    <dd class="r1"><span class='object_link'><a href="HasOne.html" title="Dynamoid::Associations::HasOne (class)">HasOne</a></span>, <span class='object_link'><a href="ManyAssociation.html" title="Dynamoid::Associations::ManyAssociation (module)">ManyAssociation</a></span>, <span class='object_link'><a href="SingleAssociation.html" title="Dynamoid::Associations::SingleAssociation (module)">SingleAssociation</a></span></dd>
     
   
   
-    <dt class="r2">Included in:</dt>
-    <dd class="r2"><span class='object_link'><a href="BelongsTo.html" title="Dynamoid::Associations::BelongsTo (class)">BelongsTo</a></span>, <span class='object_link'><a href="HasAndBelongsToMany.html" title="Dynamoid::Associations::HasAndBelongsToMany (class)">HasAndBelongsToMany</a></span>, <span class='object_link'><a href="HasMany.html" title="Dynamoid::Associations::HasMany (class)">HasMany</a></span>, <span class='object_link'><a href="HasOne.html" title="Dynamoid::Associations::HasOne (class)">HasOne</a></span></dd>
-    
-  
-  
-    <dt class="r1 last">Defined in:</dt>
-    <dd class="r1 last">lib/dynamoid/associations/association.rb</dd>
+    <dt class="r2 last">Defined in:</dt>
+    <dd class="r2 last">lib/dynamoid/associations/association.rb</dd>
   
 </dl>
 <div class="clear"></div>
@@ -91,6 +87,31 @@
 
   <h2>Instance Attribute Summary <small>(<a href="#" class="summary_toggle">collapse</a>)</small></h2>
   <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#loaded-instance_method" title="#loaded (instance method)">- (Object) <strong>loaded</strong> </a>
+    
+
+    
+  </span>
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns the value of attribute loaded.</p>
+</div></span>
+  
+</li>
+
     
       <li class="public ">
   <span class="summary_signature">
@@ -145,31 +166,6 @@
       <li class="public ">
   <span class="summary_signature">
     
-      <a href="#query-instance_method" title="#query (instance method)">- (Object) <strong>query</strong> </a>
-    
-
-    
-  </span>
-  
-  
-    
-    
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>Returns the value of attribute query.</p>
-</div></span>
-  
-</li>
-
-    
-      <li class="public ">
-  <span class="summary_signature">
-    
       <a href="#source-instance_method" title="#source (instance method)">- (Object) <strong>source</strong> </a>
     
 
@@ -208,7 +204,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#%3C%3C-instance_method" title="#&lt;&lt; (instance method)">- (Dynamoid::Document) <strong>&lt;&lt;</strong>(object) </a>
+      <a href="#find_target-instance_method" title="#find_target (instance method)">- (Object) <strong>find_target</strong> </a>
     
 
     
@@ -221,162 +217,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Add an object or array of objects to an association.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#create-instance_method" title="#create (instance method)">- (Dynamoid::Document) <strong>create</strong>(attributes = {}) </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>Create a new instance of the target class and add it directly to the association.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#create%21-instance_method" title="#create! (instance method)">- (Dynamoid::Document) <strong>create!</strong>(attributes = {}) </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>Create a new instance of the target class and add it directly to the association.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#delete-instance_method" title="#delete (instance method)">- (Dynamoid::Document) <strong>delete</strong>(object) </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>Deletes an object or array of objects from the association.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#delete_all-instance_method" title="#delete_all (instance method)">- (Object) <strong>delete_all</strong> </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>Deletes all members of the association and removes them from the association.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#destroy_all-instance_method" title="#destroy_all (instance method)">- (Object) <strong>destroy_all</strong> </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>Destroys all members of the association and removes them from the association.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#each-instance_method" title="#each (instance method)">- (Dynamoid::Document) <strong>each</strong>(&amp;block) </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>Create a new instance of the target class and add it directly to the association.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#include%3F-instance_method" title="#include? (instance method)">- (Boolean) <strong>include?</strong>(object) </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>Delegate include? to the records.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'></div></span>
   
 </li>
 
@@ -406,11 +247,9 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#records-instance_method" title="#records (instance method)">- (Object) <strong>records</strong> </a>
+      <a href="#loaded%3F-instance_method" title="#loaded? (instance method)">- (Boolean) <strong>loaded?</strong> </a>
     
 
-    
-      (also: #all)
     
   </span>
   
@@ -421,8 +260,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>The records associated to the source.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'></div></span>
   
 </li>
 
@@ -430,7 +268,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#setter-instance_method" title="#setter (instance method)">- (Dynamoid::Document) <strong>setter</strong>(object) </a>
+      <a href="#reset-instance_method" title="#reset (instance method)">- (Object) <strong>reset</strong> </a>
     
 
     
@@ -443,8 +281,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Replace an association with object or array of objects.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'></div></span>
   
 </li>
 
@@ -452,7 +289,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#where-instance_method" title="#where (instance method)">- (Dynamoid::Association) <strong>where</strong>(args) </a>
+      <a href="#target-instance_method" title="#target (instance method)">- (Object) <strong>target</strong> </a>
     
 
     
@@ -465,8 +302,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Naive association filtering.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'></div></span>
   
 </li>
 
@@ -475,15 +311,55 @@
   
 
 
-  
   <div id="instance_attr_details" class="attr_details">
     <h2>Instance Attribute Details</h2>
     
       
+      <span id="loaded=-instance_method"></span>
+      <span id="loaded-instance_method"></span>
+      <div class="method_details first">
+  <p class="signature first" id="loaded-instance_method">
+  
+    - (<tt>Object</tt>) <strong>loaded</strong> 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Returns the value of attribute loaded</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+9
+10
+11</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 9</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_loaded'>loaded</span>
+  <span class='ivar'>@loaded</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
       <span id="name=-instance_method"></span>
       <span id="name-instance_method"></span>
-      <div class="method_details first">
-  <p class="signature first" id="name-instance_method">
+      <div class="method_details ">
+  <p class="signature " id="name-instance_method">
   
     - (<tt>Object</tt>) <strong>name</strong> 
   
@@ -562,47 +438,6 @@
 </div>
     
       
-      <span id="query=-instance_method"></span>
-      <span id="query-instance_method"></span>
-      <div class="method_details ">
-  <p class="signature " id="query-instance_method">
-  
-    - (<tt>Object</tt>) <strong>query</strong> 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Returns the value of attribute query</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-9
-10
-11</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 9</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_query'>query</span>
-  <span class='ivar'>@query</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      
       <span id="source=-instance_method"></span>
       <span id="source-instance_method"></span>
       <div class="method_details ">
@@ -651,619 +486,25 @@
     
     
       <div class="method_details first">
-  <p class="signature first" id="<<-instance_method">
+  <p class="signature first" id="find_target-instance_method">
   
-    - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>&lt;&lt;</strong>(object) 
+    - (<tt>Object</tt>) <strong>find_target</strong> 
   
 
   
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Add an object or array of objects to an association. This preserves the current records in the association (if any)
-and adds the object to the target association if it is detected to exist.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <h3>Parameters:</h3>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>object</span>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the object (or array of objects) to add to the association</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the added object</p>
-</div>
-      
-    </li>
-  
-</ul>
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
+</p><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
 
 
-83
-84
-85
-86
-87</pre>
+34
+35</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 83</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 34</span>
 
-<span class='kw'>def</span> <span class='op'>&lt;&lt;</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_source'>source</span><span class='period'>.</span><span class='id identifier rubyid_update_attribute'>update_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_source_attribute'>source_attribute</span><span class='comma'>,</span> <span class='id identifier rubyid_source_ids'>source_ids</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:id</span><span class='rparen'>)</span><span class='rparen'>)</span><span class='rparen'>)</span>
-  <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_o'>o</span><span class='op'>|</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='symbol'>:associate_target</span><span class='comma'>,</span> <span class='id identifier rubyid_o'>o</span><span class='rparen'>)</span><span class='rbrace'>}</span> <span class='kw'>if</span> <span class='id identifier rubyid_target_association'>target_association</span>
-  <span class='id identifier rubyid_object'>object</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <p class="signature " id="create-instance_method">
-  
-    - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>create</strong>(attributes = {}) 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Create a new instance of the target class and add it directly to the association.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <h3>Parameters:</h3>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>attribute</span>
-      
-      
-        <span class='type'>(<tt>Hash</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>hash for the new object</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the newly-created object</p>
-</div>
-      
-    </li>
-  
-</ul>
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-110
-111
-112</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 110</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_create'>create</span><span class='lparen'>(</span><span class='id identifier rubyid_attributes'>attributes</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
-  <span class='kw'>self</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_target_class'>target_class</span><span class='period'>.</span><span class='id identifier rubyid_create'>create</span><span class='lparen'>(</span><span class='id identifier rubyid_attributes'>attributes</span><span class='rparen'>)</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <p class="signature " id="create!-instance_method">
-  
-    - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>create!</strong>(attributes = {}) 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Create a new instance of the target class and add it directly to the association. If the create fails an exception will be raised.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <h3>Parameters:</h3>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>attribute</span>
-      
-      
-        <span class='type'>(<tt>Hash</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>hash for the new object</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the newly-created object</p>
-</div>
-      
-    </li>
-  
-</ul>
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-121
-122
-123</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 121</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_create!'>create!</span><span class='lparen'>(</span><span class='id identifier rubyid_attributes'>attributes</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
-  <span class='kw'>self</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_target_class'>target_class</span><span class='period'>.</span><span class='id identifier rubyid_create!'>create!</span><span class='lparen'>(</span><span class='id identifier rubyid_attributes'>attributes</span><span class='rparen'>)</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <p class="signature " id="delete-instance_method">
-  
-    - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>delete</strong>(object) 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Deletes an object or array of objects from the association. This removes their records from the association field on the source, 
-and attempts to remove the source from the target association if it is detected to exist.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <h3>Parameters:</h3>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>object</span>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the object (or array of objects) to remove from the association</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the deleted object</p>
-</div>
-      
-    </li>
-  
-</ul>
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-69
-70
-71
-72
-73</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 69</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_source'>source</span><span class='period'>.</span><span class='id identifier rubyid_update_attribute'>update_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_source_attribute'>source_attribute</span><span class='comma'>,</span> <span class='id identifier rubyid_source_ids'>source_ids</span> <span class='op'>-</span> <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:id</span><span class='rparen'>)</span><span class='rparen'>)</span>
-  <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_o'>o</span><span class='op'>|</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='symbol'>:disassociate_target</span><span class='comma'>,</span> <span class='id identifier rubyid_o'>o</span><span class='rparen'>)</span><span class='rbrace'>}</span> <span class='kw'>if</span> <span class='id identifier rubyid_target_association'>target_association</span>
-  <span class='id identifier rubyid_object'>object</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <p class="signature " id="delete_all-instance_method">
-  
-    - (<tt>Object</tt>) <strong>delete_all</strong> 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Deletes all members of the association and removes them from the association.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-161
-162
-163
-164
-165</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 161</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_delete_all'>delete_all</span>
-  <span class='id identifier rubyid_objs'>objs</span> <span class='op'>=</span> <span class='id identifier rubyid_records'>records</span>
-  <span class='id identifier rubyid_source'>source</span><span class='period'>.</span><span class='id identifier rubyid_update_attribute'>update_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_source_attribute'>source_attribute</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_objs'>objs</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:delete</span><span class='rparen'>)</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <p class="signature " id="destroy_all-instance_method">
-  
-    - (<tt>Object</tt>) <strong>destroy_all</strong> 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Destroys all members of the association and removes them from the association.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-152
-153
-154
-155
-156</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 152</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_destroy_all'>destroy_all</span>
-  <span class='id identifier rubyid_objs'>objs</span> <span class='op'>=</span> <span class='id identifier rubyid_records'>records</span>
-  <span class='id identifier rubyid_source'>source</span><span class='period'>.</span><span class='id identifier rubyid_update_attribute'>update_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_source_attribute'>source_attribute</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_objs'>objs</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:destroy</span><span class='rparen'>)</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <p class="signature " id="each-instance_method">
-  
-    - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>each</strong>(&amp;block) 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Create a new instance of the target class and add it directly to the association. If the create fails an exception will be raised.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <h3>Parameters:</h3>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>attribute</span>
-      
-      
-        <span class='type'>(<tt>Hash</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>hash for the new object</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the newly-created object</p>
-</div>
-      
-    </li>
-  
-</ul>
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-145
-146
-147</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 145</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_records'>records</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <p class="signature " id="include?-instance_method">
-  
-    - (<tt>Boolean</tt>) <strong>include?</strong>(object) 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Delegate include? to the records.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>Boolean</tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-55
-56
-57</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 55</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_records'>records</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_find_target'>find_target</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1400,21 +641,21 @@ and attempts to remove the source from the target association if it is detected 
       <pre class="lines">
 
 
+23
+24
+25
+26
 27
-28
-29
-30
-31
-32</pre>
+28</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 27</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 23</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_source'>source</span><span class='comma'>,</span> <span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
   <span class='ivar'>@name</span> <span class='op'>=</span> <span class='id identifier rubyid_name'>name</span>
   <span class='ivar'>@options</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span>
   <span class='ivar'>@source</span> <span class='op'>=</span> <span class='id identifier rubyid_source'>source</span>
-  <span class='ivar'>@query</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='ivar'>@loaded</span> <span class='op'>=</span> <span class='kw'>false</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1422,20 +663,15 @@ and attempts to remove the source from the target association if it is detected 
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="records-instance_method">
+  <p class="signature " id="loaded?-instance_method">
   
-    - (<tt>Object</tt>) <strong>records</strong> 
+    - (<tt>Boolean</tt>) <strong>loaded?</strong> 
   
 
-  
-    <span class="aliases">Also known as:
-    <span class="names"><span id='all-instance_method'>all</span></span>
-    </span>
   
 </p><div class="docstring">
   <div class="discussion">
-    <p>The records associated to the source.</p>
-
+    
 
   </div>
 </div>
@@ -1447,28 +683,9 @@ and attempts to remove the source from the target association if it is detected 
     <li>
       
       
-        <span class='type'></span>
+        <span class='type'>(<tt>Boolean</tt>)</span>
       
       
-      
-        
-        <div class='inline'><p>the association records; depending on which association this is, either a single instance or an array</p>
-</div>
-      
-    </li>
-  
-</ul>
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
       
     </li>
   
@@ -1480,212 +697,83 @@ and attempts to remove the source from the target association if it is detected 
       <pre class="lines">
 
 
-43
-44
-45
+30
+31
+32</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 30</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_loaded?'>loaded?</span>
+  <span class='ivar'>@loaded</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="reset-instance_method">
+  
+    - (<tt>Object</tt>) <strong>reset</strong> 
+  
+
+  
+</p><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
 46
 47
 48
-49
-50
-51</pre>
+49</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 43</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 46</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_records'>records</span>
-  <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_target_class'>target_class</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span><span class='id identifier rubyid_source_ids'>source_ids</span><span class='period'>.</span><span class='id identifier rubyid_to_a'>to_a</span><span class='rparen'>)</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_reset'>reset</span>
+  <span class='ivar'>@target</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='ivar'>@loaded</span> <span class='op'>=</span> <span class='kw'>false</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="target-instance_method">
+  
+    - (<tt>Object</tt>) <strong>target</strong> 
+  
 
-  <span class='kw'>if</span> <span class='id identifier rubyid_query'>query</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
-    <span class='id identifier rubyid_results'>results</span>
-  <span class='kw'>else</span>
-    <span class='id identifier rubyid_results_with_query'>results_with_query</span><span class='lparen'>(</span><span class='id identifier rubyid_results'>results</span><span class='rparen'>)</span>
+  
+</p><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+37
+38
+39
+40
+41
+42
+43
+44</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 37</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_target'>target</span>
+  <span class='kw'>unless</span> <span class='id identifier rubyid_loaded?'>loaded?</span>
+    <span class='ivar'>@target</span> <span class='op'>=</span> <span class='id identifier rubyid_find_target'>find_target</span>
+    <span class='ivar'>@loaded</span> <span class='op'>=</span> <span class='kw'>true</span>
   <span class='kw'>end</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <p class="signature " id="setter-instance_method">
-  
-    - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>setter</strong>(object) 
-  
 
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Replace an association with object or array of objects. This removes all of the existing associated records and replaces them with
-the passed object(s), and associates the target association if it is detected to exist.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <h3>Parameters:</h3>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>object</span>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the object (or array of objects) to add to the association</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the added object</p>
-</div>
-      
-    </li>
-  
-</ul>
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-97
-98
-99
-100
-101</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 97</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_setter'>setter</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_records'>records</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_o'>o</span><span class='op'>|</span> <span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='id identifier rubyid_o'>o</span><span class='rparen'>)</span><span class='rbrace'>}</span>
-  <span class='kw'>self</span> <span class='op'>&lt;&lt;</span> <span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_object'>object</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <p class="signature " id="where-instance_method">
-  
-    - (<tt>Dynamoid::Association</tt>) <strong>where</strong>(args) 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Naive association filtering.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <h3>Parameters:</h3>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>A</span>
-      
-      
-        <span class='type'>(<tt>Hash</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>hash of attributes; each must match every returned object's attribute exactly.</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>Dynamoid::Association</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>the association this method was called on (for chaining purposes)</p>
-</div>
-      
-    </li>
-  
-</ul>
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-133
-134
-135
-136</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/associations/association.rb', line 133</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_args'>args</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='comma'>,</span> <span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_query'>query</span><span class='lbracket'>[</span><span class='id identifier rubyid_k'>k</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_v'>v</span><span class='rbrace'>}</span>
-  <span class='kw'>self</span>
+  <span class='ivar'>@target</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1697,7 +785,7 @@ the passed object(s), and associates the target association if it is detected to
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:07 2012 by 
+  Generated on Thu Apr 26 01:26:26 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

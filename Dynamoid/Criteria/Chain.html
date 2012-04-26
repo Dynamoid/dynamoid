@@ -118,6 +118,56 @@ or by a full table scan.</p>
       <li class="public ">
   <span class="summary_signature">
     
+      <a href="#consistent_read-instance_method" title="#consistent_read (instance method)">- (Object) <strong>consistent_read</strong> </a>
+    
+
+    
+  </span>
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns the value of attribute consistent_read.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#limit-instance_method" title="#limit (instance method)">- (Object) <strong>limit</strong>(limit) </a>
+    
+
+    
+  </span>
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns the value of attribute limit.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#query-instance_method" title="#query (instance method)">- (Object) <strong>query</strong> </a>
     
 
@@ -160,6 +210,31 @@ or by a full table scan.</p>
 
   
     <span class="summary_desc"><div class='inline'><p>Returns the value of attribute source.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#start-instance_method" title="#start (instance method)">- (Object) <strong>start</strong>(start) </a>
+    
+
+    
+  </span>
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns the value of attribute start.</p>
 </div></span>
   
 </li>
@@ -221,6 +296,48 @@ or by a full table scan.</p>
   
     <span class="summary_desc"><div class='inline'><p>Returns all the records matching the criteria.</p>
 </div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#consistent-instance_method" title="#consistent (instance method)">- (Object) <strong>consistent</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#consistent_opts-instance_method" title="#consistent_opts (instance method)">- (Object) <strong>consistent_opts</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
   
 </li>
 
@@ -367,7 +484,8 @@ or by a full table scan.</p>
 15
 16
 17
-18</pre>
+18
+19</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 15</span>
@@ -375,6 +493,7 @@ or by a full table scan.</p>
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_source'>source</span><span class='rparen'>)</span>
   <span class='ivar'>@query</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
   <span class='ivar'>@source</span> <span class='op'>=</span> <span class='id identifier rubyid_source'>source</span>
+  <span class='ivar'>@consistent_read</span> <span class='op'>=</span> <span class='kw'>false</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -387,10 +506,94 @@ or by a full table scan.</p>
     <h2>Instance Attribute Details</h2>
     
       
+      <span id="consistent_read=-instance_method"></span>
+      <span id="consistent_read-instance_method"></span>
+      <div class="method_details first">
+  <p class="signature first" id="consistent_read-instance_method">
+  
+    - (<tt>Object</tt>) <strong>consistent_read</strong> 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Returns the value of attribute consistent_read</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+9
+10
+11</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 9</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_consistent_read'>consistent_read</span>
+  <span class='ivar'>@consistent_read</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="limit=-instance_method"></span>
+      <span id="limit-instance_method"></span>
+      <div class="method_details ">
+  <p class="signature " id="limit-instance_method">
+  
+    - (<tt>Object</tt>) <strong>limit</strong>(limit) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Returns the value of attribute limit</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+9
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 9</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_limit'>limit</span><span class='lparen'>(</span><span class='id identifier rubyid_limit'>limit</span><span class='rparen'>)</span>
+  <span class='ivar'>@limit</span> <span class='op'>=</span> <span class='id identifier rubyid_limit'>limit</span>
+  <span class='id identifier rubyid_records'>records</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
       <span id="query=-instance_method"></span>
       <span id="query-instance_method"></span>
-      <div class="method_details first">
-  <p class="signature first" id="query-instance_method">
+      <div class="method_details ">
+  <p class="signature " id="query-instance_method">
   
     - (<tt>Object</tt>) <strong>query</strong> 
   
@@ -462,6 +665,49 @@ or by a full table scan.</p>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_source'>source</span>
   <span class='ivar'>@source</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="start=-instance_method"></span>
+      <span id="start-instance_method"></span>
+      <div class="method_details ">
+  <p class="signature " id="start-instance_method">
+  
+    - (<tt>Object</tt>) <strong>start</strong>(start) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>Returns the value of attribute start</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+9
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 9</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_start'>start</span><span class='lparen'>(</span><span class='id identifier rubyid_start'>start</span><span class='rparen'>)</span>
+  <span class='ivar'>@start</span> <span class='op'>=</span> <span class='id identifier rubyid_start'>start</span>
+  <span class='kw'>self</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -554,15 +800,73 @@ or by a full table scan.</p>
       <pre class="lines">
 
 
-39
-40
-41</pre>
+45
+46
+47</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 39</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 45</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_all'>all</span>
   <span class='id identifier rubyid_records'>records</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="consistent-instance_method">
+  
+    - (<tt>Object</tt>) <strong>consistent</strong> 
+  
+
+  
+</p><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+37
+38
+39
+40</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 37</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_consistent'>consistent</span>
+  <span class='ivar'>@consistent_read</span> <span class='op'>=</span> <span class='kw'>true</span>
+  <span class='kw'>self</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="consistent_opts-instance_method">
+  
+    - (<tt>Object</tt>) <strong>consistent_opts</strong> 
+  
+
+  
+</p><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+73
+74
+75</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 73</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_consistent_opts'>consistent_opts</span>
+  <span class='lbrace'>{</span> <span class='symbol'>:consistent_read</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_consistent_read'>consistent_read</span> <span class='rbrace'>}</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -607,12 +911,12 @@ or by a full table scan.</p>
       <pre class="lines">
 
 
-53
-54
-55</pre>
+69
+70
+71</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 53</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 69</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_records'>records</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
@@ -660,15 +964,15 @@ or by a full table scan.</p>
       <pre class="lines">
 
 
-46
-47
-48</pre>
+52
+53
+54</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 46</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 52</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_first'>first</span>
-  <span class='id identifier rubyid_records'>records</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span>
+  <span class='id identifier rubyid_limit'>limit</span><span class='lparen'>(</span><span class='int'>1</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -684,8 +988,8 @@ or by a full table scan.</p>
   
 </p><div class="docstring">
   <div class="discussion">
-    <p>The workhorse method of the criteria chain. Each key in the passed in hash will become another criteria that the 
-ultimate query must match. A key can either be a symbol or a string, and should be an attribute name or 
+    <p>The workhorse method of the criteria chain. Each key in the passed in hash will become another criteria that the
+ultimate query must match. A key can either be a symbol or a string, and should be an attribute name or
 an attribute name with a range operator.</p>
 
 
@@ -728,13 +1032,13 @@ an attribute name with a range operator.</p>
       <pre class="lines">
 
 
-31
 32
 33
-34</pre>
+34
+35</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 31</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/criteria/chain.rb', line 32</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_args'>args</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='comma'>,</span> <span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_query'>query</span><span class='lbracket'>[</span><span class='id identifier rubyid_k'>k</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_v'>v</span><span class='rbrace'>}</span>
@@ -750,7 +1054,7 @@ an attribute name with a range operator.</p>
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:07 2012 by 
+  Generated on Thu Apr 26 01:26:25 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>

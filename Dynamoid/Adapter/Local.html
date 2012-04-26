@@ -180,7 +180,7 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#delete_item-instance_method" title="#delete_item (instance method)">- (Object) <strong>delete_item</strong>(table_name, key, range_key = nil) </a>
+      <a href="#delete_item-instance_method" title="#delete_item (instance method)">- (Object) <strong>delete_item</strong>(table_name, key, options = {}) </a>
     
 
     
@@ -224,7 +224,28 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#get_item-instance_method" title="#get_item (instance method)">- (Hash) <strong>get_item</strong>(table_name, key, range_key = nil) </a>
+      <a href="#drop_till_start-instance_method" title="#drop_till_start (instance method)">- (Object) <strong>drop_till_start</strong>(results, next_token, range_key, hash_key) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#get_item-instance_method" title="#get_item (instance method)">- (Hash) <strong>get_item</strong>(table_name, key, options = {}) </a>
     
 
     
@@ -334,7 +355,7 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#scan-instance_method" title="#scan (instance method)">- (Array) <strong>scan</strong>(table_name, scan_hash) </a>
+      <a href="#scan-instance_method" title="#scan (instance method)">- (Array) <strong>scan</strong>(table_name, scan_hash, opts = {}) </a>
     
 
     
@@ -471,7 +492,7 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
       <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span>
       <span class='kw'>if</span> <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span>
         <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_keys'>keys</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='op'>|</span>
-          <span class='id identifier rubyid_hash'>hash</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_get_item'>get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_hash_key'>hash_key</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='rparen'>)</span>
+          <span class='id identifier rubyid_hash'>hash</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_get_item'>get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_hash_key'>hash_key</span><span class='comma'>,</span> <span class='symbol'>:range_key</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='rparen'>)</span>
         <span class='kw'>end</span>
       <span class='kw'>else</span>
         <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_keys'>keys</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_key'>key</span><span class='op'>|</span>
@@ -577,13 +598,15 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
 
 59
 60
-61</pre>
+61
+62</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 59</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_create_table'>create_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='symbol'>:hash_key</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='symbol'>:range_key</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='symbol'>:data</span> <span class='op'>=&gt;</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rbrace'>}</span>
+  <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_keys'>keys</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span>
+  <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='symbol'>:hash_key</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='symbol'>:range_key</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='comma'>,</span> <span class='symbol'>:data</span> <span class='op'>=&gt;</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rbrace'>}</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -663,7 +686,7 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
       <div class="method_details ">
   <p class="signature " id="delete_item-instance_method">
   
-    - (<tt>Object</tt>) <strong>delete_item</strong>(table_name, key, range_key = nil) 
+    - (<tt>Object</tt>) <strong>delete_item</strong>(table_name, key, options = {}) 
   
 
   
@@ -716,8 +739,6 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
         <span class='type'>(<tt>Number</tt>)</span>
       
       
-        <em class="default">(defaults to: <tt>nil</tt>)</em>
-      
       
         &mdash;
         <div class='inline'><p>the range key of the item to delete, required if the table has a composite key</p>
@@ -749,14 +770,16 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
       <pre class="lines">
 
 
-70
 71
-72</pre>
+72
+73
+74</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 70</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 71</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_delete_item'>delete_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_delete_item'>delete_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='symbol'>:range_key</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_key'>key</span><span class='rbrace'>}</span><span class='tstring_content'>.</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbrace'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -821,12 +844,12 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
       <pre class="lines">
 
 
-79
-80
-81</pre>
+81
+82
+83</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 79</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 81</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_delete_table'>delete_table</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_data'>data</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
@@ -837,9 +860,51 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
 </div>
     
       <div class="method_details ">
+  <p class="signature " id="drop_till_start-instance_method">
+  
+    - (<tt>Object</tt>) <strong>drop_till_start</strong>(results, next_token, range_key, hash_key) 
+  
+
+  
+</p><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 180</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_drop_till_start'>drop_till_start</span><span class='lparen'>(</span><span class='id identifier rubyid_results'>results</span><span class='comma'>,</span> <span class='id identifier rubyid_next_token'>next_token</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='comma'>,</span> <span class='id identifier rubyid_hash_key'>hash_key</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='id identifier rubyid_results'>results</span> <span class='kw'>unless</span> <span class='id identifier rubyid_next_token'>next_token</span>
+
+  <span class='id identifier rubyid_hash_value'>hash_value</span> <span class='op'>=</span> <span class='id identifier rubyid_next_token'>next_token</span><span class='lbracket'>[</span><span class='symbol'>:hash_key_element</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span>
+  <span class='id identifier rubyid_range_value'>range_value</span> <span class='op'>=</span> <span class='id identifier rubyid_next_token'>next_token</span><span class='lbracket'>[</span><span class='symbol'>:range_key_element</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span> <span class='kw'>if</span> <span class='id identifier rubyid_next_token'>next_token</span><span class='lbracket'>[</span><span class='symbol'>:range_key_element</span><span class='rbracket'>]</span>
+
+  <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='id identifier rubyid_results'>results</span><span class='period'>.</span><span class='id identifier rubyid_drop_while'>drop_while</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_r'>r</span><span class='op'>|</span>
+    <span class='lparen'>(</span><span class='id identifier rubyid_r'>r</span><span class='lbracket'>[</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='rbracket'>]</span> <span class='op'>!=</span> <span class='id identifier rubyid_hash_value'>hash_value</span> <span class='kw'>or</span> <span class='id identifier rubyid_r'>r</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span> <span class='op'>!=</span> <span class='id identifier rubyid_range_value'>range_value</span><span class='rparen'>)</span>
+  <span class='kw'>end</span><span class='period'>.</span><span class='id identifier rubyid_drop'>drop</span><span class='lparen'>(</span><span class='int'>1</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
   <p class="signature " id="get_item-instance_method">
   
-    - (<tt>Hash</tt>) <strong>get_item</strong>(table_name, key, range_key = nil) 
+    - (<tt>Hash</tt>) <strong>get_item</strong>(table_name, key, options = {}) 
   
 
   
@@ -892,8 +957,6 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
         <span class='type'>(<tt>Number</tt>)</span>
       
       
-        <em class="default">(defaults to: <tt>nil</tt>)</em>
-      
       
         &mdash;
         <div class='inline'><p>the range key of the item to find, required if the table has a composite key</p>
@@ -942,18 +1005,20 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
       <pre class="lines">
 
 
-94
-95
 96
 97
 98
 99
-100</pre>
+100
+101
+102
+103</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 94</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 96</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_get_item'>get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_get_item'>get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span>
     <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_key'>key</span><span class='rbrace'>}</span><span class='tstring_content'>.</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbrace'>}</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
   <span class='kw'>else</span>
@@ -1003,12 +1068,12 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
       <pre class="lines">
 
 
-105
-106
-107</pre>
+108
+109
+110</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 105</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 108</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_list_tables'>list_tables</span>
   <span class='id identifier rubyid_data'>data</span><span class='period'>.</span><span class='id identifier rubyid_keys'>keys</span>
@@ -1090,19 +1155,23 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
       <pre class="lines">
 
 
-115
-116
-117
 118
-119</pre>
+119
+120
+121
+122
+123
+124</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 115</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 118</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_put_item'>put_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_table'>table</span> <span class='op'>=</span> <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span>
   <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='id identifier rubyid_object'>object</span><span class='lbracket'>[</span><span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:hash_key</span><span class='rbracket'>]</span><span class='rbracket'>]</span><span class='rbracket'>]</span>
   <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_object'>object</span><span class='lbracket'>[</span><span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:hash_key</span><span class='rbracket'>]</span><span class='rbracket'>]</span><span class='rbrace'>}</span><span class='tstring_content'>.</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_object'>object</span><span class='lbracket'>[</span><span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span><span class='rbracket'>]</span><span class='rbrace'>}</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_object'>object</span><span class='period'>.</span><span class='id identifier rubyid_delete_if'>delete_if</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='comma'>,</span> <span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>||</span> <span class='lparen'>(</span><span class='id identifier rubyid_v'>v</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:empty?</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_v'>v</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span><span class='rparen'>)</span><span class='rbrace'>}</span>
+<span class='kw'>rescue</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='id identifier rubyid_data'>data</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1271,11 +1340,6 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
       <pre class="lines">
 
 
-135
-136
-137
-138
-139
 140
 141
 142
@@ -1287,27 +1351,44 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
 148
 149
 150
-151</pre>
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 135</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 140</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_query'>query</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_opts'>opts</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_id'>id</span> <span class='op'>=</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:hash_value</span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_hash_key'>hash_key</span> <span class='op'>=</span> <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:hash_key</span><span class='rbracket'>]</span>
   <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>=</span> <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span>
-  <span class='kw'>if</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_value</span><span class='rbracket'>]</span>
-    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='symbol'>:id</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_value</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='rparen'>)</span><span class='rbrace'>}</span>
+
+  <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_value</span><span class='rbracket'>]</span>
+    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_value</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='rparen'>)</span><span class='rbrace'>}</span>
   <span class='kw'>elsif</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_greater_than</span><span class='rbracket'>]</span>
-    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='symbol'>:id</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span> <span class='op'>&gt;</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_greater_than</span><span class='rbracket'>]</span><span class='rbrace'>}</span>
+    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span> <span class='op'>&gt;</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_greater_than</span><span class='rbracket'>]</span><span class='rbrace'>}</span>
   <span class='kw'>elsif</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_less_than</span><span class='rbracket'>]</span>
-    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='symbol'>:id</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span> <span class='op'>&lt;</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_less_than</span><span class='rbracket'>]</span><span class='rbrace'>}</span>
+    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span> <span class='op'>&lt;</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_less_than</span><span class='rbracket'>]</span><span class='rbrace'>}</span>
   <span class='kw'>elsif</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_gte</span><span class='rbracket'>]</span>
-    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='symbol'>:id</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span> <span class='op'>&gt;=</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_gte</span><span class='rbracket'>]</span><span class='rbrace'>}</span>
+    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span> <span class='op'>&gt;=</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_gte</span><span class='rbracket'>]</span><span class='rbrace'>}</span>
   <span class='kw'>elsif</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_lte</span><span class='rbracket'>]</span>  
-    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='symbol'>:id</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span> <span class='op'>&lt;=</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_lte</span><span class='rbracket'>]</span><span class='rbrace'>}</span>
+    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span> <span class='op'>&lt;=</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:range_lte</span><span class='rbracket'>]</span><span class='rbrace'>}</span>
   <span class='kw'>else</span>
-    <span class='id identifier rubyid_get_item'>get_item</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_find_all'>find_all</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_v'>v</span><span class='lbracket'>[</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_id'>id</span><span class='rbrace'>}</span>
   <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='id identifier rubyid_drop_till_start'>drop_till_start</span><span class='lparen'>(</span><span class='id identifier rubyid_results'>results</span><span class='comma'>,</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:next_token</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='id identifier rubyid_range_key'>range_key</span><span class='comma'>,</span> <span class='id identifier rubyid_hash_key'>hash_key</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='id identifier rubyid_results'>results</span><span class='period'>.</span><span class='id identifier rubyid_take'>take</span><span class='lparen'>(</span><span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:limit</span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:limit</span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_results'>results</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1370,7 +1451,7 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
       <div class="method_details ">
   <p class="signature " id="scan-instance_method">
   
-    - (<tt>Array</tt>) <strong>scan</strong>(table_name, scan_hash) 
+    - (<tt>Array</tt>) <strong>scan</strong>(table_name, scan_hash, opts = {}) 
   
 
   
@@ -1456,17 +1537,23 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
       <pre class="lines">
 
 
-161
-162
-163
-164</pre>
+172
+173
+174
+175
+176
+177
+178</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 161</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/adapter/local.rb', line 172</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_scan'>scan</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_scan_hash'>scan_hash</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_scan'>scan</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='id identifier rubyid_scan_hash'>scan_hash</span><span class='comma'>,</span> <span class='id identifier rubyid_opts'>opts</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='lbracket'>[</span><span class='rbracket'>]</span> <span class='kw'>if</span> <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
-  <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_flatten'>flatten</span><span class='period'>.</span><span class='id identifier rubyid_select'>select</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_d'>d</span><span class='op'>|</span> <span class='id identifier rubyid_scan_hash'>scan_hash</span><span class='period'>.</span><span class='id identifier rubyid_all?'>all?</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='comma'>,</span> <span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='op'>!</span><span class='id identifier rubyid_d'>d</span><span class='lbracket'>[</span><span class='id identifier rubyid_k'>k</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_d'>d</span><span class='lbracket'>[</span><span class='id identifier rubyid_k'>k</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_v'>v</span><span class='rbrace'>}</span><span class='rbrace'>}</span>
+  <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:data</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_flatten'>flatten</span><span class='period'>.</span><span class='id identifier rubyid_select'>select</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_d'>d</span><span class='op'>|</span> <span class='id identifier rubyid_scan_hash'>scan_hash</span><span class='period'>.</span><span class='id identifier rubyid_all?'>all?</span><span class='lbrace'>{</span><span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='comma'>,</span> <span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='op'>!</span><span class='id identifier rubyid_d'>d</span><span class='lbracket'>[</span><span class='id identifier rubyid_k'>k</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_d'>d</span><span class='lbracket'>[</span><span class='id identifier rubyid_k'>k</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_v'>v</span><span class='rbrace'>}</span><span class='rbrace'>}</span>
+  <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='id identifier rubyid_drop_till_start'>drop_till_start</span><span class='lparen'>(</span><span class='id identifier rubyid_results'>results</span><span class='comma'>,</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:next_token</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:range_key</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:hash_key</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_results'>results</span> <span class='op'>=</span> <span class='id identifier rubyid_results'>results</span><span class='period'>.</span><span class='id identifier rubyid_take'>take</span><span class='lparen'>(</span><span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:limit</span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:limit</span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_results'>results</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1478,7 +1565,7 @@ All tests pass with either this or connecting to the real DynamoDB, and that's g
 </div>
     
     <div id="footer">
-  Generated on Tue Mar 27 17:53:07 2012 by 
+  Generated on Thu Apr 26 01:26:25 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>
