@@ -102,7 +102,7 @@ describe "Dynamoid::Document" do
   end
   
   it 'follows any table options provided to it' do
-    @tweet = Tweet.create
+    @tweet = Tweet.create(:group => 12345)
     
     lambda {@tweet.id}.should raise_error(NoMethodError)
     @tweet.tweet_id.should_not be_nil

@@ -167,7 +167,9 @@ end
 
 ## Usage
 
-Dynamoid's syntax is very similar to ActiveRecord's.
+### Object Creation
+
+Dynamoid's syntax is generally very similar to ActiveRecord's. Making new objects is simple:
 
 ```ruby
 u = User.new(:name => 'Josh')
@@ -189,6 +191,8 @@ address.city = 'Chicago'
 address.save
 ```
 
+### Querying
+
 Querying can be done in one of three ways:
 
 ```ruby
@@ -205,6 +209,23 @@ u.addresses.where(:city => 'Chicago').all
 
 But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.
 
+You can also limit returned results, or select a record from which to start, to support pagination:
+
+```ruby
+Address.limit(5).start(address) # Only 5 addresses.
+```
+
+### Consistent Reads
+
+Querying supports consistent reading. By default, DynamoDB reads are eventually consistent: if you do a write and then a read immediately afterwards, the results of the previous write may not be reflected. If you need to do a consistent read (that is, you need to read the results of a write immediately) you can do so, but keep in mind that consistent reads are twice as expensive as regular reads for DynamoDB.
+
+```ruby
+Address.find(address.id, :consistent_read => true)  # Find an address, ensure the read is consistent.
+Address.where(:city => 'Chicago').consistent.all    # Find all addresses where the city is Chicago, with a consistent read.
+```
+
+### Range Finding
+
 If you have a range index, Dynamoid provides a number of additional other convenience methods to make your life a little easier:
 
 ```ruby
@@ -220,7 +241,7 @@ DynamoDB achieves much of its speed by relying on a random pattern of writes and
 
 Dynamoid attempts to obviate this problem transparently by employing a partitioning strategy to divide up keys randomly across DynamoDB's servers. Each ID is assigned an additional number (by default 0 to 199, but you can increase the partition size in Dynamoid's configuration) upon save; when read, all 200 hashes are retrieved simultaneously and the most recently updated one is returned to the application. This results in a significant net performance increase, and is usually invisible to the application itself. It does, however, bring up the important issue of provisioning your DynamoDB tables correctly.
 
-When your read or write provisioning exceed your table's allowed throughput, DynamoDB will wait on connections until throughput is available again. This will appear as very, very slow requests and can be somewhat frustrating. Partitioning significantly increases the amount of throughput tables will experience; though DynamoDB will ignore keys that don't exist, if you have 20 partitioned keys representing one object, all will be retrieved every time the object is requested. Ensure that your tables are set up for this kind of throughput, or turn provisioning off, to make sure that DynamoDB doesn't throttle your requests.
+When your read or write throughput exceed your table's allowed provisioning, DynamoDB will wait on connections until throughput is available again. This will appear as very, very slow requests and can be somewhat frustrating. Partitioning significantly increases the amount of throughput tables will experience; though DynamoDB will ignore keys that don't exist, if you have 20 partitioned keys representing one object, all will be retrieved every time the object is requested. Ensure that your tables are set up for this kind of throughput, or turn provisioning off, to make sure that DynamoDB doesn't throttle your requests.
 
 ## Credits
 

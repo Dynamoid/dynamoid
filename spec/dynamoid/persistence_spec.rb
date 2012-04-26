@@ -2,8 +2,6 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe "Dynamoid::Persistence" do
 
-  let(:document_class) { Class.new.send :include, Dynamoid::Document }
-
   before do
     Random.stubs(:rand).with(Dynamoid::Config.partition_size).returns(0)
     @address = Address.new
@@ -106,27 +104,21 @@ describe "Dynamoid::Persistence" do
   end
 
   it 'runs the before_create callback only once' do
-    document_class.before_create { doing_before_create }
+    CamelCase.any_instance.expects(:doing_before_create).once.returns(true)
 
-    document_class.any_instance.expects(:doing_before_create)
-
-    document_class.create
+    CamelCase.create
   end
 
   it 'runs after save callbacks when doing #create' do
-    document_class.after_create { doing_after_create }
+    CamelCase.any_instance.expects(:doing_after_create).once.returns(true)
 
-    document_class.any_instance.expects(:doing_after_create)
-
-    document_class.create
+    CamelCase.create
   end
 
   it 'runs after save callbacks when doing #save' do
-    document_class.after_create { doing_after_create }
+    CamelCase.any_instance.expects(:doing_after_create).once.returns(true)
 
-    document_class.any_instance.expects(:doing_after_create)
-
-    document_class.new.save
+    CamelCase.new.save
   end
   
   it 'tracks previous changes on save or update' do
