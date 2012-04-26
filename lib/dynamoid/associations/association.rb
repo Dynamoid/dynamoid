@@ -48,7 +48,6 @@ module Dynamoid #:nodoc:
         @loaded = false
       end
 
-
       private
 
       # The target class name, either inferred through the association's name or specified in options.
