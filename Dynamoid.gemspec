@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "dynamoid"
-  s.version = "0.3.2"
+  s.version = "0.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Josh Symonds"]
-  s.date = "2012-04-13"
+  s.date = "2012-04-26"
   s.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   s.email = "josh@joshsymonds.com"
   s.extra_rdoc_files = [
@@ -106,6 +106,7 @@ Gem::Specification.new do |s|
     "spec/app/models/magazine.rb",
     "spec/app/models/sponsor.rb",
     "spec/app/models/subscription.rb",
+    "spec/app/models/tweet.rb",
     "spec/app/models/user.rb",
     "spec/dynamoid/adapter/aws_sdk_spec.rb",
     "spec/dynamoid/adapter/local_spec.rb",
