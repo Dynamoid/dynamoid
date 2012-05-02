@@ -3,23 +3,23 @@ require 'securerandom'
 # encoding: utf-8
 module Dynamoid
 
-  # Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize 
+  # Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize
   # values to be of the same type as when they were passed in, based on the fields in the class.
   module Persistence
     extend ActiveSupport::Concern
-    
+
     attr_accessor :new_record
     alias :new_record? :new_record
-    
+
     module ClassMethods
-      
+
       # Returns the name of the table the class is for.
       #
       # @since 0.2.0
       def table_name
         "#{Dynamoid::Config.namespace}_#{options[:name] ? options[:name] : self.name.downcase.pluralize}"
       end
-      
+
       # Creates a table.
       #
       # @param [Hash] options options to pass for table creation
@@ -38,19 +38,19 @@ module Dynamoid
           :read_capacity => self.read_capacity,
           :range_key => self.range_key ? {range_key => attributes[range_key][:type]} : nil
         }.merge(options)
-        
+
         return true if table_exists?(options[:table_name])
-        
+
         Dynamoid::Adapter.tables << options[:table_name] if Dynamoid::Adapter.create_table(options[:table_name], options[:id], options)
       end
 
       # Does a table with this name exist?
       #
-      # @since 0.2.0      
+      # @since 0.2.0
       def table_exists?(table_name)
         Dynamoid::Adapter.tables.include?(table_name)
       end
-      
+
       # Undump an object into a hash, converting each type from a string representation of itself into the type specified by the field.
       #
       # @since 0.2.0
@@ -58,20 +58,20 @@ module Dynamoid
         incoming = (incoming || {}).symbolize_keys
         Hash.new.tap do |hash|
           self.attributes.each do |attribute, options|
-            hash[attribute] = undump_field(incoming[attribute], options[:type])
+            hash[attribute] = undump_field(incoming[attribute], options)
           end
           incoming.each {|attribute, value| hash[attribute] ||= value }
         end
       end
 
-      # Undump a value for a given type. Given a string, it'll determine (based on the type provided) whether to turn it into a 
+      # Undump a value for a given type. Given a string, it'll determine (based on the type provided) whether to turn it into a
       # string, integer, float, set, array, datetime, or serialized return value.
       #
       # @since 0.2.0
-      def undump_field(value, type)
+      def undump_field(value, options)
         return if value.nil? || (value.respond_to?(:empty?) && value.empty?)
 
-        case type
+        case options[:type]
         when :string
           value.to_s
         when :integer
@@ -92,7 +92,7 @@ module Dynamoid
           end
         when :serialized
           if value.is_a?(String)
-            YAML.load(value)
+            options[:serializer] ? options[:serializer].load(value) : YAML.load(value)
           else
             value
           end
@@ -100,14 +100,14 @@ module Dynamoid
       end
 
     end
-    
+
     # Is this object persisted in the datastore? Required for some ActiveModel integration stuff.
     #
     # @since 0.2.0
     def persisted?
       !new_record?
     end
-    
+
     # Run the callbacks and then persist this object in the datastore.
     #
     # @since 0.2.0
@@ -142,28 +142,28 @@ module Dynamoid
       delete_indexes
       Dynamoid::Adapter.delete(self.class.table_name, self.id)
     end
-    
+
     # Dump this object's attributes into hash form, fit to be persisted into the datastore.
     #
     # @since 0.2.0
     def dump
       Hash.new.tap do |hash|
         self.class.attributes.each do |attribute, options|
-          hash[attribute] = dump_field(self.read_attribute(attribute), options[:type])
+          hash[attribute] = dump_field(self.read_attribute(attribute), options)
         end
       end
     end
-    
+
     private
 
-    # Determine how to dump this field. Given a value, it'll determine how to turn it into a value that can be 
+    # Determine how to dump this field. Given a value, it'll determine how to turn it into a value that can be
     # persisted into the datastore.
     #
     # @since 0.2.0
-    def dump_field(value, type)
+    def dump_field(value, options)
       return if value.nil? || (value.respond_to?(:empty?) && value.empty?)
 
-      case type
+      case options[:type]
       when :string
         value.to_s
       when :integer
@@ -179,11 +179,11 @@ module Dynamoid
       when :datetime
         value.to_time.to_f
       when :serialized
-        value.to_yaml
+        options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
       end
     end
 
-    # Persist the object into the datastore. Assign it an id first if it doesn't have one; then afterwards, 
+    # Persist the object into the datastore. Assign it an id first if it doesn't have one; then afterwards,
     # save its indexes.
     #
     # @since 0.2.0
@@ -196,7 +196,7 @@ module Dynamoid
         true
       end
     end
-        
+
   end
-  
+
 end
