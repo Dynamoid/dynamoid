@@ -31,12 +31,18 @@ module Dynamoid
       #
       # @since 0.4.0
       def create_table(options = {})
+        if self.range_key
+          range_key_type = [:integer, :float].include?(attributes[range_key][:type]) ? :number : attributes[range_key][:type]
+          range_key_hash = { range_key => range_key_type}
+        else
+          range_key_hash = nil
+        end
         options = {
           :id => self.hash_key,
           :table_name => self.table_name,
           :write_capacity => self.write_capacity,
           :read_capacity => self.read_capacity,
-          :range_key => self.range_key ? {range_key => attributes[range_key][:type]} : nil
+          :range_key => range_key_hash
         }.merge(options)
 
         return true if table_exists?(options[:table_name])
