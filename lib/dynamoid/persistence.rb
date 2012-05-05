@@ -146,7 +146,8 @@ module Dynamoid
     # @since 0.2.0
     def delete
       delete_indexes
-      Dynamoid::Adapter.delete(self.class.table_name, self.id)
+      options = range_key ? {:range_key => attributes[range_key]} : nil
+      Dynamoid::Adapter.delete(self.class.table_name, self.id, options)
     end
 
     # Dump this object's attributes into hash form, fit to be persisted into the datastore.
