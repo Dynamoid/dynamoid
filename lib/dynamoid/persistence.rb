@@ -146,7 +146,7 @@ module Dynamoid
     # @since 0.2.0
     def delete
       delete_indexes
-      options = range_key ? {:range_key => attributes[range_key]} : nil
+      options = range_key ? {:range_key => attributes[range_key]} : {}
       Dynamoid::Adapter.delete(self.class.table_name, self.hash_key, options)
     end
 
