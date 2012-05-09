@@ -107,6 +107,15 @@ module Dynamoid
 
     end
 
+    # Set updated_at and any passed in field to current DateTime. Useful for things like last_login_at, etc.
+    #
+    def touch(name = nil)
+      now = DateTime.now
+      self.updated_at = now
+      attributes[name] = now if name
+      save
+    end
+
     # Is this object persisted in the datastore? Required for some ActiveModel integration stuff.
     #
     # @since 0.2.0
@@ -146,7 +155,8 @@ module Dynamoid
     # @since 0.2.0
     def delete
       delete_indexes
-      Dynamoid::Adapter.delete(self.class.table_name, self.id)
+      options = range_key ? {:range_key => attributes[range_key]} : {}
+      Dynamoid::Adapter.delete(self.class.table_name, self.hash_key, options)
     end
 
     # Dump this object's attributes into hash form, fit to be persisted into the datastore.
