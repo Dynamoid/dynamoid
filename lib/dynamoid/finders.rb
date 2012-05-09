@@ -5,9 +5,9 @@ module Dynamoid
   # class level, like find, find_by_id, and the method_missing style finders.
   module Finders
     extend ActiveSupport::Concern
-    
+
     module ClassMethods
-      
+
       # Find one or many objects, specified by one id or an array of ids.
       #
       # @param [Array/String] *id an array of ids or one single id
@@ -38,7 +38,7 @@ module Dynamoid
       #
       # @return [Dynamoid::Document] the found object, or nil if nothing was found
       #
-      # @since 0.2.0      
+      # @since 0.2.0
       def find_by_id(id, options = {})
         if item = Dynamoid::Adapter.read(self.table_name, id, options)
           obj = self.new(item)
@@ -46,6 +46,44 @@ module Dynamoid
           return obj
         else
           return nil
+        end
+      end
+
+      # Find one object directly by hash and range keys
+      #
+      # @param [String] hash_key of the object to find
+      # @param [String/Integer/Float] range_key of the object to find
+      #
+      def find_by_composite_key(hash_key, range_key, options = {})
+        find_by_id(hash_key, options.merge({:range_key => range_key}))
+      end
+
+      # Find all objects by hash and range keys.
+      #
+      # @example find all ChamberTypes whose level is greater than 1
+      #   class ChamberType
+      #     include Dynamoid::Document
+      #     field :chamber_type,            :string
+      #     range :level,                   :integer
+      #     table :key => :chamber_type
+      #   end
+      #   ChamberType.find_all_by_composite_key('DustVault', range_greater_than: 1)
+      #
+      # @param [String] hash_key of the objects to find
+      # @param [Hash] options the options for the range key
+      # @option options [Range] :range_value find the range key within this range
+      # @option options [Number] :range_greater_than find range keys greater than this
+      # @option options [Number] :range_less_than find range keys less than this
+      # @option options [Number] :range_gte find range keys greater than or equal to this
+      # @option options [Number] :range_lte find range keys less than or equal to this
+      #
+      # @return [Array] an array of all matching items
+      #
+      def find_all_by_composite_key(hash_key, options = {})
+        Dynamoid::Adapter.query(self.table_name, options.merge({hash_value: hash_key})).collect do |item|
+          obj = self.new(item)
+          obj.new_record = false
+          obj
         end
       end
 
@@ -59,7 +97,7 @@ module Dynamoid
       #
       # @return [Dynamoid::Document/Array] the found object, or an array of found objects if all was somewhere in the method
       #
-      # @since 0.2.0            
+      # @since 0.2.0
       def method_missing(method, *args)
         if method =~ /find/
           finder = method.to_s.split('_by_').first
@@ -67,7 +105,7 @@ module Dynamoid
 
           chain = Dynamoid::Criteria::Chain.new(self)
           chain.query = Hash.new.tap {|h| attributes.each_with_index {|attr, index| h[attr.to_sym] = args[index]}}
-          
+
           if finder =~ /all/
             return chain.all
           else
@@ -79,5 +117,5 @@ module Dynamoid
       end
     end
   end
-  
+
 end
