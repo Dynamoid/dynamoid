@@ -1,6 +1,6 @@
 # encoding: utf-8
 module Dynamoid
-  
+
   # All modules that a Document is composed of are defined in this
   # module, to keep the document class from getting too cluttered.
   module Components
@@ -10,8 +10,8 @@ module Dynamoid
       extend ActiveModel::Translation
       extend ActiveModel::Callbacks
 
-      define_model_callbacks :create, :save, :destroy
-      
+      define_model_callbacks :create, :save, :destroy, :initialize
+
       before_create :set_created_at
       before_save :set_updated_at
     end
