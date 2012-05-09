@@ -57,7 +57,8 @@ module Dynamoid
       end
 
       def from_database(attrs = {})
-        new(attrs).tap { |r| r.new_record = false }
+        clazz = attrs[:type] ? obj = attrs[:type].constantize : self
+        clazz.new(attrs).tap { |r| r.new_record = false }
       end
 
       # Undump an object into a hash, converting each type from a string representation of itself into the type specified by the field.

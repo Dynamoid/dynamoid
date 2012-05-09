@@ -63,7 +63,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def create(attrs = {})
-        new(attrs).tap(&:save)
+        attrs[:type] ? attrs[:type].constantize.new(attrs).tap(&:save) : new(attrs).tap(&:save)
       end
 
       # Initialize a new object and immediately save it to the database. Raise an exception if persistence failed.
@@ -74,7 +74,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def create!(attrs = {})
-        new(attrs).tap(&:save!)
+        attrs[:type] ? attrs[:type].constantize.new(attrs).tap(&:save!) : new(attrs).tap(&:save!)
       end
 
       # Initialize a new object.
@@ -85,7 +85,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def build(attrs = {})
-        new(attrs)
+        attrs[:type] ? attrs[:type].constantize.new(attrs) : new(attrs)
       end
 
       # Does this object exist?
