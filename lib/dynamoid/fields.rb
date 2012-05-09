@@ -1,7 +1,7 @@
 # encoding: utf-8
 module Dynamoid #:nodoc:
 
-  # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not 
+  # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not
   # specified with field, then they will be ignored.
   module Fields
     extend ActiveSupport::Concern
@@ -15,10 +15,10 @@ module Dynamoid #:nodoc:
       field :created_at, :datetime
       field :updated_at, :datetime
     end
-    
+
     module ClassMethods
-      
-      # Specify a field for a document. Its type determines how it is coerced when read in and out of the datastore: 
+
+      # Specify a field for a document. Its type determines how it is coerced when read in and out of the datastore:
       # default is string, but you can also specify :integer, :float, :set, :array, :datetime, and :serialized.
       #
       # @param [Symbol] name the name of the field
@@ -40,7 +40,7 @@ module Dynamoid #:nodoc:
         self.range_key = name
       end
     end
-    
+
     # You can access the attributes of an object directly on its attributes method, which is by default an empty hash.
     attr_accessor :attributes
     alias :raw_attributes :attributes
@@ -94,9 +94,9 @@ module Dynamoid #:nodoc:
       write_attribute(attribute, value)
       save
     end
-    
+
     private
-    
+
     # Automatically called during the created callback to set the created_at time.
     #
     # @since 0.2.0
@@ -106,11 +106,15 @@ module Dynamoid #:nodoc:
 
     # Automatically called during the save callback to set the updated_at time.
     #
-    # @since 0.2.0    
+    # @since 0.2.0
     def set_updated_at
       self.updated_at = DateTime.now
     end
-    
+
+    def set_type
+      self.type ||= self.class.to_s if self.attributes[:type]
+    end
+
   end
-  
+
 end
