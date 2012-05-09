@@ -101,44 +101,46 @@ module Dynamoid #:nodoc:
     #
     # @return [Dynamoid::Document] the new document
     #
-    # @since 0.2.0    
+    # @since 0.2.0
     def initialize(attrs = {})
-      self.class.send(:field, self.class.hash_key) unless self.respond_to?(self.class.hash_key)
-      
-      @new_record = true
-      @attributes ||= {}
-      @associations ||= {}
+      run_callbacks :initialize do
+        self.class.send(:field, self.class.hash_key) unless self.respond_to?(self.class.hash_key)
 
-      self.class.undump(attrs).each {|key, value| send "#{key}=", value }
+        @new_record = true
+        @attributes ||= {}
+        @associations ||= {}
+
+        self.class.undump(attrs).each {|key, value| send "#{key}=", value }
+      end
     end
 
     # An object is equal to another object if their ids are equal.
     #
-    # @since 0.2.0    
+    # @since 0.2.0
     def ==(other)
       return false if other.nil?
       other.respond_to?(:hash_key) && other.hash_key == self.hash_key
     end
 
-    # Reload an object from the database -- if you suspect the object has changed in the datastore and you need those 
+    # Reload an object from the database -- if you suspect the object has changed in the datastore and you need those
     # changes to be reflected immediately, you would call this method.
     #
     # @return [Dynamoid::Document] the document this method was called on
     #
-    # @since 0.2.0        
+    # @since 0.2.0
     def reload
       self.attributes = self.class.find(self.hash_key).attributes
       @associations.values.each(&:reset)
       self
     end
-    
+
     # Return an object's hash key, regardless of what it might be called to the object.
     #
     # @since 0.4.0
     def hash_key
       self.send(self.class.hash_key)
     end
-    
+
     # Assign an object's hash key, regardless of what it might be called to the object.
     #
     # @since 0.4.0
