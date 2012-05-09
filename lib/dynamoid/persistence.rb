@@ -107,6 +107,15 @@ module Dynamoid
 
     end
 
+    # Set updated_at and any passed in field to current DateTime. Useful for things like last_login_at, etc.
+    #
+    def touch(name = nil)
+      now = DateTime.now
+      self.updated_at = now
+      attributes[name] = now if name
+      save
+    end
+
     # Is this object persisted in the datastore? Required for some ActiveModel integration stuff.
     #
     # @since 0.2.0
