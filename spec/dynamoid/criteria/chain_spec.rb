@@ -73,6 +73,14 @@ describe "Dynamoid::Associations::Chain" do
     @chain.send(:records_without_index).should == [@user]
   end
 
+  it "doesn't crash if it finds a nil id in the index" do
+    @chain.query = {:name => 'Josh', "created_at.gt" => @time - 1.day}
+    Dynamoid::Adapter.expects(:query).
+                      with("dynamoid_tests_index_user_created_ats_and_names", kind_of(Hash)).
+                      returns([{ids: nil}, {ids: Set.new([42])}])
+    @chain.send(:ids_from_index).should == Set.new([42])
+  end
+
   it 'defines each' do
     @chain.query = {:name => 'Josh'}
     @chain.each {|u| u.update_attribute(:name, 'Justin')}
