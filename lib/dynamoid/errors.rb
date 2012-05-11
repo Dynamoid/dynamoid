@@ -13,6 +13,9 @@ module Dynamoid
     # MissingRangeKey is raised when a table that requires a range key is quieried without one.
     class MissingRangeKey < Error; end
 
+    # raised when the conditional check failed during update operation
+    class ConditionalCheckFailedException < Error; end
+
     # DocumentNotValid is raised when the document fails validation.
     class DocumentNotValid < Error
       def initialize(document)

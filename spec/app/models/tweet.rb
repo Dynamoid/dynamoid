@@ -6,4 +6,7 @@ class Tweet
   range :group, :string
 
   field :msg
+  field :count, :integer
+  field :tags, :set
+  field :user_name
 end
