@@ -150,7 +150,7 @@ module Dynamoid
     def update(conditions = {}, &block)
       update!(conditions, &block)
       true
-    rescue
+    rescue Dynamoid::Errors::ConditionalCheckFailedException
       false
     end
 
