@@ -57,10 +57,10 @@ describe "Dynamoid::Criteria" do
     User.where(:name => 'x').consistent.first
 
     Dynamoid::Adapter.expects(:query).with { |table_name, options| options[:consistent_read] == true }.returns([])
-    Tweet.where(:id => 'xx', :group => 'two').consistent.all
+    Tweet.where(:tweet_id => 'xx', :group => 'two').consistent.all
 
     Dynamoid::Adapter.expects(:query).with { |table_name, options| options[:consistent_read] == false }.returns([])
-    Tweet.where(:id => 'xx', :group => 'two').all
+    Tweet.where(:tweet_id => 'xx', :group => 'two').all
   end
     
 end

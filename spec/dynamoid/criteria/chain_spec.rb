@@ -88,10 +88,10 @@ describe "Dynamoid::Associations::Chain" do
 
   it 'finds range querys' do
     @chain = Dynamoid::Criteria::Chain.new(Tweet)
-    @chain.query = { :id => 'test' }
+    @chain.query = { :tweet_id => 'test' }
     @chain.send(:range?).should be_true
 
-    @chain.query = {:id => 'test', :group => 'xx'}
+    @chain.query = {:tweet_id => 'test', :group => 'xx'}
     @chain.send(:range?).should be_true
 
     @chain.query = { :group => 'xx' }
@@ -100,32 +100,32 @@ describe "Dynamoid::Associations::Chain" do
     @chain.query = { :group => 'xx', :msg => 'hai' }
     @chain.send(:range?).should be_false
   end
-  
+
   context 'range queries' do
     before do
       @tweet1 = Tweet.create(:tweet_id => "x", :group => "one")
       @tweet2 = Tweet.create(:tweet_id => "x", :group => "two")
-      @tweet3 = Tweet.create(:tweet_id => "xx", :group => "two")      
+      @tweet3 = Tweet.create(:tweet_id => "xx", :group => "two")
       @chain = Dynamoid::Criteria::Chain.new(Tweet)
     end
-    
+
     it 'finds tweets with a simple range query' do
       @chain.query = { :tweet_id => "x" }
       @chain.send(:records_with_range).size.should == 2
       @chain.all.size.should == 2
-      @chain.limit(1).size.should == 1      
+      @chain.limit(1).size.should == 1
     end
-    
+
     it 'finds tweets with a start' do
       @chain.query = { :tweet_id => "x" }
       @chain.start(@tweet1)
       @chain.all.should =~ [@tweet2]
     end
-    
+
     it 'finds one specific tweet' do
       @chain = Dynamoid::Criteria::Chain.new(Tweet)
       @chain.query = { :tweet_id => "xx", :group => "two" }
-      @chain.send(:records_with_range).should == [@tweet3]      
+      @chain.send(:records_with_range).should == [@tweet3]
     end
   end
 
