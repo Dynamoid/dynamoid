@@ -82,11 +82,7 @@ module Dynamoid
       def delete_item(table_name, key, options = {})
         range_key = options.delete(:range_key)
         table = get_table(table_name)
-        result = if table.composite_key?
-          table.items.at(key, range_key)
-        else
-          table.items[key]
-        end
+        result = table.items.at(key, range_key)
         result.delete unless result.attributes.to_h.empty?
         true
       end
@@ -119,11 +115,8 @@ module Dynamoid
         range_key = options.delete(:range_key)
         table = get_table(table_name)
 
-        result = if table.composite_key?
-          table.items.at(key, range_key)
-        else
-          table.items[key]
-        end.attributes.to_h(options)
+        result = table.items.at(key, range_key).attributes.to_h(options)
+
         if result.empty?
           nil
         else
