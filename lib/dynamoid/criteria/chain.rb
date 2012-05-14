@@ -201,7 +201,7 @@ module Dynamoid #:nodoc:
 
       def range?
         return false unless source.range_key
-        query_keys == ['id'] || (query_keys.to_set == ['id', source.range_key.to_s].to_set)
+        query_keys == [source.hash_key.to_s] || (query_keys.to_set == [source.hash_key.to_s, source.range_key.to_s].to_set)
       end
 
       def start_key
