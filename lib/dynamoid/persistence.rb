@@ -144,6 +144,20 @@ module Dynamoid
       self
     end
 
+    def update!(conditions = {}, &block)
+      options = range_key ? {:range_key => attributes[range_key]} : {}
+      new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions), &block)
+      self.class.undump(new_attrs).each {|key, value| send "#{key}=", value }
+      @associations.values.each(&:reset)
+    end
+
+    def update(conditions = {}, &block)
+      update!(conditions, &block)
+      true
+    rescue Dynamoid::Errors::ConditionalCheckFailedException
+      false
+    end
+
     # Delete this object, but only after running callbacks for it.
     #
     # @since 0.2.0

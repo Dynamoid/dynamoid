@@ -124,6 +124,16 @@ module Dynamoid
         end
       end
 
+      def update_item(table_name, key, options = {}, &block)
+        range_key = options.delete(:range_key)
+        conditions = options.delete(:conditions) || {}
+        table = get_table(table_name)
+        item = table.items.at(key, range_key)
+        item.attributes.update(conditions.merge(:return => :all_new), &block)
+      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
+        raise Dynamoid::Errors::ConditionalCheckFailedException
+      end
+
       # List all tables on DynamoDB.
       #
       # @since 0.2.0
