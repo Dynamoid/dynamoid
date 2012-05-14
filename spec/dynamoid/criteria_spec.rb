@@ -62,5 +62,11 @@ describe "Dynamoid::Criteria" do
     Dynamoid::Adapter.expects(:query).with { |table_name, options| options[:consistent_read] == false }.returns([])
     Tweet.where(:id => 'xx', :group => 'two').all
   end
+
+  it 'raises exception when consistent_read is used with scan' do
+    expect do
+      User.where(:password => 'password').consistent.first
+    end.to raise_error(Dynamoid::Errors::InvalidQuery)
+  end
     
 end
