@@ -75,7 +75,11 @@ module Dynamoid
       #
       # @since 0.2.0
       def undump_field(value, options)
-        return if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+        if options[:default] && value.nil?
+          value = options[:default]
+        else
+          return if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+        end
 
         case options[:type]
         when :string
