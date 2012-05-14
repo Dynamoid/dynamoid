@@ -97,16 +97,8 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def records_with_index
-        ids = if index.range_key?
-          Dynamoid::Adapter.query(index.table_name, index_query).collect{|r| r[:ids]}.inject(Set.new) {|set, result| set + result}
-        else
-          results = Dynamoid::Adapter.read(index.table_name, index_query[:hash_value], consistent_opts)
-          if results
-            results[:ids]
-          else
-            []
-          end
-        end
+        ids = ids_from_index
+
         if ids.nil? || ids.empty?
           []
         else
@@ -118,6 +110,20 @@ module Dynamoid #:nodoc:
 
           ids = ids.take(@limit) if @limit
           Array(source.find(ids, consistent_opts))
+        end
+      end
+
+      # Returns the Set of IDs from the index table.
+      #
+      # @return [Set] a Set containing the IDs from the index.
+      def ids_from_index
+        if index.range_key?
+          Dynamoid::Adapter.query(index.table_name, index_query).inject(Set.new) do |all, record|
+            all + Set.new(record[:ids])
+          end
+        else
+          results = Dynamoid::Adapter.read(index.table_name, index_query[:hash_value], consistent_opts)
+          results ? results[:ids] : []
         end
       end
 

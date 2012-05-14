@@ -36,7 +36,7 @@ module Dynamoid
         Hash.new { |h, k| h[k] = Array.new }.tap do |hash|
           options.each do |table_name, keys|
             table = data[table_name]
-            if table[:range_key]
+            if table and table[:range_key]
               Array(keys).each do |hash_key, range_key|
                 hash[table_name] << get_item(table_name, hash_key, :range_key => range_key)
               end
