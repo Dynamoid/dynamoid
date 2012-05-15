@@ -17,10 +17,13 @@ require 'dynamoid/dirty'
 require 'dynamoid/validations'
 require 'dynamoid/criteria'
 require 'dynamoid/finders'
+require 'dynamoid/identity_map'
 require 'dynamoid/config'
 require 'dynamoid/components'
 require 'dynamoid/document'
 require 'dynamoid/adapter'
+
+require 'dynamoid/middleware/identity_map'
 
 module Dynamoid
   extend self

@@ -28,7 +28,7 @@ module Dynamoid
           self.find_by_id(ids.first, options)
         else
           items = Dynamoid::Adapter.read(self.table_name, ids, options)
-          items[self.table_name].collect{|i| self.build(i).tap { |o| o.new_record = false } }
+          items[self.table_name].collect{|i| self.from_database(i) }
         end
       end
 
