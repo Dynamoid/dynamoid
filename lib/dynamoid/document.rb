@@ -129,7 +129,7 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def reload
-      self.attributes = self.class.find(self.hash_key).attributes
+      self.attributes = self.class.find(hash_key, :range_key => range_value).attributes
       @associations.values.each(&:reset)
       self
     end
@@ -147,6 +147,15 @@ module Dynamoid #:nodoc:
     def hash_key=(key)
       self.send("#{self.class.hash_key}=".to_sym, key)
     end
+
+    def range_value
+      if range_key = self.class.range_key
+        self.send(range_key)
+      end
+    end
+
+    def range_value=(value)
+      self.send("#{self.class.range_key}=", value)
+    end
   end
-  
 end
