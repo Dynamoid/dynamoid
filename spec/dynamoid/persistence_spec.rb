@@ -121,16 +121,6 @@ describe "Dynamoid::Persistence" do
     CamelCase.new.save
   end
 
-  it 'tracks previous changes on save or update' do
-    @address.city = 'Chicago'
-    @address.save
-
-    @address.city = 'San Francisco'
-    @address.save
-
-    @address.city_was.should == 'Chicago'
-  end
-
   it 'works with a HashWithIndifferentAccess' do
     hash = ActiveSupport::HashWithIndifferentAccess.new("city" => "Atlanta")
 

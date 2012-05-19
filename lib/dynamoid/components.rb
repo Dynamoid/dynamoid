@@ -27,6 +27,7 @@ module Dynamoid
     include Dynamoid::Fields
     include Dynamoid::Indexes
     include Dynamoid::Persistence
+    include Dynamoid::Dirty
     include Dynamoid::Finders
     include Dynamoid::Associations
     include Dynamoid::Criteria
