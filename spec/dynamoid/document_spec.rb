@@ -90,6 +90,11 @@ describe "Dynamoid::Document" do
     @address.city.should be_nil
     @address.reload.city.should == 'Chicago'
   end
+
+  it 'reloads document with range key' do
+    tweet = Tweet.create(:tweet_id => 'x', :group => 'abc')
+    tweet.reload.group.should == 'abc'
+  end
   
   it 'has default table options' do
     @address = Address.create

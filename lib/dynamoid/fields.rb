@@ -12,7 +12,6 @@ module Dynamoid #:nodoc:
       class_attribute :range_key
 
       self.attributes = {}
-
       field :created_at, :datetime
       field :updated_at, :datetime
     end
@@ -58,8 +57,6 @@ module Dynamoid #:nodoc:
       if (size = value.to_s.size) > MAX_ITEM_SIZE
         Dynamoid.logger.warn "DynamoDB can't store items larger than #{MAX_ITEM_SIZE} and the #{name} field has a length of #{size}."
       end
-
-      attribute_will_change!(name) unless self.read_attribute(name) == value
 
       if association = @associations[name]
         association.reset

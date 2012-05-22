@@ -57,6 +57,10 @@ module Dynamoid
         Dynamoid::Adapter.tables.include?(table_name)
       end
 
+      def from_database(attrs = {})
+        new(attrs).tap { |r| r.new_record = false }
+      end
+
       # Undump an object into a hash, converting each type from a string representation of itself into the type specified by the field.
       #
       # @since 0.2.0
@@ -132,8 +136,6 @@ module Dynamoid
     # @since 0.2.0
     def save(options = {})
       self.class.create_table
-
-      @previously_changed = changes
 
       if new_record?
         run_callbacks(:create) { persist }

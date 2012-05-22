@@ -41,11 +41,9 @@ module Dynamoid
       # @since 0.2.0
       def find_by_id(id, options = {})
         if item = Dynamoid::Adapter.read(self.table_name, id, options)
-          obj = self.new(item)
-          obj.new_record = false
-          return obj
+          from_database(item)
         else
-          return nil
+          nil
         end
       end
 
@@ -81,9 +79,7 @@ module Dynamoid
       #
       def find_all_by_composite_key(hash_key, options = {})
         Dynamoid::Adapter.query(self.table_name, options.merge({hash_value: hash_key})).collect do |item|
-          obj = self.new(item)
-          obj.new_record = false
-          obj
+          from_database(item)
         end
       end
 
