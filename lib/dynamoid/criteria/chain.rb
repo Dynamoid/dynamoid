@@ -141,15 +141,11 @@ module Dynamoid #:nodoc:
           Dynamoid.logger.warn "You can index this query by adding this to #{source.to_s.downcase}.rb: index [#{source.attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
         end
 
-<<<<<<< HEAD
         if @consistent_read
           raise Dynamoid::Errors::InvalidQuery, 'Consistent read is not supported by SCAN operation'
         end
 
-        Dynamoid::Adapter.scan(source.table_name, query, query_opts).collect {|hash| source.new(hash).tap { |r| r.new_record = false } }
-=======
         Dynamoid::Adapter.scan(source.table_name, query, query_opts).collect {|hash| source.from_database(hash) }
->>>>>>> 67a90858b6ca809e0c2ac24a716bd8e8e3d99ad9
       end
 
       # Format the provided query so that it can be used to query results from DynamoDB.
