@@ -18,7 +18,7 @@ module Dynamoid
       #
       # @since 0.2.0
       def connect!
-        @@connection = AWS::DynamoDB.new(:access_key_id => Dynamoid::Config.access_key, :secret_access_key => Dynamoid::Config.secret_key, :dynamo_db_endpoint => Dynamoid::Config.endpoint)
+        @@connection = AWS::DynamoDB.new(:access_key_id => Dynamoid::Config.access_key, :secret_access_key => Dynamoid::Config.secret_key, :dynamo_db_endpoint => Dynamoid::Config.endpoint, :use_ssl => Dynamoid::Config.use_ssl)
       end
 
       # Return the established connection.

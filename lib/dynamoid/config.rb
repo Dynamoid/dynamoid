@@ -3,7 +3,7 @@ require "uri"
 require "dynamoid/config/options"
 
 module Dynamoid
-  
+
   # Contains all the basic configuration information required for Dynamoid: both sensible defaults and required fields.
   module Config
     extend self
@@ -22,8 +22,9 @@ module Dynamoid
     option :partitioning, :default => false
     option :partition_size, :default => 200
     option :endpoint, :default => 'dynamodb.us-east-1.amazonaws.com'
+    option :use_ssl, :default => true
     option :included_models, :default => []
-    
+
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #
     # @since 0.2.0
@@ -37,7 +38,7 @@ module Dynamoid
     def logger
       @logger ||= default_logger
     end
-    
+
     # If you want to, set the logger manually to any output you'd like. Or pass false or nil to disable logging entirely.
     #
     # @since 0.2.0
