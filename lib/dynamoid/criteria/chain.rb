@@ -98,7 +98,6 @@ module Dynamoid #:nodoc:
       # @since 0.2.0
       def records_with_index
         ids = ids_from_index
-
         if ids.nil? || ids.empty?
           []
         else
@@ -118,7 +117,7 @@ module Dynamoid #:nodoc:
       # @return [Set] a Set containing the IDs from the index.
       def ids_from_index
         if index.range_key?
-          Dynamoid::Adapter.query(index.table_name, index_query).inject(Set.new) do |all, record|
+          Dynamoid::Adapter.query(index.table_name, index_query.merge(consistent_opts)).inject(Set.new) do |all, record|
             all + Set.new(record[:ids])
           end
         else
@@ -140,6 +139,10 @@ module Dynamoid #:nodoc:
         if Dynamoid::Config.warn_on_scan
           Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
           Dynamoid.logger.warn "You can index this query by adding this to #{source.to_s.downcase}.rb: index [#{source.attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
+        end
+
+        if @consistent_read
+          raise Dynamoid::Errors::InvalidQuery, 'Consistent read is not supported by SCAN operation'
         end
 
         Dynamoid::Adapter.scan(source.table_name, query, query_opts).collect {|hash| source.new(hash).tap { |r| r.new_record = false } }

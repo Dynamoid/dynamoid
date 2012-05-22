@@ -22,5 +22,7 @@ module Dynamoid
         super("Validation failed: #{document.errors.full_messages.join(", ")}")
       end
     end
+
+    class InvalidQuery < Error; end
   end
 end
