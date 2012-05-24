@@ -27,9 +27,23 @@ module Dynamoid
         if ids.count == 1
           self.find_by_id(ids.first, options)
         else
-          items = Dynamoid::Adapter.read(self.table_name, ids, options)
-          items[self.table_name].collect{|i| self.build(i).tap { |o| o.new_record = false } }
+          find_all(ids)
         end
+      end
+
+      # Find all object by hash key or hash and range key
+      #
+      # @param [Array<ID>] ids
+      #
+      # @example
+      #   find all the user with hash key
+      #   User.find_all(['1', '2', '3'])
+      #
+      #   find all the tweets using hash key and range key
+      #   Tweet.find_all([['1', 'red'], ['1', 'green'])
+      def find_all(ids)
+        items = Dynamoid::Adapter.read(self.table_name, ids, options)
+        items[self.table_name].collect{|i| self.build(i).tap { |o| o.new_record = false } }
       end
 
       # Find one object directly by id.
