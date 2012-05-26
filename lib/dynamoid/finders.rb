@@ -43,7 +43,7 @@ module Dynamoid
       #   Tweet.find_all([['1', 'red'], ['1', 'green'])
       def find_all(ids)
         items = Dynamoid::Adapter.read(self.table_name, ids, options)
-        items[self.table_name].collect{|i| self.build(i).tap { |o| o.new_record = false } }
+        items[self.table_name].collect{|i| from_database(i) }
       end
 
       # Find one object directly by id.
