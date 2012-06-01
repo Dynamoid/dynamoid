@@ -87,7 +87,6 @@ describe "Dynamoid::Document" do
     
     Address.first.update_attributes(:city => 'Chicago')
     
-    @address.city.should be_nil
     @address.reload.city.should == 'Chicago'
   end
 

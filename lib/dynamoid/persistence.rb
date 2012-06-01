@@ -32,8 +32,7 @@ module Dynamoid
       # @since 0.4.0
       def create_table(options = {})
         if self.range_key
-          range_key_type = [:integer, :float].include?(attributes[range_key][:type]) ? :number : attributes[range_key][:type]
-          range_key_hash = { range_key => range_key_type}
+          range_key_hash = { range_key => dynamo_type(attributes[range_key][:type]) }
         else
           range_key_hash = nil
         end
@@ -113,6 +112,17 @@ module Dynamoid
         end
       end
 
+      def dynamo_type(type)
+        case type
+        when :integer, :float, :datetime
+          :number
+        when :string, :serialized
+          :string
+        else
+          raise 'unknown type'
+        end
+      end
+
     end
 
     # Set updated_at and any passed in field to current DateTime. Useful for things like last_login_at, etc.
@@ -149,8 +159,7 @@ module Dynamoid
     def update!(conditions = {}, &block)
       options = range_key ? {:range_key => attributes[range_key]} : {}
       new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions), &block)
-      self.class.undump(new_attrs).each {|key, value| send "#{key}=", value }
-      @associations.values.each(&:reset)
+      load(new_attrs)
     end
 
     def update(conditions = {}, &block)

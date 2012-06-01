@@ -24,6 +24,7 @@ module Dynamoid
     option :endpoint, :default => 'dynamodb.us-east-1.amazonaws.com'
     option :use_ssl, :default => true
     option :included_models, :default => []
+    option :identity_map, :default => false
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #
