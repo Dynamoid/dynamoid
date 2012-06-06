@@ -48,7 +48,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def table_name
-        "#{Dynamoid::Config.namespace}_index_#{source.to_s.downcase}_#{name.collect(&:to_s).collect(&:pluralize).join('_and_')}"
+        "#{Dynamoid::Config.namespace}_index_#{source.table_name.to_s.downcase}_#{name.collect(&:to_s).collect(&:pluralize).join('_and_')}"
       end
 
       # Given either an object or a list of attributes, generate a hash key and a range key for the index. Optionally pass in 
