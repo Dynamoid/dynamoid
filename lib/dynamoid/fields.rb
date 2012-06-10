@@ -33,8 +33,6 @@ module Dynamoid #:nodoc:
         define_method(named) { read_attribute(named) }
         define_method("#{named}?") { !read_attribute(named).nil? }
         define_method("#{named}=") {|value| write_attribute(named, value) }
-
-        respond_to?(:define_attribute_method) ? define_attribute_method(name) : define_attribute_methods([name])
       end
 
       def range(name, type = :string)
