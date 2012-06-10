@@ -18,7 +18,6 @@ module Dynamoid
 
     include ActiveModel::AttributeMethods
     include ActiveModel::Conversion
-    include ActiveModel::Dirty
     include ActiveModel::MassAssignmentSecurity
     include ActiveModel::Naming
     include ActiveModel::Observing

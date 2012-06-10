@@ -1,6 +1,7 @@
 module Dynamoid
   module Dirty
     extend ActiveSupport::Concern
+    include ActiveModel::Dirty
 
     module ClassMethods
       def from_database(*)
@@ -29,6 +30,12 @@ module Dynamoid
     def write_attribute(name, value)
       attribute_will_change!(name) unless self.read_attribute(name) == value
       super
+    end
+
+    protected
+
+    def attribute_method?(attr)
+      super || self.class.attributes.has_key?(attr.to_sym)
     end
   end
 end
