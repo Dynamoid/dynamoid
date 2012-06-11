@@ -78,8 +78,8 @@ module Dynamoid
       #
       # @since 0.2.0
       def undump_field(value, options)
-        if options[:default] && value.nil?
-          value = options[:default]
+        if value.nil? && (default_value = options[:default])
+          value = default_value.respond_to?(:call) ? default_value.call : default_value
         else
           return if value.nil? || (value.respond_to?(:empty?) && value.empty?)
         end
