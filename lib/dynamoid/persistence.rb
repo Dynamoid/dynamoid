@@ -157,7 +157,7 @@ module Dynamoid
     end
 
     def update!(conditions = {}, &block)
-      options = range_key ? {:range_key => attributes[range_key]} : {}
+      options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
       new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions), &block)
       load(new_attrs)
     end
@@ -184,7 +184,7 @@ module Dynamoid
     # @since 0.2.0
     def delete
       delete_indexes
-      options = range_key ? {:range_key => attributes[range_key]} : {}
+      options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
       Dynamoid::Adapter.delete(self.class.table_name, self.hash_key, options)
     end
 
