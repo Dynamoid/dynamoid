@@ -1,6 +1,10 @@
 # Dynamoid
 
-Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It provides similar functionality to ActiveRecord and improves on Amazon's existing [HashModel](http://docs.amazonwebservices.com/AWSRubySDK/latest/AWS/Record/HashModel.html) by providing better searching tools, native association support, and a local adapter for offline development.
+Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It
+provides similar functionality to ActiveRecord and improves on
+Amazon's existing
+[HashModel](http://docs.amazonwebservices.com/AWSRubySDK/latest/AWS/Record/HashModel.html)
+by providing better searching tools and native association support.
 
 DynamoDB is not like other document-based databases you might know, and is very different indeed from relational databases. It sacrifices anything beyond the simplest relational queries and transactional support to provide a fast, cost-efficient, and highly durable storage solution. If your database requires complicated relational queries and transaction support, then this modest Gem cannot provide them for you, and neither can DynamoDB. In those cases you would do better to look elsewhere for your database needs.
 
@@ -18,7 +22,6 @@ Then you need to initialize it to get it going. Put code similar to this somewhe
 
 ```ruby
   Dynamoid.configure do |config|
-    config.adapter = 'local' # This adapter allows offline development without connecting to the DynamoDB servers. Data is *NOT* persisted.
     # config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using Amazon's own AWS gem.
     # config.access_key = 'access_key' # If connecting to DynamoDB, your access key is required.
     # config.secret_key = 'secret_key' # So is your secret key.
@@ -254,7 +257,11 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 
 ## Running the tests
 
-The tests can be run in the simple predictable way with ```rake```. However, if you provide environment variables for ACCESS_KEY and SECRET_KEY, the tests will use the aws_sdk adapter rather than the local adapter: ```ACCESS_KEY=<accesskey> SECRET_KEY=<secretkey> rake```. Keep in mind this takes much, much longer than the local tests.
+````
+rvmsudo fake_dynamo --port 80
+ACCESS_KEY=<accesskey> SECRET_KEY=<secretkey> rake
+````
+
 
 ## Copyright
 

@@ -7,7 +7,7 @@ module Dynamoid
     extend self
     attr_accessor :tables
 
-    # The actual adapter currently in use: presently, either AwsSdk or Local.
+    # The actual adapter currently in use: presently AwsSdk.
     #
     # @since 0.2.0
     def adapter
