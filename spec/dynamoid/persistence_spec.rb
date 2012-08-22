@@ -162,6 +162,15 @@ describe "Dynamoid::Persistence" do
         end
       }.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
     end
+
   end
 
+  context 'delete' do
+    it 'deletes model with datetime range key' do
+      lambda {
+        msg = Message.create!(:message_id => 1, :time => DateTime.now, :text => "Hell yeah")
+        msg.destroy
+      }.should_not raise_error
+    end
+  end
 end
