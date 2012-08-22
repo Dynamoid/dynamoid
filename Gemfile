@@ -18,4 +18,6 @@ group :development do
   gem "yard"
   gem "redcarpet", '1.17.2'
   gem 'github-markup'
+  gem 'pry'
+  gem 'fake_dynamo'
 end
