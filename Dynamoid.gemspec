@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "dynamoid"
-  s.version = "0.4.1"
+  s.version = "0.5.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Josh Symonds"]
-  s.date = "2012-05-04"
+  s.date = "2012-08-22"
   s.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   s.email = "josh@joshsymonds.com"
   s.extra_rdoc_files = [
@@ -81,7 +81,6 @@ Gem::Specification.new do |s|
     "lib/dynamoid.rb",
     "lib/dynamoid/adapter.rb",
     "lib/dynamoid/adapter/aws_sdk.rb",
-    "lib/dynamoid/adapter/local.rb",
     "lib/dynamoid/associations.rb",
     "lib/dynamoid/associations/association.rb",
     "lib/dynamoid/associations/belongs_to.rb",
@@ -95,23 +94,26 @@ Gem::Specification.new do |s|
     "lib/dynamoid/config/options.rb",
     "lib/dynamoid/criteria.rb",
     "lib/dynamoid/criteria/chain.rb",
+    "lib/dynamoid/dirty.rb",
     "lib/dynamoid/document.rb",
     "lib/dynamoid/errors.rb",
     "lib/dynamoid/fields.rb",
     "lib/dynamoid/finders.rb",
+    "lib/dynamoid/identity_map.rb",
     "lib/dynamoid/indexes.rb",
     "lib/dynamoid/indexes/index.rb",
+    "lib/dynamoid/middleware/identity_map.rb",
     "lib/dynamoid/persistence.rb",
     "lib/dynamoid/validations.rb",
     "spec/app/models/address.rb",
     "spec/app/models/camel_case.rb",
     "spec/app/models/magazine.rb",
+    "spec/app/models/message.rb",
     "spec/app/models/sponsor.rb",
     "spec/app/models/subscription.rb",
     "spec/app/models/tweet.rb",
     "spec/app/models/user.rb",
     "spec/dynamoid/adapter/aws_sdk_spec.rb",
-    "spec/dynamoid/adapter/local_spec.rb",
     "spec/dynamoid/adapter_spec.rb",
     "spec/dynamoid/associations/association_spec.rb",
     "spec/dynamoid/associations/belongs_to_spec.rb",
@@ -122,9 +124,11 @@ Gem::Specification.new do |s|
     "spec/dynamoid/config_spec.rb",
     "spec/dynamoid/criteria/chain_spec.rb",
     "spec/dynamoid/criteria_spec.rb",
+    "spec/dynamoid/dirty_spec.rb",
     "spec/dynamoid/document_spec.rb",
     "spec/dynamoid/fields_spec.rb",
     "spec/dynamoid/finders_spec.rb",
+    "spec/dynamoid/identity_map_spec.rb",
     "spec/dynamoid/indexes/index_spec.rb",
     "spec/dynamoid/indexes_spec.rb",
     "spec/dynamoid/persistence_spec.rb",
@@ -135,7 +139,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/Veraticus/Dynamoid"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.24"
+  s.rubygems_version = "1.8.23"
   s.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
 
   if s.respond_to? :specification_version then
@@ -145,7 +149,6 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<activemodel>, [">= 0"])
       s.add_runtime_dependency(%q<tzinfo>, [">= 0"])
       s.add_runtime_dependency(%q<aws-sdk>, [">= 0"])
-      s.add_development_dependency(%q<mocha>, [">= 0"])
       s.add_development_dependency(%q<rake>, [">= 0"])
       s.add_development_dependency(%q<rspec>, [">= 0"])
       s.add_development_dependency(%q<bundler>, [">= 0"])
@@ -153,11 +156,13 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<yard>, [">= 0"])
       s.add_development_dependency(%q<redcarpet>, ["= 1.17.2"])
       s.add_development_dependency(%q<github-markup>, [">= 0"])
+      s.add_development_dependency(%q<pry>, [">= 0"])
+      s.add_development_dependency(%q<fake_dynamo>, [">= 0"])
+      s.add_development_dependency(%q<mocha>, ["= 0.10.0"])
     else
       s.add_dependency(%q<activemodel>, [">= 0"])
       s.add_dependency(%q<tzinfo>, [">= 0"])
       s.add_dependency(%q<aws-sdk>, [">= 0"])
-      s.add_dependency(%q<mocha>, [">= 0"])
       s.add_dependency(%q<rake>, [">= 0"])
       s.add_dependency(%q<rspec>, [">= 0"])
       s.add_dependency(%q<bundler>, [">= 0"])
@@ -165,12 +170,14 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<yard>, [">= 0"])
       s.add_dependency(%q<redcarpet>, ["= 1.17.2"])
       s.add_dependency(%q<github-markup>, [">= 0"])
+      s.add_dependency(%q<pry>, [">= 0"])
+      s.add_dependency(%q<fake_dynamo>, [">= 0"])
+      s.add_dependency(%q<mocha>, ["= 0.10.0"])
     end
   else
     s.add_dependency(%q<activemodel>, [">= 0"])
     s.add_dependency(%q<tzinfo>, [">= 0"])
     s.add_dependency(%q<aws-sdk>, [">= 0"])
-    s.add_dependency(%q<mocha>, [">= 0"])
     s.add_dependency(%q<rake>, [">= 0"])
     s.add_dependency(%q<rspec>, [">= 0"])
     s.add_dependency(%q<bundler>, [">= 0"])
@@ -178,6 +185,9 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<yard>, [">= 0"])
     s.add_dependency(%q<redcarpet>, ["= 1.17.2"])
     s.add_dependency(%q<github-markup>, [">= 0"])
+    s.add_dependency(%q<pry>, [">= 0"])
+    s.add_dependency(%q<fake_dynamo>, [">= 0"])
+    s.add_dependency(%q<mocha>, ["= 0.10.0"])
   end
 end
 
