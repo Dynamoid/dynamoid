@@ -10,7 +10,6 @@ gem 'aws-sdk'
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
 group :development do
-  gem "mocha"
   gem "rake"
   gem "rspec"
   gem "bundler"
@@ -20,4 +19,5 @@ group :development do
   gem 'github-markup'
   gem 'pry'
   gem 'fake_dynamo'
+  gem "mocha"
 end
