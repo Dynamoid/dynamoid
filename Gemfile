@@ -19,5 +19,5 @@ group :development do
   gem 'github-markup'
   gem 'pry'
   gem 'fake_dynamo'
-  gem "mocha"
+  gem "mocha", '0.10.0'
 end

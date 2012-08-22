@@ -57,8 +57,6 @@ describe "Dynamoid::Indexes::Index" do
     @user = User.new(:name => 'Josh', :password => 'test123', :created_at => @time)
     @user.name = 'Justin'
     
-    @index.values(@user, true).should == {:hash_value => 'Josh.test123', :range_value => @time.to_f}
-    
     @index.values(@user).should == {:hash_value => 'Justin.test123', :range_value => @time.to_f}
   end
   
