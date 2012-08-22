@@ -257,11 +257,7 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 
 ## Running the tests
 
-````
-rvmsudo fake_dynamo --port 80
-ACCESS_KEY=<accesskey> SECRET_KEY=<secretkey> rake
-````
-
+Running the tests is fairly simple. In one window, run `fake_dynamo`, and in the other, use `rake`.
 
 ## Copyright
 
