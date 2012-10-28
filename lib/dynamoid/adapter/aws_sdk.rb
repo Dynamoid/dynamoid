@@ -15,10 +15,30 @@ module Dynamoid
       # Establish the connection to DynamoDB.
       #
       # @return [AWS::DynamoDB::Connection] the raw DynamoDB connection
-      #
+      # Call DynamoDB new, with no parameters. 
+      # Make sure the aws.yml file or aws.rb file, refer the link for more details. 
+      #https://github.com/amazonwebservices/aws-sdk-for-ruby
+      # 1. Create config/aws.yml as follows:
+      # Fill in your AWS Access Key ID and Secret Access Key
+      # http://aws.amazon.com/security-credentials
+      #access_key_id: REPLACE_WITH_ACCESS_KEY_ID
+      #secret_access_key: REPLACE_WITH_SECRET_ACCESS_KEY
+      #(or)
+      #2, Create config/initializers/aws.rb as follows:
+      # load the libraries
+      #require 'aws'
+      # log requests using the default rails logger
+      #AWS.config(:logger => Rails.logger)
+      # load credentials from a file
+      #config_path = File.expand_path(File.dirname(__FILE__)+"/../aws.yml")
+      #AWS.config(YAML.load(File.read(config_path)))
+      #Additionally include any of the dynamodb paramters as needed 
+      #(eg: if you would like to change the dynamodb endpoint, then add the parameter in 
+      # the following paramter in the file  aws.yml or aws.rb 
+      # dynamo_db_endpoint : dynamodb.ap-southeast-1.amazonaws.com)
       # @since 0.2.0
       def connect!
-        @@connection = AWS::DynamoDB.new(:access_key_id => Dynamoid::Config.access_key, :secret_access_key => Dynamoid::Config.secret_key, :dynamo_db_endpoint => Dynamoid::Config.endpoint, :use_ssl => Dynamoid::Config.use_ssl, :dynamo_db_port => Dynamoid::Config.port)
+      @@connection = AWS::DynamoDB.new
       end
 
       # Return the established connection.
