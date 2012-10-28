@@ -19,11 +19,18 @@ gem 'dynamoid'
 ```
 ## Prerequisities
 
-We use the aws-sdk, and this is tested on the current version of aws-sdk (1.6.9), rails 3.2.8.
-Hence the configuration as needed for aws to work will be dealt with using aws. 
+Dynamoid depends on  the aws-sdk, and this is tested on the current version of aws-sdk (1.6.9), rails 3.2.8.
+Hence the configuration as needed for aws to work will be dealt with by aws setup. 
 
-Make sure the aws.yml file or aws.rb file, refer the link for more details. 
-[Create aws initiation file](https://github.com/amazonwebservices/aws-sdk-for-ruby)
+Here are the steps to setup aws-sdk.
+
+```ruby
+gem 'aws-sdk'
+```
+(or) include the aws-sdk in your Gemfile.
+
+
+[Refer this link for aws setup](https://github.com/amazonwebservices/aws-sdk-for-ruby)
 
 1. Just like the config/database.yml this file requires an entry for each environment, create config/aws.yml as follows:
 
@@ -54,7 +61,7 @@ Fill in your AWS Access Key ID and Secret Access Key
 
 #Additionally include any of the dynamodb paramters as needed.
 #(eg: if you would like to change the dynamodb endpoint, then add the parameter in 
-# the following paramter in the file  aws.yml or aws.rb 
+# in the file  aws.yml or aws.rb 
 
 dynamo_db_endpoint : dynamodb.ap-southeast-1.amazonaws.com)
 
