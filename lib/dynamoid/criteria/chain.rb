@@ -214,7 +214,8 @@ module Dynamoid #:nodoc:
       end
 
       def start_key
-        key = { :hash_key_element => { 'S' => @start.hash_key } }
+        hash_key_type = @start.class.attributes[@start.class.hash_key][:type] == :string ? 'S' : 'N'
+        key = { :hash_key_element => { "#{hash_key_type}" => @start.hash_key.to_s } }
         if range_key = @start.class.range_key
           range_key_type = @start.class.attributes[range_key][:type] == :string ? 'S' : 'N'
           key.merge!({:range_key_element => { range_key_type => @start.send(range_key) } })
