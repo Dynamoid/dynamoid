@@ -16,6 +16,7 @@ module Dynamoid #:nodoc:
         @query = {}
         @source = source
         @consistent_read = false
+        @scan_index_forward = true
       end
 
       # The workhorse method of the criteria chain. Each key in the passed in hash will become another criteria that the
@@ -60,6 +61,11 @@ module Dynamoid #:nodoc:
 
       def start(start)
         @start = start
+        self
+      end
+
+      def scan_index_forward(scan_index_forward)
+        @scan_index_forward = scan_index_forward
         self
       end
 
@@ -227,6 +233,7 @@ module Dynamoid #:nodoc:
         opts = {}
         opts[:limit] = @limit if @limit
         opts[:next_token] = start_key if @start
+        opts[:scan_index_forward] = @scan_index_forward
         opts
       end
     end
