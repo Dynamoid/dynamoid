@@ -194,6 +194,7 @@ module Dynamoid
     def dump
       Hash.new.tap do |hash|
         self.class.attributes.each do |attribute, options|
+          next if self.read_only_attributes.include? attribute.to_s
           hash[attribute] = dump_field(self.read_attribute(attribute), options)
         end
       end
