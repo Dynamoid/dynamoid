@@ -17,7 +17,7 @@ module Dynamoid
       #
       # @since 0.2.0
       def table_name
-        "#{Dynamoid::Config.namespace}_#{options[:name] ? options[:name] : self.name.downcase.pluralize}"
+        "#{Dynamoid::Config.namespace}_#{options[:name] ? options[:name] : self.name.split('::').last.downcase.pluralize}"
       end
 
       # Creates a table.
