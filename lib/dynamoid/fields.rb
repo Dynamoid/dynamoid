@@ -81,7 +81,9 @@ module Dynamoid #:nodoc:
     # @since 0.2.0
     def update_attributes(attributes)
       attributes.each {|attribute, value| self.write_attribute(attribute, value)}
-      save
+      update! do |u|
+        u.set attributes
+      end
     end
 
     # Update a single attribute, saving the object afterwards.
