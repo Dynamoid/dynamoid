@@ -159,7 +159,7 @@ module Dynamoid
     def update!(conditions = {}, &block)
       options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
       new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions), &block)
-      #load(new_attrs)
+      load(new_attrs)
     end
 
     def update(conditions = {}, &block)
