@@ -81,8 +81,14 @@ module Dynamoid #:nodoc:
     # @since 0.2.0
     def update_attributes(attributes)
       attributes.each {|attribute, value| self.write_attribute(attribute, value)}
-      update! do |u|
-        u.set attributes
+      if self.new_record # if never saved save.
+        save
+      else # update attributes if we have saved.
+        run_callbacks(:save) do
+          update! do |u|
+            attributes.each {|attribute, value| u.set attribute => self.read_attribute(attribute)}
+          end
+        end
       end
     end
 
