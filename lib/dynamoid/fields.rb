@@ -87,7 +87,12 @@ module Dynamoid #:nodoc:
         # next if self.read_only_attributes.include? attribute.to_s put this back in.
         run_callbacks(:save) do
           update! do |u|
-            attributes.each {|attribute, value| u.set attribute => dump_field(self.read_attribute(attribute), {})}
+            attributes.each do |attribute, value|
+              u.set attribute => dump_field(
+                self.read_attribute(attribute),
+                self.class.attributes[attribute.to_sym]
+              )
+            end
           end
         end
       end
