@@ -23,7 +23,7 @@ module Dynamoid
     option :partition_size, :default => 200
     option :endpoint, :default => 'dynamodb.us-east-1.amazonaws.com'
     option :use_ssl, :default => true
-    option :port, :default => '80'
+    option :port, :default => '443'
     option :included_models, :default => []
     option :identity_map, :default => false
 
