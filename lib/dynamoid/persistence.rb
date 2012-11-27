@@ -17,7 +17,7 @@ module Dynamoid
       #
       # @since 0.2.0
       def table_name
-        "#{Dynamoid::Config.namespace}_#{options[:name] ? options[:name] : self.name.downcase.pluralize}"
+        "#{Dynamoid::Config.namespace}_#{options[:name] ? options[:name] : self.name.split('::').last.downcase.pluralize}"
       end
 
       # Creates a table.
@@ -53,7 +53,7 @@ module Dynamoid
       #
       # @since 0.2.0
       def table_exists?(table_name)
-        Dynamoid::Adapter.tables.include?(table_name)
+        Dynamoid::Adapter.tables ? Dynamoid::Adapter.tables.include?(table_name) : false
       end
 
       def from_database(attrs = {})

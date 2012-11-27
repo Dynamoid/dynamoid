@@ -8,8 +8,9 @@ module Dynamoid #:nodoc:
     include Dynamoid::Components
 
     included do
-      class_attribute :options
+      class_attribute :options, :read_only_attributes
       self.options = {}
+      self.read_only_attributes = []
 
       Dynamoid::Config.included_models << self
     end
@@ -27,6 +28,10 @@ module Dynamoid #:nodoc:
       # @since 0.4.0
       def table(options = {})
         self.options = options
+      end
+
+      def attr_readonly(*read_only_attributes)
+        self.read_only_attributes.concat read_only_attributes.map(&:to_s)
       end
 
       # Returns the read_capacity for this table.

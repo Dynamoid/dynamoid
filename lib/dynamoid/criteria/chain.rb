@@ -16,6 +16,7 @@ module Dynamoid #:nodoc:
         @query = {}
         @source = source
         @consistent_read = false
+        @scan_index_forward = true
       end
 
       # The workhorse method of the criteria chain. Each key in the passed in hash will become another criteria that the
@@ -60,6 +61,11 @@ module Dynamoid #:nodoc:
 
       def start(start)
         @start = start
+        self
+      end
+
+      def scan_index_forward(scan_index_forward)
+        @scan_index_forward = scan_index_forward
         self
       end
 
@@ -214,10 +220,11 @@ module Dynamoid #:nodoc:
       end
 
       def start_key
-        key = { :hash_key_element => { 'S' => @start.hash_key } }
+        hash_key_type = @start.class.attributes[@start.class.hash_key][:type] == :string ? 'S' : 'N'
+        key = { :hash_key_element => { hash_key_type => @start.hash_key.to_s } }
         if range_key = @start.class.range_key
           range_key_type = @start.class.attributes[range_key][:type] == :string ? 'S' : 'N'
-          key.merge!({:range_key_element => { range_key_type => @start.send(range_key) } })
+          key.merge!({:range_key_element => { range_key_type => @start.send(range_key).to_s } })
         end
         key
       end
@@ -226,6 +233,7 @@ module Dynamoid #:nodoc:
         opts = {}
         opts[:limit] = @limit if @limit
         opts[:next_token] = start_key if @start
+        opts[:scan_index_forward] = @scan_index_forward
         opts
       end
     end
