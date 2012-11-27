@@ -190,7 +190,7 @@ module Dynamoid #:nodoc:
       def range_query
         opts = { :hash_value => query[source.hash_key] }
         if key = query.keys.find { |k| k.to_s.include?('.') }
-          opts.merge!(range_key(key))
+          opts.merge!(range_hash(key))
         end
         opts.merge(query_opts).merge(consistent_opts)
       end

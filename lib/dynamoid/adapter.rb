@@ -152,7 +152,10 @@ module Dynamoid
       {}.tap do |hash|
         Array(results).each do |result|
           next if result.nil?
-          id = result[:id].split('.').first
+          #Need to find the value of id with out the . and partition number
+          partition = result[:id].split('.').last
+          id = result[:id].split(".#{partition}").first
+          
           if !hash[id] || (result[:updated_at] > hash[id][:updated_at])
             result[:id] = id
             hash[id] = result
