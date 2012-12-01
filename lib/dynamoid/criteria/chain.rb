@@ -151,7 +151,7 @@ module Dynamoid #:nodoc:
           raise Dynamoid::Errors::InvalidQuery, 'Consistent read is not supported by SCAN operation'
         end
 
-        Dynamoid::Adapter.scan(source.table_name, query, query_opts).collect {|hash| source.from_database(hash) }
+        Dynamoid::Adapter.scan(source.table_name, query, scan_opts).collect {|hash| source.from_database(hash) }
       end
 
       # Format the provided query so that it can be used to query results from DynamoDB.
@@ -233,6 +233,13 @@ module Dynamoid #:nodoc:
         opts[:limit] = @limit if @limit
         opts[:next_token] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
+        opts
+      end
+      
+      def scan_opts
+        opts = {}
+        opts[:limit] = @limit if @limit
+        opts[:next_token] = start_key if @start
         opts
       end
     end
