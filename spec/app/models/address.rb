@@ -3,6 +3,7 @@ class Address
   
   field :city
   field :options, :serialized
+  field :deliverable, :boolean
 
   def zip_code=(zip_code)
     self.city = "Chicago"

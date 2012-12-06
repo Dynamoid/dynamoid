@@ -89,6 +89,20 @@ describe "Dynamoid::Persistence" do
     @address.options = (hash = {:x => [1, 2], "foobar" => 3.14})
     Address.undump(@address.send(:dump))[:options].should == hash
   end
+  
+  it 'dumps a boolean field' do
+    @address.deliverable = true
+    Address.undump(@address.send(:dump))[:deliverable].should == true
+  end
+  
+  it 'raises on an invalid boolean value' do
+    expect do
+      @address.deliverable = true
+      data = @address.send(:dump)
+      data[:deliverable] = 'foo'
+      Address.undump(data)
+    end.to raise_error(ArgumentError)
+  end
 
   it 'loads a hash into a serialized field' do
     hash = {foo: :bar}
@@ -125,6 +139,21 @@ describe "Dynamoid::Persistence" do
     hash = ActiveSupport::HashWithIndifferentAccess.new("city" => "Atlanta")
 
     lambda {Address.create(hash)}.should_not raise_error
+  end
+  
+  it 'raises when dumping a column with an unknown field type' do
+    clazz = Class.new do
+      include Dynamoid::Document
+      table :name => :addresses
+
+      field :city
+      field :options, :serialized
+      field :deliverable, :bad_type_specifier
+    end
+    
+    expect do
+      clazz.new(:deliverable => true).dump
+    end.to raise_error(ArgumentError)
   end
 
   context 'update' do

@@ -6,7 +6,7 @@ describe "Dynamoid::Document" do
     @address = Address.new
     
     @address.new_record.should be_true
-    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil, :options=>nil}
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil, :options=>nil, :deliverable => nil}
   end
 
   it 'responds to will_change! methods for all fields' do
@@ -22,7 +22,7 @@ describe "Dynamoid::Document" do
     
     @address.new_record.should be_true
     
-    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil}
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil}
   end
 
   it 'initializes a new document with a virtual attribute' do
@@ -30,7 +30,7 @@ describe "Dynamoid::Document" do
     
     @address.new_record.should be_true
     
-    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil}
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil}
   end
 
   it 'allows interception of write_attribute on load' do

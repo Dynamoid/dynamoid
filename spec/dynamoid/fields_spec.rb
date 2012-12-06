@@ -36,13 +36,13 @@ describe "Dynamoid::Fields" do
     @address.updated_at.should_not be_nil
     @address.updated_at.class.should == DateTime
   end
-
+  
   context 'with a saved address' do
     before do
-      @address = Address.create
+      @address = Address.create(:deliverable => true)
       @original_id = @address.id
     end
-
+    
     it 'should write an attribute correctly' do
       @address.write_attribute(:city, 'Chicago')
     end
@@ -85,7 +85,7 @@ describe "Dynamoid::Fields" do
     end
 
     it 'returns all attributes' do
-      Address.attributes.should == {:id=>{:type=>:string}, :created_at=>{:type=>:datetime}, :updated_at=>{:type=>:datetime}, :city=>{:type=>:string}, :options=>{:type=>:serialized}}
+      Address.attributes.should == {:id=>{:type=>:string}, :created_at=>{:type=>:datetime}, :updated_at=>{:type=>:datetime}, :city=>{:type=>:string}, :options=>{:type=>:serialized}, :deliverable => {:type => :boolean}}
     end
   end
 
