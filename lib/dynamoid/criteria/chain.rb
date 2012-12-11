@@ -46,6 +46,63 @@ module Dynamoid #:nodoc:
       def all
         records
       end
+      
+      # Destroys all the records matching the criteria.
+      #
+      def destroy_all
+        ids = []
+        
+        if range?
+          ranges = []
+          Dynamoid::Adapter.query(source.table_name, range_query).collect do |hash| 
+            ids << hash[source.hash_key.to_sym]
+            ranges << hash[source.range_key.to_sym]
+          end
+          
+          Dynamoid::Adapter.delete(source.table_name, ids,{:range_key => ranges})
+        elsif index
+          #TODO: test this throughly and find a way to delete all index table records for one source record
+          if index.range_key?
+            results = Dynamoid::Adapter.query(index.table_name, index_query.merge(consistent_opts))
+          else
+            results = Dynamoid::Adapter.read(index.table_name, index_query[:hash_value], consistent_opts)
+          end
+          
+          results.collect do |hash| 
+            ids << hash[source.hash_key.to_sym]
+            index_ranges << hash[source.range_key.to_sym]
+          end
+        
+          unless ids.nil? || ids.empty?
+            ids = ids.to_a
+  
+            if @start
+              ids = ids.drop_while { |id| id != @start.hash_key }.drop(1)
+              index_ranges = index_ranges.drop_while { |range| range != @start.hash_key }.drop(1) unless index_ranges.nil?
+            end
+  
+            if @limit           
+              ids = ids.take(@limit) 
+              index_ranges = index_ranges.take(@limit)
+            end
+            
+            Dynamoid::Adapter.delete(source.table_name, ids)
+            
+            if index.range_key?
+              Dynamoid::Adapter.delete(index.table_name, ids,{:range_key => index_ranges})
+            else
+              Dynamoid::Adapter.delete(index.table_name, ids)
+            end
+            
+          end
+        else
+          Dynamoid::Adapter.scan(source.table_name, query, scan_opts).collect do |hash| 
+            ids << hash[source.hash_key.to_sym]
+          end
+          
+          Dynamoid::Adapter.delete(source.table_name, ids)
+        end   
+      end
 
       # Returns the first record matching the criteria.
       #
@@ -151,7 +208,7 @@ module Dynamoid #:nodoc:
           raise Dynamoid::Errors::InvalidQuery, 'Consistent read is not supported by SCAN operation'
         end
 
-        Dynamoid::Adapter.scan(source.table_name, query, query_opts).collect {|hash| source.from_database(hash) }
+        Dynamoid::Adapter.scan(source.table_name, query, scan_opts).collect {|hash| source.from_database(hash) }
       end
 
       # Format the provided query so that it can be used to query results from DynamoDB.
@@ -220,7 +277,7 @@ module Dynamoid #:nodoc:
       end
 
       def start_key
-        hash_key_type = @start.class.attributes[@start.class.hash_key][:type] == :string ? 'S' : 'N'
+ 	      hash_key_type = @start.class.attributes[@start.class.hash_key][:type] == :string ? 'S' : 'N'
         key = { :hash_key_element => { hash_key_type => @start.hash_key.to_s } }
         if range_key = @start.class.range_key
           range_key_type = @start.class.attributes[range_key][:type] == :string ? 'S' : 'N'
@@ -234,6 +291,13 @@ module Dynamoid #:nodoc:
         opts[:limit] = @limit if @limit
         opts[:next_token] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
+        opts
+      end
+      
+      def scan_opts
+        opts = {}
+        opts[:limit] = @limit if @limit
+        opts[:next_token] = start_key if @start
         opts
       end
     end

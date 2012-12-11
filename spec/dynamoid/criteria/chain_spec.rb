@@ -136,5 +136,28 @@ describe "Dynamoid::Associations::Chain" do
       @chain.send(:records_with_range).should == [@tweet3]
     end
   end
+  
+  context 'destroy alls' do
+    before do
+      @tweet1 = Tweet.create(:tweet_id => "x", :group => "one")
+      @tweet2 = Tweet.create(:tweet_id => "x", :group => "two")
+      @tweet3 = Tweet.create(:tweet_id => "xx", :group => "two")
+      @chain = Dynamoid::Criteria::Chain.new(Tweet)
+    end
+    
+    it 'destroys tweet with a range simple range query' do
+      @chain.query = { :tweet_id => "x" }
+      @chain.all.size.should == 2
+      @chain.destroy_all
+      @chain.consistent.all.size.should == 0
+    end
 
+    it 'deletes one specific tweet with range' do
+      @chain = Dynamoid::Criteria::Chain.new(Tweet)
+      @chain.query = { :tweet_id => "xx", :group => "two" }
+      @chain.all.size.should == 1
+      @chain.destroy_all
+      @chain.consistent.all.size.should == 0
+    end
+  end
 end

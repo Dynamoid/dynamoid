@@ -95,6 +95,8 @@ module Dynamoid #:nodoc:
             end
           end
         end
+        
+        save
       end
     end
 

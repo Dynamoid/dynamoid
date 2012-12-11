@@ -54,6 +54,29 @@ module Dynamoid
         end
         hash
       end
+      
+      # Delete many items at once from DynamoDB. More efficient than delete each item individually.
+      #
+      # @example Delete IDs 1 and 2 from the table testtable
+      #   Dynamoid::Adapter::AwsSdk.batch_delete_item('table1' => ['1', '2'])
+      #or
+      #   Dynamoid::Adapter::AwsSdk.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
+      #
+      # @param [Hash] options the hash of tables and IDs to delete
+      #
+      # @return nil
+      #
+      def batch_delete_item(options)
+        return nil if options.all?{|k, v| v.empty?}
+        options.each do |t, ids|
+          Array(ids).in_groups_of(25, false) do |group|
+            batch = AWS::DynamoDB::BatchWrite.new(:config => @@connection.config)
+            batch.delete(t,group)
+            batch.process!          
+          end
+        end
+        nil
+      end
 
       # Create a table on DynamoDB. This usually takes a long time to complete.
       #
@@ -111,9 +134,6 @@ module Dynamoid
       # @return [Hash] a hash representing the raw item in DynamoDB
       #
       # @since 0.2.0
-
-
-
       def get_item(table_name, key, options = {})
         range_key = options.delete(:range_key)
         table = get_table(table_name)
