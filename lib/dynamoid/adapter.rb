@@ -45,16 +45,17 @@ module Dynamoid
     #
     # @param [String] table the name of the table to write the object to
     # @param [Object] object the object itself
+    # @param [Hash] options Options that are passed to the put_item call
     #
     # @return [Object] the persisted object
     #
     # @since 0.2.0
-    def write(table, object)
+    def write(table, object, options = nil)
       if Dynamoid::Config.partitioning? && object[:id]
         object[:id] = "#{object[:id]}.#{Random.rand(Dynamoid::Config.partition_size)}"
         object[:updated_at] = Time.now.to_f
       end
-      put_item(table, object)
+      put_item(table, object, options)
     end
 
     # Read one or many keys from the selected table. This method intelligently calls batch_get or get on the underlying adapter depending on

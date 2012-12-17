@@ -126,6 +126,23 @@ describe "Dynamoid::Persistence" do
 
     lambda {Address.create(hash)}.should_not raise_error
   end
+  
+  context 'create' do
+    {
+      Tweet   => ['with range',    { :tweet_id => 1, :group => 'abc' }],
+      Message => ['without range', { :message_id => 1, :text => 'foo', :time => DateTime.now }]
+    }.each_pair do |clazz, fields|
+      it "checks for existence of an existing object #{fields[0]}" do
+        t1 = clazz.new(fields[1])
+        t2 = clazz.new(fields[1])
+      
+        t1.save
+        expect do
+          t2.save!
+        end.to raise_exception AWS::DynamoDB::Errors::ConditionalCheckFailedException
+      end
+    end
+  end
 
   context 'update' do
 

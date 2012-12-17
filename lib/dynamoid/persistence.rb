@@ -146,9 +146,12 @@ module Dynamoid
     # @since 0.2.0
     def save(options = {})
       self.class.create_table
-
+      
       if new_record?
-        run_callbacks(:create) { persist }
+        conditions = { :unless_exists => [self.class.hash_key]}
+        conditions[:unless_exists] << range_key if(range_key)
+
+        run_callbacks(:create) { persist(conditions) }
       else
         persist
       end
@@ -232,10 +235,10 @@ module Dynamoid
     # save its indexes.
     #
     # @since 0.2.0
-    def persist
+    def persist(conditions = nil)
       run_callbacks(:save) do
         self.hash_key = SecureRandom.uuid if self.hash_key.nil? || self.hash_key.blank?
-        Dynamoid::Adapter.write(self.class.table_name, self.dump)
+        Dynamoid::Adapter.write(self.class.table_name, self.dump, conditions)
         save_indexes
         @new_record = false
         true
