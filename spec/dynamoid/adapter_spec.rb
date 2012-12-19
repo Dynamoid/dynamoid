@@ -25,7 +25,7 @@ describe "Dynamoid::Adapter" do
     end
     
     it 'writes through the adapter' do
-      Dynamoid::Adapter.expects(:put_item).with('dynamoid_tests_TestTable', {:id => '123'}).returns(true)
+      Dynamoid::Adapter.expects(:put_item).with('dynamoid_tests_TestTable', {:id => '123'}, nil).returns(true)
 
       Dynamoid::Adapter.write('dynamoid_tests_TestTable', {:id => '123'})
     end

@@ -150,9 +150,12 @@ module Dynamoid
       # @param [Object] object a hash or Dynamoid object to persist
       #
       # @since 0.2.0
-      def put_item(table_name, object)
+      def put_item(table_name, object, options = nil)
         table = get_table(table_name)
-        table.items.create(object.delete_if{|k, v| v.nil? || (v.respond_to?(:empty?) && v.empty?)})
+        table.items.create(
+          object.delete_if{|k, v| v.nil? || (v.respond_to?(:empty?) && v.empty?)},
+          options || {}
+        )
       end
 
       # Query the DynamoDB table. This employs DynamoDB's indexes so is generally faster than scanning, but is
