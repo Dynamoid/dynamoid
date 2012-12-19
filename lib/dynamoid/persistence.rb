@@ -109,6 +109,15 @@ module Dynamoid
           else
             value
           end
+        when :boolean
+          # persisted as 't', but because undump is called during initialize it can come in as true
+          if value == 't' || value == true
+            true
+          elsif value == 'f' || value == false
+            false
+          else
+            raise ArgumentError, "Boolean column neither true nor false"
+          end
         end
       end
 
@@ -228,6 +237,10 @@ module Dynamoid
         value.to_time.to_f
       when :serialized
         options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
+      when :boolean
+        value.to_s[0]
+      else
+        raise ArgumentError, "Unknown type #{options[:type]}"
       end
     end
 
