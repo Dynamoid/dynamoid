@@ -17,15 +17,72 @@ Installing Dynamoid is pretty simple. First include the Gem in your Gemfile:
 ```ruby
 gem 'dynamoid'
 ```
+## Prerequisities
 
-Then you need to initialize it to get it going. Put code similar to this somewhere (a Rails initializer would be a great place for this if you're using Rails):
+Dynamoid depends on  the aws-sdk, and this is tested on the current version of aws-sdk (1.6.9), rails 3.2.8.
+Hence the configuration as needed for aws to work will be dealt with by aws setup. 
+
+Here are the steps to setup aws-sdk.
+
+```ruby
+gem 'aws-sdk'
+```
+(or) include the aws-sdk in your Gemfile.
+
+
+[Refer this link for aws setup](https://github.com/amazonwebservices/aws-sdk-for-ruby)
+
+1. Just like the config/database.yml this file requires an entry for each environment, create config/aws.yml as follows:
+
+Fill in your AWS Access Key ID and Secret Access Key
+
+```ruby
+
+
+  development:
+    access_key_id: REPLACE_WITH_ACCESS_KEY_ID
+    secret_access_key: REPLACE_WITH_SECRET_ACCESS_KEY
+    dynamodb_end_point:  dynamodb.ap-southeast-1.amazonaws.com
+
+  test:
+    <<: *development
+
+  production:
+    <<: *development
+
+```
+
+(or)
+
+
+2. Create config/initializers/aws.rb as follows:
+
+```ruby
+
+#Additionally include any of the dynamodb paramters as needed.
+#(eg: if you would like to change the dynamodb endpoint, then add the parameter in 
+# in the file  aws.yml or aws.rb 
+
+dynamo_db_endpoint : dynamodb.ap-southeast-1.amazonaws.com)
+
+ AWS.config({
+    :access_key_id => 'REPLACE_WITH_ACCESS_KEY_ID',
+    :secret_access_key => 'REPLACE_WITH_SECRET_ACCESS_KEY',
+    :dynamodb_end_point => dynamodb.ap-southeast-1.amazonaws.com
+  })
+
+
+```
+
+Refer code in Module: AWS, and from the link below for the other configuration options supported for dynamodb.
+
+[Module AWS](http://docs.amazonwebservices.com/AWSRubySDK/latest/frames.html#!http%3A//docs.amazonwebservices.com/AWSRubySDK/latest/AWS.html)
+
+Then you need to initialize Dynamoid config to get it going. Put code similar to this somewhere (a Rails initializer would be a great place for this if you're using Rails):
 
 ```ruby
   Dynamoid.configure do |config|
-    # config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using Amazon's own AWS gem.
-    # config.access_key = 'access_key' # If connecting to DynamoDB, your access key is required.
-    # config.secret_key = 'secret_key' # So is your secret key.
-    # config.endpoint = 'dynamodb.us-east-1.amazonaws.com' # Set the regional endpoint for DynamoDB.
+    config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using Amazon's own AWS gem.
     config.namespace = "dynamoid_app_development" # To namespace tables created by Dynamoid from other tables you might have.
     config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table.
     config.partitioning = true # Spread writes randomly across the database. See "partitioning" below for more.
