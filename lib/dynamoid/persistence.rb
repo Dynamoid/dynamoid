@@ -69,7 +69,7 @@ module Dynamoid
           self.attributes.each do |attribute, options|
             hash[attribute] = undump_field(incoming[attribute], options)
           end
-          incoming.each {|attribute, value| hash[attribute] ||= value }
+          incoming.each {|attribute, value| hash[attribute] = value unless hash.has_key? attribute }
         end
       end
 
@@ -118,6 +118,8 @@ module Dynamoid
           else
             raise ArgumentError, "Boolean column neither true nor false"
           end
+        else
+          raise ArgumentError, "Unknown type #{options[:type]}"
         end
       end
 

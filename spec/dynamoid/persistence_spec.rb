@@ -90,9 +90,11 @@ describe "Dynamoid::Persistence" do
     Address.undump(@address.send(:dump))[:options].should == hash
   end
   
-  it 'dumps a boolean field' do
-    @address.deliverable = true
-    Address.undump(@address.send(:dump))[:deliverable].should == true
+  [true, false].each do |bool|
+    it "dumps a #{bool} boolean field" do
+      @address.deliverable = bool
+      Address.undump(@address.send(:dump))[:deliverable].should == bool
+    end
   end
   
   it 'raises on an invalid boolean value' do
@@ -158,21 +160,33 @@ describe "Dynamoid::Persistence" do
     end
   end
 
-  it 'raises when dumping a column with an unknown field type' do
-    clazz = Class.new do
-      include Dynamoid::Document
-      table :name => :addresses
+  context 'unknown fields' do
+    let(:clazz) do
+      Class.new do
+        include Dynamoid::Document
+        table :name => :addresses
 
-      field :city
-      field :options, :serialized
-      field :deliverable, :bad_type_specifier
+        field :city
+        field :options, :serialized
+        field :deliverable, :bad_type_specifier
+      end
     end
-    
-    expect do
-      clazz.new(:deliverable => true).dump
-    end.to raise_error(ArgumentError)
-  end
 
+    it 'raises when undumping a column with an unknown field type' do
+      expect do
+        clazz.new(:deliverable => true) #undump is called here
+      end.to raise_error(ArgumentError)
+    end
+  
+    it 'raises when dumping a column with an unknown field type' do
+      doc = clazz.new
+      doc.deliverable = true
+      expect do
+        doc.dump
+      end.to raise_error(ArgumentError)
+    end
+  end
+  
   context 'update' do
 
     before :each do
