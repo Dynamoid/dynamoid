@@ -65,25 +65,28 @@ module Dynamoid
     #
     # @param [String] table the name of the table to write the object to
     # @param [Array] ids to fetch, can also be a string of just one id
-    # @param [Number] range_key the range key of the record
+    # @param [Hash] options: Passed to the underlying query. The :range_key option is required whenever the table has a range key,
+    #                        unless multiple ids are passed in and Dynamoid::Config.partitioning? is turned off.
     #
     # @since 0.2.0
     def read(table, ids, options = {})
-      range_key = options[:range_key]
+      range_key = options.delete(:range_key)
+
       if ids.respond_to?(:each)
         ids = ids.collect{|id| range_key ? [id, range_key] : id}
         if Dynamoid::Config.partitioning?
-          results = batch_get_item(table => id_with_partitions(ids))
+          results = batch_get_item({table => id_with_partitions(ids)}, options)
           {table => result_for_partition(results[table],table)}
         else
-          batch_get_item(table => ids)
+          batch_get_item({table => ids}, options)
         end
       else
         if Dynamoid::Config.partitioning?
           ids = range_key ? [[ids, range_key]] : ids
-          results = batch_get_item(table => id_with_partitions(ids))
+          results = batch_get_item({table => id_with_partitions(ids)}, options)
           result_for_partition(results[table],table).first
         else
+          options[:range_key] = range_key if range_key
           get_item(table, ids, options)
         end
       end
