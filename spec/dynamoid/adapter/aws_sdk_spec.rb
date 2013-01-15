@@ -157,6 +157,11 @@ describe Dynamoid::Adapter::AwsSdk do
     end
 
     # BatchGetItem
+    it 'passes options to underlying BatchGet call' do
+      AWS::DynamoDB::BatchGet.any_instance.expects(:table).with(test_table1, :all, ['1', '2'], :consistent_read => true)
+      described_class.batch_get_item({test_table1 => ['1', '2']}, :consistent_read => true)
+    end
+
     it "performs BatchGetItem with singular keys" do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid::Adapter.put_item(test_table2, {:id => '1', :name => 'Justin'})

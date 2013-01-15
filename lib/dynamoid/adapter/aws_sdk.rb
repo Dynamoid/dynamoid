@@ -53,20 +53,21 @@ module Dynamoid
       # Get many items at once from DynamoDB. More efficient than getting each item individually.
       #
       # @example Retrieve IDs 1 and 2 from the table testtable
-      #   Dynamoid::Adapter::AwsSdk.batch_get_item('table1' => ['1', '2'])
+      #   Dynamoid::Adapter::AwsSdk.batch_get_item({'table1' => ['1', '2']}, :consistent_read => true)
       #
-      # @param [Hash] options the hash of tables and IDs to retrieve
+      # @param [Hash] table_ids the hash of tables and IDs to retrieve
+      # @param [Hash] options to be passed to underlying BatchGet call
       #
       # @return [Hash] a hash where keys are the table names and the values are the retrieved items
       #
       # @since 0.2.0
-      def batch_get_item(options)
+      def batch_get_item(table_ids, options = {})
         hash = Hash.new{|h, k| h[k] = []}
-        return hash if options.all?{|k, v| v.empty?}
-        options.each do |t, ids|
+        return hash if table_ids.all?{|k, v| v.empty?}
+        table_ids.each do |t, ids|
           Array(ids).in_groups_of(100, false) do |group|
             batch = AWS::DynamoDB::BatchGet.new(:config => @@connection.config)
-            batch.table(t, :all, Array(group)) unless group.nil? || group.empty?
+            batch.table(t, :all, Array(group), options) unless group.nil? || group.empty?
             batch.each do |table_name, attributes|
               hash[table_name] << attributes.symbolize_keys!
             end
