@@ -118,6 +118,7 @@ describe "Dynamoid::Finders" do
   end
 
   context 'find_all' do
+
     it 'should return a array of users' do
       users = (1..10).map { User.create }
       User.find_all(users.map(&:id)).should eq(users)
@@ -131,5 +132,16 @@ describe "Dynamoid::Finders" do
     it 'should return an empty array' do
       User.find_all([]).should eq([])
     end
+
+    it 'returns empty array when there are no results' do
+      Address.find_all('bad' + @address.id.to_s).should eq []
+    end
+
+    it 'passes options to the adapter' do
+      user_ids = [%w(1 red), %w(1 green)]
+      Dynamoid::Adapter.expects(:read).with(anything, user_ids, :consistent_read => true)
+      User.find_all(user_ids, :consistent_read => true)
+    end
+
   end
 end
