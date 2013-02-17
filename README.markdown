@@ -42,7 +42,7 @@ Fill in your AWS Access Key ID and Secret Access Key
   development:
     access_key_id: REPLACE_WITH_ACCESS_KEY_ID
     secret_access_key: REPLACE_WITH_SECRET_ACCESS_KEY
-    dynamodb_end_point:  dynamodb.ap-southeast-1.amazonaws.com
+    dynamo_db_endpoint:  dynamodb.ap-southeast-1.amazonaws.com
 
   test:
     <<: *development
@@ -63,18 +63,16 @@ Fill in your AWS Access Key ID and Secret Access Key
 #(eg: if you would like to change the dynamodb endpoint, then add the parameter in 
 # in the file  aws.yml or aws.rb 
 
-dynamo_db_endpoint : dynamodb.ap-southeast-1.amazonaws.com)
-
  AWS.config({
     :access_key_id => 'REPLACE_WITH_ACCESS_KEY_ID',
     :secret_access_key => 'REPLACE_WITH_SECRET_ACCESS_KEY',
-    :dynamodb_end_point => dynamodb.ap-southeast-1.amazonaws.com
+    :dynamo_db_endpoint => dynamodb.ap-southeast-1.amazonaws.com
   })
 
 
 ```
 
-Refer code in Module: AWS, and from the link below for the other configuration options supported for dynamodb.
+Refer to the documentation of the AWS module at the below link for all of the configuration options supported by DynamoDB.
 
 [Module AWS](http://docs.amazonwebservices.com/AWSRubySDK/latest/frames.html#!http%3A//docs.amazonwebservices.com/AWSRubySDK/latest/AWS.html)
 
