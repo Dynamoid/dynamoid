@@ -61,6 +61,12 @@ describe "Dynamoid::Document" do
     @address.should == @address
   end
 
+  it 'tests equivalency with itself when document has a range key' do
+    @tweet = Tweet.create(:tweet_id => 'x', :group => 'abc')
+    
+    @tweet.should == @tweet
+  end
+
   it 'is not equivalent to another document' do
     @address.should_not == Address.create
   end
@@ -69,12 +75,40 @@ describe "Dynamoid::Document" do
     @address = Address.create(:city => 'Chicago')
     @address.should_not == "test"
   end
+
+  it 'is not equivalent to another document with the same hash key but different range key' do
+    tweet1 = Tweet.create(:tweet_id => 'x', :group => 'abc')
+    tweet2 = Tweet.create(:tweet_id => 'x', :group => 'xyz')
+
+    tweet1.should_not == tweet2
+  end
   
   it "isn't equal to nil" do
     @address = Address.create(:city => 'Chicago')
     @address.should_not == nil
   end
   
+  it 'behaves correctly when used as a key in a Hash' do
+    hash = {}
+    hash[Address.new(:id => '100')] = 1
+    hash[Address.new(:id => '200')] = 2
+    hash[Address.new(:id => '100')] = 3 # duplicate key
+
+    hash.count.should == 2
+    hash.map{ |k, v| [k.id, v] }.sort.should == [['100', 3], ['200', 2]]
+  end
+
+  it 'behaves correctly when used as a key in a Hash when the document has a range key' do
+    hash = {}
+    hash[Tweet.new(:tweet_id => 'x', :group => 'abc')] = 1
+    hash[Tweet.new(:tweet_id => 'x', :group => 'def')] = 2
+    hash[Tweet.new(:tweet_id => 'y', :group => 'def')] = 3
+    hash[Tweet.new(:tweet_id => 'x', :group => 'abc')] = 4 # duplicate key
+
+    hash.count.should == 3
+    hash.map{ |k, v| [k.tweet_id, k.group, v] }.sort.should == [['x', 'abc', 4], ['x', 'def', 2], ['y', 'def', 3]]
+  end
+
   it 'gets errors courtesy of ActiveModel' do
     @address = Address.create(:city => 'Chicago')
     
