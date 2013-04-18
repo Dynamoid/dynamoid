@@ -131,7 +131,7 @@ module Dynamoid #:nodoc:
         super
       else
         return false if other.nil?
-        other.respond_to?(:hash_key) && other.respond_to?(:range_value) && self.hash_key == other.hash_key && self.range_value == other.range_value
+        other.respond_to?(:hash_key) && self.hash_key == other.hash_key && (!other.respond_to?(:range_value) || self.range_value == other.range_value)
       end
     end
 
