@@ -88,25 +88,18 @@ describe "Dynamoid::Document" do
     @address.should_not == nil
   end
   
-  it 'behaves correctly when used as a key in a Hash' do
-    hash = {}
-    hash[Address.new(:id => '100')] = 1
-    hash[Address.new(:id => '200')] = 2
-    hash[Address.new(:id => '100')] = 3 # duplicate key
+  it 'hashes documents with the same hash key to the same value' do
+    a1 = Address.new(:id => '100', :city => 'a1')
+    a2 = Address.new(:id => '100', :city => 'a2')
 
-    hash.count.should == 2
-    hash.map{ |k, v| [k.id, v] }.sort.should == [['100', 3], ['200', 2]]
+    {a1 => 1}.should have_key(a2)
   end
 
-  it 'behaves correctly when used as a key in a Hash when the document has a range key' do
-    hash = {}
-    hash[Tweet.new(:tweet_id => 'x', :group => 'abc')] = 1
-    hash[Tweet.new(:tweet_id => 'x', :group => 'def')] = 2
-    hash[Tweet.new(:tweet_id => 'y', :group => 'def')] = 3
-    hash[Tweet.new(:tweet_id => 'x', :group => 'abc')] = 4 # duplicate key
+  it 'hashes documents with the same hash and range key to the same value' do
+    t1 = Tweet.new(:tweet_id => 'x', :group => 'abc', :msg => 'foo')
+    t2 = Tweet.new(:tweet_id => 'x', :group => 'abc', :msg => 'bar')
 
-    hash.count.should == 3
-    hash.map{ |k, v| [k.tweet_id, k.group, v] }.sort.should == [['x', 'abc', 4], ['x', 'def', 2], ['y', 'def', 3]]
+    {t1 => 1}.should have_key(t2)
   end
 
   it 'gets errors courtesy of ActiveModel' do
