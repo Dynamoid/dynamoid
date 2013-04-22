@@ -140,7 +140,7 @@ module Dynamoid #:nodoc:
     end
 
     def hash
-      [hash_key, range_value].hash
+      hash_key.hash ^ range_value.hash
     end
 
     # Reload an object from the database -- if you suspect the object has changed in the datastore and you need those
