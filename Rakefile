@@ -36,6 +36,37 @@ RSpec::Core::RakeTask.new(:rcov) do |spec|
   spec.rcov = true
 end
 
+desc "Start fake_dynamo, run tests, cleanup" 
+task :unattended_spec do |t|
+  require 'tmpdir'
+  require 'socket'
+
+  dir = Dir.mktmpdir
+  data_file = File.join(dir, "data.fdb")
+
+  #Launch fake_dynamo
+  pid = Process.spawn'fake_dynamo', '-d', data_file, err: '/dev/null', out: '/dev/null'
+  #Cleanup
+  at_exit {
+    Process.kill('TERM', pid)
+    FileUtils.rmtree(dir)
+  }
+  
+  #Wait for fake_dynamo to start taking requests
+  40.downto(0) do |count| #Wait up to 2 seconds
+    begin
+      s = TCPSocket.new 'localhost', 4567
+      s.close
+      break
+    rescue Errno::ECONNREFUSED
+      raise if(count == 0)
+      sleep 0.1
+    end
+  end
+  
+  Rake::Task["spec"].invoke
+end
+
 require 'yard'
 YARD::Rake::YardocTask.new do |t|
   t.files   = ['lib/**/*.rb', "README", "LICENSE"]   # optional
