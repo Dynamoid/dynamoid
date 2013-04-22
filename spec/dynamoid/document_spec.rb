@@ -54,53 +54,6 @@ describe "Dynamoid::Document" do
     Address.exists?(@address.id).should be_true
     Address.exists?("does-not-exist").should be_false
   end
-  
-  it 'tests equivalency with itself' do
-    @address = Address.create(:city => 'Chicago')
-    
-    @address.should == @address
-  end
-
-  it 'tests equivalency with itself when document has a range key' do
-    @tweet = Tweet.create(:tweet_id => 'x', :group => 'abc')
-    
-    @tweet.should == @tweet
-  end
-
-  it 'is not equivalent to another document' do
-    @address.should_not == Address.create
-  end
-  
-  it 'is not equivalent to another object' do
-    @address = Address.create(:city => 'Chicago')
-    @address.should_not == "test"
-  end
-
-  it 'is not equivalent to another document with the same hash key but different range key' do
-    tweet1 = Tweet.create(:tweet_id => 'x', :group => 'abc')
-    tweet2 = Tweet.create(:tweet_id => 'x', :group => 'xyz')
-
-    tweet1.should_not == tweet2
-  end
-  
-  it "isn't equal to nil" do
-    @address = Address.create(:city => 'Chicago')
-    @address.should_not == nil
-  end
-  
-  it 'hashes documents with the same hash key to the same value' do
-    a1 = Address.new(:id => '100', :city => 'a1')
-    a2 = Address.new(:id => '100', :city => 'a2')
-
-    {a1 => 1}.should have_key(a2)
-  end
-
-  it 'hashes documents with the same hash and range key to the same value' do
-    t1 = Tweet.new(:tweet_id => 'x', :group => 'abc', :msg => 'foo')
-    t2 = Tweet.new(:tweet_id => 'x', :group => 'abc', :msg => 'bar')
-
-    {t1 => 1}.should have_key(t2)
-  end
 
   it 'gets errors courtesy of ActiveModel' do
     @address = Address.create(:city => 'Chicago')
@@ -141,5 +94,54 @@ describe "Dynamoid::Document" do
     Tweet.hash_key.should == :tweet_id
     Tweet.read_capacity.should == 200
     Tweet.write_capacity.should == 200
+  end
+
+  shared_examples 'it has equality testing and hashing' do
+    it 'is equal to itself' do
+      document.should == document
+    end
+
+    it 'is equal to another document with the same key(s)' do
+      document.should == same
+    end
+
+    it 'is not equal to another document with different key(s)' do
+      document.should_not == different
+    end
+
+    it 'is not equal to an object that is not a document' do
+      document.should_not == 'test'
+    end
+
+    it 'is not equal to nil' do
+      document.should_not == nil
+    end
+
+    it 'hashes documents with the keys to the same value' do
+      {document => 1}.should have_key(same)
+    end
+  end
+
+  context 'without a range key' do
+    it_behaves_like 'it has equality testing and hashing' do
+      let(:document) { Address.create(id: 123, city: 'Seattle') }
+      let(:different) { Address.create(id: 456, city: 'Seattle') }
+      let(:same) { Address.new(id: 123, city: 'Boston') }
+    end
+  end
+
+  context 'with a range key' do
+    it_behaves_like 'it has equality testing and hashing' do
+      let(:document){ Tweet.create(:tweet_id => 'x', :group => 'abc', :msg => 'foo') }
+      let(:different) { Tweet.create(:tweet_id => 'y', :group => 'abc', :msg => 'foo') }
+      let(:same) { Tweet.new(:tweet_id => 'x', :group => 'abc', :msg => 'bar') }
+    end
+
+    it 'is not equal to another document with the same hash key but a different range value' do
+      document = Tweet.create(:tweet_id => 'x', :group => 'abc')
+      different = Tweet.create(:tweet_id => 'x', :group => 'xyz')
+
+      document.should_not == different
+    end
   end
 end
