@@ -131,8 +131,16 @@ module Dynamoid #:nodoc:
         super
       else
         return false if other.nil?
-        other.respond_to?(:hash_key) && other.hash_key == self.hash_key
+        other.is_a?(Dynamoid::Document) && self.hash_key == other.hash_key && self.range_value == other.range_value
       end
+    end
+
+    def eql?(other)
+      self == other
+    end
+
+    def hash
+      hash_key.hash ^ range_value.hash
     end
 
     # Reload an object from the database -- if you suspect the object has changed in the datastore and you need those
