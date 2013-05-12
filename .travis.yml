@@ -1,0 +1,4 @@
+language: ruby
+ruby:
+  - 1.9.3
+script: bundle exec rake unattended_spec

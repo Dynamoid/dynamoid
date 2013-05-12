@@ -18,6 +18,6 @@ group :development do
   gem "redcarpet", '1.17.2'
   gem 'github-markup'
   gem 'pry'
-  gem 'fake_dynamo'
+  gem 'fake_dynamo', '>=0.1.3'
   gem "mocha", '0.10.0'
 end
