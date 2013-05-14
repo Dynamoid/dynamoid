@@ -188,7 +188,7 @@ module Dynamoid
         range_key_name = table.range_key.name.to_sym
         
         final_hash = {}
-        
+
         results.each do |record|
           test_record = final_hash[record[range_key_name]]
           
@@ -257,11 +257,9 @@ module Dynamoid
           modified_options[:hash_value] = id
 
           query_result = Dynamoid::Adapter::AwsSdk.query(table_name, modified_options)
-          query_result = [query_result] if !query_result.is_a?(Array)
-
-          results = results + query_result unless query_result.nil? 
+          results += query_result.inject([]){|array, result| array += [result]} if query_result.any?
         end 
-        
+
         result_for_partition results, table_name
       end
     end

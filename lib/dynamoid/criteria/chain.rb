@@ -43,7 +43,8 @@ module Dynamoid #:nodoc:
       # Returns all the records matching the criteria.
       #
       # @since 0.2.0
-      def all
+      def all(opts = {})
+        batch opts[:batch_size] if opts.has_key? :batch_size
         records
       end
       
@@ -116,6 +117,12 @@ module Dynamoid #:nodoc:
         records
       end
 
+      def batch(batch_size)
+        raise 'Cannot batch calls when using partitioning' if Dynamoid::Config.partitioning?
+        @batch_size = batch_size
+        self
+      end
+
       def start(start)
         @start = start
         self
@@ -141,28 +148,29 @@ module Dynamoid #:nodoc:
 
       # The actual records referenced by the association.
       #
-      # @return [Array] an array of the found records.
+      # @return [Enumerator] an iterator of the found records.
       #
       # @since 0.2.0
       def records
-        if range?
+        results = if range?
           records_with_range
         elsif index
           records_with_index
         else
           records_without_index
         end
+        @batch_size ? results : Array(results)
       end
 
       # If the query matches an index on the associated class, then this method will retrieve results from the index table.
       #
-      # @return [Array] an array of the found records.
+      # @return [Enumerator] an iterator of the found records.
       #
       # @since 0.2.0
       def records_with_index
         ids = ids_from_index
         if ids.nil? || ids.empty?
-          []
+          Enumerator.new []
         else
           ids = ids.to_a
 
@@ -171,7 +179,7 @@ module Dynamoid #:nodoc:
           end
 
           ids = ids.take(@limit) if @limit
-          Array(source.find(ids, consistent_opts))
+          source.find(ids, consistent_opts)
         end
       end
 
@@ -190,12 +198,16 @@ module Dynamoid #:nodoc:
       end
 
       def records_with_range
-        Dynamoid::Adapter.query(source.table_name, range_query).collect {|hash| source.from_database(hash) }
+        Enumerator.new do |yielder|
+          Dynamoid::Adapter.query(source.table_name, range_query).each do |hash|
+            yielder.yield source.from_database(hash)
+          end
+        end
       end
 
       # If the query does not match an index, we'll manually scan the associated table to find results.
       #
-      # @return [Array] an array of the found records.
+      # @return [Enumerator] an iterator of the found records.
       #
       # @since 0.2.0
       def records_without_index
@@ -208,7 +220,11 @@ module Dynamoid #:nodoc:
           raise Dynamoid::Errors::InvalidQuery, 'Consistent read is not supported by SCAN operation'
         end
 
-        Dynamoid::Adapter.scan(source.table_name, query, scan_opts).collect {|hash| source.from_database(hash) }
+        Enumerator.new do |yielder|
+          Dynamoid::Adapter.scan(source.table_name, query, scan_opts).each do |hash|
+            yielder.yield source.from_database(hash)
+          end
+        end
       end
 
       # Format the provided query so that it can be used to query results from DynamoDB.
@@ -298,6 +314,7 @@ module Dynamoid #:nodoc:
         opts = {}
         opts[:limit] = @limit if @limit
         opts[:next_token] = start_key if @start
+        opts[:batch_size] = @batch_size if @batch_size
         opts
       end
     end

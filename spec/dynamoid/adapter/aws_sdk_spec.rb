@@ -50,23 +50,27 @@ describe Dynamoid::Adapter::AwsSdk do
     end
 
     it 'performs query on a table with a range and selects items in a range' do
-      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_value => 0.0..3.0).should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
+      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_value => 0.0..3.0).to_a.should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
+    end
+
+    it 'performs query on a table with a range and selects items in a range with :select option' do
+      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_value => 0.0..3.0, :select => :all).to_a.should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
 
     it 'performs query on a table with a range and selects items greater than' do
-      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_greater_than => 1.0).should =~ [{:id => '1', :range => BigDecimal.new(3)}]
+      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_greater_than => 1.0).to_a.should =~ [{:id => '1', :range => BigDecimal.new(3)}]
     end
 
     it 'performs query on a table with a range and selects items less than' do
-      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_less_than => 2.0).should =~ [{:id => '1', :range => BigDecimal.new(1)}]
+      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_less_than => 2.0).to_a.should =~ [{:id => '1', :range => BigDecimal.new(1)}]
     end
 
     it 'performs query on a table with a range and selects items gte' do
-      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_gte => 1.0).should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
+      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_gte => 1.0).to_a.should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
 
     it 'performs query on a table with a range and selects items lte' do
-      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_lte => 3.0).should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
+      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_lte => 3.0).to_a.should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
   end
   
@@ -85,7 +89,7 @@ describe Dynamoid::Adapter::AwsSdk do
     end
 
     it 'performs query on a table with a range and selects items less than that is in the correct order, scan_index_forward true' do
-      query = Dynamoid::Adapter.query(test_table4, :hash_value => '1', :range_greater_than => 0, :scan_index_forward => true)
+      query = Dynamoid::Adapter.query(test_table4, :hash_value => '1', :range_greater_than => 0, :scan_index_forward => true).to_a
       query[0].should == {:id => '1', :order => 1, :range => BigDecimal.new(1)}
       query[1].should == {:id => '1', :order => 2, :range => BigDecimal.new(2)}
       query[2].should == {:id => '1', :order => 3, :range => BigDecimal.new(3)}
@@ -95,7 +99,7 @@ describe Dynamoid::Adapter::AwsSdk do
     end
     
     it 'performs query on a table with a range and selects items less than that is in the correct order, scan_index_forward false' do
-      query = Dynamoid::Adapter.query(test_table4, :hash_value => '1', :range_greater_than => 0, :scan_index_forward => false)
+      query = Dynamoid::Adapter.query(test_table4, :hash_value => '1', :range_greater_than => 0, :scan_index_forward => false).to_a
       query[5].should == {:id => '1', :order => 1, :range => BigDecimal.new(1)}
       query[4].should == {:id => '1', :order => 2, :range => BigDecimal.new(2)}
       query[3].should == {:id => '1', :order => 3, :range => BigDecimal.new(3)}
@@ -264,14 +268,14 @@ describe Dynamoid::Adapter::AwsSdk do
     it 'performs query on a table and returns items' do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
 
-      Dynamoid::Adapter.query(test_table1, :hash_value => '1').should == { :id=> '1', :name=>"Josh" }
+      Dynamoid::Adapter.query(test_table1, :hash_value => '1').first.should == { :id=> '1', :name=>"Josh" }
     end
 
     it 'performs query on a table and returns items if there are multiple items' do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid::Adapter.put_item(test_table1, {:id => '2', :name => 'Justin'})
 
-      Dynamoid::Adapter.query(test_table1, :hash_value => '1').should == { :id=> '1', :name=>"Josh" }
+      Dynamoid::Adapter.query(test_table1, :hash_value => '1').first.should == { :id=> '1', :name=>"Josh" }
     end
     
     it_behaves_like 'range queries'
@@ -280,14 +284,14 @@ describe Dynamoid::Adapter::AwsSdk do
     it 'performs scan on a table and returns items' do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
 
-      Dynamoid::Adapter.scan(test_table1, :name => 'Josh').should == [{ :id=> '1', :name=>"Josh" }]
+      Dynamoid::Adapter.scan(test_table1, :name => 'Josh').to_a.should == [{ :id=> '1', :name=>"Josh" }]
     end
 
     it 'performs scan on a table and returns items if there are multiple items but only one match' do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid::Adapter.put_item(test_table1, {:id => '2', :name => 'Justin'})
 
-      Dynamoid::Adapter.scan(test_table1, :name => 'Josh').should == [{ :id=> '1', :name=>"Josh" }]
+      Dynamoid::Adapter.scan(test_table1, :name => 'Josh').to_a.should == [{ :id=> '1', :name=>"Josh" }]
     end
 
     it 'performs scan on a table and returns multiple items if there are multiple matches' do
