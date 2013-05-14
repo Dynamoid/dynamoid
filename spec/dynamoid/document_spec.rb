@@ -78,7 +78,7 @@ describe "Dynamoid::Document" do
       })
     end
 
-    it 'reloads itself with any exception' do
+    it 'reloads itself without raising an ArgumentError' do
       expect {
         message.reload
       }.to_not raise_error(ArgumentError)
