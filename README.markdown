@@ -72,6 +72,10 @@ Fill in your AWS Access Key ID and Secret Access Key
 
 ```
 
+For a full list of the DDB regions, you can go
+[here](http://docs.aws.amazon.com/general/latest/gr/rande.html#ddb_region).
+
+
 Refer to the documentation of the AWS module at the below link for all of the configuration options supported by DynamoDB.
 
 [Module AWS](http://docs.amazonwebservices.com/AWSRubySDK/latest/frames.html#!http%3A//docs.amazonwebservices.com/AWSRubySDK/latest/AWS.html)
