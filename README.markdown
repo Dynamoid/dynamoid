@@ -66,7 +66,7 @@ Fill in your AWS Access Key ID and Secret Access Key
  AWS.config({
     :access_key_id => 'REPLACE_WITH_ACCESS_KEY_ID',
     :secret_access_key => 'REPLACE_WITH_SECRET_ACCESS_KEY',
-    :dynamo_db_endpoint => dynamodb.ap-southeast-1.amazonaws.com
+    :dynamo_db_endpoint => 'dynamodb.ap-southeast-1.amazonaws.com'
   })
 
 
