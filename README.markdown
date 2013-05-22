@@ -126,7 +126,7 @@ These fields will not change an existing table: so specifying a new read_capacit
 
 You'll have to define all the fields on the model and the data type of each field. Every field on the object must be included here; if you miss any they'll be completely bypassed during DynamoDB's initialization and will not appear on the model objects.
 
-By default, fields are assumed to be of type ```:string```. But you can also use ```:integer```, ```:float```, ```:set```, ```:array```, ```:datetime```, and ```:serialized```. You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
+By default, fields are assumed to be of type ```:string```. But you can also use ```:integer```, ```:float```, ```:set```, ```:array```, ```:datetime```, ```:boolean```, and ```:serialized```. You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
 
 ```ruby
 class User
@@ -277,6 +277,14 @@ You can also limit returned results, or select a record from which to start, to 
 Address.limit(5).start(address) # Only 5 addresses.
 ```
 
+For large queries that return many rows, Dynamoid can use AWS' support for requesting documents in batches:
+
+```ruby
+#Do some maintenance on the entire table without flooding DynamoDB
+Address.all(batch_size: 100).each { |address| address.do_some_work; sleep(0.01) }
+Address.limit(10_000).batch(100). each { … } #batch specified as part of a chain
+```
+
 ### Consistent Reads
 
 Querying supports consistent reading. By default, DynamoDB reads are eventually consistent: if you do a write and then a read immediately afterwards, the results of the previous write may not be reflected. If you need to do a consistent read (that is, you need to read the results of a write immediately) you can do so, but keep in mind that consistent reads are twice as expensive as regular reads for DynamoDB.
@@ -316,6 +324,7 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 * [Craig Heneveld](https://github.com/cheneveld)
 * [Anantha Kumaran](https://github.com/ananthakumaran)
 * [Jason Dew](https://github.com/jasondew)
+* [Luis Arias](https://github.com/luisantonioa)
 
 ## Running the tests
 
