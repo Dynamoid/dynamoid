@@ -20,7 +20,7 @@ gem 'dynamoid'
 ## Prerequisities
 
 Dynamoid depends on  the aws-sdk, and this is tested on the current version of aws-sdk (1.6.9), rails 3.2.8.
-Hence the configuration as needed for aws to work will be dealt with by aws setup. 
+Hence the configuration as needed for aws to work will be dealt with by aws setup.
 
 Here are the steps to setup aws-sdk.
 
@@ -60,8 +60,8 @@ Fill in your AWS Access Key ID and Secret Access Key
 ```ruby
 
 #Additionally include any of the dynamodb paramters as needed.
-#(eg: if you would like to change the dynamodb endpoint, then add the parameter in 
-# in the file  aws.yml or aws.rb 
+#(eg: if you would like to change the dynamodb endpoint, then add the parameter in
+# in the file  aws.yml or aws.rb
 
  AWS.config({
     :access_key_id => 'REPLACE_WITH_ACCESS_KEY_ID',
@@ -104,7 +104,7 @@ You *must* include ```Dynamoid::Document``` in every Dynamoid model.
 ```ruby
 class User
   include Dynamoid::Document
-  
+
 end
 ```
 
@@ -115,7 +115,7 @@ Dynamoid has some sensible defaults for you when you create a new table, includi
 ```ruby
 class User
   include Dynamoid::Document
-  
+
   table :name => :awesome_users, :key => :user_id, :read_capacity => 400, :write_capacity => 400
 end
 ```
@@ -138,7 +138,7 @@ class User
   field :number, :float
   field :joined_at, :datetime
   field :hash, :serialized
-   
+
 end
 ```
 
@@ -151,13 +151,13 @@ class User
   include Dynamoid::Document
 
   ...
-   
-  index :name           
-  index :email          
-  index [:name, :email] 
+
+  index :name
+  index :email
+  index [:name, :email]
   index :created_at, :range => true
   index :name, :range_key => :joined_at
-  
+
 end
 ```
 
@@ -172,23 +172,23 @@ class User
   include Dynamoid::Document
 
   ...
-   
+
   has_many :addresses
   has_many :students, :class => User
   belongs_to :teacher, :class_name => :user
   belongs_to :group
   has_one :role
   has_and_belongs_to_many :friends, :inverse_of => :friending_users
-   
+
 end
 
 class Address
   include Dynamoid::Document
-  
+
   ...
-  
+
   belongs_to :address # Automatically links up with the user model
-  
+
 end
 ```
 
@@ -203,7 +203,7 @@ class User
   include Dynamoid::Document
 
   ...
-  
+
   validates_presence_of :name
   validates_format_of :email, :with => /@/
 end
@@ -220,7 +220,7 @@ class User
   include Dynamoid::Document
 
   ...
-  
+
   before_save :set_default_password
   after_create :notify_friends
   after_destroy :delete_addresses

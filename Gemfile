@@ -1,4 +1,5 @@
-source "http://rubygems.org"
+source "https://rubygems.org"
+
 gem 'activemodel'
 gem 'tzinfo'
 gem 'aws-sdk'

@@ -4,7 +4,7 @@ describe "Dynamoid::Document" do
 
   it 'initializes a new document' do
     @address = Address.new
-    
+
     @address.new_record.should be_true
     @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil, :options=>nil, :deliverable => nil}
   end
@@ -16,20 +16,20 @@ describe "Dynamoid::Document" do
     @address.should respond_to(:created_at_will_change!)
     @address.should respond_to(:updated_at_will_change!)
   end
-  
+
   it 'initializes a new document with attributes' do
     @address = Address.new(:city => 'Chicago')
-    
+
     @address.new_record.should be_true
-    
+
     @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil}
   end
 
   it 'initializes a new document with a virtual attribute' do
     @address = Address.new(:zip_code => '12345')
-    
+
     @address.new_record.should be_true
-    
+
     @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil}
   end
 
@@ -41,10 +41,10 @@ describe "Dynamoid::Document" do
     end
     Model.new(:city => "Chicago").city.should == "chicago"
   end
-  
+
   it 'creates a new document' do
     @address = Address.create(:city => 'Chicago')
-    
+
     @address.new_record.should be_false
     @address.id.should_not be_nil
   end
@@ -57,37 +57,52 @@ describe "Dynamoid::Document" do
 
   it 'gets errors courtesy of ActiveModel' do
     @address = Address.create(:city => 'Chicago')
-    
+
     @address.errors.should be_empty
     @address.errors.full_messages.should be_empty
   end
-  
+
   it 'reloads itself and sees persisted changes' do
     @address = Address.create
-    
+
     Address.first.update_attributes(:city => 'Chicago')
-    
+
     @address.reload.city.should == 'Chicago'
+  end
+
+  context 'itself has a :datetime range key' do
+    let(:message) do
+      Message.create({
+        :text => 'Nice, supporting datetime range!',
+        :time => Time.now.to_datetime
+      })
+    end
+
+    it 'reloads itself without raising an ArgumentError' do
+      expect {
+        message.reload
+      }.to_not raise_error(ArgumentError)
+    end
   end
 
   it 'reloads document with range key' do
     tweet = Tweet.create(:tweet_id => 'x', :group => 'abc')
     tweet.reload.group.should == 'abc'
   end
-  
+
   it 'has default table options' do
     @address = Address.create
-    
+
     @address.id.should_not be_nil
     Address.table_name.should == 'dynamoid_tests_addresses'
     Address.hash_key.should == :id
     Address.read_capacity.should == 100
     Address.write_capacity.should == 20
   end
-  
+
   it 'follows any table options provided to it' do
     @tweet = Tweet.create(:group => 12345)
-    
+
     lambda {@tweet.id}.should raise_error(NoMethodError)
     @tweet.tweet_id.should_not be_nil
     Tweet.table_name.should == 'dynamoid_tests_twitters'

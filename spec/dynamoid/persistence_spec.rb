@@ -89,14 +89,14 @@ describe "Dynamoid::Persistence" do
     @address.options = (hash = {:x => [1, 2], "foobar" => 3.14})
     Address.undump(@address.send(:dump))[:options].should == hash
   end
-  
+
   [true, false].each do |bool|
     it "dumps a #{bool} boolean field" do
       @address.deliverable = bool
       Address.undump(@address.send(:dump))[:deliverable].should == bool
     end
   end
-  
+
   it 'raises on an invalid boolean value' do
     expect do
       @address.deliverable = true
@@ -142,7 +142,7 @@ describe "Dynamoid::Persistence" do
 
     lambda {Address.create(hash)}.should_not raise_error
   end
-  
+
   context 'create' do
     {
       Tweet   => ['with range',    { :tweet_id => 1, :group => 'abc' }],
@@ -151,7 +151,7 @@ describe "Dynamoid::Persistence" do
       it "checks for existence of an existing object #{fields[0]}" do
         t1 = clazz.new(fields[1])
         t2 = clazz.new(fields[1])
-      
+
         t1.save
         expect do
           t2.save!
@@ -177,7 +177,7 @@ describe "Dynamoid::Persistence" do
         clazz.new(:deliverable => true) #undump is called here
       end.to raise_error(ArgumentError)
     end
-  
+
     it 'raises when dumping a column with an unknown field type' do
       doc = clazz.new
       doc.deliverable = true
@@ -186,7 +186,7 @@ describe "Dynamoid::Persistence" do
       end.to raise_error(ArgumentError)
     end
   end
-  
+
   context 'update' do
 
     before :each do
