@@ -183,7 +183,7 @@ module Dynamoid #:nodoc:
     private
 
     def dumped_range_value
-      self.send(:dump_field, range_value, self.class.attributes[self.class.range_key])
+      dump_field(range_value, self.class.attributes[self.class.range_key])
     end
   end
 end
