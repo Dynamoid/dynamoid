@@ -212,19 +212,25 @@ module Dynamoid
       # @option opts [Number] :range_gte find range keys greater than or equal to this
       # @option opts [Number] :range_lte find range keys less than or equal to this
       #
-      # @return [Array] an array of all matching items
+      # @return [Enumerator] an iterator of all matching items
       #
       # @since 0.2.0
       def query(table_name, opts = {})
         table = get_table(table_name)
 
-        consistent_opts = { :consistent_read => opts[:consistent_read] || false }
-        if table.composite_key?
-          results = []
-          table.items.query(opts).each {|data| results << data.attributes.to_h(consistent_opts).symbolize_keys!}
-          results
-        else
-          get_item(table_name, opts[:hash_value])
+        Enumerator.new do |yielder|
+          consistent_opts = { :consistent_read => opts[:consistent_read] || false }
+          if table.composite_key?
+            table.items.query(opts).each do |data|
+              if opts.has_key? :select
+                yielder.yield data.attributes.symbolize_keys!
+              else
+                yielder.yield data.attributes.to_h(consistent_opts).symbolize_keys!
+              end
+            end
+          else
+            yielder.yield get_item(table_name, opts[:hash_value])
+          end
         end
       end
 
@@ -234,16 +240,16 @@ module Dynamoid
       # @param [String] table_name the name of the table
       # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
       #
-      # @return [Array] an array of all matching items
+      # @return [Enumerator] an iterator of all matching items
       #
       # @since 0.2.0
       def scan(table_name, scan_hash, select_opts)
         table = get_table(table_name)
-        results = []
-        table.items.where(scan_hash).select(select_opts) do |data|
-          results << data.attributes.symbolize_keys!
+        Enumerator.new do |yielder|
+          table.items.where(scan_hash).select(select_opts).each do |data|
+            yielder.yield data.attributes.symbolize_keys!
+          end
         end
-        results
       end
 
       # @todo Add an UpdateItem method.

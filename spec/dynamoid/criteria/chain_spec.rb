@@ -51,26 +51,26 @@ describe "Dynamoid::Associations::Chain" do
 
   it 'finds records with an index' do
     @chain.query = {:name => 'Josh'}
-    @chain.send(:records_with_index).should == [@user]
+    @chain.send(:records_with_index).should == @user
 
     @chain.query = {:email => 'josh@joshsymonds.com'}
-    @chain.send(:records_with_index).should == [@user]
+    @chain.send(:records_with_index).should == @user
 
     @chain.query = {:name => 'Josh', :email => 'josh@joshsymonds.com'}
-    @chain.send(:records_with_index).should == [@user]
+    @chain.send(:records_with_index).should == @user
   end
 
   it 'returns records with an index for a ranged query' do
     @chain.query = {:name => 'Josh', "created_at.gt" => @time - 1.day}
-    @chain.send(:records_with_index).should == [@user]
+    @chain.send(:records_with_index).should == @user
 
     @chain.query = {:name => 'Josh', "created_at.lt" => @time + 1.day}
-    @chain.send(:records_with_index).should == [@user]
+    @chain.send(:records_with_index).should == @user
   end
 
   it 'finds records without an index' do
     @chain.query = {:password => 'Test123'}
-    @chain.send(:records_without_index).should == [@user]
+    @chain.send(:records_without_index).to_a.should == [@user]
   end
 
   it "doesn't crash if it finds a nil id in the index" do
@@ -119,7 +119,7 @@ describe "Dynamoid::Associations::Chain" do
 
     it 'finds tweets with a simple range query' do
       @chain.query = { :tweet_id => "x" }
-      @chain.send(:records_with_range).size.should == 2
+      @chain.send(:records_with_range).to_a.size.should == 2
       @chain.all.size.should == 2
       @chain.limit(1).size.should == 1
     end
@@ -133,7 +133,7 @@ describe "Dynamoid::Associations::Chain" do
     it 'finds one specific tweet' do
       @chain = Dynamoid::Criteria::Chain.new(Tweet)
       @chain.query = { :tweet_id => "xx", :group => "two" }
-      @chain.send(:records_with_range).should == [@tweet3]
+      @chain.send(:records_with_range).to_a.should == [@tweet3]
     end
   end
   
@@ -158,6 +158,23 @@ describe "Dynamoid::Associations::Chain" do
       @chain.all.size.should == 1
       @chain.destroy_all
       @chain.consistent.all.size.should == 0
+    end
+  end
+
+  context 'batch queries' do
+    before do
+      @tweets = (1..4).map{|count| Tweet.create(:tweet_id => count.to_s, :group => (count % 2).to_s)}
+      @chain = Dynamoid::Criteria::Chain.new(Tweet)
+    end
+
+    it 'returns all results' do
+      @chain.batch(2).all.to_a.size.should == @tweets.size
+    end
+
+    it 'throws exception if partitioning is used with batching' do
+      Dynamoid::Config.partitioning = true
+
+      expect { @chain.batch(2) }.to raise_error
     end
   end
 end
