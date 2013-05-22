@@ -66,11 +66,15 @@ Fill in your AWS Access Key ID and Secret Access Key
  AWS.config({
     :access_key_id => 'REPLACE_WITH_ACCESS_KEY_ID',
     :secret_access_key => 'REPLACE_WITH_SECRET_ACCESS_KEY',
-    :dynamo_db_endpoint => dynamodb.ap-southeast-1.amazonaws.com
+    :dynamo_db_endpoint => 'dynamodb.ap-southeast-1.amazonaws.com'
   })
 
 
 ```
+
+For a full list of the DDB regions, you can go
+[here](http://docs.aws.amazon.com/general/latest/gr/rande.html#ddb_region).
+
 
 Refer to the documentation of the AWS module at the below link for all of the configuration options supported by DynamoDB.
 
