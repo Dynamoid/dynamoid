@@ -1,6 +1,9 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe "Dynamoid::Criteria" do
+  before(:all) do
+    Magazine.create_table
+  end
   
   before do
     @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')

@@ -172,9 +172,10 @@ describe "Dynamoid::Associations::Chain" do
     end
 
     it 'throws exception if partitioning is used with batching' do
+      previous_value = Dynamoid::Config.partitioning
       Dynamoid::Config.partitioning = true
-
       expect { @chain.batch(2) }.to raise_error
+      Dynamoid::Config.partitioning = previous_value
     end
   end
 end
