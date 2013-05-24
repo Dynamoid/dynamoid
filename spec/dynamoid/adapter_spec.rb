@@ -2,7 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Adapter do
   
-  let(:test_table){'dynamoid_tests_TestTable'}
+  def test_table; 'dynamoid_tests_TestTable'; end
   let(:single_id){'123'}
   let(:many_ids){%w(1 2)}
 
