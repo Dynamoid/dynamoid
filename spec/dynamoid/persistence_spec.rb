@@ -47,7 +47,7 @@ describe "Dynamoid::Persistence" do
   end
   
   configured_with 'partitioning' do
-    it 'raises an error when attempting to use optimistic locking with partitioning' do
+    it 'raises an error when attempting to use optimistic locking' do
       expect { address.save! }.to raise_exception
     end
   end
