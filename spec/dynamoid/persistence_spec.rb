@@ -33,7 +33,25 @@ describe "Dynamoid::Persistence" do
 
     Dynamoid::Adapter.read("dynamoid_tests_addresses", @address.id)[:id].should == @address.id
   end
-
+  
+  it 'prevents concurrent writes to tables with a lock_version' do
+    @address.save!
+    a1 = @address
+    a2 = Address.find(@address.id)
+    
+    a1.city = 'Seattle'
+    a2.city = 'San Francisco'
+    
+    a1.save!
+    expect { a2.save! }.to raise_exception(AWS::DynamoDB::Errors::ConditionalCheckFailedException)
+  end
+  
+  configured_with 'partitioning' do
+    it 'raises an error when attempting to use optimistic locking with partitioning' do
+      expect { address.save! }.to raise_exception
+    end
+  end
+  
   it 'assigns itself an id on save only if it does not have one' do
     @address.id = 'test123'
     @address.save
