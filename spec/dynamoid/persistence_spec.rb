@@ -43,7 +43,7 @@ describe "Dynamoid::Persistence" do
     a2.city = 'San Francisco'
     
     a1.save!
-    expect { a2.save! }.to raise_exception(AWS::DynamoDB::Errors::ConditionalCheckFailedException)
+    expect { a2.save! }.to raise_exception(Dynamoid::Errors::ConditionalCheckFailedException)
   end
   
   configured_with 'partitioning' do
@@ -173,7 +173,7 @@ describe "Dynamoid::Persistence" do
         t1.save
         expect do
           t2.save!
-        end.to raise_exception AWS::DynamoDB::Errors::ConditionalCheckFailedException
+        end.to raise_exception Dynamoid::Errors::ConditionalCheckFailedException
       end
     end
   end
@@ -239,6 +239,17 @@ describe "Dynamoid::Persistence" do
           t.add(:count => 3)
         end
       }.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
+    end
+    
+    it 'prevents concurrent saves to tables with a lock_version' do
+      @address.save!
+      a2 = Address.find(@address.id)
+      a2.update! { |a| a.set(:city => "Chicago") }
+      
+      expect do
+        @address.city = "Seattle"
+        @address.save!
+      end.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
     end
 
   end

@@ -65,7 +65,9 @@ describe "Dynamoid::Document" do
   it 'reloads itself and sees persisted changes' do
     @address = Address.create
 
-    Address.first.update_attributes(:city => 'Chicago')
+    Address.first.tap do |a|
+      a.update_attributes(:city => 'Chicago')
+    end
 
     @address.reload.city.should == 'Chicago'
   end

@@ -170,9 +170,21 @@ module Dynamoid
       self
     end
 
+    #
+    # update!() will increment the lock_version if the table has the column, but will not check it. Thus, a concurrent save will 
+    # never cause an update! to fail, but an update! may cause a concurrent save to fail. 
+    #
+    #
     def update!(conditions = {}, &block)
       options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
-      new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions), &block)
+      new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions)) do |t|
+        if(self.class.attributes[:lock_version])
+          raise "Optimistic locking cannot be used with Partitioning" if(Dynamoid::Config.partitioning)
+          t.add(lock_version: 1)
+        end
+        
+        yield t
+      end
       load(new_attrs)
     end
 
@@ -245,7 +257,7 @@ module Dynamoid
         raise ArgumentError, "Unknown type #{options[:type]}"
       end
     end
-
+    
     # Persist the object into the datastore. Assign it an id first if it doesn't have one; then afterwards,
     # save its indexes.
     #
@@ -254,27 +266,27 @@ module Dynamoid
       run_callbacks(:save) do
         self.hash_key = SecureRandom.uuid if self.hash_key.nil? || self.hash_key.blank?
         
-        #
         # Add an optimistic locking check if the lock_version column exists
-        #
-        if(self.class.attributes[:lock_version])
-          raise "Optimistic locking cannot be used with Partitioning" if(Dynamoid::Config.partitioning)
-           if(new_record?)
-             self.lock_version ||= 0 #No check needed, but the record needs to be saved with a number
-           else
-             self.lock_version += 1
-             check_clause = { :if => {:lock_version => changes[:lock_version][0] } }
-             conditions ? conditions.merge!(check_clause) : (conditions = check_clause)
-           end
+        if(new_record?)
+          conditions ||= {}
+          (conditions[:unless_exists] ||= []) << self.class.hash_key
         end
-        
+
+        # Add an exists check to prevent overwriting existing records
+        if(self.class.attributes[:lock_version])
+          conditions ||= {}
+          raise "Optimistic locking cannot be used with Partitioning" if(Dynamoid::Config.partitioning)
+          self.lock_version = (lock_version || 0) + 1 
+          #Uses the original lock_version value from ActiveModel::Dirty in case user changed lock_version manually
+          (conditions[:if] ||= {})[:lock_version] = changes[:lock_version][0] if(changes[:lock_version][0])
+        end
+
         Dynamoid::Adapter.write(self.class.table_name, self.dump, conditions)
         save_indexes
         @new_record = false
         true
       end
     end
-
   end
 
 end
