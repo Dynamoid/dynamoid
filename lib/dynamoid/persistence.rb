@@ -266,13 +266,13 @@ module Dynamoid
       run_callbacks(:save) do
         self.hash_key = SecureRandom.uuid if self.hash_key.nil? || self.hash_key.blank?
         
-        # Add an optimistic locking check if the lock_version column exists
+        # Add an exists check to prevent overwriting existing records with new ones
         if(new_record?)
           conditions ||= {}
           (conditions[:unless_exists] ||= []) << self.class.hash_key
         end
 
-        # Add an exists check to prevent overwriting existing records
+        # Add an optimistic locking check if the lock_version column exists
         if(self.class.attributes[:lock_version])
           conditions ||= {}
           raise "Optimistic locking cannot be used with Partitioning" if(Dynamoid::Config.partitioning)
