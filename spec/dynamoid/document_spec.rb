@@ -6,7 +6,7 @@ describe "Dynamoid::Document" do
     @address = Address.new
 
     @address.new_record.should be_true
-    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil, :options=>nil, :deliverable => nil}
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil, :options=>nil, :deliverable => nil, :lock_version => nil}
   end
 
   it 'responds to will_change! methods for all fields' do
@@ -22,7 +22,7 @@ describe "Dynamoid::Document" do
 
     @address.new_record.should be_true
 
-    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil}
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil, :lock_version => nil}
   end
 
   it 'initializes a new document with a virtual attribute' do
@@ -30,7 +30,7 @@ describe "Dynamoid::Document" do
 
     @address.new_record.should be_true
 
-    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil}
+    @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil, :lock_version => nil}
   end
 
   it 'allows interception of write_attribute on load' do
@@ -65,7 +65,9 @@ describe "Dynamoid::Document" do
   it 'reloads itself and sees persisted changes' do
     @address = Address.create
 
-    Address.first.update_attributes(:city => 'Chicago')
+    Address.first.tap do |a|
+      a.update_attributes(:city => 'Chicago')
+    end
 
     @address.reload.city.should == 'Chicago'
   end
