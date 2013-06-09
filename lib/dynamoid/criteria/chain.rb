@@ -288,7 +288,7 @@ module Dynamoid #:nodoc:
       end
 
       def range?
-        return false unless source.range_key
+        return false unless source.range_key || source.hash_key
         query_keys == [source.hash_key.to_s] || (query_keys.to_set == [source.hash_key.to_s, source.range_key.to_s].to_set)
       end
 
