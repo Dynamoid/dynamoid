@@ -19,6 +19,11 @@ describe "Dynamoid::Associations::Chain" do
     @chain.send(:index).should == User.indexes[[:email, :name]]
   end
 
+  it 'makes string symbol for query keys' do
+    @chain.query = {'name' => 'Josh'}
+    @chain.send(:index).should == User.indexes[[:name]]
+  end
+
   it 'finds matching index for a range query' do
     @chain.query = {"created_at.gt" => @time - 1.day}
     @chain.send(:index).should == User.indexes[[:created_at]]
