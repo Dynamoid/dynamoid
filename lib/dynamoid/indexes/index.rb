@@ -68,8 +68,8 @@ module Dynamoid #:nodoc:
         end
         attrs = attrs.send(:attributes) if attrs.respond_to?(:attributes)
         {}.tap do |hash|
-          hash[:hash_value] = hash_keys.collect{|key| attrs[key]}.join('.')
-          hash[:range_value] = range_keys.inject(0.0) {|sum, key| sum + attrs[key].to_f} if self.range_key?
+          hash[:hash_value] = hash_keys.collect{|key| attrs[key.to_s]}.join('.')
+          hash[:range_value] = range_keys.inject(0.0) {|sum, key| sum + attrs[key.to_s].to_f} if self.range_key?
         end
       end
       
