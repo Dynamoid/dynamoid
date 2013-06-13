@@ -313,6 +313,24 @@ Dynamoid attempts to obviate this problem transparently by employing a partition
 
 When your read or write throughput exceed your table's allowed provisioning, DynamoDB will wait on connections until throughput is available again. This will appear as very, very slow requests and can be somewhat frustrating. Partitioning significantly increases the amount of throughput tables will experience; though DynamoDB will ignore keys that don't exist, if you have 20 partitioned keys representing one object, all will be retrieved every time the object is requested. Ensure that your tables are set up for this kind of throughput, or turn provisioning off, to make sure that DynamoDB doesn't throttle your requests.
 
+## Concurrency
+
+Dynamoid supports basic, ActiveRecord-like optimistic locking on save operations. Simply add a `lock_version` column to your table like so: 
+
+```ruby
+class MyTable
+  ...
+  
+  field :lock_version, :integer
+  
+  ...
+end
+```
+
+In this example, all saves to `MyTable` will raise an `AWS::DynamoDB::Errors::ConditionalCheckFailedException` if a concurrent process loaded, edited, and saved the same row. Your code should trap this exception, reload the row (so that it will pick up the newest values), and try the save again. 
+
+Calls to `update` and `update!` also increment the `lock_version`, however they do not check the existing value. This guarantees that a update operation will raise an exception in a concurrent save operation, however a save operation will never cause an update to fail. Thus, `update` is useful & safe only for doing atomic operations (e.g. increment a value, add/remove from a set, etc), but should not be used in a read-modify-write pattern. 
+
 ## Credits
 
 Dynamoid borrows code, structure, and even its name very liberally from the truly amazing [Mongoid](https://github.com/mongoid/mongoid). Without Mongoid to crib from none of this would have been possible, and I hope they don't mind me reusing their very awesome ideas to make DynamoDB just as accessible to the Ruby world as MongoDB.

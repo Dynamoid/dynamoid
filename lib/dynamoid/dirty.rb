@@ -13,6 +13,12 @@ module Dynamoid
       clear_changes { super }
     end
 
+    def update!(*)
+      ret = super
+      clear_changes #update! completely reloads all fields on the class, so any extant changes are wiped out
+      ret
+    end
+
     def reload
       super.tap { clear_changes }
     end

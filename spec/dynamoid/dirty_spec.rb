@@ -22,6 +22,14 @@ describe 'Dynamoid::Dirty' do
       tweet.reload
       tweet.changed?.should be_false
     end
+    
+    it 'should be empty after an update' do
+      tweet = Tweet.create!(:tweet_id => "1", :group => 'abc')
+      tweet.update! do |t|
+        t.set(msg: "foo")
+      end
+      tweet.changed?.should be_false
+    end
 
     it 'track changes after saves' do
       tweet = Tweet.new(:tweet_id => "1", :group => 'abc')

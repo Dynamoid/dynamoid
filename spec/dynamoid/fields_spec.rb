@@ -85,7 +85,7 @@ describe "Dynamoid::Fields" do
     end
 
     it 'returns all attributes' do
-      Address.attributes.should == {:id=>{:type=>:string}, :created_at=>{:type=>:datetime}, :updated_at=>{:type=>:datetime}, :city=>{:type=>:string}, :options=>{:type=>:serialized}, :deliverable => {:type => :boolean}}
+      Address.attributes.should == {:id=>{:type=>:string}, :created_at=>{:type=>:datetime}, :updated_at=>{:type=>:datetime}, :city=>{:type=>:string}, :options=>{:type=>:serialized}, :deliverable => {:type => :boolean}, :lock_version => {:type => :integer}}
     end
   end
 

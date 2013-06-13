@@ -81,23 +81,7 @@ module Dynamoid #:nodoc:
     # @since 0.2.0
     def update_attributes(attributes)
       attributes.each {|attribute, value| self.write_attribute(attribute, value)}
-      if self.new_record # if never saved save.
-        save
-      else # update attributes if we have saved.
-        # next if self.read_only_attributes.include? attribute.to_s put this back in.
-        run_callbacks(:save) do
-          update! do |u|
-            attributes.each do |attribute, value|
-              u.set attribute => dump_field(
-                self.read_attribute(attribute),
-                self.class.attributes[attribute.to_sym]
-              )
-            end
-          end
-        end
-        
-        save
-      end
+      save
     end
 
     # Update a single attribute, saving the object afterwards.

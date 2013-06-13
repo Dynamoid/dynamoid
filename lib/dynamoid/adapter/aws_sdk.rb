@@ -197,6 +197,8 @@ module Dynamoid
           object.delete_if{|k, v| v.nil? || (v.respond_to?(:empty?) && v.empty?)},
           options || {}
         )
+      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException => e
+        raise Dynamoid::Errors::ConditionalCheckFailedException        
       end
 
       # Query the DynamoDB table. This employs DynamoDB's indexes so is generally faster than scanning, but is

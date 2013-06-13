@@ -74,19 +74,9 @@ describe Dynamoid::Adapter do
     end
   end
   
-  context 'with partitioning' do
-
+  configured_with 'partitioning' do
     let(:partition_range){0...Dynamoid::Config.partition_size}
 
-    before(:all) do
-      @previous_value = Dynamoid::Config.partitioning
-      Dynamoid::Config.partitioning = true
-    end
-    
-    after(:all) do
-      Dynamoid::Config.partitioning = @previous_value
-    end
-    
     it 'writes through the adapter' do
       Random.expects(:rand).with(Dynamoid::Config.partition_size).once.returns(0)
       described_class.write(test_table, {:id => 'testid'})
