@@ -100,6 +100,18 @@ describe "Dynamoid::Fields" do
     Address.new city: ("Ten chars " * 6_600)
   end
 
+  context '.remove_attribute' do
+    subject { @address }
+    before(:each) do
+      Address.field :foobar
+      Address.remove_field :foobar
+    end
+
+    it('should not be in the attributes hash') { Address.attributes.should_not have_key(:foobar) }
+    it('removes the accessor') { should_not respond_to(:foobar)  }
+    it('removes the writer')   { should_not respond_to(:foobar=) }
+    it('removes the interrogative') { should_not respond_to(:foobar?) }
+  end
 
   context 'default values for fields' do
     before do

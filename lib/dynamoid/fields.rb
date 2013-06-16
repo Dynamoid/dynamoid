@@ -39,6 +39,14 @@ module Dynamoid #:nodoc:
         field(name, type)
         self.range_key = name
       end
+
+      def remove_field(field)
+        field = field.to_sym
+        attributes.delete(field) or raise "No such field"
+        remove_method field
+        remove_method :"#{field}="
+        remove_method :"#{field}?"
+      end
     end
 
     # You can access the attributes of an object directly on its attributes method, which is by default an empty hash.

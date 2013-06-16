@@ -28,6 +28,7 @@ module Dynamoid #:nodoc:
       # @since 0.4.0
       def table(options = {})
         self.options = options
+        super if defined? super
       end
 
       def attr_readonly(*read_only_attributes)
