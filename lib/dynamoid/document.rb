@@ -8,9 +8,10 @@ module Dynamoid #:nodoc:
     include Dynamoid::Components
 
     included do
-      class_attribute :options, :read_only_attributes
+      class_attribute :options, :read_only_attributes, :base_class
       self.options = {}
       self.read_only_attributes = []
+      self.base_class = self
 
       Dynamoid::Config.included_models << self
     end
@@ -110,8 +111,6 @@ module Dynamoid #:nodoc:
     # @since 0.2.0
     def initialize(attrs = {})
       run_callbacks :initialize do
-        self.class.send(:field, self.class.hash_key) unless self.respond_to?(self.class.hash_key)
-
         @new_record = true
         @attributes ||= {}
         @associations ||= {}

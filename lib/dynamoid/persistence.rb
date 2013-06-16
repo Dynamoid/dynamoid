@@ -13,11 +13,8 @@ module Dynamoid
 
     module ClassMethods
 
-      # Returns the name of the table the class is for.
-      #
-      # @since 0.2.0
       def table_name
-        "#{Dynamoid::Config.namespace}_#{options[:name] ? options[:name] : self.name.split('::').last.downcase.pluralize}"
+        @table_name ||= "#{Dynamoid::Config.namespace}_#{options[:name] || base_class.name.split('::').last.downcase.pluralize}"
       end
 
       # Creates a table.

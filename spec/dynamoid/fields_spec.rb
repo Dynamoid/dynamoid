@@ -36,13 +36,13 @@ describe "Dynamoid::Fields" do
     @address.updated_at.should_not be_nil
     @address.updated_at.class.should == DateTime
   end
-  
+
   context 'with a saved address' do
     before do
       @address = Address.create(:deliverable => true)
       @original_id = @address.id
     end
-    
+
     it 'should write an attribute correctly' do
       @address.write_attribute(:city, 'Chicago')
     end
@@ -139,6 +139,17 @@ describe "Dynamoid::Fields" do
       @doc.save!
       @doc.reload.name.should eq('x')
       @doc.uid.should eq(42)
+    end
+  end
+
+  context 'single table inheritance' do
+    it "has only base class fields on the base class" do
+      Vehicle.attributes.keys.to_set.should == Set.new([:type, :description, :created_at, :updated_at, :id])
+    end
+
+    it "has only the base and derived fields on a sub-class" do
+      #Only NuclearSubmarines have torpedoes
+      Car.attributes.should_not have_key(:torpedoes)
     end
   end
 

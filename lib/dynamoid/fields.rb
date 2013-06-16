@@ -14,6 +14,8 @@ module Dynamoid #:nodoc:
       self.attributes = {}
       field :created_at, :datetime
       field :updated_at, :datetime
+
+      field :id #Default primary key
     end
 
     module ClassMethods
@@ -28,7 +30,7 @@ module Dynamoid #:nodoc:
       # @since 0.2.0
       def field(name, type = :string, options = {})
         named = name.to_s
-        self.attributes[name] = {:type => type}.merge(options)
+        self.attributes = attributes.merge(name => {:type => type}.merge(options))
 
         define_method(named) { read_attribute(named) }
         define_method("#{named}?") { !read_attribute(named).nil? }
@@ -38,6 +40,14 @@ module Dynamoid #:nodoc:
       def range(name, type = :string)
         field(name, type)
         self.range_key = name
+      end
+
+      def table(options)
+        #a default 'id' column is created when Dynamoid::Document is included
+        unless(attributes.has_key? hash_key)
+          remove_field :id
+          field(hash_key)
+        end
       end
 
       def remove_field(field)

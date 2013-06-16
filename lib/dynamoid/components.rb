@@ -14,7 +14,7 @@ module Dynamoid
 
       before_create :set_created_at
       before_save :set_updated_at
-      before_save :set_type
+      after_initialize :set_type
     end
 
     include ActiveModel::AttributeMethods
