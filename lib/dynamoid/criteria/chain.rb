@@ -31,7 +31,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def where(args)
-        args.each {|k, v| query[k] = v}
+        args.each {|k, v| query[k.to_sym] = v}
         self
       end
 
