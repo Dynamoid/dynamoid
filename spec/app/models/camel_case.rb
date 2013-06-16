@@ -10,6 +10,8 @@ class CamelCase
   
   before_create :doing_before_create
   after_create :doing_after_create
+  before_update :doing_before_update
+  after_update :doing_after_update
   
   private
   
@@ -18,6 +20,14 @@ class CamelCase
   end
   
   def doing_after_create
+    true
+  end
+
+  def doing_before_update
+    true
+  end
+
+  def doing_after_update
     true
   end
 

@@ -176,16 +176,18 @@ module Dynamoid
     #
     #
     def update!(conditions = {}, &block)
-      options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
-      new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions)) do |t|
-        if(self.class.attributes[:lock_version])
-          raise "Optimistic locking cannot be used with Partitioning" if(Dynamoid::Config.partitioning)
-          t.add(lock_version: 1)
+      run_callbacks(:update) do
+        options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
+        new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions)) do |t|
+          if(self.class.attributes[:lock_version])
+            raise "Optimistic locking cannot be used with Partitioning" if(Dynamoid::Config.partitioning)
+            t.add(lock_version: 1)
+          end
+
+          yield t
         end
-        
-        yield t
+        load(new_attrs)
       end
-      load(new_attrs)
     end
 
     def update(conditions = {}, &block)

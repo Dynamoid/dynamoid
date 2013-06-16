@@ -211,6 +211,22 @@ describe "Dynamoid::Persistence" do
       @tweet = Tweet.create(:tweet_id => 1, :group => 'abc', :count => 5, :tags => ['db', 'sql'], :user_name => 'john')
     end
 
+    it 'runs before_update callbacks when doing #update' do
+      CamelCase.any_instance.expects(:doing_before_update).once.returns(true)
+
+      CamelCase.create(:color => 'blue').update do |t|
+        t.set(:color => 'red')
+      end
+    end
+
+    it 'runs after_update callbacks when doing #update' do
+      CamelCase.any_instance.expects(:doing_after_update).once.returns(true)
+
+      CamelCase.create(:color => 'blue').update do |t|
+        t.set(:color => 'red')
+      end
+    end
+
     it 'support add/delete operation on a field' do
       @tweet.update do |t|
         t.add(:count => 3)
