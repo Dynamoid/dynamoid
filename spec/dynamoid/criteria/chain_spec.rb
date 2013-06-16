@@ -94,13 +94,37 @@ describe "Dynamoid::Associations::Chain" do
     @chain.collect {|u| u.name}.should == ['Josh']
   end
 
-  it 'finds range querys' do
+  it 'uses a range query when only a hash key or range key is specified in query' do
+    # Primary key is [hash_key].
+    @chain = Dynamoid::Criteria::Chain.new(Address)
+    @chain.query = {}
+    @chain.send(:range?).should be_false
+
+    @chain = Dynamoid::Criteria::Chain.new(Address)
+    @chain.query = { :id => 'test' }
+    @chain.send(:range?).should be_true
+
+    @chain = Dynamoid::Criteria::Chain.new(Address)
+    @chain.query = { :id => 'test', :city => 'Bucharest' }
+    @chain.send(:range?).should be_false
+
+    # Primary key is [hash_key, range_key].
+    @chain = Dynamoid::Criteria::Chain.new(Tweet)
+    @chain.query = { }
+    @chain.send(:range?).should be_false
+
     @chain = Dynamoid::Criteria::Chain.new(Tweet)
     @chain.query = { :tweet_id => 'test' }
     @chain.send(:range?).should be_true
 
+    @chain.query = {:tweet_id => 'test', :msg => 'hai'}
+    @chain.send(:range?).should be_false
+
     @chain.query = {:tweet_id => 'test', :group => 'xx'}
     @chain.send(:range?).should be_true
+
+    @chain.query = {:tweet_id => 'test', :group => 'xx', :msg => 'hai'}
+    @chain.send(:range?).should be_false
 
     @chain.query = { :group => 'xx' }
     @chain.send(:range?).should be_false

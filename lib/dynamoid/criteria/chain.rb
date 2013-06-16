@@ -287,8 +287,9 @@ module Dynamoid #:nodoc:
         query.keys.collect{|k| k.to_s.split('.').first}
       end
 
+      # Use range query only when [hash_key] or [hash_key, range_key] is specified in query keys.
       def range?
-        return false unless source.range_key
+        return false unless query_keys.include?(source.hash_key.to_s) or query_keys.include?(source.range_key.to_s)
         query_keys == [source.hash_key.to_s] || (query_keys.to_set == [source.hash_key.to_s, source.range_key.to_s].to_set)
       end
 
