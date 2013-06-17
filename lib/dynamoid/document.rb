@@ -55,6 +55,10 @@ module Dynamoid #:nodoc:
         options[:key] || :id
       end
 
+      def count
+        Dynamoid::Adapter::AwsSdk.count(table_name)
+      end
+
       # Initialize a new object and immediately save it to the database.
       #
       # @param [Hash] attrs Attributes with which to create the object.

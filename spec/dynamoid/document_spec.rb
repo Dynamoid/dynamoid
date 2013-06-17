@@ -161,4 +161,11 @@ describe "Dynamoid::Document" do
       document.should_not == different
     end
   end
+
+  it 'tests count' do
+    document = Tweet.create(:tweet_id => 'x', :group => 'abc')
+    different = Tweet.create(:tweet_id => 'x', :group => 'xyz')
+
+    Tweet.count.should == 2
+  end
 end

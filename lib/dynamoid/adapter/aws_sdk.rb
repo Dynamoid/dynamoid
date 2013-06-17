@@ -270,6 +270,18 @@ module Dynamoid
       def table_cache
         @table_cache ||= {}
       end
+
+      # Number of items from a table
+      #
+      # @param [String] table_name the name of the table
+      #
+      # @return [Integer] the number of items from a table
+      #
+      # @since 0.6.1
+      def count(table_name)
+        table = get_table(table_name)
+        table.items.count
+      end
     end
   end
 end
