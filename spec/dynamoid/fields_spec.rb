@@ -75,6 +75,12 @@ describe "Dynamoid::Fields" do
       @address.id.should == @original_id
     end
 
+    it 'should update only created_at when no params are passed' do
+      @initial_updated_at = @address.updated_at
+      @address.update_attributes([])
+      @address.updated_at.should_not == @initial_updated_at
+    end
+
     it 'adds in dirty methods for attributes' do
       @address.city = 'Chicago'
       @address.save

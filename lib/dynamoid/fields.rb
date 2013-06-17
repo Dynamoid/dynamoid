@@ -80,7 +80,7 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def update_attributes(attributes)
-      attributes.each {|attribute, value| self.write_attribute(attribute, value)}
+      attributes.each {|attribute, value| self.write_attribute(attribute, value)} unless attributes.nil? || attributes.empty?
       save
     end
 
