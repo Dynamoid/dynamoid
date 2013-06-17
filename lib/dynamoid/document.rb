@@ -55,6 +55,9 @@ module Dynamoid #:nodoc:
         options[:key] || :id
       end
 
+      # Returns the number of items for this class.
+      #
+      # @since 0.6.1
       def count
         Dynamoid::Adapter::AwsSdk.count(table_name)
       end
