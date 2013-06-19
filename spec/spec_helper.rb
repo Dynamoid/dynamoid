@@ -15,13 +15,13 @@ ENV['SECRET_KEY'] ||= '1234'
 AWS.config({
     :access_key_id => ENV['ACCESS_KEY'],
     :secret_access_key => ENV['SECRET_KEY'],
-    :dynamo_db_endpoint => 'localhost',
+    :dynamo_db_endpoint => '127.0.0.1',
     :dynamo_db_port => '4567',
     :use_ssl => false
 })
 
 Dynamoid.configure do |config|
-  config.adapter = 'aws_sdk'
+  config.adapter = 'client_v2'
   config.namespace = 'dynamoid_tests'
   config.warn_on_scan = false
 end
@@ -41,8 +41,10 @@ RSpec.configure do |config|
   config.before(:each) do
     Dynamoid::Adapter.list_tables.each do |table|
       if table =~ /^#{Dynamoid::Config.namespace}/
-        table = Dynamoid::Adapter.get_table(table)
-        table.items.each {|i| i.delete}
+        
+        Dynamoid::Adapter.truncate(table)
+        # table = Dynamoid::Adapter.get_table(table)
+        # table.items.each {|i| i.delete}
       end
     end
   end
