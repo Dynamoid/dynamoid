@@ -90,13 +90,16 @@ module Dynamoid #:nodoc:
 
       # Does this object exist?
       #
-      # @param [String] id the id of the object
+      # @param [Mixed] id_or_conditions the id of the object or a hash with the options to filter from.
       #
       # @return [Boolean] true/false
       #
       # @since 0.2.0
-      def exists?(id)
-        !! find(id)
+      def exists?(id_or_conditions = {})
+        case id_or_conditions
+          when Hash then ! where(id_or_conditions).all.empty?
+          else !! find(id_or_conditions)
+        end
       end
     end
 

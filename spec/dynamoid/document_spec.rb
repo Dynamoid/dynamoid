@@ -53,6 +53,8 @@ describe "Dynamoid::Document" do
     @address = Address.create(:city => 'Chicago')
     Address.exists?(@address.id).should be_true
     Address.exists?("does-not-exist").should be_false
+    Address.exists?(:city => @address.city).should be_true
+    Address.exists?(:city => "does-not-exist").should be_false
   end
 
   it 'gets errors courtesy of ActiveModel' do
