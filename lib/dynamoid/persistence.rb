@@ -13,11 +13,8 @@ module Dynamoid
 
     module ClassMethods
 
-      # Returns the name of the table the class is for.
-      #
-      # @since 0.2.0
       def table_name
-        "#{Dynamoid::Config.namespace}_#{options[:name] ? options[:name] : self.name.split('::').last.downcase.pluralize}"
+        @table_name ||= "#{Dynamoid::Config.namespace}_#{options[:name] || base_class.name.split('::').last.downcase.pluralize}"
       end
 
       # Creates a table.
@@ -57,7 +54,8 @@ module Dynamoid
       end
 
       def from_database(attrs = {})
-        new(attrs).tap { |r| r.new_record = false }
+        clazz = attrs[:type] ? obj = attrs[:type].constantize : self
+        clazz.new(attrs).tap { |r| r.new_record = false }
       end
 
       # Undump an object into a hash, converting each type from a string representation of itself into the type specified by the field.

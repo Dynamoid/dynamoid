@@ -278,4 +278,24 @@ describe "Dynamoid::Persistence" do
       }.should_not raise_error
     end
   end
+
+  context 'single table inheritance' do
+    let(:car) { Car.create(power_locks: false) }
+    let(:sub) { NuclearSubmarine.create(torpedoes: 5) }
+
+    it 'saves subclass objects in the parent table' do
+      c = car
+      Vehicle.find(c.id).should == c
+    end
+
+    it 'loads subclass item when querying the parent table' do
+      c = car
+      s = sub
+
+      Vehicle.all.to_a.tap { |v|
+        v.should include(c)
+        v.should include(s)
+      }
+    end
+  end
 end

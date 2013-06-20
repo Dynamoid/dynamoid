@@ -1,7 +1,7 @@
 # encoding: utf-8
 module Dynamoid #:nodoc:
 
-  # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not 
+  # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not
   # specified with field, then they will be ignored.
   module Fields
     extend ActiveSupport::Concern
@@ -14,11 +14,13 @@ module Dynamoid #:nodoc:
       self.attributes = {}
       field :created_at, :datetime
       field :updated_at, :datetime
+
+      field :id #Default primary key
     end
-    
+
     module ClassMethods
-      
-      # Specify a field for a document. Its type determines how it is coerced when read in and out of the datastore: 
+
+      # Specify a field for a document. Its type determines how it is coerced when read in and out of the datastore:
       # default is string, but you can also specify :integer, :float, :set, :array, :datetime, and :serialized.
       #
       # @param [Symbol] name the name of the field
@@ -28,7 +30,7 @@ module Dynamoid #:nodoc:
       # @since 0.2.0
       def field(name, type = :string, options = {})
         named = name.to_s
-        self.attributes[name] = {:type => type}.merge(options)
+        self.attributes = attributes.merge(name => {:type => type}.merge(options))
 
         define_method(named) { read_attribute(named) }
         define_method("#{named}?") { !read_attribute(named).nil? }
@@ -39,8 +41,24 @@ module Dynamoid #:nodoc:
         field(name, type)
         self.range_key = name
       end
+
+      def table(options)
+        #a default 'id' column is created when Dynamoid::Document is included
+        unless(attributes.has_key? hash_key)
+          remove_field :id
+          field(hash_key)
+        end
+      end
+
+      def remove_field(field)
+        field = field.to_sym
+        attributes.delete(field) or raise "No such field"
+        remove_method field
+        remove_method :"#{field}="
+        remove_method :"#{field}?"
+      end
     end
-    
+
     # You can access the attributes of an object directly on its attributes method, which is by default an empty hash.
     attr_accessor :attributes
     alias :raw_attributes :attributes
@@ -94,9 +112,9 @@ module Dynamoid #:nodoc:
       write_attribute(attribute, value)
       save
     end
-    
+
     private
-    
+
     # Automatically called during the created callback to set the created_at time.
     #
     # @since 0.2.0
@@ -106,11 +124,15 @@ module Dynamoid #:nodoc:
 
     # Automatically called during the save callback to set the updated_at time.
     #
-    # @since 0.2.0    
+    # @since 0.2.0
     def set_updated_at
       self.updated_at = DateTime.now
     end
-    
+
+    def set_type
+      self.type ||= self.class.to_s if self.class.attributes[:type]
+    end
+
   end
-  
+
 end

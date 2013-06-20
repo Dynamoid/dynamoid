@@ -163,4 +163,15 @@ describe "Dynamoid::Document" do
       document.should_not == different
     end
   end
+
+  context 'single table inheritance' do
+    it "should have a type" do
+      Vehicle.new.type.should == "Vehicle"
+    end
+
+    it "reports the same table name for both base and derived classes" do
+      Vehicle.table_name.should == Car.table_name
+      Vehicle.table_name.should == NuclearSubmarine.table_name
+    end
+  end
 end
