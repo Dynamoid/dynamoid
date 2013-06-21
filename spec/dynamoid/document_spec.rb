@@ -64,34 +64,28 @@ describe "Dynamoid::Document" do
     @address.errors.full_messages.should be_empty
   end
 
-  it 'reloads itself and sees persisted changes' do
-    @address = Address.create
+  context '.reload' do
+    let(:address){ Address.create }
+    let(:message){ Message.create({:text => 'Nice, supporting datetime range!', :time => Time.now.to_datetime}) }
+    let(:tweet){ tweet = Tweet.create(:tweet_id => 'x', :group => 'abc') }
 
-    Address.first.tap do |a|
-      a.update_attributes(:city => 'Chicago')
+    it 'reflects persisted changes' do
+      address.update_attributes(:city => 'Chicago')
+      address.reload.city.should == 'Chicago'
     end
 
-    @address.reload.city.should == 'Chicago'
-  end
-
-  context 'itself has a :datetime range key' do
-    let(:message) do
-      Message.create({
-        :text => 'Nice, supporting datetime range!',
-        :time => Time.now.to_datetime
-      })
+    it 'uses a :consistent_read' do
+      Tweet.expects(:find).with(tweet.hash_key, {:range_key => tweet.range_value, :consistent_read => true}).returns(tweet)
+      tweet.reload
     end
 
-    it 'reloads itself without raising an ArgumentError' do
-      expect {
-        message.reload
-      }.to_not raise_error(ArgumentError)
+    it 'works with range key' do
+      tweet.reload.group.should == 'abc'
     end
-  end
 
-  it 'reloads document with range key' do
-    tweet = Tweet.create(:tweet_id => 'x', :group => 'abc')
-    tweet.reload.group.should == 'abc'
+    it 'works with a :datetime range key' do
+      expect { message.reload }.to_not raise_error(ArgumentError)
+    end
   end
 
   it 'has default table options' do
