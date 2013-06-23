@@ -343,6 +343,7 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 * [Anantha Kumaran](https://github.com/ananthakumaran)
 * [Jason Dew](https://github.com/jasondew)
 * [Luis Arias](https://github.com/luisantonioa)
+* [Stefan Neculai](https://github.com/stefanneculai)
 
 ## Running the tests
 
