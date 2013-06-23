@@ -154,14 +154,14 @@ module Dynamoid #:nodoc:
     end
 
     # Reload an object from the database -- if you suspect the object has changed in the datastore and you need those
-    # changes to be reflected immediately, you would call this method.
+    # changes to be reflected immediately, you would call this method. This is a consistent read.
     #
     # @return [Dynamoid::Document] the document this method was called on
     #
     # @since 0.2.0
     def reload
       range_key_value = range_value ? dumped_range_value : nil
-      self.attributes = self.class.find(hash_key, :range_key => range_key_value).attributes
+      self.attributes = self.class.find(hash_key, :range_key => range_key_value, :consistent_read => true).attributes
       @associations.values.each(&:reset)
       self
     end
