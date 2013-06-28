@@ -6,18 +6,20 @@
 <title>
   Module: Dynamoid::Associations::ManyAssociation
   
-    &mdash; Documentation by YARD 0.7.5
+    &mdash; Documentation by YARD 0.8.6.1
   
 </title>
 
-  <link rel="stylesheet" href="../../css/style.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" charset="utf-8" />
 
-  <link rel="stylesheet" href="../../css/common.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" charset="utf-8" />
 
 <script type="text/javascript" charset="utf-8">
-  relpath = '../..';
-  if (relpath != '') relpath += '/';
+  hasFrames = window.top.frames.main ? true : false;
+  relpath = '../../';
+  framesUrl = "../../frames.html#!" + escape(window.location.href);
 </script>
+
 
   <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
 
@@ -26,36 +28,41 @@
 
   </head>
   <body>
-    <script type="text/javascript" charset="utf-8">
-      if (window.top.frames.main) document.body.className = 'frames';
-    </script>
-    
     <div id="header">
       <div id="menu">
   
-    <a href="../../_index.html">Index (M)</a> &raquo; 
+    <a href="../../_index.html">Index (M)</a> &raquo;
     <span class='title'><span class='object_link'><a href="../../Dynamoid.html" title="Dynamoid (module)">Dynamoid</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Associations.html" title="Dynamoid::Associations (module)">Associations</a></span></span>
      &raquo; 
     <span class="title">ManyAssociation</span>
   
-  
+
   <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
 </div>
 
       <div id="search">
   
-    <a id="class_list_link" href="#">Class List</a>
+    <a class="full_list_link" id="class_list_link"
+        href="../../class_list.html">
+      Class List
+    </a>
   
-    <a id="method_list_link" href="#">Method List</a>
+    <a class="full_list_link" id="method_list_link"
+        href="../../method_list.html">
+      Method List
+    </a>
   
-    <a id="file_list_link" href="#">File List</a>
+    <a class="full_list_link" id="file_list_link"
+        href="../../file_list.html">
+      File List
+    </a>
   
 </div>
       <div class="clear"></div>
     </div>
-    
+
     <iframe id="search_frame"></iframe>
-    
+
     <div id="content"><h1>Module: Dynamoid::Associations::ManyAssociation
   
   
@@ -100,6 +107,7 @@
 
     
   </span>
+  
   
   
     
@@ -149,6 +157,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Add an object or array of objects to an association.</p>
@@ -165,6 +174,7 @@
 
     
   </span>
+  
   
   
   
@@ -193,6 +203,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Create a new instance of the target class and add it directly to the association.</p>
@@ -209,6 +220,7 @@
 
     
   </span>
+  
   
   
   
@@ -237,6 +249,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Deletes an object or array of objects from the association.</p>
@@ -253,6 +266,7 @@
 
     
   </span>
+  
   
   
   
@@ -281,6 +295,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Destroys all members of the association and removes them from the association.</p>
@@ -297,6 +312,7 @@
 
     
   </span>
+  
   
   
   
@@ -325,6 +341,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>The records associated to the source.</p>
@@ -347,6 +364,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Delegate include? to the records.</p>
@@ -358,7 +376,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#initialize-instance_method" title="#initialize (instance method)">- (ManyAssociation) <strong>initialize</strong>(*args) </a>
+      <a href="#initialize-instance_method" title="#initialize (instance method)">- (Object) <strong>initialize</strong>(*args) </a>
     
 
     
@@ -369,10 +387,10 @@
   
   
   
+  
 
   
-    <span class="summary_desc"><div class='inline'><p>A new instance of ManyAssociation.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'></div></span>
   
 </li>
 
@@ -385,6 +403,7 @@
 
     
   </span>
+  
   
   
   
@@ -415,6 +434,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'></div></span>
@@ -430,6 +450,7 @@
 
     
   </span>
+  
   
   
   
@@ -458,6 +479,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Naive association filtering.</p>
@@ -478,6 +500,7 @@
   
   
   
+  
   <h3 class="inherited">Methods included from <span class='object_link'><a href="Association.html" title="Dynamoid::Associations::Association (module)">Association</a></span></h3>
   <p class="inherited"><span class='object_link'><a href="Association.html#loaded%3F-instance_method" title="Dynamoid::Associations::Association#loaded? (method)">#loaded?</a></span>, <span class='object_link'><a href="Association.html#reset-instance_method" title="Dynamoid::Associations::Association#reset (method)">#reset</a></span>, <span class='object_link'><a href="Association.html#target-instance_method" title="Dynamoid::Associations::Association#target (method)">#target</a></span></p>
 <div id="method_missing_details" class="method_details_list">
@@ -488,13 +511,15 @@
   </p>
   
     <div class="method_details first">
-  <p class="signature first" id="method_missing-instance_method">
+  <h3 class="signature first" id="method_missing-instance_method">
   
     - (<tt>Object</tt>) <strong>method_missing</strong>(method, *args) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Delegate methods we don't find directly to the records array.</p>
 
@@ -503,7 +528,7 @@
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -555,15 +580,16 @@
     
       
       <span id="query=-instance_method"></span>
-      <span id="query-instance_method"></span>
       <div class="method_details first">
-  <p class="signature first" id="query-instance_method">
+  <h3 class="signature first" id="query-instance_method">
   
     - (<tt>Object</tt>) <strong>query</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Returns the value of attribute query</p>
 
@@ -599,16 +625,18 @@
 
   <div id="instance_method_details" class="method_details_list">
     <h2>Instance Method Details</h2>
-    
+
     
       <div class="method_details first">
-  <p class="signature first" id="<<-instance_method">
+  <h3 class="signature first" id="<<-instance_method">
   
     - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>&lt;&lt;</strong>(object) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Add an object or array of objects to an association. This preserves the current records in the association (if any)
 and adds the object to the target association if it is detected to exist.</p>
@@ -617,7 +645,7 @@ and adds the object to the target association if it is detected to exist.</p>
   </div>
 </div>
 <div class="tags">
-  <h3>Parameters:</h3>
+  <p class="tag_title">Parameters:</p>
 <ul class="param">
   
     <li>
@@ -637,7 +665,7 @@ and adds the object to the target association if it is detected to exist.</p>
   
 </ul>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -654,7 +682,7 @@ and adds the object to the target association if it is detected to exist.</p>
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -696,13 +724,15 @@ and adds the object to the target association if it is detected to exist.</p>
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="==-instance_method">
+  <h3 class="signature " id="==-instance_method">
   
     - (<tt>Boolean</tt>) <strong>==</strong>(other) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Is this array equal to the association's records?</p>
 
@@ -711,7 +741,7 @@ and adds the object to the target association if it is detected to exist.</p>
 </div>
 <div class="tags">
   
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -728,7 +758,7 @@ and adds the object to the target association if it is detected to exist.</p>
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -766,13 +796,15 @@ and adds the object to the target association if it is detected to exist.</p>
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="create-instance_method">
+  <h3 class="signature " id="create-instance_method">
   
     - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>create</strong>(attributes = {}) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Create a new instance of the target class and add it directly to the association.</p>
 
@@ -780,7 +812,7 @@ and adds the object to the target association if it is detected to exist.</p>
   </div>
 </div>
 <div class="tags">
-  <h3>Parameters:</h3>
+  <p class="tag_title">Parameters:</p>
 <ul class="param">
   
     <li>
@@ -800,7 +832,7 @@ and adds the object to the target association if it is detected to exist.</p>
   
 </ul>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -817,7 +849,7 @@ and adds the object to the target association if it is detected to exist.</p>
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -855,13 +887,15 @@ and adds the object to the target association if it is detected to exist.</p>
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="create!-instance_method">
+  <h3 class="signature " id="create!-instance_method">
   
     - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>create!</strong>(attributes = {}) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Create a new instance of the target class and add it directly to the association. If the create fails an exception will be raised.</p>
 
@@ -869,7 +903,7 @@ and adds the object to the target association if it is detected to exist.</p>
   </div>
 </div>
 <div class="tags">
-  <h3>Parameters:</h3>
+  <p class="tag_title">Parameters:</p>
 <ul class="param">
   
     <li>
@@ -889,7 +923,7 @@ and adds the object to the target association if it is detected to exist.</p>
   
 </ul>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -906,7 +940,7 @@ and adds the object to the target association if it is detected to exist.</p>
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -944,13 +978,15 @@ and adds the object to the target association if it is detected to exist.</p>
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="delete-instance_method">
+  <h3 class="signature " id="delete-instance_method">
   
     - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>delete</strong>(object) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Deletes an object or array of objects from the association. This removes their records from the association field on the source,
 and attempts to remove the source from the target association if it is detected to exist.</p>
@@ -959,7 +995,7 @@ and attempts to remove the source from the target association if it is detected 
   </div>
 </div>
 <div class="tags">
-  <h3>Parameters:</h3>
+  <p class="tag_title">Parameters:</p>
 <ul class="param">
   
     <li>
@@ -979,7 +1015,7 @@ and attempts to remove the source from the target association if it is detected 
   
 </ul>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -996,7 +1032,7 @@ and attempts to remove the source from the target association if it is detected 
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -1038,13 +1074,15 @@ and attempts to remove the source from the target association if it is detected 
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="delete_all-instance_method">
+  <h3 class="signature " id="delete_all-instance_method">
   
     - (<tt>Object</tt>) <strong>delete_all</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Deletes all members of the association and removes them from the association.</p>
 
@@ -1053,7 +1091,7 @@ and attempts to remove the source from the target association if it is detected 
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -1095,13 +1133,15 @@ and attempts to remove the source from the target association if it is detected 
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="destroy_all-instance_method">
+  <h3 class="signature " id="destroy_all-instance_method">
   
     - (<tt>Object</tt>) <strong>destroy_all</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Destroys all members of the association and removes them from the association.</p>
 
@@ -1110,7 +1150,7 @@ and attempts to remove the source from the target association if it is detected 
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -1152,13 +1192,15 @@ and attempts to remove the source from the target association if it is detected 
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="each-instance_method">
+  <h3 class="signature " id="each-instance_method">
   
     - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>each</strong>(&amp;block) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Create a new instance of the target class and add it directly to the association. If the create fails an exception will be raised.</p>
 
@@ -1166,7 +1208,7 @@ and attempts to remove the source from the target association if it is detected 
   </div>
 </div>
 <div class="tags">
-  <h3>Parameters:</h3>
+  <p class="tag_title">Parameters:</p>
 <ul class="param">
   
     <li>
@@ -1186,7 +1228,7 @@ and attempts to remove the source from the target association if it is detected 
   
 </ul>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -1203,7 +1245,7 @@ and attempts to remove the source from the target association if it is detected 
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -1241,13 +1283,15 @@ and attempts to remove the source from the target association if it is detected 
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="find_target-instance_method">
+  <h3 class="signature " id="find_target-instance_method">
   
     - (<tt>Object</tt>) <strong>find_target</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>The records associated to the source.</p>
 
@@ -1256,7 +1300,7 @@ and attempts to remove the source from the target association if it is detected 
 </div>
 <div class="tags">
   
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -1273,7 +1317,7 @@ and attempts to remove the source from the target association if it is detected 
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -1311,13 +1355,15 @@ and attempts to remove the source from the target association if it is detected 
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="include?-instance_method">
+  <h3 class="signature " id="include?-instance_method">
   
     - (<tt>Boolean</tt>) <strong>include?</strong>(object) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Delegate include? to the records.</p>
 
@@ -1326,7 +1372,7 @@ and attempts to remove the source from the target association if it is detected 
 </div>
 <div class="tags">
   
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -1362,23 +1408,15 @@ and attempts to remove the source from the target association if it is detected 
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="initialize-instance_method">
+  <h3 class="signature " id="initialize-instance_method">
   
-    - (<tt><span class='object_link'><a href="" title="Dynamoid::Associations::ManyAssociation (module)">ManyAssociation</a></span></tt>) <strong>initialize</strong>(*args) 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>A new instance of ManyAssociation</p>
-
-
-  </div>
-</div>
-<div class="tags">
+    - (<tt>Object</tt>) <strong>initialize</strong>(*args) 
   
 
-</div><table class="source_code">
+  
+
+  
+</h3><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
@@ -1402,7 +1440,7 @@ and attempts to remove the source from the target association if it is detected 
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="records-instance_method">
+  <h3 class="signature " id="records-instance_method">
   
     - (<tt>Object</tt>) <strong>records</strong> 
   
@@ -1412,7 +1450,9 @@ and attempts to remove the source from the target association if it is detected 
     <span class="names"><span id='all-instance_method'>all</span></span>
     </span>
   
-</p><table class="source_code">
+
+  
+</h3><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
@@ -1442,13 +1482,15 @@ and attempts to remove the source from the target association if it is detected 
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="setter-instance_method">
+  <h3 class="signature " id="setter-instance_method">
   
     - (<tt><span class='object_link'><a href="../Document.html" title="Dynamoid::Document (module)">Dynamoid::Document</a></span></tt>) <strong>setter</strong>(object) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Replace an association with object or array of objects. This removes all of the existing associated records and replaces them with
 the passed object(s), and associates the target association if it is detected to exist.</p>
@@ -1457,7 +1499,7 @@ the passed object(s), and associates the target association if it is detected to
   </div>
 </div>
 <div class="tags">
-  <h3>Parameters:</h3>
+  <p class="tag_title">Parameters:</p>
 <ul class="param">
   
     <li>
@@ -1477,7 +1519,7 @@ the passed object(s), and associates the target association if it is detected to
   
 </ul>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -1494,7 +1536,7 @@ the passed object(s), and associates the target association if it is detected to
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -1536,13 +1578,15 @@ the passed object(s), and associates the target association if it is detected to
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="where-instance_method">
+  <h3 class="signature " id="where-instance_method">
   
     - (<tt>Dynamoid::Association</tt>) <strong>where</strong>(args) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Naive association filtering.</p>
 
@@ -1550,7 +1594,7 @@ the passed object(s), and associates the target association if it is detected to
   </div>
 </div>
 <div class="tags">
-  <h3>Parameters:</h3>
+  <p class="tag_title">Parameters:</p>
 <ul class="param">
   
     <li>
@@ -1570,7 +1614,7 @@ the passed object(s), and associates the target association if it is detected to
   
 </ul>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -1587,7 +1631,7 @@ the passed object(s), and associates the target association if it is detected to
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -1629,11 +1673,11 @@ the passed object(s), and associates the target association if it is detected to
   </div>
 
 </div>
-    
+
     <div id="footer">
-  Generated on Thu Apr 26 01:26:26 2012 by 
+  Generated on Thu Jun 27 21:59:13 2013 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.5 (ruby-1.9.3).
+  0.8.6.1 (ruby-1.9.3).
 </div>
 
   </body>

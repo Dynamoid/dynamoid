@@ -4,18 +4,20 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>
-  Documentation by YARD 0.7.5
+  Documentation by YARD 0.8.6.1
   
 </title>
 
-  <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="css/style.css" type="text/css" charset="utf-8" />
 
-  <link rel="stylesheet" href="css/common.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8" />
 
 <script type="text/javascript" charset="utf-8">
+  hasFrames = window.top.frames.main ? true : false;
   relpath = '';
-  if (relpath != '') relpath += '/';
+  framesUrl = "frames.html#!" + escape(window.location.href);
 </script>
+
 
   <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
 
@@ -24,40 +26,42 @@
 
   </head>
   <body>
-    <script type="text/javascript" charset="utf-8">
-      if (window.top.frames.main) document.body.className = 'frames';
-    </script>
-    
     <div id="header">
       <div id="menu">
   
-    
-    <span class="title"></span>
-  
-  
+
   <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
 </div>
 
       <div id="search">
   
-    <a id="class_list_link" href="#">Class List</a>
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+      Class List
+    </a>
   
-    <a id="method_list_link" href="#">Method List</a>
+    <a class="full_list_link" id="method_list_link"
+        href="method_list.html">
+      Method List
+    </a>
   
-    <a id="file_list_link" href="#">File List</a>
+    <a class="full_list_link" id="file_list_link"
+        href="file_list.html">
+      File List
+    </a>
   
 </div>
       <div class="clear"></div>
     </div>
-    
+
     <iframe id="search_frame"></iframe>
-    
-    <div id="content"><h1 class="noborder title">Documentation by YARD 0.7.5</h1>
+
+    <div id="content"><h1 class="noborder title">Documentation by YARD 0.8.6.1</h1>
 <div id="listing">
   <h1 class="alphaindex">Alphabetic Index</h1>
   
   <h2>File Listing</h2>
-  <ul id="files">
+  <ul id="files" class="index_inline_list">
   
   
     <li class="r1"><a href="index.html" title="README">README</a></li>
@@ -84,28 +88,28 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Adapter.html" title="Dynamoid::Adapter (module)">Adapter</a></span> 
+                <span class='object_link'><a href="Dynamoid/Adapter.html" title="Dynamoid::Adapter (module)">Adapter</a></span>
                 
                   <small>(Dynamoid)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Associations/Association.html" title="Dynamoid::Associations::Association (module)">Association</a></span> 
+                <span class='object_link'><a href="Dynamoid/Associations/Association.html" title="Dynamoid::Associations::Association (module)">Association</a></span>
                 
                   <small>(Dynamoid::Associations)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Associations.html" title="Dynamoid::Associations (module)">Associations</a></span> 
+                <span class='object_link'><a href="Dynamoid/Associations.html" title="Dynamoid::Associations (module)">Associations</a></span>
                 
                   <small>(Dynamoid)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Adapter/AwsSdk.html" title="Dynamoid::Adapter::AwsSdk (module)">AwsSdk</a></span> 
+                <span class='object_link'><a href="Dynamoid/Adapter/AwsSdk.html" title="Dynamoid::Adapter::AwsSdk (module)">AwsSdk</a></span>
                 
                   <small>(Dynamoid::Adapter)</small>
                 
@@ -120,7 +124,7 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Associations/BelongsTo.html" title="Dynamoid::Associations::BelongsTo (class)">BelongsTo</a></span> 
+                <span class='object_link'><a href="Dynamoid/Associations/BelongsTo.html" title="Dynamoid::Associations::BelongsTo (class)">BelongsTo</a></span>
                 
                   <small>(Dynamoid::Associations)</small>
                 
@@ -135,77 +139,98 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Criteria/Chain.html" title="Dynamoid::Criteria::Chain (class)">Chain</a></span> 
+                <span class='object_link'><a href="Dynamoid/Criteria/Chain.html" title="Dynamoid::Criteria::Chain (class)">Chain</a></span>
                 
                   <small>(Dynamoid::Criteria)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Associations/ClassMethods.html" title="Dynamoid::Associations::ClassMethods (module)">ClassMethods</a></span> 
+                <span class='object_link'><a href="Dynamoid/Associations/ClassMethods.html" title="Dynamoid::Associations::ClassMethods (module)">ClassMethods</a></span>
                 
                   <small>(Dynamoid::Associations)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Criteria/ClassMethods.html" title="Dynamoid::Criteria::ClassMethods (module)">ClassMethods</a></span> 
-                
-                  <small>(Dynamoid::Criteria)</small>
-                
-              </li>
-            
-              <li>
-                <span class='object_link'><a href="Dynamoid/Fields/ClassMethods.html" title="Dynamoid::Fields::ClassMethods (module)">ClassMethods</a></span> 
+                <span class='object_link'><a href="Dynamoid/Fields/ClassMethods.html" title="Dynamoid::Fields::ClassMethods (module)">ClassMethods</a></span>
                 
                   <small>(Dynamoid::Fields)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Indexes/ClassMethods.html" title="Dynamoid::Indexes::ClassMethods (module)">ClassMethods</a></span> 
+                <span class='object_link'><a href="Dynamoid/IdentityMap/ClassMethods.html" title="Dynamoid::IdentityMap::ClassMethods (module)">ClassMethods</a></span>
                 
-                  <small>(Dynamoid::Indexes)</small>
-                
-              </li>
-            
-              <li>
-                <span class='object_link'><a href="Dynamoid/Finders/ClassMethods.html" title="Dynamoid::Finders::ClassMethods (module)">ClassMethods</a></span> 
-                
-                  <small>(Dynamoid::Finders)</small>
+                  <small>(Dynamoid::IdentityMap)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Persistence/ClassMethods.html" title="Dynamoid::Persistence::ClassMethods (module)">ClassMethods</a></span> 
+                <span class='object_link'><a href="Dynamoid/Persistence/ClassMethods.html" title="Dynamoid::Persistence::ClassMethods (module)">ClassMethods</a></span>
                 
                   <small>(Dynamoid::Persistence)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Document/ClassMethods.html" title="Dynamoid::Document::ClassMethods (module)">ClassMethods</a></span> 
+                <span class='object_link'><a href="Dynamoid/Finders/ClassMethods.html" title="Dynamoid::Finders::ClassMethods (module)">ClassMethods</a></span>
+                
+                  <small>(Dynamoid::Finders)</small>
+                
+              </li>
+            
+              <li>
+                <span class='object_link'><a href="Dynamoid/Dirty/ClassMethods.html" title="Dynamoid::Dirty::ClassMethods (module)">ClassMethods</a></span>
+                
+                  <small>(Dynamoid::Dirty)</small>
+                
+              </li>
+            
+              <li>
+                <span class='object_link'><a href="Dynamoid/Criteria/ClassMethods.html" title="Dynamoid::Criteria::ClassMethods (module)">ClassMethods</a></span>
+                
+                  <small>(Dynamoid::Criteria)</small>
+                
+              </li>
+            
+              <li>
+                <span class='object_link'><a href="Dynamoid/Document/ClassMethods.html" title="Dynamoid::Document::ClassMethods (module)">ClassMethods</a></span>
                 
                   <small>(Dynamoid::Document)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Components.html" title="Dynamoid::Components (module)">Components</a></span> 
+                <span class='object_link'><a href="Dynamoid/Indexes/ClassMethods.html" title="Dynamoid::Indexes::ClassMethods (module)">ClassMethods</a></span>
+                
+                  <small>(Dynamoid::Indexes)</small>
+                
+              </li>
+            
+              <li>
+                <span class='object_link'><a href="Dynamoid/Components.html" title="Dynamoid::Components (module)">Components</a></span>
                 
                   <small>(Dynamoid)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Config.html" title="Dynamoid::Config (module)">Config</a></span> 
+                <span class='object_link'><a href="Dynamoid/Errors/ConditionalCheckFailedException.html" title="Dynamoid::Errors::ConditionalCheckFailedException (class)">ConditionalCheckFailedException</a></span>
+                
+                  <small>(Dynamoid::Errors)</small>
+                
+              </li>
+            
+              <li>
+                <span class='object_link'><a href="Dynamoid/Config.html" title="Dynamoid::Config (module)">Config</a></span>
                 
                   <small>(Dynamoid)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Criteria.html" title="Dynamoid::Criteria (module)">Criteria</a></span> 
+                <span class='object_link'><a href="Dynamoid/Criteria.html" title="Dynamoid::Criteria (module)">Criteria</a></span>
                 
                   <small>(Dynamoid)</small>
                 
@@ -220,21 +245,28 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Document.html" title="Dynamoid::Document (module)">Document</a></span> 
+                <span class='object_link'><a href="Dynamoid/Dirty.html" title="Dynamoid::Dirty (module)">Dirty</a></span>
                 
                   <small>(Dynamoid)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Errors/DocumentNotValid.html" title="Dynamoid::Errors::DocumentNotValid (class)">DocumentNotValid</a></span> 
+                <span class='object_link'><a href="Dynamoid/Document.html" title="Dynamoid::Document (module)">Document</a></span>
+                
+                  <small>(Dynamoid)</small>
+                
+              </li>
+            
+              <li>
+                <span class='object_link'><a href="Dynamoid/Errors/DocumentNotValid.html" title="Dynamoid::Errors::DocumentNotValid (class)">DocumentNotValid</a></span>
                 
                   <small>(Dynamoid::Errors)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid.html" title="Dynamoid (module)">Dynamoid</a></span> 
+                <span class='object_link'><a href="Dynamoid.html" title="Dynamoid (module)">Dynamoid</a></span>
                 
               </li>
             
@@ -247,14 +279,14 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Errors/Error.html" title="Dynamoid::Errors::Error (class)">Error</a></span> 
+                <span class='object_link'><a href="Dynamoid/Errors/Error.html" title="Dynamoid::Errors::Error (class)">Error</a></span>
                 
                   <small>(Dynamoid::Errors)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Errors.html" title="Dynamoid::Errors (module)">Errors</a></span> 
+                <span class='object_link'><a href="Dynamoid/Errors.html" title="Dynamoid::Errors (module)">Errors</a></span>
                 
                   <small>(Dynamoid)</small>
                 
@@ -269,14 +301,14 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Fields.html" title="Dynamoid::Fields (module)">Fields</a></span> 
+                <span class='object_link'><a href="Dynamoid/Fields.html" title="Dynamoid::Fields (module)">Fields</a></span>
                 
                   <small>(Dynamoid)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Finders.html" title="Dynamoid::Finders (module)">Finders</a></span> 
+                <span class='object_link'><a href="Dynamoid/Finders.html" title="Dynamoid::Finders (module)">Finders</a></span>
                 
                   <small>(Dynamoid)</small>
                 
@@ -291,21 +323,21 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Associations/HasAndBelongsToMany.html" title="Dynamoid::Associations::HasAndBelongsToMany (class)">HasAndBelongsToMany</a></span> 
+                <span class='object_link'><a href="Dynamoid/Associations/HasAndBelongsToMany.html" title="Dynamoid::Associations::HasAndBelongsToMany (class)">HasAndBelongsToMany</a></span>
                 
                   <small>(Dynamoid::Associations)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Associations/HasMany.html" title="Dynamoid::Associations::HasMany (class)">HasMany</a></span> 
+                <span class='object_link'><a href="Dynamoid/Associations/HasMany.html" title="Dynamoid::Associations::HasMany (class)">HasMany</a></span>
                 
                   <small>(Dynamoid::Associations)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Associations/HasOne.html" title="Dynamoid::Associations::HasOne (class)">HasOne</a></span> 
+                <span class='object_link'><a href="Dynamoid/Associations/HasOne.html" title="Dynamoid::Associations::HasOne (class)">HasOne</a></span>
                 
                   <small>(Dynamoid::Associations)</small>
                 
@@ -323,38 +355,44 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Indexes/Index.html" title="Dynamoid::Indexes::Index (class)">Index</a></span> 
+                <span class='object_link'><a href="Dynamoid/Middleware/IdentityMap.html" title="Dynamoid::Middleware::IdentityMap (class)">IdentityMap</a></span>
                 
-                  <small>(Dynamoid::Indexes)</small>
+                  <small>(Dynamoid::Middleware)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Indexes.html" title="Dynamoid::Indexes (module)">Indexes</a></span> 
+                <span class='object_link'><a href="Dynamoid/IdentityMap.html" title="Dynamoid::IdentityMap (module)">IdentityMap</a></span>
                 
                   <small>(Dynamoid)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Errors/InvalidField.html" title="Dynamoid::Errors::InvalidField (class)">InvalidField</a></span> 
+                <span class='object_link'><a href="Dynamoid/Indexes/Index.html" title="Dynamoid::Indexes::Index (class)">Index</a></span>
+                
+                  <small>(Dynamoid::Indexes)</small>
+                
+              </li>
+            
+              <li>
+                <span class='object_link'><a href="Dynamoid/Indexes.html" title="Dynamoid::Indexes (module)">Indexes</a></span>
+                
+                  <small>(Dynamoid)</small>
+                
+              </li>
+            
+              <li>
+                <span class='object_link'><a href="Dynamoid/Errors/InvalidField.html" title="Dynamoid::Errors::InvalidField (class)">InvalidField</a></span>
                 
                   <small>(Dynamoid::Errors)</small>
                 
               </li>
             
-          </ul>
-        </ul>
-      
-        
-        <ul id="alpha_L" class="alpha">
-          <li class="letter">L</li>
-          <ul>
-            
               <li>
-                <span class='object_link'><a href="Dynamoid/Adapter/Local.html" title="Dynamoid::Adapter::Local (module)">Local</a></span> 
+                <span class='object_link'><a href="Dynamoid/Errors/InvalidQuery.html" title="Dynamoid::Errors::InvalidQuery (class)">InvalidQuery</a></span>
                 
-                  <small>(Dynamoid::Adapter)</small>
+                  <small>(Dynamoid::Errors)</small>
                 
               </li>
             
@@ -367,14 +405,21 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Associations/ManyAssociation.html" title="Dynamoid::Associations::ManyAssociation (module)">ManyAssociation</a></span> 
+                <span class='object_link'><a href="Dynamoid/Associations/ManyAssociation.html" title="Dynamoid::Associations::ManyAssociation (module)">ManyAssociation</a></span>
                 
                   <small>(Dynamoid::Associations)</small>
                 
               </li>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Errors/MissingRangeKey.html" title="Dynamoid::Errors::MissingRangeKey (class)">MissingRangeKey</a></span> 
+                <span class='object_link'><a href="Dynamoid/Middleware.html" title="Dynamoid::Middleware (module)">Middleware</a></span>
+                
+                  <small>(Dynamoid)</small>
+                
+              </li>
+            
+              <li>
+                <span class='object_link'><a href="Dynamoid/Errors/MissingRangeKey.html" title="Dynamoid::Errors::MissingRangeKey (class)">MissingRangeKey</a></span>
                 
                   <small>(Dynamoid::Errors)</small>
                 
@@ -389,7 +434,7 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Config/Options.html" title="Dynamoid::Config::Options (module)">Options</a></span> 
+                <span class='object_link'><a href="Dynamoid/Config/Options.html" title="Dynamoid::Config::Options (module)">Options</a></span>
                 
                   <small>(Dynamoid::Config)</small>
                 
@@ -404,7 +449,7 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Persistence.html" title="Dynamoid::Persistence (module)">Persistence</a></span> 
+                <span class='object_link'><a href="Dynamoid/Persistence.html" title="Dynamoid::Persistence (module)">Persistence</a></span>
                 
                   <small>(Dynamoid)</small>
                 
@@ -419,7 +464,7 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Associations/SingleAssociation.html" title="Dynamoid::Associations::SingleAssociation (module)">SingleAssociation</a></span> 
+                <span class='object_link'><a href="Dynamoid/Associations/SingleAssociation.html" title="Dynamoid::Associations::SingleAssociation (module)">SingleAssociation</a></span>
                 
                   <small>(Dynamoid::Associations)</small>
                 
@@ -434,7 +479,7 @@
           <ul>
             
               <li>
-                <span class='object_link'><a href="Dynamoid/Validations.html" title="Dynamoid::Validations (module)">Validations</a></span> 
+                <span class='object_link'><a href="Dynamoid/Validations.html" title="Dynamoid::Validations (module)">Validations</a></span>
                 
                   <small>(Dynamoid)</small>
                 
@@ -450,11 +495,11 @@
 </div>
 
 </div>
-    
+
     <div id="footer">
-  Generated on Thu Apr 26 01:26:24 2012 by 
+  Generated on Thu Jun 27 21:59:09 2013 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.5 (ruby-1.9.3).
+  0.8.6.1 (ruby-1.9.3).
 </div>
 
   </body>

@@ -6,18 +6,20 @@
 <title>
   Module: Dynamoid::Config::Options
   
-    &mdash; Documentation by YARD 0.7.5
+    &mdash; Documentation by YARD 0.8.6.1
   
 </title>
 
-  <link rel="stylesheet" href="../../css/style.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" charset="utf-8" />
 
-  <link rel="stylesheet" href="../../css/common.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" charset="utf-8" />
 
 <script type="text/javascript" charset="utf-8">
-  relpath = '../..';
-  if (relpath != '') relpath += '/';
+  hasFrames = window.top.frames.main ? true : false;
+  relpath = '../../';
+  framesUrl = "../../frames.html#!" + escape(window.location.href);
 </script>
+
 
   <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
 
@@ -26,36 +28,41 @@
 
   </head>
   <body>
-    <script type="text/javascript" charset="utf-8">
-      if (window.top.frames.main) document.body.className = 'frames';
-    </script>
-    
     <div id="header">
       <div id="menu">
   
-    <a href="../../_index.html">Index (O)</a> &raquo; 
+    <a href="../../_index.html">Index (O)</a> &raquo;
     <span class='title'><span class='object_link'><a href="../../Dynamoid.html" title="Dynamoid (module)">Dynamoid</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Config.html" title="Dynamoid::Config (module)">Config</a></span></span>
      &raquo; 
     <span class="title">Options</span>
   
-  
+
   <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
 </div>
 
       <div id="search">
   
-    <a id="class_list_link" href="#">Class List</a>
+    <a class="full_list_link" id="class_list_link"
+        href="../../class_list.html">
+      Class List
+    </a>
   
-    <a id="method_list_link" href="#">Method List</a>
+    <a class="full_list_link" id="method_list_link"
+        href="../../method_list.html">
+      Method List
+    </a>
   
-    <a id="file_list_link" href="#">File List</a>
+    <a class="full_list_link" id="file_list_link"
+        href="../../file_list.html">
+      File List
+    </a>
   
 </div>
       <div class="clear"></div>
     </div>
-    
+
     <iframe id="search_frame"></iframe>
-    
+
     <div id="content"><h1>Module: Dynamoid::Config::Options
   
   
@@ -120,6 +127,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Get the defaults or initialize a new empty hash.</p>
@@ -136,6 +144,7 @@
 
     
   </span>
+  
   
   
   
@@ -164,6 +173,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Reset the configuration options to the defaults.</p>
@@ -186,6 +196,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Get the settings or initialize a new empty hash.</p>
@@ -201,16 +212,18 @@
 
   <div id="instance_method_details" class="method_details_list">
     <h2>Instance Method Details</h2>
-    
+
     
       <div class="method_details first">
-  <p class="signature first" id="defaults-instance_method">
+  <h3 class="signature first" id="defaults-instance_method">
   
     - (<tt>Hash</tt>) <strong>defaults</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Get the defaults or initialize a new empty hash.</p>
 
@@ -220,15 +233,17 @@
 <div class="tags">
   
   <div class="examples">
-    <h3>Examples:</h3>
+    <p class="tag_title">Examples:</p>
     
-      <h4><div class='inline'><p>Get the defaults.</p>
-</div></h4>
-      <pre class="example code"><span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_defaults'>defaults</span></pre>
+      
+        <p class="example_title"><div class='inline'><p>Get the defaults.</p>
+</div></p>
+      
+      <pre class="example code"><code><span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_defaults'>defaults</span></code></pre>
     
   </div>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -245,7 +260,7 @@
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -283,13 +298,15 @@
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="option-instance_method">
+  <h3 class="signature " id="option-instance_method">
   
     - (<tt>Object</tt>) <strong>option</strong>(name, options = {}) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Define a configuration option with a default.</p>
 
@@ -299,14 +316,16 @@
 <div class="tags">
   
   <div class="examples">
-    <h3>Examples:</h3>
+    <p class="tag_title">Examples:</p>
     
-      <h4><div class='inline'><p>Define the option.</p>
-</div></h4>
-      <pre class="example code"><span class='const'>Options</span><span class='period'>.</span><span class='id identifier rubyid_option'>option</span><span class='lparen'>(</span><span class='symbol'>:persist_in_safe_mode</span><span class='comma'>,</span> <span class='symbol'>:default</span> <span class='op'>=&gt;</span> <span class='kw'>false</span><span class='rparen'>)</span></pre>
+      
+        <p class="example_title"><div class='inline'><p>Define the option.</p>
+</div></p>
+      
+      <pre class="example code"><code><span class='const'>Options</span><span class='period'>.</span><span class='id identifier rubyid_option'>option</span><span class='lparen'>(</span><span class='symbol'>:persist_in_safe_mode</span><span class='comma'>,</span> <span class='symbol'>:default</span> <span class='op'>=&gt;</span> <span class='kw'>false</span><span class='rparen'>)</span></code></pre>
     
   </div>
-<h3>Parameters:</h3>
+<p class="tag_title">Parameters:</p>
 <ul class="param">
   
     <li>
@@ -348,7 +367,7 @@
     
     
     
-    <h3>Options Hash (<tt>options</tt>):</h3>
+    <p class="tag_title">Options Hash (<tt>options</tt>):</p>
     <ul class="option">
       
         <li>
@@ -357,14 +376,16 @@
           <span class="default">
             
           </span>
-          &mdash; <div class='inline'><p>The default value.</p>
+          
+            &mdash; <div class='inline'><p>The default value.</p>
 </div>
+          
         </li>
       
     </ul>
   
 
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -416,19 +437,19 @@
 
   <span class='id identifier rubyid_class_eval'>class_eval</span> <span class='heredoc_beg'>&lt;&lt;-RUBY</span>
 <span class='tstring_content'>    def </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='rbrace'>}</span><span class='tstring_content'>
-</span><span class='embexpr_beg'>      settings[#{</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='rbrace'>}</span><span class='tstring_content'>]
+      settings[</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='rbrace'>}</span><span class='tstring_content'>]
     end
 
-</span><span class='embexpr_beg'>    def #{</span><span class='id identifier rubyid_name'>name</span><span class='rbrace'>}</span><span class='tstring_content'>=(value)
-</span><span class='embexpr_beg'>      settings[#{</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='rbrace'>}</span><span class='tstring_content'>] = value
+    def </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='rbrace'>}</span><span class='tstring_content'>=(value)
+      settings[</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='rbrace'>}</span><span class='tstring_content'>] = value
     end
 
-</span><span class='embexpr_beg'>    def #{</span><span class='id identifier rubyid_name'>name</span><span class='rbrace'>}</span><span class='tstring_content'>?
-</span><span class='embexpr_beg'>      #{</span><span class='id identifier rubyid_name'>name</span><span class='rbrace'>}</span><span class='tstring_content'>
+    def </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='rbrace'>}</span><span class='tstring_content'>?
+      </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='rbrace'>}</span><span class='tstring_content'>
     end
     
-</span><span class='embexpr_beg'>    def reset_#{</span><span class='id identifier rubyid_name'>name</span><span class='rbrace'>}</span><span class='tstring_content'>
-</span><span class='embexpr_beg'>      settings[#{</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='rbrace'>}</span><span class='tstring_content'>] = defaults[</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='rbrace'>}</span><span class='tstring_content'>]
+    def reset_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='rbrace'>}</span><span class='tstring_content'>
+      settings[</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='rbrace'>}</span><span class='tstring_content'>] = defaults[</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='rbrace'>}</span><span class='tstring_content'>]
     end
 </span><span class='heredoc_end'>  RUBY
 </span><span class='kw'>end</span></pre>
@@ -438,13 +459,15 @@
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="reset-instance_method">
+  <h3 class="signature " id="reset-instance_method">
   
     - (<tt>Hash</tt>) <strong>reset</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Reset the configuration options to the defaults.</p>
 
@@ -454,15 +477,17 @@
 <div class="tags">
   
   <div class="examples">
-    <h3>Examples:</h3>
+    <p class="tag_title">Examples:</p>
     
-      <h4><div class='inline'><p>Reset the configuration options.</p>
-</div></h4>
-      <pre class="example code"><span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_reset'>reset</span></pre>
+      
+        <p class="example_title"><div class='inline'><p>Reset the configuration options.</p>
+</div></p>
+      
+      <pre class="example code"><code><span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_reset'>reset</span></code></pre>
     
   </div>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -479,7 +504,7 @@
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -517,13 +542,15 @@
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="settings-instance_method">
+  <h3 class="signature " id="settings-instance_method">
   
     - (<tt>Hash</tt>) <strong>settings</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Get the settings or initialize a new empty hash.</p>
 
@@ -533,15 +560,17 @@
 <div class="tags">
   
   <div class="examples">
-    <h3>Examples:</h3>
+    <p class="tag_title">Examples:</p>
     
-      <h4><div class='inline'><p>Get the settings.</p>
-</div></h4>
-      <pre class="example code"><span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_settings'>settings</span></pre>
+      
+        <p class="example_title"><div class='inline'><p>Get the settings.</p>
+</div></p>
+      
+      <pre class="example code"><code><span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_settings'>settings</span></code></pre>
     
   </div>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -558,7 +587,7 @@
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -598,11 +627,11 @@
   </div>
 
 </div>
-    
+
     <div id="footer">
-  Generated on Thu Apr 26 01:26:25 2012 by 
+  Generated on Thu Jun 27 21:59:13 2013 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.5 (ruby-1.9.3).
+  0.8.6.1 (ruby-1.9.3).
 </div>
 
   </body>

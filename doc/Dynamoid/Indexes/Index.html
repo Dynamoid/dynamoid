@@ -6,18 +6,20 @@
 <title>
   Class: Dynamoid::Indexes::Index
   
-    &mdash; Documentation by YARD 0.7.5
+    &mdash; Documentation by YARD 0.8.6.1
   
 </title>
 
-  <link rel="stylesheet" href="../../css/style.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" charset="utf-8" />
 
-  <link rel="stylesheet" href="../../css/common.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" charset="utf-8" />
 
 <script type="text/javascript" charset="utf-8">
-  relpath = '../..';
-  if (relpath != '') relpath += '/';
+  hasFrames = window.top.frames.main ? true : false;
+  relpath = '../../';
+  framesUrl = "../../frames.html#!" + escape(window.location.href);
 </script>
+
 
   <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
 
@@ -26,36 +28,41 @@
 
   </head>
   <body>
-    <script type="text/javascript" charset="utf-8">
-      if (window.top.frames.main) document.body.className = 'frames';
-    </script>
-    
     <div id="header">
       <div id="menu">
   
-    <a href="../../_index.html">Index (I)</a> &raquo; 
+    <a href="../../_index.html">Index (I)</a> &raquo;
     <span class='title'><span class='object_link'><a href="../../Dynamoid.html" title="Dynamoid (module)">Dynamoid</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Indexes.html" title="Dynamoid::Indexes (module)">Indexes</a></span></span>
      &raquo; 
     <span class="title">Index</span>
   
-  
+
   <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
 </div>
 
       <div id="search">
   
-    <a id="class_list_link" href="#">Class List</a>
+    <a class="full_list_link" id="class_list_link"
+        href="../../class_list.html">
+      Class List
+    </a>
   
-    <a id="method_list_link" href="#">Method List</a>
+    <a class="full_list_link" id="method_list_link"
+        href="../../method_list.html">
+      Method List
+    </a>
   
-    <a id="file_list_link" href="#">File List</a>
+    <a class="full_list_link" id="file_list_link"
+        href="../../file_list.html">
+      File List
+    </a>
   
 </div>
       <div class="clear"></div>
     </div>
-    
+
     <iframe id="search_frame"></iframe>
-    
+
     <div id="content"><h1>Class: Dynamoid::Indexes::Index
   
   
@@ -119,6 +126,7 @@
   </span>
   
   
+  
     
     
   
@@ -142,6 +150,7 @@
 
     
   </span>
+  
   
   
     
@@ -171,6 +180,7 @@
   </span>
   
   
+  
     
     
   
@@ -194,6 +204,7 @@
 
     
   </span>
+  
   
   
     
@@ -238,6 +249,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Delete an object from this index, preserving existing ids if there are any, and failing gracefully if for some reason the 
@@ -255,6 +267,7 @@ index doesn't already have this object in it.</p>
 
     
   </span>
+  
   
     <span class="note title constructor">constructor</span>
   
@@ -285,6 +298,7 @@ index doesn't already have this object in it.</p>
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Return the array of keys this index uses for its table.</p>
@@ -301,6 +315,7 @@ index doesn't already have this object in it.</p>
 
     
   </span>
+  
   
   
   
@@ -329,6 +344,7 @@ index doesn't already have this object in it.</p>
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Sort objects into alphabetical strings, used for composing index names correctly (since we always assume they're alphabetical).</p>
@@ -345,6 +361,7 @@ index doesn't already have this object in it.</p>
 
     
   </span>
+  
   
   
   
@@ -373,6 +390,7 @@ index doesn't already have this object in it.</p>
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Given either an object or a list of attributes, generate a hash key and a range key for the index.</p>
@@ -388,13 +406,15 @@ index doesn't already have this object in it.</p>
   <h2>Constructor Details</h2>
   
     <div class="method_details first">
-  <p class="signature first" id="initialize-instance_method">
+  <h3 class="signature first" id="initialize-instance_method">
   
     - (<tt><span class='object_link'><a href="" title="Dynamoid::Indexes::Index (class)">Index</a></span></tt>) <strong>initialize</strong>(source, name, options = {}) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Create a new index. Pass either :range =&gt; true or :range =&gt; :column_name to create a ranged index on that column.</p>
 
@@ -402,7 +422,7 @@ index doesn't already have this object in it.</p>
   </div>
 </div>
 <div class="tags">
-  <h3>Parameters:</h3>
+  <p class="tag_title">Parameters:</p>
 <ul class="param">
   
     <li>
@@ -437,7 +457,7 @@ index doesn't already have this object in it.</p>
   
 </ul>
 
-<h3>Raises:</h3>
+<p class="tag_title">Raises:</p>
 <ul class="raise">
   
     <li>
@@ -450,7 +470,7 @@ index doesn't already have this object in it.</p>
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -514,15 +534,16 @@ index doesn't already have this object in it.</p>
     
       
       <span id="hash_keys=-instance_method"></span>
-      <span id="hash_keys-instance_method"></span>
       <div class="method_details first">
-  <p class="signature first" id="hash_keys-instance_method">
+  <h3 class="signature first" id="hash_keys-instance_method">
   
     - (<tt>Object</tt>) <strong>hash_keys</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Returns the value of attribute hash_keys</p>
 
@@ -555,15 +576,16 @@ index doesn't already have this object in it.</p>
     
       
       <span id="name=-instance_method"></span>
-      <span id="name-instance_method"></span>
       <div class="method_details ">
-  <p class="signature " id="name-instance_method">
+  <h3 class="signature " id="name-instance_method">
   
     - (<tt>Object</tt>) <strong>name</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Returns the value of attribute name</p>
 
@@ -596,9 +618,8 @@ index doesn't already have this object in it.</p>
     
       
       <span id="range_keys=-instance_method"></span>
-      <span id="range_keys-instance_method"></span>
       <div class="method_details ">
-  <p class="signature " id="range_keys-instance_method">
+  <h3 class="signature " id="range_keys-instance_method">
   
     - (<tt>Object</tt>) <strong>range_keys</strong> 
   
@@ -608,7 +629,9 @@ index doesn't already have this object in it.</p>
     <span class="names"><span id='range_key?-instance_method'>range_key?</span></span>
     </span>
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Returns the value of attribute range_keys</p>
 
@@ -641,15 +664,16 @@ index doesn't already have this object in it.</p>
     
       
       <span id="source=-instance_method"></span>
-      <span id="source-instance_method"></span>
       <div class="method_details ">
-  <p class="signature " id="source-instance_method">
+  <h3 class="signature " id="source-instance_method">
   
     - (<tt>Object</tt>) <strong>source</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Returns the value of attribute source</p>
 
@@ -685,16 +709,18 @@ index doesn't already have this object in it.</p>
 
   <div id="instance_method_details" class="method_details_list">
     <h2>Instance Method Details</h2>
-    
+
     
       <div class="method_details first">
-  <p class="signature first" id="delete-instance_method">
+  <h3 class="signature first" id="delete-instance_method">
   
     - (<tt>Object</tt>) <strong>delete</strong>(obj, changed_attributes = false) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Delete an object from this index, preserving existing ids if there are any, and failing gracefully if for some reason the 
 index doesn't already have this object in it.</p>
@@ -704,7 +730,7 @@ index doesn't already have this object in it.</p>
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -750,13 +776,15 @@ index doesn't already have this object in it.</p>
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="keys-instance_method">
+  <h3 class="signature " id="keys-instance_method">
   
     - (<tt>Object</tt>) <strong>keys</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Return the array of keys this index uses for its table.</p>
 
@@ -765,7 +793,7 @@ index doesn't already have this object in it.</p>
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -803,13 +831,15 @@ index doesn't already have this object in it.</p>
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="save-instance_method">
+  <h3 class="signature " id="save-instance_method">
   
     - (<tt>Object</tt>) <strong>save</strong>(obj) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Save an object to this index, merging it with existing ids if there's already something present at this index location.
 First, though, delete this object from its old indexes (so the object isn't listed in an erroneous index).</p>
@@ -819,7 +849,7 @@ First, though, delete this object from its old indexes (so the object isn't list
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -867,13 +897,15 @@ First, though, delete this object from its old indexes (so the object isn't list
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="sort-instance_method">
+  <h3 class="signature " id="sort-instance_method">
   
     - (<tt>Object</tt>) <strong>sort</strong>(objs) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Sort objects into alphabetical strings, used for composing index names correctly (since we always assume they're alphabetical).</p>
 
@@ -883,15 +915,17 @@ First, though, delete this object from its old indexes (so the object isn't list
 <div class="tags">
   
   <div class="examples">
-    <h3>Examples:</h3>
+    <p class="tag_title">Examples:</p>
     
-      <h4><div class='inline'><p>find all users by first and last name</p>
-</div></h4>
-      <pre class="example code"><span class='id identifier rubyid_sort'>sort</span><span class='lparen'>(</span><span class='lbracket'>[</span><span class='symbol'>:gamma</span><span class='comma'>,</span> <span class='symbol'>:alpha</span><span class='comma'>,</span> <span class='symbol'>:beta</span><span class='comma'>,</span> <span class='symbol'>:omega</span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='comment'># =&gt; [:alpha, :beta, :gamma, :omega]</span></pre>
+      
+        <p class="example_title"><div class='inline'><p>find all users by first and last name</p>
+</div></p>
+      
+      <pre class="example code"><code><span class='id identifier rubyid_sort'>sort</span><span class='lparen'>(</span><span class='lbracket'>[</span><span class='symbol'>:gamma</span><span class='comma'>,</span> <span class='symbol'>:alpha</span><span class='comma'>,</span> <span class='symbol'>:beta</span><span class='comma'>,</span> <span class='symbol'>:omega</span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='comment'># =&gt; [:alpha, :beta, :gamma, :omega]</span></code></pre>
     
   </div>
 
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -929,13 +963,15 @@ First, though, delete this object from its old indexes (so the object isn't list
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="table_name-instance_method">
+  <h3 class="signature " id="table_name-instance_method">
   
     - (<tt>Object</tt>) <strong>table_name</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Return the table name for this index.</p>
 
@@ -944,7 +980,7 @@ First, though, delete this object from its old indexes (so the object isn't list
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -974,7 +1010,7 @@ First, though, delete this object from its old indexes (so the object isn't list
       <pre class="code"><span class="info file"># File 'lib/dynamoid/indexes/index.rb', line 50</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_table_name'>table_name</span>
-  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_namespace'>namespace</span><span class='rbrace'>}</span><span class='tstring_content'>_index_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_source'>source</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='period'>.</span><span class='id identifier rubyid_downcase'>downcase</span><span class='rbrace'>}</span><span class='tstring_content'>_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:to_s</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:pluralize</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>_and_</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span><span class='rbrace'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_namespace'>namespace</span><span class='rbrace'>}</span><span class='tstring_content'>_index_</span><span class='tstring_end'>&quot;</span></span> <span class='op'>+</span> <span class='id identifier rubyid_source'>source</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='period'>.</span><span class='id identifier rubyid_sub'>sub</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_namespace'>namespace</span><span class='rbrace'>}</span><span class='tstring_content'>_</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_singularize'>singularize</span> <span class='op'>+</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:to_s</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_collect'>collect</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:pluralize</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>_and_</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span><span class='rbrace'>}</span><span class='tstring_end'>&quot;</span></span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -982,13 +1018,15 @@ First, though, delete this object from its old indexes (so the object isn't list
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="values-instance_method">
+  <h3 class="signature " id="values-instance_method">
   
     - (<tt>Hash</tt>) <strong>values</strong>(attrs, changed_attributes = false) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Given either an object or a list of attributes, generate a hash key and a range key for the index. Optionally pass in 
 true to changed_attributes for a list of all the object's dirty attributes in convenient index form (for deleting stale 
@@ -998,7 +1036,7 @@ information from the indexes).</p>
   </div>
 </div>
 <div class="tags">
-  <h3>Parameters:</h3>
+  <p class="tag_title">Parameters:</p>
 <ul class="param">
   
     <li>
@@ -1018,7 +1056,7 @@ information from the indexes).</p>
   
 </ul>
 
-<h3>Returns:</h3>
+<p class="tag_title">Returns:</p>
 <ul class="return">
   
     <li>
@@ -1035,7 +1073,7 @@ information from the indexes).</p>
     </li>
   
 </ul>
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -1093,11 +1131,11 @@ information from the indexes).</p>
   </div>
 
 </div>
-    
+
     <div id="footer">
-  Generated on Thu Apr 26 01:26:25 2012 by 
+  Generated on Thu Jun 27 21:59:13 2013 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.5 (ruby-1.9.3).
+  0.8.6.1 (ruby-1.9.3).
 </div>
 
   </body>

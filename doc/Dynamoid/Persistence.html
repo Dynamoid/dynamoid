@@ -6,18 +6,20 @@
 <title>
   Module: Dynamoid::Persistence
   
-    &mdash; Documentation by YARD 0.7.5
+    &mdash; Documentation by YARD 0.8.6.1
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css" charset="utf-8" />
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css" charset="utf-8" />
 
 <script type="text/javascript" charset="utf-8">
-  relpath = '..';
-  if (relpath != '') relpath += '/';
+  hasFrames = window.top.frames.main ? true : false;
+  relpath = '../';
+  framesUrl = "../frames.html#!" + escape(window.location.href);
 </script>
+
 
   <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
 
@@ -26,36 +28,41 @@
 
   </head>
   <body>
-    <script type="text/javascript" charset="utf-8">
-      if (window.top.frames.main) document.body.className = 'frames';
-    </script>
-    
     <div id="header">
       <div id="menu">
   
-    <a href="../_index.html">Index (P)</a> &raquo; 
+    <a href="../_index.html">Index (P)</a> &raquo;
     <span class='title'><span class='object_link'><a href="../Dynamoid.html" title="Dynamoid (module)">Dynamoid</a></span></span>
      &raquo; 
     <span class="title">Persistence</span>
   
-  
+
   <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
 </div>
 
       <div id="search">
   
-    <a id="class_list_link" href="#">Class List</a>
+    <a class="full_list_link" id="class_list_link"
+        href="../class_list.html">
+      Class List
+    </a>
   
-    <a id="method_list_link" href="#">Method List</a>
+    <a class="full_list_link" id="method_list_link"
+        href="../method_list.html">
+      Method List
+    </a>
   
-    <a id="file_list_link" href="#">File List</a>
+    <a class="full_list_link" id="file_list_link"
+        href="../file_list.html">
+      File List
+    </a>
   
 </div>
       <div class="clear"></div>
     </div>
-    
+
     <iframe id="search_frame"></iframe>
-    
+
     <div id="content"><h1>Module: Dynamoid::Persistence
   
   
@@ -87,7 +94,7 @@
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    <p>Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize 
+    <p>Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize
 values to be of the same type as when they were passed in, based on the fields in the class.</p>
 
 
@@ -98,11 +105,11 @@ values to be of the same type as when they were passed in, based on the fields i
 
 </div><h2>Defined Under Namespace</h2>
 <p class="children">
-   
+  
     
       <strong class="modules">Modules:</strong> <span class='object_link'><a href="Persistence/ClassMethods.html" title="Dynamoid::Persistence::ClassMethods (module)">ClassMethods</a></span>
     
-   
+  
     
   
 </p>
@@ -123,6 +130,7 @@ values to be of the same type as when they were passed in, based on the fields i
       (also: #new_record?)
     
   </span>
+  
   
   
     
@@ -167,6 +175,7 @@ values to be of the same type as when they were passed in, based on the fields i
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Delete this object from the datastore and all indexes.</p>
@@ -183,6 +192,7 @@ values to be of the same type as when they were passed in, based on the fields i
 
     
   </span>
+  
   
   
   
@@ -211,6 +221,7 @@ values to be of the same type as when they were passed in, based on the fields i
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Dump this object's attributes into hash form, fit to be persisted into the datastore.</p>
@@ -227,6 +238,7 @@ values to be of the same type as when they were passed in, based on the fields i
 
     
   </span>
+  
   
   
   
@@ -255,9 +267,78 @@ values to be of the same type as when they were passed in, based on the fields i
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Run the callbacks and then persist this object in the datastore.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#touch-instance_method" title="#touch (instance method)">- (Object) <strong>touch</strong>(name = nil) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Set updated_at and any passed in field to current DateTime.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#update-instance_method" title="#update (instance method)">- (Object) <strong>update</strong>(conditions = {}, &amp;block) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#update%21-instance_method" title="#update! (instance method)">- (Object) <strong>update!</strong>(conditions = {}, &amp;block) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>update!() will increment the lock_version if the table has the column, but will not check it.</p>
 </div></span>
   
 </li>
@@ -273,9 +354,8 @@ values to be of the same type as when they were passed in, based on the fields i
     
       
       <span id="new_record=-instance_method"></span>
-      <span id="new_record-instance_method"></span>
       <div class="method_details first">
-  <p class="signature first" id="new_record-instance_method">
+  <h3 class="signature first" id="new_record-instance_method">
   
     - (<tt>Object</tt>) <strong>new_record</strong> 
   
@@ -285,7 +365,9 @@ values to be of the same type as when they were passed in, based on the fields i
     <span class="names"><span id='new_record?-instance_method'>new_record?</span></span>
     </span>
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Returns the value of attribute new_record</p>
 
@@ -321,16 +403,18 @@ values to be of the same type as when they were passed in, based on the fields i
 
   <div id="instance_method_details" class="method_details_list">
     <h2>Instance Method Details</h2>
-    
+
     
       <div class="method_details first">
-  <p class="signature first" id="delete-instance_method">
+  <h3 class="signature first" id="delete-instance_method">
   
     - (<tt>Object</tt>) <strong>delete</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Delete this object from the datastore and all indexes.</p>
 
@@ -339,7 +423,7 @@ values to be of the same type as when they were passed in, based on the fields i
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -361,17 +445,19 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-141
-142
-143
-144</pre>
+211
+212
+213
+214
+215</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 141</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 211</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_delete'>delete</span>
   <span class='id identifier rubyid_delete_indexes'>delete_indexes</span>
-  <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>?</span> <span class='lbrace'>{</span><span class='symbol'>:range_key</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_dump_field'>dump_field</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_read_attribute'>read_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='rparen'>)</span><span class='rbrace'>}</span> <span class='op'>:</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -379,13 +465,15 @@ values to be of the same type as when they were passed in, based on the fields i
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="destroy-instance_method">
+  <h3 class="signature " id="destroy-instance_method">
   
     - (<tt>Object</tt>) <strong>destroy</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Delete this object, but only after running callbacks for it.</p>
 
@@ -394,7 +482,7 @@ values to be of the same type as when they were passed in, based on the fields i
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -416,15 +504,15 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-131
-132
-133
-134
-135
-136</pre>
+201
+202
+203
+204
+205
+206</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 131</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 201</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_destroy'>destroy</span>
   <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:destroy</span><span class='rparen'>)</span> <span class='kw'>do</span>
@@ -438,13 +526,15 @@ values to be of the same type as when they were passed in, based on the fields i
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="dump-instance_method">
+  <h3 class="signature " id="dump-instance_method">
   
     - (<tt>Object</tt>) <strong>dump</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Dump this object's attributes into hash form, fit to be persisted into the datastore.</p>
 
@@ -453,7 +543,83 @@ values to be of the same type as when they were passed in, based on the fields i
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
+<ul class="since">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>0.2.0</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+220
+221
+222
+223
+224
+225
+226</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 220</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_dump'>dump</span>
+  <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='period'>.</span><span class='id identifier rubyid_tap'>tap</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_hash'>hash</span><span class='op'>|</span>
+    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_attribute'>attribute</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='op'>|</span>
+      <span class='id identifier rubyid_hash'>hash</span><span class='lbracket'>[</span><span class='id identifier rubyid_attribute'>attribute</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dump_field'>dump_field</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_read_attribute'>read_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_attribute'>attribute</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="persisted?-instance_method">
+  
+    - (<tt>Boolean</tt>) <strong>persisted?</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Is this object persisted in the datastore? Required for some ActiveModel integration stuff.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -477,84 +643,10 @@ values to be of the same type as when they were passed in, based on the fields i
 
 149
 150
-151
-152
-153
-154
-155</pre>
+151</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 149</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_dump'>dump</span>
-  <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='period'>.</span><span class='id identifier rubyid_tap'>tap</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_hash'>hash</span><span class='op'>|</span>
-    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_attribute'>attribute</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='op'>|</span>
-      <span class='id identifier rubyid_hash'>hash</span><span class='lbracket'>[</span><span class='id identifier rubyid_attribute'>attribute</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dump_field'>dump_field</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_read_attribute'>read_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_attribute'>attribute</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:type</span><span class='rbracket'>]</span><span class='rparen'>)</span>
-    <span class='kw'>end</span>
-  <span class='kw'>end</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <p class="signature " id="persisted?-instance_method">
-  
-    - (<tt>Boolean</tt>) <strong>persisted?</strong> 
-  
-
-  
-</p><div class="docstring">
-  <div class="discussion">
-    <p>Is this object persisted in the datastore? Required for some ActiveModel integration stuff.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-<h3>Returns:</h3>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>Boolean</tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
-<h3>Since:</h3>
-<ul class="since">
-  
-    <li>
-      
-      
-      
-      
-        
-        <div class='inline'><p>0.2.0</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-107
-108
-109</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 107</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_persisted?'>persisted?</span>
   <span class='op'>!</span><span class='id identifier rubyid_new_record?'>new_record?</span>
@@ -565,13 +657,15 @@ values to be of the same type as when they were passed in, based on the fields i
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="save-instance_method">
+  <h3 class="signature " id="save-instance_method">
   
     - (<tt>Object</tt>) <strong>save</strong>(options = {}) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Run the callbacks and then persist this object in the datastore.</p>
 
@@ -580,7 +674,7 @@ values to be of the same type as when they were passed in, based on the fields i
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -602,30 +696,32 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126</pre>
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 114</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 156</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_save'>save</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_create_table'>create_table</span>
-
-  <span class='ivar'>@previously_changed</span> <span class='op'>=</span> <span class='id identifier rubyid_changes'>changes</span>
-
+  
   <span class='kw'>if</span> <span class='id identifier rubyid_new_record?'>new_record?</span>
-    <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:create</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_persist'>persist</span> <span class='rbrace'>}</span>
+    <span class='id identifier rubyid_conditions'>conditions</span> <span class='op'>=</span> <span class='lbrace'>{</span> <span class='symbol'>:unless_exists</span> <span class='op'>=&gt;</span> <span class='lbracket'>[</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='rbracket'>]</span><span class='rbrace'>}</span>
+    <span class='id identifier rubyid_conditions'>conditions</span><span class='lbracket'>[</span><span class='symbol'>:unless_exists</span><span class='rbracket'>]</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_range_key'>range_key</span> <span class='kw'>if</span><span class='lparen'>(</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rparen'>)</span>
+
+    <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:create</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_persist'>persist</span><span class='lparen'>(</span><span class='id identifier rubyid_conditions'>conditions</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
   <span class='kw'>else</span>
     <span class='id identifier rubyid_persist'>persist</span>
   <span class='kw'>end</span>
@@ -637,14 +733,159 @@ values to be of the same type as when they were passed in, based on the fields i
 </table>
 </div>
     
+      <div class="method_details ">
+  <h3 class="signature " id="touch-instance_method">
+  
+    - (<tt>Object</tt>) <strong>touch</strong>(name = nil) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Set updated_at and any passed in field to current DateTime. Useful for things like last_login_at, etc.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+139
+140
+141
+142
+143
+144</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 139</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_touch'>touch</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_now'>now</span> <span class='op'>=</span> <span class='const'>DateTime</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_updated_at'>updated_at</span> <span class='op'>=</span> <span class='id identifier rubyid_now'>now</span>
+  <span class='id identifier rubyid_attributes'>attributes</span><span class='lbracket'>[</span><span class='id identifier rubyid_name'>name</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_now'>now</span> <span class='kw'>if</span> <span class='id identifier rubyid_name'>name</span>
+  <span class='id identifier rubyid_save'>save</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="update-instance_method">
+  
+    - (<tt>Object</tt>) <strong>update</strong>(conditions = {}, &amp;block) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+191
+192
+193
+194
+195
+196</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 191</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_update'>update</span><span class='lparen'>(</span><span class='id identifier rubyid_conditions'>conditions</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_update!'>update!</span><span class='lparen'>(</span><span class='id identifier rubyid_conditions'>conditions</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='kw'>true</span>
+<span class='kw'>rescue</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Errors</span><span class='op'>::</span><span class='const'>ConditionalCheckFailedException</span>
+  <span class='kw'>false</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="update!-instance_method">
+  
+    - (<tt>Object</tt>) <strong>update!</strong>(conditions = {}, &amp;block) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>update!() will increment the lock_version if the table has the column, but will not check it. Thus, a concurrent save will 
+never cause an update! to fail, but an update! may cause a concurrent save to fail.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 176</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_update!'>update!</span><span class='lparen'>(</span><span class='id identifier rubyid_conditions'>conditions</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:update</span><span class='rparen'>)</span> <span class='kw'>do</span>
+    <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='id identifier rubyid_range_key'>range_key</span> <span class='op'>?</span> <span class='lbrace'>{</span><span class='symbol'>:range_key</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_dump_field'>dump_field</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_read_attribute'>read_attribute</span><span class='lparen'>(</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='lbracket'>[</span><span class='id identifier rubyid_range_key'>range_key</span><span class='rbracket'>]</span><span class='rparen'>)</span><span class='rbrace'>}</span> <span class='op'>:</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+    <span class='id identifier rubyid_new_attrs'>new_attrs</span> <span class='op'>=</span> <span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Adapter</span><span class='period'>.</span><span class='id identifier rubyid_update_item'>update_item</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_table_name'>table_name</span><span class='comma'>,</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_hash_key'>hash_key</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='symbol'>:conditions</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_conditions'>conditions</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_t'>t</span><span class='op'>|</span>
+      <span class='kw'>if</span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_attributes'>attributes</span><span class='lbracket'>[</span><span class='symbol'>:lock_version</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+        <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Optimistic locking cannot be used with Partitioning</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>if</span><span class='lparen'>(</span><span class='const'>Dynamoid</span><span class='op'>::</span><span class='const'>Config</span><span class='period'>.</span><span class='id identifier rubyid_partitioning'>partitioning</span><span class='rparen'>)</span>
+        <span class='id identifier rubyid_t'>t</span><span class='period'>.</span><span class='id identifier rubyid_add'>add</span><span class='lparen'>(</span><span class='label'>lock_version:</span> <span class='int'>1</span><span class='rparen'>)</span>
+      <span class='kw'>end</span>
+
+      <span class='kw'>yield</span> <span class='id identifier rubyid_t'>t</span>
+    <span class='kw'>end</span>
+    <span class='id identifier rubyid_load'>load</span><span class='lparen'>(</span><span class='id identifier rubyid_new_attrs'>new_attrs</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
   </div>
 
 </div>
-    
+
     <div id="footer">
-  Generated on Thu Apr 26 01:26:25 2012 by 
+  Generated on Thu Jun 27 21:59:13 2013 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.5 (ruby-1.9.3).
+  0.8.6.1 (ruby-1.9.3).
 </div>
 
   </body>

@@ -6,18 +6,20 @@
 <title>
   Module: Dynamoid::Indexes::ClassMethods
   
-    &mdash; Documentation by YARD 0.7.5
+    &mdash; Documentation by YARD 0.8.6.1
   
 </title>
 
-  <link rel="stylesheet" href="../../css/style.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" charset="utf-8" />
 
-  <link rel="stylesheet" href="../../css/common.css" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" charset="utf-8" />
 
 <script type="text/javascript" charset="utf-8">
-  relpath = '../..';
-  if (relpath != '') relpath += '/';
+  hasFrames = window.top.frames.main ? true : false;
+  relpath = '../../';
+  framesUrl = "../../frames.html#!" + escape(window.location.href);
 </script>
+
 
   <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
 
@@ -26,36 +28,41 @@
 
   </head>
   <body>
-    <script type="text/javascript" charset="utf-8">
-      if (window.top.frames.main) document.body.className = 'frames';
-    </script>
-    
     <div id="header">
       <div id="menu">
   
-    <a href="../../_index.html">Index (C)</a> &raquo; 
+    <a href="../../_index.html">Index (C)</a> &raquo;
     <span class='title'><span class='object_link'><a href="../../Dynamoid.html" title="Dynamoid (module)">Dynamoid</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Indexes.html" title="Dynamoid::Indexes (module)">Indexes</a></span></span>
      &raquo; 
     <span class="title">ClassMethods</span>
   
-  
+
   <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
 </div>
 
       <div id="search">
   
-    <a id="class_list_link" href="#">Class List</a>
+    <a class="full_list_link" id="class_list_link"
+        href="../../class_list.html">
+      Class List
+    </a>
   
-    <a id="method_list_link" href="#">Method List</a>
+    <a class="full_list_link" id="method_list_link"
+        href="../../method_list.html">
+      Method List
+    </a>
   
-    <a id="file_list_link" href="#">File List</a>
+    <a class="full_list_link" id="file_list_link"
+        href="../../file_list.html">
+      File List
+    </a>
   
 </div>
       <div class="clear"></div>
     </div>
-    
+
     <iframe id="search_frame"></iframe>
-    
+
     <div id="content"><h1>Module: Dynamoid::Indexes::ClassMethods
   
   
@@ -106,6 +113,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>Helper function to create indexes (if they don't exist already).</p>
@@ -122,6 +130,7 @@
 
     
   </span>
+  
   
   
   
@@ -150,6 +159,7 @@
   
   
   
+  
 
   
     <span class="summary_desc"><div class='inline'><p>The call to create an index.</p>
@@ -165,16 +175,18 @@
 
   <div id="instance_method_details" class="method_details_list">
     <h2>Instance Method Details</h2>
-    
+
     
       <div class="method_details first">
-  <p class="signature first" id="create_indexes-instance_method">
+  <h3 class="signature first" id="create_indexes-instance_method">
   
     - (<tt>Object</tt>) <strong>create_indexes</strong> 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Helper function to create indexes (if they don't exist already).</p>
 
@@ -183,7 +195,7 @@
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -229,13 +241,15 @@
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="find_index-instance_method">
+  <h3 class="signature " id="find_index-instance_method">
   
     - (<tt>Object</tt>) <strong>find_index</strong>(index) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>Helper function to find indexes.</p>
 
@@ -244,7 +258,7 @@
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -282,13 +296,15 @@
 </div>
     
       <div class="method_details ">
-  <p class="signature " id="index-instance_method">
+  <h3 class="signature " id="index-instance_method">
   
     - (<tt>Object</tt>) <strong>index</strong>(name, options = {}) 
   
 
   
-</p><div class="docstring">
+
+  
+</h3><div class="docstring">
   <div class="discussion">
     <p>The call to create an index. Generates a new index with the specified options -- for more information, see Dynamoid::Indexes::Index.
 This function also attempts to immediately create the indexing table if it does not exist already.</p>
@@ -298,7 +314,7 @@ This function also attempts to immediately create the indexing table if it does 
 </div>
 <div class="tags">
   
-<h3>Since:</h3>
+<p class="tag_title">Since:</p>
 <ul class="since">
   
     <li>
@@ -342,11 +358,11 @@ This function also attempts to immediately create the indexing table if it does 
   </div>
 
 </div>
-    
+
     <div id="footer">
-  Generated on Thu Apr 26 01:26:24 2012 by 
+  Generated on Thu Jun 27 21:59:10 2013 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.7.5 (ruby-1.9.3).
+  0.8.6.1 (ruby-1.9.3).
 </div>
 
   </body>
