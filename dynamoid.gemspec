@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "dynamoid"
-  s.version = "0.6.1"
+  s.version = "0.7.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Josh Symonds"]
-  s.date = "2013-01-09"
+  s.date = "2013-06-28"
   s.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   s.email = "josh@joshsymonds.com"
   s.extra_rdoc_files = [
@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.files = [
     ".document",
     ".rspec",
+    ".travis.yml",
     "Dynamoid.gemspec",
     "Gemfile",
     "Gemfile.lock",
@@ -107,12 +108,15 @@ Gem::Specification.new do |s|
     "lib/dynamoid/validations.rb",
     "spec/app/models/address.rb",
     "spec/app/models/camel_case.rb",
+    "spec/app/models/car.rb",
     "spec/app/models/magazine.rb",
     "spec/app/models/message.rb",
+    "spec/app/models/nuclear_submarine.rb",
     "spec/app/models/sponsor.rb",
     "spec/app/models/subscription.rb",
     "spec/app/models/tweet.rb",
     "spec/app/models/user.rb",
+    "spec/app/models/vehicle.rb",
     "spec/dynamoid/adapter/aws_sdk_spec.rb",
     "spec/dynamoid/adapter_spec.rb",
     "spec/dynamoid/associations/association_spec.rb",
@@ -134,12 +138,13 @@ Gem::Specification.new do |s|
     "spec/dynamoid/persistence_spec.rb",
     "spec/dynamoid/validations_spec.rb",
     "spec/dynamoid_spec.rb",
-    "spec/spec_helper.rb"
+    "spec/spec_helper.rb",
+    "spec/support/with_partitioning.rb"
   ]
   s.homepage = "http://github.com/Veraticus/Dynamoid"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.23"
+  s.rubygems_version = "1.8.25"
   s.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
 
   if s.respond_to? :specification_version then
@@ -157,7 +162,7 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<redcarpet>, ["= 1.17.2"])
       s.add_development_dependency(%q<github-markup>, [">= 0"])
       s.add_development_dependency(%q<pry>, [">= 0"])
-      s.add_development_dependency(%q<fake_dynamo>, [">= 0"])
+      s.add_development_dependency(%q<fake_dynamo>, ["~> 0.1.3"])
       s.add_development_dependency(%q<mocha>, ["= 0.10.0"])
     else
       s.add_dependency(%q<activemodel>, [">= 0"])
@@ -171,7 +176,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<redcarpet>, ["= 1.17.2"])
       s.add_dependency(%q<github-markup>, [">= 0"])
       s.add_dependency(%q<pry>, [">= 0"])
-      s.add_dependency(%q<fake_dynamo>, [">= 0"])
+      s.add_dependency(%q<fake_dynamo>, ["~> 0.1.3"])
       s.add_dependency(%q<mocha>, ["= 0.10.0"])
     end
   else
@@ -186,7 +191,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<redcarpet>, ["= 1.17.2"])
     s.add_dependency(%q<github-markup>, [">= 0"])
     s.add_dependency(%q<pry>, [">= 0"])
-    s.add_dependency(%q<fake_dynamo>, [">= 0"])
+    s.add_dependency(%q<fake_dynamo>, ["~> 0.1.3"])
     s.add_dependency(%q<mocha>, ["= 0.10.0"])
   end
 end
