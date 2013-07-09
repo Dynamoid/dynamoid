@@ -1,4 +1,7 @@
 language: ruby
+gemfile:
+  - Gemfile
+  - Gemfile_activemodel4
 ruby:
   - 1.9.3
 script: bundle exec rake unattended_spec
