@@ -19,9 +19,9 @@ module Dynamoid
 
     include ActiveModel::AttributeMethods
     include ActiveModel::Conversion
-    include ActiveModel::MassAssignmentSecurity
+    include ActiveModel::MassAssignmentSecurity if defined?(ActiveModel::MassAssignmentSecurity)
     include ActiveModel::Naming
-    include ActiveModel::Observing
+    include ActiveModel::Observing if defined?(ActiveModel::Observing)
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml
     include Dynamoid::Fields
