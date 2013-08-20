@@ -6,4 +6,9 @@ describe "Dynamoid" do
     User.new.books.should == []
   end
 
+  it "doesn't connect automatically when configured" do
+    Dynamoid::Adapter.expects(:reconnect!).never
+    Dynamoid.configure { |config| nil }
+  end
+
 end
