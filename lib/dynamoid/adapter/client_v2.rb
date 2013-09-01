@@ -18,7 +18,7 @@ module Dynamoid
       # @return [AWS::DynamoDB::ClientV2] the raw DynamoDB connection
       
       def connect!
-      @client = AWS::DynamoDB::ClientV2.new
+      @client = AWS::DynamoDB::Client.new(:api_version => '2012-08-10')
       end
 
       # Return the client object.
@@ -44,9 +44,22 @@ module Dynamoid
         request_items = {}
         table_ids.each do |t, ids|
           next if ids.empty?
-          hk = describe_table(t).hash_key.to_s
+          tbl = describe_table(t)
+          hk  = tbl.hash_key.to_s
+          rng = tbl.range_key.try :to_s
+
+          keys = if(rng)
+            ids.map do |h,r|
+              { hk => attribute_value(h), rng => attribute_value(r) }
+            end
+          else
+            ids.map do |id| 
+              { hk => attribute_value(id) }
+            end
+          end
+
           request_items[t] = {
-            keys: ids.map { |id| { hk => attribute_value(id) } }
+            keys: keys
           }
         end
 
@@ -56,7 +69,7 @@ module Dynamoid
         )
 
         results.data
-        ret = {}
+        ret = Hash.new([].freeze) #Default for tables where no rows are returned
         results.data[:responses].each do |table, rows|
           ret[table] = rows.collect { |r| result_item_to_hash(r) }
         end
@@ -234,6 +247,8 @@ module Dynamoid
           expected: expected_stanza(options)
         )
         #STDERR.puts("DATA: #{result.data}")
+      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException => e 
+        raise Errors::ConditionalCheckFailedException 
       rescue
         STDERR.puts("put_item FAILED ON")
         PP.pp(object)
@@ -267,8 +282,71 @@ module Dynamoid
       #
       # @since 0.2.0
       def query(table_name, opts = {})
-        raise "TODO"
+        STDERR.puts("GOT:")
+        PP.pp opts
+        table = describe_table(table_name)
+        hk    = table.hash_key.to_s
+        rng   = table.range_key.to_s
+        q     = opts.slice(:consistent_read, :scan_index_forward, :limit)
+
+        opts.delete(:consistent_read)
+        opts.delete(:scan_index_forward)
+        opts.delete(:limit)
+        opts.delete(:next_token).tap do |token|
+          break unless token
+          q[:exclusive_start_key] = {
+            hk  => token[:hash_key_element],
+            rng => token[:range_key_element]
+          }
+        end
+
+        key_conditions = {
+          hk => {
+            comparison_operator: EQ,
+            attribute_value_list: [
+              { STRING_TYPE =>  opts.delete(:hash_value).to_s.freeze }
+            ]
+          }
+        }
+        opts.each_pair do |k, v|
+          next unless(op = RANGE_MAP[k])
+          key_conditions[rng] = {
+            comparison_operator: op,
+            attribute_value_list: [
+              { NUM_TYPE => opts.delete(k).to_s.freeze }
+            ]
+          }
+        end
+
+        q[:table_name]     = table_name
+        q[:key_conditions] = key_conditions
+
+        STDERR.puts("Q: ")
+        PP.pp(q)
+
+        STDERR.puts("OPTS: ")
+        PP.pp(opts)
+        raise "MOAR STUFF" unless opts.empty?
+        Enumerator.new { |y|
+          result = client.query(q)
+          STDERR.puts("RESULT: ")
+          PP.pp(result)
+          result.member.each { |r| 
+            y << result_item_to_hash(r)
+          }
+        }
       end
+
+      EQ = "EQ".freeze
+      ID = "id".freeze
+
+      RANGE_MAP = {
+        range_greater_than: 'GT',
+        range_less_than:    'LT',
+        range_gte:          'GE',
+        range_lte:          'LE',
+        range_begins_with:  'BEGINS_WITH'
+      }
 
       # Scan the DynamoDB table. This is usually a very slow operation as it naively filters all data on
       # the DynamoDB servers.
@@ -378,7 +456,7 @@ module Dynamoid
         case(type)
         when :s  then value
         when :n  then value.to_f
-        when :ss then Set.new(value)
+        when :ss then Set.new(value.to_a)
         else raise "Not sure how to load type #{type} for #{value}"
         end
       end
@@ -494,6 +572,7 @@ module Dynamoid
           @table = table; @key = key, @range_key = range_key
           @additions = {}
           @deletions = {}
+          @updates   = {}
         end
         
         #
@@ -516,6 +595,13 @@ module Dynamoid
         def delete(values)
           @deletions.merge!(values)
         end
+
+        #
+        # Replaces the values of one or more attributes
+        #
+        def set(values) 
+          @updates.merge!(values)
+        end
         
         #
         # Returns an AttributeUpdates hash suitable for passing to the V2 Client API
@@ -535,7 +621,13 @@ module Dynamoid
               value: ClientV2.send(:attribute_value, v)
             }
           end
-          
+          @updates.each do |k,v|
+            ret[k.to_s] = {
+              action: PUT,
+              value: ClientV2.send(:attribute_value, v)
+            }
+          end
+
           ret
         end
         
