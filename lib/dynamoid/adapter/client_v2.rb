@@ -11,12 +11,14 @@ module Dynamoid
     # Uses the low-level V2 client API. 
     #
     class <<ClientV2 #Makes these all static methods on the Module
+      attr_reader :table_cache
       # Establish the connection to DynamoDB.
       #
       # @return [AWS::DynamoDB::ClientV2] the raw DynamoDB connection
       
       def connect!
-      @client = AWS::DynamoDB::Client.new(:api_version => '2012-08-10')
+        @client = AWS::DynamoDB::Client.new(:api_version => '2012-08-10')
+        @table_cache = {}
       end
 
       # Return the client object.
@@ -174,6 +176,7 @@ module Dynamoid
       # @since 0.2.0
       def delete_table(table_name)
         client.delete_table(table_name: table_name)
+        table_cache.clear
       end
 
       # @todo Add a DescribeTable method.
@@ -418,7 +421,7 @@ module Dynamoid
       end
 
       def count(table_name)
-        describe_table(table_name).item_count
+        describe_table(table_name, true).item_count
       end
 
       protected
@@ -502,9 +505,14 @@ module Dynamoid
       
       HASH_KEY  = "HASH".freeze
       RANGE_KEY = "RANGE".freeze
+      
+      #
+      # New, semi-arbitrary API to get data on the table
+      #
       def describe_table(table_name, reload = false)
-        table_def = client.describe_table(table_name: table_name).data
-        Table.new(table_def)
+        (!reload && table_cache[table_name]) || begin
+          table_cache[table_name] = Table.new(client.describe_table(table_name: table_name).data)
+        end
       end
       
       #
