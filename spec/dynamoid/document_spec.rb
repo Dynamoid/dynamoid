@@ -84,7 +84,7 @@ describe "Dynamoid::Document" do
     end
 
     it 'works with a :datetime range key' do
-      expect { message.reload }.to_not raise_error(ArgumentError)
+      expect { message.reload }.to_not raise_error
     end
   end
 

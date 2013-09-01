@@ -5,14 +5,12 @@ require 'pp'
 
 module Dynamoid
   module Adapter
-
+    module ClientV2; end
 
     #
-    # Uses the low-level V2 client API
+    # Uses the low-level V2 client API. 
     #
-    module ClientV2
-      extend self
-
+    class <<ClientV2 #Makes these all static methods on the Module
       # Establish the connection to DynamoDB.
       #
       # @return [AWS::DynamoDB::ClientV2] the raw DynamoDB connection
@@ -92,7 +90,16 @@ module Dynamoid
       # @return nil
       #
       def batch_delete_item(options)
-        raise "TODO"
+
+
+        options.each_pair do |table_name, ids|
+          table = describe_table(table_name)
+
+          ids.each do |id|
+            client.delete_item(table_name: table_name, key: key_stanza(table, *id))
+          end
+        end
+        nil
       end
 
       # Create a table on DynamoDB. This usually takes a long time to complete.
@@ -282,8 +289,6 @@ module Dynamoid
       #
       # @since 0.2.0
       def query(table_name, opts = {})
-        STDERR.puts("GOT:")
-        PP.pp opts
         table = describe_table(table_name)
         hk    = table.hash_key.to_s
         rng   = table.range_key.to_s
@@ -321,16 +326,9 @@ module Dynamoid
         q[:table_name]     = table_name
         q[:key_conditions] = key_conditions
 
-        STDERR.puts("Q: ")
-        PP.pp(q)
-
-        STDERR.puts("OPTS: ")
-        PP.pp(opts)
         raise "MOAR STUFF" unless opts.empty?
         Enumerator.new { |y|
           result = client.query(q)
-          STDERR.puts("RESULT: ")
-          PP.pp(result)
           result.member.each { |r| 
             y << result_item_to_hash(r)
           }
@@ -359,23 +357,33 @@ module Dynamoid
       # @since 0.2.0
       def scan(table_name, scan_hash, select_opts)
         limit = select_opts.delete(:limit)
+        batch = select_opts.delete(:batch_size)
         
         request = { table_name: table_name }
-        request[:limit] = limit if limit
+        request[:limit] = batch || limit if batch || limit
         request[:scan_filter] = scan_hash.reduce({}) do |memo, kvp| 
           memo[kvp[0].to_s] = {
             attribute_value_list: [attribute_value(kvp[1])],
-            comparison_operator: "EQ"
+            comparison_operator: EQ
           }
           memo
         end if(scan_hash && !scan_hash.empty?)
-        
-        results = client.scan(request)
-        
-        raise "non-empty select_opts" if(select_opts && !select_opts.empty?)
+                
+        raise "non-empty select_opts " if(select_opts && !select_opts.empty?)
         
         Enumerator.new do |y|
-          results.data[:member].each { |row| y << result_item_to_hash(row) }
+          #Batch loop, pulls multiple requests until done using the start_key
+          loop do
+            results = client.scan(request)
+            results.data[:member].each { |row| y << result_item_to_hash(row) }
+
+            if((lk = results[:last_evaluated_key]) && batch)
+              #TODO: Properly mix limit and batch
+              request[:exclusive_start_key] = lk
+            else
+              break
+            end
+          end
         end
       rescue
         STDERR.puts("FAILED scan")
@@ -407,6 +415,10 @@ module Dynamoid
       #
       def get_table(table_name)
         LegacyTable.new(describe_table(table_name))
+      end
+
+      def count(table_name)
+        describe_table(table_name).item_count
       end
 
       protected
@@ -540,6 +552,10 @@ module Dynamoid
           col = col.to_s
           col_def = schema[:attribute_definitions].find { |d| d[:attribute_name] == col.to_s }
           col_def && col_def[:attribute_type]
+        end
+
+        def item_count
+          schema[:item_count]
         end
       end
       
