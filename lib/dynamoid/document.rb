@@ -61,7 +61,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.6.1
       def count
-        Dynamoid::Adapter::AwsSdk.count(table_name)
+        Dynamoid::Adapter.adapter.count(table_name)
       end
 
       # Initialize a new object and immediately save it to the database.
