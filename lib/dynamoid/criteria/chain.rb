@@ -305,6 +305,7 @@ module Dynamoid #:nodoc:
 
       def query_opts
         opts = {}
+        opts[:select] = :all
         opts[:limit] = @limit if @limit
         opts[:next_token] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
