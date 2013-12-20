@@ -32,7 +32,6 @@ module Dynamoid
   
   def configure
     block_given? ? yield(Dynamoid::Config) : Dynamoid::Config
-    Dynamoid::Adapter.reconnect!
   end
   alias :config :configure
   
