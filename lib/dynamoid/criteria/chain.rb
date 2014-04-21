@@ -252,7 +252,7 @@ module Dynamoid #:nodoc:
 
         return { :range_value => query[key] } if query[key].is_a?(Range)
 
-        case key.split('.').last
+        case key.to_s.split('.').last
         when 'gt'
           { :range_greater_than => val.to_f }
         when 'lt'
