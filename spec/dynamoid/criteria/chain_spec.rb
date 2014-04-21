@@ -164,6 +164,15 @@ describe "Dynamoid::Associations::Chain" do
       @chain.query = { :tweet_id => "xx", :group => "two" }
       @chain.send(:records_with_range).to_a.should == [@tweet3]
     end
+
+    it 'finds posts with "where" method' do
+      @time = DateTime.now
+      @post1 = Post.create(:post_id => 'x', :posted_at => @time)
+      @post2 = Post.create(:post_id => 'x', :posted_at => (@time + 1.hour))
+      @chain = Dynamoid::Criteria::Chain.new(Post)
+      query = { :post_id => "x", "posted_at.gt" => @time }
+      @chain.send(:where, query).to_a.should == [@post2]
+    end
   end
   
   context 'destroy alls' do
