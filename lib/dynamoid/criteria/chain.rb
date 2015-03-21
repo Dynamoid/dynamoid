@@ -252,7 +252,7 @@ module Dynamoid #:nodoc:
 
         return { :range_value => query[key] } if query[key].is_a?(Range)
 
-        case key.split('.').last
+        case key.to_s.split('.').last
         when 'gt'
           { :range_greater_than => val.to_f }
         when 'lt'
@@ -294,7 +294,7 @@ module Dynamoid #:nodoc:
       end
 
       def start_key
- 	      hash_key_type = @start.class.attributes[@start.class.hash_key][:type] == :string ? 'S' : 'N'
+        hash_key_type = @start.class.attributes[@start.class.hash_key][:type] == :string ? 'S' : 'N'
         key = { :hash_key_element => { hash_key_type => @start.hash_key.to_s } }
         if range_key = @start.class.range_key
           range_key_type = @start.class.attributes[range_key][:type] == :string ? 'S' : 'N'
