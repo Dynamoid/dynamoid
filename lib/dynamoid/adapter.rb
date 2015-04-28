@@ -183,8 +183,7 @@ module Dynamoid
     # @since 0.2.0
     def result_for_partition(results, table_name)
       table = @adapter.get_table(table_name)
-
-      if table.range_key     
+      if table.range_key
         range_key_name = table.range_key.name.to_sym
         
         final_hash = {}
