@@ -1,23 +1,27 @@
 # encoding: utf-8
-require 'aws'
+#require 'aws'
 
 require 'pp'
 
 module Dynamoid
   module Adapter
-    module ClientV2; end
+    module AwsSdkV2; end
 
     #
     # Uses the low-level V2 client API. 
     #
-    class <<ClientV2 #Makes these all static methods on the Module
+    class <<AwsSdkV2 #Makes these all static methods on the Module
       attr_reader :table_cache
       # Establish the connection to DynamoDB.
       #
       # @return [AWS::DynamoDB::ClientV2] the raw DynamoDB connection
       
       def connect!
-        @client = AWS::DynamoDB::Client.new(:api_version => '2012-08-10')
+        @client = if Dynamoid::Config.endpoint?
+          Aws::DynamoDB::Client.new(endpoint: Dynamoid::Config.endpoint)
+        else
+          Aws::DynamoDB::Client.new
+        end
         @table_cache = {}
       end
 
@@ -143,7 +147,7 @@ module Dynamoid
         [:id, :table_name].each { |k| options.delete(k) }
         raise "Not empty options: #{options.keys.join(',')}" unless options.empty?
 
-      rescue AWS::DynamoDB::Errors::ResourceInUseException => e
+      rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         #STDERR.puts("SWALLOWED AN EXCEPTION creating table #{table_name}")
       rescue
         STDERR.puts("create_table FAILED")
@@ -195,13 +199,15 @@ module Dynamoid
         range_key = options.delete(:range_key)
         
         result = {}
-        
+
+        puts "----- #{key_stanza(table, key, range_key)}"
+
         item = client.get_item(table_name: table_name, 
           key: key_stanza(table, key, range_key)
         )[:item]
         item ? result_item_to_hash(item) : nil
       rescue
-        STDERR.puts("get_item FAILED ON #{key}, #{options}")
+        STDERR.puts("get_item FAILED ON #{key} which is #{key.class}, #{options}")
         STDERR.puts("----")
         PP.pp(item)
         raise
@@ -257,7 +263,7 @@ module Dynamoid
           expected: expected_stanza(options)
         )
         #STDERR.puts("DATA: #{result.data}")
-      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException => e 
+      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
         raise Errors::ConditionalCheckFailedException 
       rescue
         STDERR.puts("put_item FAILED ON")
@@ -378,7 +384,7 @@ module Dynamoid
           #Batch loop, pulls multiple requests until done using the start_key
           loop do
             results = client.scan(request)
-            results.data[:member].each { |row| y << result_item_to_hash(row) }
+            results.data[:items].each { |row| y << result_item_to_hash(row) }
 
             if((lk = results[:last_evaluated_key]) && batch)
               #TODO: Properly mix limit and batch
@@ -539,7 +545,7 @@ module Dynamoid
         end
         
         def range_key
-          @range_key ||= schema[:key_schema].find { |d| d[:key_type] == RANGE_KEY }.try(:fetch,:attribute_name)
+          @range_key ||= schema[:key_schema].find { |d| d[:key_type] == RANGE_KEY }.try(:attribute_name)
         end
         
         def range_type
@@ -549,7 +555,7 @@ module Dynamoid
         end
         
         def hash_key
-          schema[:key_schema].find { |d| d[:key_type] == HASH_KEY  }.try(:fetch,:attribute_name).to_sym
+          @hash_key ||= schema[:key_schema].find { |d| d[:key_type] == HASH_KEY  }.try(:attribute_name).to_sym
         end
         
         #

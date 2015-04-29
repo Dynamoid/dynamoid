@@ -1,7 +1,7 @@
-require 'dynamoid/adapter/aws_sdk'
+require 'dynamoid/adapter/aws_sdk_v2'
 require File.expand_path(File.dirname(__FILE__) + '../../../spec_helper')
 
-describe Dynamoid::Adapter::AwsSdk do
+describe Dynamoid::Adapter::AwsSdkV2 do
   before(:each) do
     pending "You must have an active DynamoDB connection" unless ENV['ACCESS_KEY'] && ENV['SECRET_KEY']
   end
@@ -115,7 +115,7 @@ describe Dynamoid::Adapter::AwsSdk do
     it 'performs CreateTable and DeleteTable' do
       table = Dynamoid::Adapter.create_table('CreateTable', :id, :range_key =>  { :created_at => :number })
 
-      Dynamoid::Adapter.connection.tables.collect{|t| t.name}.should include 'CreateTable'
+      Dynamoid::Adapter.list_tables.should include 'CreateTable'
 
       Dynamoid::Adapter.delete_table('CreateTable')
     end
