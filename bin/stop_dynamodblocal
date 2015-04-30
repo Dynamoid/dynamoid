@@ -1,0 +1,28 @@
+#!/bin/sh
+
+source $(dirname $0)/_dynamodblocal
+
+cd $DIST_DIR
+
+if [ ! -f $PIDFILE ]; then
+  echo 'ERROR: There is no pidfile, so if DynamoDBLocal is running you will need to kill it yourself.'
+  exit 1
+fi
+
+pid=$(<$PIDFILE)
+
+echo "Killing DynamoDBLocal at pid $pid..."
+kill $pid
+
+# Let it die gracefully
+sleep 5
+
+kill -0 $pid
+if [ $? -eq 0 ]; then
+  echo 'Successfully shut down DynamoDBLocal.'
+  rm -f $PIDFILE
+else
+  echo 'Unable to shut down DynamoDBLocal; you may need to kill it yourself.'
+  exit 1
+fi
+

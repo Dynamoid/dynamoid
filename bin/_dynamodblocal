@@ -1,0 +1,2 @@
+DIST_DIR=spec/DynamoDBLocal-2015-01-27
+PIDFILE=dynamodb.pid

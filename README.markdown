@@ -347,7 +347,7 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 
 ## Running the tests
 
-Running the tests is fairly simple. In one window, run `fake_dynamo --port 4567`, and in the other, use `rake`.
+Running the tests is fairly simple. In one window, run `bin/start_dynamodblocal`, and in the other, use `rake`.
 
 ## Copyright
 

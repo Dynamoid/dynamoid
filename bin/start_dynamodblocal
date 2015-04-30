@@ -1,0 +1,30 @@
+#!/bin/sh
+
+source $(dirname $0)/_dynamodblocal
+
+if [ -z $JAVA_HOME ]; then
+  echo 'ERROR: DynamoDBLocal requires JAVA_HOME to be set.'
+  exit 1
+fi
+
+if [ ! -x $JAVA_HOME/bin/java ]; then
+  echo 'ERROR: JAVA_HOME is set, but I do not see the java executable there.'
+  exit 2
+fi
+
+cd $DIST_DIR
+$JAVA_HOME/bin/java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -delayTransientStatuses -port 8000 &
+pid=$!
+
+echo 'Verifying that DynamoDBLocal actually started...'
+# Allow some seconds for the JDK to start and die.
+sleep 5
+kill -0 $pid
+
+if [ $? -eq 0 ]; then
+  echo "Started DynamoDBLocal at pid $pid"
+  echo $pid > $PIDFILE
+else
+  echo 'ERROR: DynamoDBLocal did not start. Sorry.'
+  exit 1
+fi
