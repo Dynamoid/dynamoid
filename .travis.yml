@@ -3,5 +3,5 @@ ruby:
   - 1.9.3
   - 2.2.1
   - jruby-1.7.19
-  - rbx-2.2.7
+  - rbx-2
 script: bundle exec rake unattended_spec
