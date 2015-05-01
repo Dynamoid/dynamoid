@@ -14,16 +14,20 @@ pid=$(<$PIDFILE)
 echo "Killing DynamoDBLocal at pid $pid..."
 kill $pid
 
-# Let it die gracefully
-sleep 5
+counter=0
+while [ $counter -le 5 ]; do
+  kill -0 $pid 2>/dev/null
+  if [ $? -ne 0 ]; then
+    echo 'Successfully shut down DynamoDBLocal.'
+    rm -f $PIDFILE
+    exit 0
+  else
+    echo 'Still waiting for DynamoDBLocal to shut down...'
+    counter=$(($counter + 1))
+    sleep 1
+  fi
+done
 
-kill -0 $pid
-if [ $? -ne 0 ]; then
-  echo 'Successfully shut down DynamoDBLocal.'
-  rm -f $PIDFILE
-else
-  echo 'Unable to shut down DynamoDBLocal; you may need to kill it yourself.'
-  rm -f $PIDFILE
-  exit 1
-fi
-
+echo 'Unable to shut down DynamoDBLocal; you may need to kill it yourself.'
+rm -f $PIDFILE
+exit 1
