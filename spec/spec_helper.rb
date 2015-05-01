@@ -18,7 +18,7 @@ Aws.config.update({
           })
 
 Dynamoid.configure do |config|
-  config.endpoint = 'http://localhost:4567'
+  config.endpoint = 'http://localhost:8000'
   config.adapter = 'aws_sdk_v2'
   config.namespace = 'dynamoid_tests'
   config.warn_on_scan = false
