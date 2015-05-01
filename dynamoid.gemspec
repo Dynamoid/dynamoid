@@ -151,7 +151,7 @@ Gem::Specification.new do |s|
   s.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
 
   s.add_runtime_dependency(%q<activemodel>, ["~> 3"])
-  s.add_runtime_dependency(%q<aws-sdk>, ["~> 1"])
+  s.add_runtime_dependency(%q<aws-sdk>, ["~> 2"])
   # s.add_runtime_dependency(%q<aws-sdk-v1>, [">= 0"])
   s.add_development_dependency(%q<rake>, [">= 0"])
   s.add_development_dependency(%q<rspec>, ["~> 3"])
