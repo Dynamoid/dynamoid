@@ -18,11 +18,12 @@ kill $pid
 sleep 5
 
 kill -0 $pid
-if [ $? -eq 0 ]; then
+if [ $? -ne 0 ]; then
   echo 'Successfully shut down DynamoDBLocal.'
   rm -f $PIDFILE
 else
   echo 'Unable to shut down DynamoDBLocal; you may need to kill it yourself.'
+  rm -f $PIDFILE
   exit 1
 fi
 

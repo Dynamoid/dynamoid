@@ -13,8 +13,14 @@ if [ ! -x $JAVA_HOME/bin/java ]; then
 fi
 
 cd $DIST_DIR
+
+if [ ! -f DynamoDBLocal.jar ] || [ ! -d DynamoDBLocal_lib ]; then
+  echo 'ERROR: Could not find DynamoDBLocal files in $DIST_DIR.'
+fi
+
 $JAVA_HOME/bin/java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -delayTransientStatuses -port 8000 &
 pid=$!
+echo 'Launched.'
 
 echo 'Verifying that DynamoDBLocal actually started...'
 # Allow some seconds for the JDK to start and die.
