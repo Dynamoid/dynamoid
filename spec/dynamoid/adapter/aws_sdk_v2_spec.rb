@@ -162,7 +162,9 @@ describe Dynamoid::Adapter::AwsSdkV2 do
 
     # BatchGetItem
     it 'passes options to underlying BatchGet call' do
-      AWS::DynamoDB::BatchGet.any_instance.expects(:table).with(test_table1, :all, ['1', '2'], :consistent_read => true)
+      Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
+      Aws::DynamoDB::Client.any_instance.expects(:batch_get_item).with(:request_items => {test_table1 => {:keys => [{'id' => '1'}, {'id' => '2'}], :consistent_read => true}})
+      puts "--3 #{described_class.list_tables}"
       described_class.batch_get_item({test_table1 => ['1', '2']}, :consistent_read => true)
     end
 

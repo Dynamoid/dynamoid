@@ -45,7 +45,9 @@ module Dynamoid
       #
       # @since 0.2.0
       def batch_get_item(table_ids, options = {})
-        request_items = {}
+        request_items = Hash.new{|h, k| h[k] = []}
+        return request_items if table_ids.all?{|k, v| v.empty?}
+
         table_ids.each do |t, ids|
           next if ids.empty?
           tbl = describe_table(t)
@@ -54,24 +56,32 @@ module Dynamoid
 
           keys = if(rng)
             ids.map do |h,r|
-              { hk => attribute_value(h), rng => attribute_value(r) }
+              { hk => h, rng => r }
             end
           else
             ids.map do |id| 
-              { hk => attribute_value(id) }
+              { hk => id }
             end
           end
 
           request_items[t] = {
-            keys: keys
+            keys: keys,
+            # TODO: Use the value provided in option
+            consistent_read: true
           }
         end
 
+        # TODO: ATM, we are setting consistent read to true for all queries.
+        # Based on the API http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_get_item-instance_method
+        # each table should have its one consistent_read option set
+        options.delete(:consistent_read)
+
         raise "Unhandled options remaining" unless options.empty?
+        puts "--1 #{request_items}"
         results = client.batch_get_item(
           request_items: request_items
         )
-
+        puts "--2 #{results.inspect}"
         results.data
         ret = Hash.new([].freeze) #Default for tables where no rows are returned
         results.data[:responses].each do |table, rows|
@@ -233,7 +243,7 @@ module Dynamoid
           )
           
           result_item_to_hash(result[:attributes])
-        rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
+        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException
           raise Dynamoid::Errors::ConditionalCheckFailedException
       end
 
@@ -255,9 +265,9 @@ module Dynamoid
         
         object.each do |k, v|
           next if v.nil? || (v.respond_to?(:empty?) && v.empty?)
-          item[k.to_s] = attribute_value(v)
+          item[k.to_s] = v
         end
-        
+
         result = client.put_item(table_name: table_name, 
           item: item,
           expected: expected_stanza(options)
@@ -318,7 +328,7 @@ module Dynamoid
           hk => {
             comparison_operator: EQ,
             attribute_value_list: [
-              { STRING_TYPE =>  opts.delete(:hash_value).to_s.freeze }
+              opts.delete(:hash_value).freeze
             ]
           }
         }
@@ -327,7 +337,7 @@ module Dynamoid
           key_conditions[rng] = {
             comparison_operator: op,
             attribute_value_list: [
-              { NUM_TYPE => opts.delete(k).to_s.freeze }
+              opts.delete(k).freeze
             ]
           }
         end
@@ -450,12 +460,10 @@ module Dynamoid
           case(value)
           when String then
             type = STRING_TYPE
-          when Enumerable then 
-            type = STRING_SET
+          when Enumerable then
             value = value.to_a
           when Numeric then
-            type = NUM_TYPE
-            value = value.to_s
+            #noop
           else raise "Not sure how to infer type for #{value}"
           end
         end
@@ -486,8 +494,8 @@ module Dynamoid
       # The key hash passed on get_item, put_item, delete_item, update_item, etc
       #
       def key_stanza(table, hash_key, range_key = nil)
-        key = { table.hash_key.to_s => attribute_value(hash_key.to_s, STRING_TYPE) }
-        key[table.range_key.to_s] = { table.range_type => range_key.to_s } if range_key
+        key = { table.hash_key.to_s => hash_key } #attribute_value(hash_key.to_s, STRING_TYPE) }
+        key[table.range_key.to_s] = range_key if range_key#{ table.range_type => range_key.to_s } if range_key
         key
       end
       
@@ -503,7 +511,7 @@ module Dynamoid
           expected[col.to_s][:exists] = false
         end
         conditions[:if].try(:each) do |col,val|
-          expected[col.to_s][:value] = attribute_value(val)
+          expected[col.to_s][:value] = val
         end
         
         expected
@@ -526,7 +534,7 @@ module Dynamoid
       #
       def result_item_to_hash(item)
         {}.tap do |r|
-          item.each { |k,v| r[k.to_sym] = load_value(v.values.first, v.keys.first) }
+          item.each { |k,v| r[k.to_sym] = v }
         end
       end
       
@@ -642,19 +650,19 @@ module Dynamoid
           @additions.each do |k,v|
             ret[k.to_s] = { 
               action: ADD, 
-              value: ClientV2.send(:attribute_value, v)
+              value: v
             }
           end
           @deletions.each do |k,v|
             ret[k.to_s] = {
               action: DELETE,
-              value: ClientV2.send(:attribute_value, v)
+              value: v
             }
           end
           @updates.each do |k,v|
             ret[k.to_s] = {
               action: PUT,
-              value: ClientV2.send(:attribute_value, v)
+              value: v
             }
           end
 
