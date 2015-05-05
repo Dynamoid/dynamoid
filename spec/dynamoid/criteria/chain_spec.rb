@@ -170,7 +170,7 @@ describe "Dynamoid::Associations::Chain" do
       @post2 = Post.create(:post_id => 'x', :posted_at => (@time + 1.hour))
       @chain = Dynamoid::Criteria::Chain.new(Post)
       query = { :post_id => "x", "posted_at.gt" => @time }
-      expect(@chain.send(:where, query).to_a).to eq [@post2]
+      @chain.send(:where, query).to_a.should == [@post2]
     end
   end
   
