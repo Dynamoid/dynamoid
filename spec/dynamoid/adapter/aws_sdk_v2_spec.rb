@@ -20,17 +20,17 @@ describe Dynamoid::Adapter::AwsSdkV2 do
     name = "dynamoid_tests_TestTable#{n}"
     let(:"test_table#{n}") do
       Dynamoid::Adapter.create_table(name, *args)
-      @created_tables << name
+      #@created_tables << name
       name
     end
   end
   
-  before(:each) { @created_tables = [] }
-  after(:each) do
-    @created_tables.each do |t|
-      Dynamoid::Adapter.delete_table(t)
-    end
-  end
+  #before(:each) { @created_tables = [] }
+  #after(:each) do
+  #  @created_tables.each do |t|
+  #    Dynamoid::Adapter.truncate(t)
+  #  end
+  #end
   
   #
   # Returns a random key parition if partitioning is on, or an empty string if
@@ -50,11 +50,11 @@ describe Dynamoid::Adapter::AwsSdkV2 do
     end
 
     it 'performs query on a table with a range and selects items in a range' do
-      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_value => 0.0..3.0).to_a.should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
+      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_between => [0.0,3.0]).to_a.should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
 
     it 'performs query on a table with a range and selects items in a range with :select option' do
-      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_value => 0.0..3.0, :select => :all).to_a.should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
+      Dynamoid::Adapter.query(test_table3, :hash_value => '1', :range_between => [0.0,3.0], :select =>  'ALL_ATTRIBUTES').to_a.should =~ [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
 
     it 'performs query on a table with a range and selects items greater than' do
@@ -162,9 +162,7 @@ describe Dynamoid::Adapter::AwsSdkV2 do
 
     # BatchGetItem
     it 'passes options to underlying BatchGet call' do
-      Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
-      Aws::DynamoDB::Client.any_instance.expects(:batch_get_item).with(:request_items => {test_table1 => {:keys => [{'id' => '1'}, {'id' => '2'}], :consistent_read => true}})
-      puts "--3 #{described_class.list_tables}"
+      expect_any_instance_of(Aws::DynamoDB::Client).to receive(:batch_get_item).with(:request_items => {test_table1 => {:keys => [{'id' => '1'}, {'id' => '2'}], :consistent_read => true}}).and_call_original
       described_class.batch_get_item({test_table1 => ['1', '2']}, :consistent_read => true)
     end
 
@@ -193,8 +191,8 @@ describe Dynamoid::Adapter::AwsSdkV2 do
       Dynamoid::Adapter.put_item(test_table3, {:id => '2', :name => 'Justin', :range => 2.0})
 
       results = Dynamoid::Adapter.batch_get_item(test_table3 => [['1', 1.0]])
-      results.size.should == 1
-      results[test_table3].should include({:name => 'Josh', :id => '1', :range => 1.0})
+      expect(results.size).to eq 1
+      expect(results[test_table3]).to include({:name => 'Josh', :id => '1', :range => 1.0})
     end
 
     it 'performs BatchGetItem with multiple ranged keys' do
@@ -202,9 +200,10 @@ describe Dynamoid::Adapter::AwsSdkV2 do
       Dynamoid::Adapter.put_item(test_table3, {:id => '2', :name => 'Justin', :range => 2.0})
 
       results = Dynamoid::Adapter.batch_get_item(test_table3 => [['1', 1.0],['2', 2.0]])
-      results.size.should == 1
-      results[test_table3].should include({:name => 'Josh', :id => '1', :range => 1.0})
-      results[test_table3].should include({:name => 'Justin', :id => '2', :range => 2.0})
+      expect(results.size).to eq 1
+
+      expect(results[test_table3]).to include({:name => 'Josh', :id => '1', :range => 1.0})
+      expect(results[test_table3]).to include({:name => 'Justin', :id => '2', :range => 2.0})
     end
     
     # BatchDeleteItem
@@ -215,10 +214,10 @@ describe Dynamoid::Adapter::AwsSdkV2 do
       Dynamoid::Adapter.batch_delete_item(test_table1 => ['1'], test_table2 => ['1'])
       
       results = Dynamoid::Adapter.batch_get_item(test_table1 => '1', test_table2 => '1')
-      results.size.should == 0
-      
-      results[test_table1].should_not include({:name => 'Josh', :id => '1'})
-      results[test_table2].should_not include({:name => 'Justin', :id => '1'})
+      expect(results.size).to eq 2
+
+      expect(results[test_table1]).to be_blank
+      expect(results[test_table2]).to be_blank
     end
 
     it "performs BatchDeleteItem with multiple keys" do
@@ -228,10 +227,9 @@ describe Dynamoid::Adapter::AwsSdkV2 do
       Dynamoid::Adapter.batch_delete_item(test_table1 => ['1', '2'])
       
       results = Dynamoid::Adapter.batch_get_item(test_table1 => ['1', '2'])
-      results.size.should == 0
-      
-      results[test_table1].should_not include({:name => 'Josh', :id => '1'})
-      results[test_table1].should_not include({:name => 'Justin', :id => '2'})
+
+      expect(results.size).to eq 1
+      expect(results[test_table1]).to be_blank
     end
 
     it 'performs BatchDeleteItem with one ranged key' do
@@ -240,9 +238,9 @@ describe Dynamoid::Adapter::AwsSdkV2 do
 
       Dynamoid::Adapter.batch_delete_item(test_table3 => [['1', 1.0]])
       results = Dynamoid::Adapter.batch_get_item(test_table3 => [['1', 1.0]])
-      results.size.should == 0
 
-      results[test_table3].should_not include({:name => 'Josh', :id => '1', :range => 1.0})
+      expect(results.size).to eq 1
+      expect(results[test_table3]).to be_blank
     end
 
     it 'performs BatchDeleteItem with multiple ranged keys' do
@@ -251,10 +249,9 @@ describe Dynamoid::Adapter::AwsSdkV2 do
 
       Dynamoid::Adapter.batch_delete_item(test_table3 => [['1', 1.0],['2', 2.0]])
       results = Dynamoid::Adapter.batch_get_item(test_table3 => [['1', 1.0],['2', 2.0]])
-      results.size.should == 0
-       
-      results[test_table3].should_not include({:name => 'Josh', :id => '1', :range => 1.0})
-      results[test_table3].should_not include({:name => 'Justin', :id => '2', :range => 2.0})
+
+      expect(results.size).to eq 1
+      expect(results[test_table3]).to be_blank
     end
 
     # ListTables
@@ -262,22 +259,22 @@ describe Dynamoid::Adapter::AwsSdkV2 do
       #Force creation of the tables
       test_table1; test_table2; test_table3; test_table4
 
-      Dynamoid::Adapter.list_tables.should include test_table1
-      Dynamoid::Adapter.list_tables.should include test_table2
+      expect(Dynamoid::Adapter.list_tables).to include test_table1
+      expect(Dynamoid::Adapter.list_tables).to include test_table2
     end
 
     # Query
     it 'performs query on a table and returns items' do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
 
-      Dynamoid::Adapter.query(test_table1, :hash_value => '1').first.should == { :id=> '1', :name=>"Josh" }
+      expect(Dynamoid::Adapter.query(test_table1, :hash_value => '1').first).to eq({ :id=> '1', :name=>"Josh" })
     end
 
     it 'performs query on a table and returns items if there are multiple items' do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid::Adapter.put_item(test_table1, {:id => '2', :name => 'Justin'})
 
-      Dynamoid::Adapter.query(test_table1, :hash_value => '1').first.should == { :id=> '1', :name=>"Josh" }
+      expect(Dynamoid::Adapter.query(test_table1, :hash_value => '1').first).to eq({ :id=> '1', :name=>"Josh" })
     end
     
     it_behaves_like 'range queries'
@@ -286,88 +283,35 @@ describe Dynamoid::Adapter::AwsSdkV2 do
     it 'performs scan on a table and returns items' do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
 
-      Dynamoid::Adapter.scan(test_table1, :name => 'Josh').to_a.should == [{ :id=> '1', :name=>"Josh" }]
+      expect(Dynamoid::Adapter.scan(test_table1, :name => 'Josh').to_a).to eq [{ :id=> '1', :name=>"Josh" }]
     end
 
     it 'performs scan on a table and returns items if there are multiple items but only one match' do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid::Adapter.put_item(test_table1, {:id => '2', :name => 'Justin'})
 
-      Dynamoid::Adapter.scan(test_table1, :name => 'Josh').to_a.should == [{ :id=> '1', :name=>"Josh" }]
+      expect(Dynamoid::Adapter.scan(test_table1, :name => 'Josh').to_a).to eq [{ :id=> '1', :name=>"Josh" }]
     end
 
     it 'performs scan on a table and returns multiple items if there are multiple matches' do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid::Adapter.put_item(test_table1, {:id => '2', :name => 'Josh'})
 
-      Dynamoid::Adapter.scan(test_table1, :name => 'Josh').should include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
+      expect(Dynamoid::Adapter.scan(test_table1, :name => 'Josh')).to include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
     end
 
     it 'performs scan on a table and returns all items if no criteria are specified' do
       Dynamoid::Adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid::Adapter.put_item(test_table1, {:id => '2', :name => 'Josh'})
 
-      Dynamoid::Adapter.scan(test_table1, {}).should include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
+      expect(Dynamoid::Adapter.scan(test_table1, {})).to include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
     end
     
     it_behaves_like 'correct ordering'
   end
   
   context 'with a preexisting table with paritioning' do
-    before(:all) do
-      @previous_value = Dynamoid::Config.partitioning
-      Dynamoid::Config.partitioning = true
-    end
-
-    after(:all) do
-      Dynamoid::Config.partitioning = @previous_value
-    end
-
-    # Query
-    it 'performs query on a table and returns items' do
-      Dynamoid::Adapter.put_item(test_table1, {:id => '1.1', :name => 'Josh'})
-
-      Dynamoid::Adapter.query(test_table1, :hash_value => '1').first.should == { :id=> '1', :name=>"Josh" }
-    end
-
-    it 'performs query on a table and returns items if there are multiple items' do
-      Dynamoid::Adapter.put_item(test_table1, {:id => '1.1', :name => 'Josh'})
-      Dynamoid::Adapter.put_item(test_table1, {:id => '2.1', :name => 'Justin'})
-
-      Dynamoid::Adapter.query(test_table1, :hash_value => '1').first.should == { :id=> '1', :name=>"Josh" }
-    end
-
-    it_behaves_like 'range queries'
-
-    # Scan
-    it 'performs scan on a table and returns items' do
-      Dynamoid::Adapter.put_item(test_table1, {:id => '1.1', :name => 'Josh'})
-
-      Dynamoid::Adapter.scan(test_table1, :name => 'Josh').should == [{ :id=> '1', :name=>"Josh" }]
-    end
-
-    it 'performs scan on a table and returns items if there are multiple items but only one match' do
-      Dynamoid::Adapter.put_item(test_table1, {:id => '1.1', :name => 'Josh'})
-      Dynamoid::Adapter.put_item(test_table1, {:id => '2.1', :name => 'Justin'})
-
-      Dynamoid::Adapter.scan(test_table1, :name => 'Josh').should == [{ :id=> '1', :name=>"Josh" }]
-    end
-
-    it 'performs scan on a table and returns multiple items if there are multiple matches' do
-      Dynamoid::Adapter.put_item(test_table1, {:id => '1.1', :name => 'Josh'})
-      Dynamoid::Adapter.put_item(test_table1, {:id => '2.1', :name => 'Josh'})
-
-      Dynamoid::Adapter.scan(test_table1, :name => 'Josh').should include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
-    end
-
-    it 'performs scan on a table and returns all items if no criteria are specified' do
-      Dynamoid::Adapter.put_item(test_table1, {:id => '1.1', :name => 'Josh'})
-      Dynamoid::Adapter.put_item(test_table1, {:id => '2.1', :name => 'Josh'})
-
-      Dynamoid::Adapter.scan(test_table1, {}).should include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
-    end
-
-    it_behaves_like 'correct ordering'
+    # TODO: write partitioning specs when dynamo partitioning is working
   end
 
   # DescribeTable

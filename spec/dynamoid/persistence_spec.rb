@@ -3,7 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe "Dynamoid::Persistence" do
 
   before do
-    Random.stubs(:rand).with(Dynamoid::Config.partition_size).returns(0)
+    allow(Random).to receive(:rand).with(Dynamoid::Config.partition_size).and_return(0)
     @address = Address.new
   end
 
@@ -66,7 +66,7 @@ describe "Dynamoid::Persistence" do
   it 'saves indexes along with itself' do
     @user = User.new(:name => 'Josh')
 
-    @user.expects(:save_indexes).once.returns(true)
+    expect(@user).to receive(:save_indexes).once.and_return(true)
     @user.save
   end
 
@@ -138,19 +138,19 @@ describe "Dynamoid::Persistence" do
   end
 
   it 'runs the before_create callback only once' do
-    CamelCase.any_instance.expects(:doing_before_create).once.returns(true)
+    expect_any_instance_of(CamelCase).to receive(:doing_before_create).once.and_return(true)
 
     CamelCase.create
   end
 
   it 'runs after save callbacks when doing #create' do
-    CamelCase.any_instance.expects(:doing_after_create).once.returns(true)
+    expect_any_instance_of(CamelCase).to receive(:doing_after_create).once.and_return(true)
 
     CamelCase.create
   end
 
   it 'runs after save callbacks when doing #save' do
-    CamelCase.any_instance.expects(:doing_after_create).once.returns(true)
+    expect_any_instance_of(CamelCase).to receive(:doing_after_create).once.and_return(true)
 
     CamelCase.new.save
   end
@@ -208,11 +208,11 @@ describe "Dynamoid::Persistence" do
   context 'update' do
 
     before :each do
-      @tweet = Tweet.create(:tweet_id => 1, :group => 'abc', :count => 5, :tags => ['db', 'sql'], :user_name => 'john')
+      @tweet = Tweet.create(:tweet_id => 1, :group => 'abc', :count => 5, :tags => Set.new(['db', 'sql']), :user_name => 'john')
     end
 
     it 'runs before_update callbacks when doing #update' do
-      CamelCase.any_instance.expects(:doing_before_update).once.returns(true)
+      expect_any_instance_of(CamelCase).to receive(:doing_before_update).once.and_return(true)
 
       CamelCase.create(:color => 'blue').update do |t|
         t.set(:color => 'red')
@@ -220,7 +220,7 @@ describe "Dynamoid::Persistence" do
     end
 
     it 'runs after_update callbacks when doing #update' do
-      CamelCase.any_instance.expects(:doing_after_update).once.returns(true)
+      expect_any_instance_of(CamelCase).to receive(:doing_after_update).once.and_return(true)
 
       CamelCase.create(:color => 'blue').update do |t|
         t.set(:color => 'red')
@@ -228,9 +228,10 @@ describe "Dynamoid::Persistence" do
     end
 
     it 'support add/delete operation on a field' do
+      puts "#{@tweet.tags}"
       @tweet.update do |t|
         t.add(:count => 3)
-        t.delete(:tags => ['db'])
+        t.delete(:tags => Set.new(['db']))
       end
 
       @tweet.count.should eq(8)
@@ -240,13 +241,13 @@ describe "Dynamoid::Persistence" do
     it 'checks the conditions on update' do
       @tweet.update(:if => { :count => 5 }) do |t|
         t.add(:count => 3)
-      end.should be_true
+      end.should be_truthy
 
       @tweet.count.should eq(8)
 
       @tweet.update(:if => { :count => 5 }) do |t|
         t.add(:count => 3)
-      end.should be_false
+      end.should be_falsey
 
       @tweet.count.should eq(8)
 

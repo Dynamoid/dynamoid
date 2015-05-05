@@ -239,28 +239,32 @@ module Dynamoid
     # @return [Array] an array of all matching items
     #
     def query(table_name, opts = {})
-      
-      unless Dynamoid::Config.partitioning?
+
+      @adapter.query(table_name, opts)
+
+      # TODO: Commenting out the code as partitioning doesn't work. Look into the AWS docs and
+      # fizx partitioning code
+      #unless Dynamoid::Config.partitioning?
         #no paritioning? just pass to the standard query method
-        @adapter.query(table_name, opts)
-      else
+
+      #else
         #get all the hash_values that could be possible
-        ids = id_with_partitions(opts[:hash_value])
+        #ids = id_with_partitions(opts[:hash_value])
 
         #lets not overwrite with the original options
-        modified_options = opts.clone     
-        results = []
+        #modified_options = opts.clone
+        #results = []
         
         #loop and query on each of the partition ids
-        ids.each do |id|
-          modified_options[:hash_value] = id
+        #ids.each do |id|
+          #modified_options[:hash_value] = id
 
-          query_result = adapter.query(table_name, modified_options)
-          results += query_result.inject([]){|array, result| array += [result]} if query_result.any?
-        end 
+          #query_result = adapter.query(table_name, modified_options)
+          #results += query_result.inject([]){|array, result| array += [result]} if query_result.any?
+        #end
 
-        result_for_partition results, table_name
-      end
+        #result_for_partition results, table_name
+      #end
     end
   end
 end

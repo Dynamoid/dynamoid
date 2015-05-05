@@ -15,10 +15,10 @@ describe "Dynamoid::Validations" do
     @document.field :name
     @document.validates_presence_of :name
     doc = @document.new
-    doc.save.should be_false
-    doc.new_record.should be_true
+    doc.save.should be_falsey
+    doc.new_record.should be_truthy
     doc.name = 'secret'
-    doc.save.should_not be_false
+    doc.save.should_not be_falsey
     doc.errors.should be_empty
   end
 

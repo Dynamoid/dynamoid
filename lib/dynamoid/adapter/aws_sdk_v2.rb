@@ -55,11 +55,11 @@ module Dynamoid
           rng = tbl.range_key.try :to_s
 
           keys = if(rng)
-            ids.map do |h,r|
+            Array(ids).map do |h,r|
               { hk => h, rng => r }
             end
           else
-            ids.map do |id| 
+            Array(ids).map do |id|
               { hk => id }
             end
           end
@@ -77,11 +77,11 @@ module Dynamoid
         options.delete(:consistent_read)
 
         raise "Unhandled options remaining" unless options.empty?
-        puts "--1 #{request_items}"
+
         results = client.batch_get_item(
           request_items: request_items
         )
-        puts "--2 #{results.inspect}"
+
         results.data
         ret = Hash.new([].freeze) #Default for tables where no rows are returned
         results.data[:responses].each do |table, rows|
@@ -106,11 +106,8 @@ module Dynamoid
       # @return nil
       #
       def batch_delete_item(options)
-
-
         options.each_pair do |table_name, ids|
           table = describe_table(table_name)
-
           ids.each do |id|
             client.delete_item(table_name: table_name, key: key_stanza(table, *id))
           end
@@ -138,6 +135,7 @@ module Dynamoid
           attribute_name: range_key.keys.first.to_s, key_type: RANGE_KEY
         } if(range_key)
         
+        #TODO: Provide support for number and binary hash key
         attribute_definitions = [
           { attribute_name: key.to_s, attribute_type: 'S' }
         ]
@@ -145,7 +143,7 @@ module Dynamoid
           attribute_name: range_key.keys.first.to_s, attribute_type: api_type(range_key.values.first)
         } if(range_key)
         
-        client.create_table(table_name: table_name, 
+        client.create_table(table_name: table_name,
           provisioned_throughput: {
             read_capacity_units: read_capacity, 
             write_capacity_units: write_capacity
@@ -210,8 +208,6 @@ module Dynamoid
         
         result = {}
 
-        puts "----- #{key_stanza(table, key, range_key)}"
-
         item = client.get_item(table_name: table_name, 
           key: key_stanza(table, key, range_key)
         )[:item]
@@ -234,8 +230,7 @@ module Dynamoid
           yield(iu = ItemUpdater.new(table, key, range_key))
           
           raise "non-empty options: #{options}" unless options.empty?
-          
-          result = client.update_item(table_name: table_name, 
+          result = client.update_item(table_name: table_name,
             key: key_stanza(table, key, range_key),
             attribute_updates: iu.to_h,
             expected: expected_stanza(conditions),
@@ -311,11 +306,13 @@ module Dynamoid
         table = describe_table(table_name)
         hk    = table.hash_key.to_s
         rng   = table.range_key.to_s
-        q     = opts.slice(:consistent_read, :scan_index_forward, :limit)
+        q     = opts.slice(:consistent_read, :scan_index_forward, :limit, :select)
+
 
         opts.delete(:consistent_read)
         opts.delete(:scan_index_forward)
         opts.delete(:limit)
+        opts.delete(:select)
         opts.delete(:next_token).tap do |token|
           break unless token
           q[:exclusive_start_key] = {
@@ -338,7 +335,7 @@ module Dynamoid
             comparison_operator: op,
             attribute_value_list: [
               opts.delete(k).freeze
-            ]
+            ].flatten # between operator specifies array of two elements
           }
         end
 
@@ -348,7 +345,7 @@ module Dynamoid
         raise "MOAR STUFF" unless opts.empty?
         Enumerator.new { |y|
           result = client.query(q)
-          result.member.each { |r| 
+          result.items.each { |r|
             y << result_item_to_hash(r)
           }
         }
@@ -362,7 +359,8 @@ module Dynamoid
         range_less_than:    'LT',
         range_gte:          'GE',
         range_lte:          'LE',
-        range_begins_with:  'BEGINS_WITH'
+        range_begins_with:  'BEGINS_WITH',
+        range_between:      'BETWEEN'
       }
 
       # Scan the DynamoDB table. This is usually a very slow operation as it naively filters all data on
@@ -374,7 +372,7 @@ module Dynamoid
       # @return [Enumerator] an iterator of all matching items
       #
       # @since 0.2.0
-      def scan(table_name, scan_hash, select_opts)
+      def scan(table_name, scan_hash, select_opts = {})
         limit = select_opts.delete(:limit)
         batch = select_opts.delete(:batch_size)
         
@@ -382,11 +380,11 @@ module Dynamoid
         request[:limit] = batch || limit if batch || limit
         request[:scan_filter] = scan_hash.reduce({}) do |memo, kvp| 
           memo[kvp[0].to_s] = {
-            attribute_value_list: [attribute_value(kvp[1])],
+            attribute_value_list: [kvp[1]],
             comparison_operator: EQ
           }
           memo
-        end if(scan_hash && !scan_hash.empty?)
+        end if(scan_hash && scan_hash.present?)
                 
         raise "non-empty select_opts " if(select_opts && !select_opts.empty?)
         
@@ -445,6 +443,7 @@ module Dynamoid
       STRING_TYPE = "S".freeze
       STRING_SET  = "SS".freeze
       NUM_TYPE    = "N".freeze
+      BOOLEAN_TYPE= "B".freeze
 
       #
       # Given a value and an options typedef, returns an AttributeValue hash
@@ -477,6 +476,7 @@ module Dynamoid
         when :string  then STRING_TYPE
         when :number  then NUM_TYPE
         when :datetime then NUM_TYPE
+        when :boolean then BOOLEAN_TYPE
         else raise "Unknown type: #{type}"
         end
       end

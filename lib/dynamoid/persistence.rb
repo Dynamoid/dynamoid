@@ -1,4 +1,5 @@
 require 'securerandom'
+require 'yaml'
 
 # encoding: utf-8
 module Dynamoid

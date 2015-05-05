@@ -6,7 +6,6 @@ MODELS = File.join(File.dirname(__FILE__), "app/models")
 require 'rspec'
 require 'dynamoid'
 require 'pry'
-require 'mocha'
 require 'aws-sdk'
 
 ENV['ACCESS_KEY'] ||= 'abcd'
@@ -18,7 +17,7 @@ Aws.config.update({
           })
 
 Dynamoid.configure do |config|
-  config.endpoint = 'http://localhost:8000'
+  config.endpoint = 'http://127.0.0.1:8000'
   config.adapter = 'aws_sdk_v2'
   config.namespace = 'dynamoid_tests'
   config.warn_on_scan = false
@@ -36,13 +35,14 @@ Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require file }
 
 RSpec.configure do |config|
   config.alias_it_should_behave_like_to :configured_with, "configured with"
-  config.mock_with(:mocha)
+  #config.mock_with(:mocha)
 
   config.before(:each) do
     Dynamoid::Adapter.list_tables.each do |table|
       if table =~ /^#{Dynamoid::Config.namespace}/
         
         Dynamoid::Adapter.truncate(table)
+        #puts "SH ---- 1 #{table}"
         # table = Dynamoid::Adapter.get_table(table)
         # table.items.each {|i| i.delete}
       end
@@ -51,7 +51,7 @@ RSpec.configure do |config|
 
   config.after(:suite) do
     Dynamoid::Adapter.list_tables.each do |table|
-      Dynamoid::Adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/
+      Dynamoid::Adapter.truncate(table) if table =~ /^#{Dynamoid::Config.namespace}/
     end
   end
 end

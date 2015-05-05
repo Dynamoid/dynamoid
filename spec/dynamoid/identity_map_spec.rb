@@ -20,7 +20,7 @@ describe "Dynamoid::IdentityMap" do
   context 'cache' do
     it 'uses cache' do
       tweet = Tweet.create(:tweet_id => "x", :group => "one")
-      Dynamoid::Adapter.expects(:read).never
+      expect(Dynamoid::Adapter).to receive(:read).never
       tweet1 = Tweet.find_by_id("x", :range_key => "one")
       tweet.should equal(tweet1)
     end

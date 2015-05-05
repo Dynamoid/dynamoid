@@ -5,7 +5,7 @@ describe "Dynamoid::Document" do
   it 'initializes a new document' do
     @address = Address.new
 
-    @address.new_record.should be_true
+    @address.new_record.should be_truthy
     @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil, :options=>nil, :deliverable => nil, :lock_version => nil}
   end
 
@@ -20,7 +20,7 @@ describe "Dynamoid::Document" do
   it 'initializes a new document with attributes' do
     @address = Address.new(:city => 'Chicago')
 
-    @address.new_record.should be_true
+    @address.new_record.should be_truthy
 
     @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil, :lock_version => nil}
   end
@@ -28,7 +28,7 @@ describe "Dynamoid::Document" do
   it 'initializes a new document with a virtual attribute' do
     @address = Address.new(:zip_code => '12345')
 
-    @address.new_record.should be_true
+    @address.new_record.should be_truthy
 
     @address.attributes.should == {:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil, :lock_version => nil}
   end
@@ -45,16 +45,16 @@ describe "Dynamoid::Document" do
   it 'creates a new document' do
     @address = Address.create(:city => 'Chicago')
 
-    @address.new_record.should be_false
+    @address.new_record.should be_falsey
     @address.id.should_not be_nil
   end
 
   it 'knows if a document exists or not' do
     @address = Address.create(:city => 'Chicago')
-    Address.exists?(@address.id).should be_true
-    Address.exists?("does-not-exist").should be_false
-    Address.exists?(:city => @address.city).should be_true
-    Address.exists?(:city => "does-not-exist").should be_false
+    Address.exists?(@address.id).should be_truthy
+    Address.exists?("does-not-exist").should be_falsey
+    Address.exists?(:city => @address.city).should be_truthy
+    Address.exists?(:city => "does-not-exist").should be_falsey
   end
 
   it 'gets errors courtesy of ActiveModel' do
@@ -75,7 +75,7 @@ describe "Dynamoid::Document" do
     end
 
     it 'uses a :consistent_read' do
-      Tweet.expects(:find).with(tweet.hash_key, {:range_key => tweet.range_value, :consistent_read => true}).returns(tweet)
+      expect(Tweet).to receive(:find).with(tweet.hash_key, {:range_key => tweet.range_value, :consistent_read => true}).and_return(tweet)
       tweet.reload
     end
 

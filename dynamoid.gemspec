@@ -150,7 +150,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = "1.8.24"
   s.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
 
-  s.add_runtime_dependency(%q<activemodel>, ["~> 3"])
+  s.add_runtime_dependency(%q<activemodel>, ["~> 4"])
   s.add_runtime_dependency(%q<aws-sdk>, ["~> 2"])
   # s.add_runtime_dependency(%q<aws-sdk-v1>, [">= 0"])
   s.add_development_dependency(%q<rake>, [">= 0"])
@@ -159,6 +159,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency(%q<yard>, [">= 0"])
   s.add_development_dependency(%q<github-markup>, [">= 0"])
   s.add_development_dependency(%q<pry>, [">= 0"])
-  s.add_development_dependency(%q<mocha>, ["= 0.10.0"])
 end
 

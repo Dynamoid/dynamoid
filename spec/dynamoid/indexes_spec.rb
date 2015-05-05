@@ -9,7 +9,7 @@ describe "Dynamoid::Indexes" do
   it 'saves indexes to their tables' do
     @user = User.new(:name => 'Josh')
     
-    User.indexes.each {|k, v| v.expects(:save).with(@user).once.returns(true)}
+    User.indexes.each {|k, v| expect(v).to receive(:save).with(@user).once.and_return(true)}
     
     @user.save
   end
@@ -17,7 +17,7 @@ describe "Dynamoid::Indexes" do
   it 'deletes indexes when the object is destroyed' do
     @user = User.create(:name => 'Josh')
     
-    User.indexes.each {|k, v| v.expects(:delete).with(@user).once.returns(true)}
+    User.indexes.each {|k, v| expect(v).to receive(:delete).with(@user).once.and_return(true)}
     
     @user.destroy
   end

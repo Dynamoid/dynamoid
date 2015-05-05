@@ -80,9 +80,8 @@ describe "Dynamoid::Associations::Chain" do
 
   it "doesn't crash if it finds a nil id in the index" do
     @chain.query = {:name => 'Josh', "created_at.gt" => @time - 1.day}
-    Dynamoid::Adapter.expects(:query).
-                      with("dynamoid_tests_index_user_created_ats_and_names", kind_of(Hash)).
-                      returns([{ids: nil}, {ids: Set.new([42])}])
+    expect(Dynamoid::Adapter).to receive(:query).
+                      with("dynamoid_tests_index_user_created_ats_and_names", kind_of(Hash)).and_return([{ids: nil}, {ids: Set.new([42])}])
     @chain.send(:ids_from_index).should == Set.new([42])
   end
 
@@ -103,39 +102,39 @@ describe "Dynamoid::Associations::Chain" do
     # Primary key is [hash_key].
     @chain = Dynamoid::Criteria::Chain.new(Address)
     @chain.query = {}
-    @chain.send(:range?).should be_false
+    @chain.send(:range?).should be_falsey
 
     @chain = Dynamoid::Criteria::Chain.new(Address)
     @chain.query = { :id => 'test' }
-    @chain.send(:range?).should be_true
+    @chain.send(:range?).should be_truthy
 
     @chain = Dynamoid::Criteria::Chain.new(Address)
     @chain.query = { :id => 'test', :city => 'Bucharest' }
-    @chain.send(:range?).should be_false
+    @chain.send(:range?).should be_falsey
 
     # Primary key is [hash_key, range_key].
     @chain = Dynamoid::Criteria::Chain.new(Tweet)
     @chain.query = { }
-    @chain.send(:range?).should be_false
+    @chain.send(:range?).should be_falsey
 
     @chain = Dynamoid::Criteria::Chain.new(Tweet)
     @chain.query = { :tweet_id => 'test' }
-    @chain.send(:range?).should be_true
+    @chain.send(:range?).should be_truthy
 
     @chain.query = {:tweet_id => 'test', :msg => 'hai'}
-    @chain.send(:range?).should be_false
+    @chain.send(:range?).should be_falsey
 
     @chain.query = {:tweet_id => 'test', :group => 'xx'}
-    @chain.send(:range?).should be_true
+    @chain.send(:range?).should be_truthy
 
     @chain.query = {:tweet_id => 'test', :group => 'xx', :msg => 'hai'}
-    @chain.send(:range?).should be_false
+    @chain.send(:range?).should be_falsey
 
     @chain.query = { :group => 'xx' }
-    @chain.send(:range?).should be_false
+    @chain.send(:range?).should be_falsey
 
     @chain.query = { :group => 'xx', :msg => 'hai' }
-    @chain.send(:range?).should be_false
+    @chain.send(:range?).should be_falsey
   end
 
   context 'range queries' do
@@ -171,7 +170,7 @@ describe "Dynamoid::Associations::Chain" do
       @post2 = Post.create(:post_id => 'x', :posted_at => (@time + 1.hour))
       @chain = Dynamoid::Criteria::Chain.new(Post)
       query = { :post_id => "x", "posted_at.gt" => @time }
-      @chain.send(:where, query).to_a.should == [@post2]
+      expect(@chain.send(:where, query).to_a).to eq [@post2]
     end
   end
   

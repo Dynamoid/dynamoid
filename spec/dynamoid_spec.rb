@@ -7,7 +7,7 @@ describe "Dynamoid" do
   end
 
   it "doesn't connect automatically when configured" do
-    Dynamoid::Adapter.expects(:reconnect!).never
+    expect(Dynamoid::Adapter).to receive(:reconnect!).never
     Dynamoid.configure { |config| nil }
   end
 

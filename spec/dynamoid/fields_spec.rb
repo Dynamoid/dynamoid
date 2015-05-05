@@ -16,11 +16,11 @@ describe "Dynamoid::Fields" do
   end
 
   it 'declares a query attribute' do
-    @address.city?.should be_false
+    @address.city?.should be_falsey
 
     @address.city = 'Chicago'
 
-    @address.city?.should be_true
+    @address.city?.should be_truthy
   end
 
   it 'automatically declares id' do
@@ -62,14 +62,14 @@ describe "Dynamoid::Fields" do
     end
 
     it 'should update all attributes' do
-      @address.expects(:save).once.returns(true)
+      expect(@address).to receive(:save).once.and_return(true)
       @address.update_attributes(:city => 'Chicago')
       @address[:city].should == 'Chicago'
       @address.id.should == @original_id
     end
 
     it 'should update one attribute' do
-      @address.expects(:save).once.returns(true)
+      expect(@address).to receive(:save).once.and_return(true)
       @address.update_attribute(:city, 'Chicago')
       @address[:city].should == 'Chicago'
       @address.id.should == @original_id
@@ -96,7 +96,9 @@ describe "Dynamoid::Fields" do
   end
 
   it "gives a warning when setting a single value larger than the maximum item size" do
-    Dynamoid.logger.expects(:warn).with(regexp_matches(/city field has a length of 66000/))
+    expect(Dynamoid.logger).to receive(:warn) do |input|
+      expect(input).to include "city field has a length of 66000"
+    end
     Address.new city: ("Ten chars " * 6_600)
   end
 
