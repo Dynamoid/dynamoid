@@ -136,15 +136,6 @@ describe "Dynamoid::Associations::Association" do
     magazine.subscriptions.delete_all
   end
 
-  # TODO This test is broken using the AWS SDK adapter.
-  #it 'returns the first and last record when they exist' do
-  #  @subscription1 = Magazine.create.subscriptions.create
-  #  @subscription2 = Magazine.create.subscriptions.create
-  #  @subscription3 = Magazine.create.subscriptions.create
-  #
-  #  Magazine.create.subscriptions.instance_eval { [first, last] }.should == [@subscription1, @subscription3]
-  #end
-
   it 'replaces existing associations when using the setter' do
     magazine = Magazine.create
     subscription1 = magazine.subscriptions.create

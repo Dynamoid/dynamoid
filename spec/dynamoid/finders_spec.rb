@@ -138,13 +138,12 @@ describe "Dynamoid::Finders" do
       Address.find_all('bad' + @address.id.to_s).should eq []
     end
 
-
-    # TODO: ATM, adapter sets consistent read to be true for all query. Provide option for setting consistent_read option
-    #it 'passes options to the adapter' do
-    #  user_ids = [%w(1 red), %w(1 green)]
-    #  Dynamoid::Adapter.expects(:read).with(anything, user_ids, :consistent_read => true)
-    #  User.find_all(user_ids, :consistent_read => true)
-    #end
+    it 'passes options to the adapter' do
+      pending "This test is broken as we are overriding the consistent_read option to true inside the adapter"
+      user_ids = [%w(1 red), %w(1 green)]
+      Dynamoid::Adapter.expects(:read).with(anything, user_ids, :consistent_read => true)
+      User.find_all(user_ids, :consistent_read => true)
+    end
 
   end
 end

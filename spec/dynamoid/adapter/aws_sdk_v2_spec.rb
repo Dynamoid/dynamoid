@@ -2,10 +2,6 @@ require 'dynamoid/adapter/aws_sdk_v2'
 require File.expand_path(File.dirname(__FILE__) + '../../../spec_helper')
 
 describe Dynamoid::Adapter::AwsSdkV2 do
-  before(:each) do
-    pending "You must have an active DynamoDB connection" unless ENV['ACCESS_KEY'] && ENV['SECRET_KEY']
-  end
-
   #
   # These let() definitions create tables "dynamoid_tests_TestTable<N>" and return the
   # name of the table.
