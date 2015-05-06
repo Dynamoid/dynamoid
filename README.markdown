@@ -349,6 +349,8 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 
 Running the tests is fairly simple. In one window, run `bin/start_dynamodblocal`, and in the other, use `rake`.
 
+[![Build Status](https://travis-ci.org/Dynamoid/Dynamoid.svg)](https://travis-ci.org/Dynamoid/Dynamoid)
+
 ## Copyright
 
 Copyright (c) 2012 Josh Symonds.

@@ -165,12 +165,20 @@ describe "Dynamoid::Associations::Chain" do
     end
 
     it 'finds posts with "where" method' do
+      ts_epsilon = 0.001 # 1 ms
       @time = DateTime.now
       @post1 = Post.create(:post_id => 'x', :posted_at => @time)
       @post2 = Post.create(:post_id => 'x', :posted_at => (@time + 1.hour))
       @chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => "x", "posted_at.gt" => @time }
-      @chain.send(:where, query).to_a.should == [@post2]
+      query = { :post_id => "x", "posted_at.gt" => @time + ts_epsilon }
+      resultset = @chain.send(:where, query)
+      resultset.count.should == 1
+      stored_record = resultset.first
+      stored_record.attributes[:post_id].should == @post2.attributes[:post_id]
+      # Must use an epsilon to compare timestamps after round-trip: https://github.com/Dynamoid/Dynamoid/issues/2
+      stored_record.attributes[:created_at].should be_within(ts_epsilon).of(@post2.attributes[:created_at])
+      stored_record.attributes[:posted_at].should be_within(ts_epsilon).of(@post2.attributes[:posted_at])
+      stored_record.attributes[:updated_at].should be_within(ts_epsilon).of(@post2.attributes[:updated_at])
     end
   end
   
