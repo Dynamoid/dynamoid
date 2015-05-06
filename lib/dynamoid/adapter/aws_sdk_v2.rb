@@ -48,9 +48,9 @@ module Dynamoid
           next if ids.empty?
           tbl = describe_table(t)
           hk  = tbl.hash_key.to_s
-          rng = tbl.range_key.try :to_s
+          rng = tbl.range_key.to_s
 
-          keys = if(rng)
+          keys = if rng.present?
             Array(ids).map do |h,r|
               { hk => h, rng => r }
             end
@@ -68,8 +68,7 @@ module Dynamoid
         results = client.batch_get_item(
           request_items: request_items
         )
-
-        results.data
+        
         ret = Hash.new([].freeze) # Default for tables where no rows are returned
         results.data[:responses].each do |table, rows|
           ret[table] = rows.collect { |r| result_item_to_hash(r) }
@@ -138,7 +137,7 @@ module Dynamoid
           attribute_definitions: attribute_definitions
         )
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
-        Dynamoid.logger.info "Table #{table_name} cannot be created as it already exists"
+        Dynamoid.logger.error "Table #{table_name} cannot be created as it already exists"
       end
 
       # Removes an item from DynamoDB.
