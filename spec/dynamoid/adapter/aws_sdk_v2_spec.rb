@@ -8,7 +8,7 @@ describe Dynamoid::Adapter::AwsSdkV2 do
 
   #
   # These let() definitions create tables "dynamoid_tests_TestTable<N>" and return the
-  # name of the table. An after(:each) handler drops any tables created this way after each test
+  # name of the table.
   #
   # Name => Constructor args
   {
@@ -20,18 +20,10 @@ describe Dynamoid::Adapter::AwsSdkV2 do
     name = "dynamoid_tests_TestTable#{n}"
     let(:"test_table#{n}") do
       Dynamoid::Adapter.create_table(name, *args)
-      #@created_tables << name
       name
     end
   end
-  
-  #before(:each) { @created_tables = [] }
-  #after(:each) do
-  #  @created_tables.each do |t|
-  #    Dynamoid::Adapter.truncate(t)
-  #  end
-  #end
-  
+
   #
   # Returns a random key parition if partitioning is on, or an empty string if
   # it is off, useful for shared examples where partitioning may or may not be on
@@ -39,7 +31,7 @@ describe Dynamoid::Adapter::AwsSdkV2 do
   def key_partition
     Dynamoid::Config.partitioning? ? ".#{Random.rand(Dynamoid::Config.partition_size)}" : ''
   end
-    
+
   #
   # Tests adapter against ranged tables
   #
