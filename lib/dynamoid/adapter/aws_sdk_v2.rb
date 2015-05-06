@@ -1,21 +1,15 @@
-# encoding: utf-8
-#require 'aws'
-
-require 'pp'
-
 module Dynamoid
   module Adapter
-    module AwsSdkV2; end
 
+    # The AwsSdkV2 adapter provides support for the aws-sdk version 2 for ruby.
     #
-    # Uses the low-level V2 client API. 
-    #
-    class <<AwsSdkV2 #Makes these all static methods on the Module
+    module AwsSdkV2
+      extend self
       attr_reader :table_cache
+
       # Establish the connection to DynamoDB.
       #
-      # @return [AWS::DynamoDB::ClientV2] the raw DynamoDB connection
-      
+      # @return [Aws::DynamoDB::Client] the DynamoDB connection
       def connect!
         @client = if Dynamoid::Config.endpoint?
           Aws::DynamoDB::Client.new(endpoint: Dynamoid::Config.endpoint)
@@ -27,8 +21,7 @@ module Dynamoid
 
       # Return the client object.
       #
-      #
-      # @since 0.2.0
+      # @since 1.0.0
       def client
         @client
       end
@@ -36,14 +29,17 @@ module Dynamoid
       # Get many items at once from DynamoDB. More efficient than getting each item individually.
       #
       # @example Retrieve IDs 1 and 2 from the table testtable
-      #   Dynamoid::Adapter::AwsSdk.batch_get_item({'table1' => ['1', '2']}, :consistent_read => true)
+      #   Dynamoid::Adapter::AwsSdkV2.batch_get_item({'table1' => ['1', '2']})
       #
       # @param [Hash] table_ids the hash of tables and IDs to retrieve
       # @param [Hash] options to be passed to underlying BatchGet call
       #
       # @return [Hash] a hash where keys are the table names and the values are the retrieved items
       #
-      # @since 0.2.0
+      # @since 1.0.0
+      #
+      # @todo: Provide support for passing options to underlying batch_get_item http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_get_item-instance_method
+      #
       def batch_get_item(table_ids, options = {})
         request_items = Hash.new{|h, k| h[k] = []}
         return request_items if table_ids.all?{|k, v| v.empty?}
@@ -65,33 +61,20 @@ module Dynamoid
           end
 
           request_items[t] = {
-            keys: keys,
-            # TODO: Use the value provided in option
-            consistent_read: true
+            keys: keys
           }
         end
-
-        # TODO: ATM, we are setting consistent read to true for all queries.
-        # Based on the API http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_get_item-instance_method
-        # each table should have its one consistent_read option set
-        options.delete(:consistent_read)
-
-        raise "Unhandled options remaining" unless options.empty?
 
         results = client.batch_get_item(
           request_items: request_items
         )
 
         results.data
-        ret = Hash.new([].freeze) #Default for tables where no rows are returned
+        ret = Hash.new([].freeze) # Default for tables where no rows are returned
         results.data[:responses].each do |table, rows|
           ret[table] = rows.collect { |r| result_item_to_hash(r) }
         end
         ret
-      rescue
-        STDERR.puts("batch_get_item FAILED")
-        PP.pp(request_items)
-        raise
       end
 
       # Delete many items at once from DynamoDB. More efficient than delete each item individually.
@@ -99,12 +82,13 @@ module Dynamoid
       # @example Delete IDs 1 and 2 from the table testtable
       #   Dynamoid::Adapter::AwsSdk.batch_delete_item('table1' => ['1', '2'])
       #or
-      #   Dynamoid::Adapter::AwsSdk.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
+      #   Dynamoid::Adapter::AwsSdkV2.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
       #
       # @param [Hash] options the hash of tables and IDs to delete
       #
       # @return nil
       #
+      # @todo: Provide support for passing options to underlying delete_item http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#delete_item-instance_method
       def batch_delete_item(options)
         options.each_pair do |table_name, ids|
           table = describe_table(table_name)
@@ -119,9 +103,11 @@ module Dynamoid
       #
       # @param [String] table_name the name of the table to create
       # @param [Symbol] key the table's primary key (defaults to :id)
-      # @param [Hash] options provide a range_key here if you want one for the table
+      # @param [Hash] options provide a range key here if the table has a composite key
       #
-      # @since 0.2.0
+      # @since 1.0.0
+      #
+      # @todo: Provide support for local and global secondary indexes http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#create_table-instance_method
       def create_table(table_name, key = :id, options = {})
         Dynamoid.logger.info "Creating #{table_name} table. This could take a while."
         read_capacity = options.delete(:read_capacity) || Dynamoid::Config.read_capacity
@@ -151,41 +137,29 @@ module Dynamoid
           key_schema: key_schema,
           attribute_definitions: attribute_definitions
         )
-        
-        [:id, :table_name].each { |k| options.delete(k) }
-        raise "Not empty options: #{options.keys.join(',')}" unless options.empty?
-
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
-        #STDERR.puts("SWALLOWED AN EXCEPTION creating table #{table_name}")
-      rescue
-        STDERR.puts("create_table FAILED")
-        PP.pp(key_schema)
-        raise
+        Dynamoid.logger.info "Table #{table_name} cannot be created as it already exists"
       end
 
       # Removes an item from DynamoDB.
       #
       # @param [String] table_name the name of the table
       # @param [String] key the hash key of the item to delete
-      # @param [Number] range_key the range key of the item to delete, required if the table has a composite key
+      # @param [Hash] options provide a range key here if the table has a composite key
       #
-      # @since 0.2.0
+      # @since 1.0.0
+      #
+      # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#delete_item-instance_method
       def delete_item(table_name, key, options = nil)
         table = describe_table(table_name)
         client.delete_item(table_name: table_name, key: key_stanza(table, key, options && options[:range_key]))
-
-      rescue
-        STDERR.puts("delete_item FAILED on #{table_name}, #{key}, #{options}")
-        PP.pp(table.schema)
-        raise
       end
 
-      # Deletes an entire table from DynamoDB. Only 10 tables can be in the deleting state at once,
-      # so if you have more this method may raise an exception.
+      # Deletes an entire table from DynamoDB.
       #
       # @param [String] table_name the name of the table to destroy
       #
-      # @since 0.2.0
+      # @since 1.0.0
       def delete_table(table_name)
         client.delete_table(table_name: table_name)
         table_cache.clear
@@ -197,38 +171,39 @@ module Dynamoid
       #
       # @param [String] table_name the name of the table
       # @param [String] key the hash key of the item to find
-      # @param [Number] range_key the range key of the item to find, required if the table has a composite key
+      # @param [Hash] options provide a range key here if the table has a composite key
       #
       # @return [Hash] a hash representing the raw item in DynamoDB
       #
-      # @since 0.2.0
+      # @since 1.0.0
+      #
+      # @todo Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#get_item-instance_method
       def get_item(table_name, key, options = {})
         table    = describe_table(table_name)
         range_key = options.delete(:range_key)
-        
-        result = {}
 
         item = client.get_item(table_name: table_name, 
           key: key_stanza(table, key, range_key)
         )[:item]
         item ? result_item_to_hash(item) : nil
-      rescue
-        STDERR.puts("get_item FAILED ON #{key} which is #{key.class}, #{options}")
-        STDERR.puts("----")
-        PP.pp(item)
-        raise
       end
 
+      # Edits an existing item's attributes, or adds a new item to the table if it does not already exist. You can put, delete, or add attribute values
+      #
+      # @param [String] table_name the name of the table
+      # @param [String] key the hash key of the item to find
+      # @param [Hash] options provide a range key here if the table has a composite key
       #
       # @return new attributes for the record
       #
+      # @todo Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#update_item-instance_method
       def update_item(table_name, key, options = {})
           range_key = options.delete(:range_key)
           conditions = options.delete(:conditions)
           table = describe_table(table_name)
           
           yield(iu = ItemUpdater.new(table, key, range_key))
-          
+
           raise "non-empty options: #{options}" unless options.empty?
           result = client.update_item(table_name: table_name,
             key: key_stanza(table, key, range_key),
@@ -236,15 +211,17 @@ module Dynamoid
             expected: expected_stanza(conditions),
             return_values: "ALL_NEW"
           )
-          
-          result_item_to_hash(result[:attributes])
-        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException
-          raise Dynamoid::Errors::ConditionalCheckFailedException
+        result_item_to_hash(result[:attributes])
+
+      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException
+        raise Dynamoid::Errors::ConditionalCheckFailedException
       end
 
       # List all tables on DynamoDB.
       #
-      # @since 0.2.0
+      # @since 1.0.0
+      #
+      # @todo Provide limit support http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#update_item-instance_method
       def list_tables
         client.list_tables[:table_names]
       end
@@ -254,7 +231,9 @@ module Dynamoid
       # @param [String] table_name the name of the table
       # @param [Object] object a hash or Dynamoid object to persist
       #
-      # @since 0.2.0
+      # @since 1.0.0
+      #
+      # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#put_item-instance_method
       def put_item(table_name, object, options = nil)
         item = {}
         
@@ -263,27 +242,12 @@ module Dynamoid
           item[k.to_s] = v
         end
 
-        result = client.put_item(table_name: table_name, 
+        client.put_item(table_name: table_name,
           item: item,
           expected: expected_stanza(options)
         )
-        #STDERR.puts("DATA: #{result.data}")
       rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
         raise Errors::ConditionalCheckFailedException 
-      rescue
-        STDERR.puts("put_item FAILED ON")
-        PP.pp(object)
-        STDERR.puts('--- options:')
-        PP.pp(options)
-        STDERR.puts('---- item:')
-        PP.pp(item)
-        STDERR.puts('--- expected:')
-        PP.pp(expected_stanza(options))
-        STDERR.puts("---")
-        STDERR.puts(table_name)
-        STDERR.puts("---")
-        PP.pp describe_table(table_name)
-        raise
       end
 
       # Query the DynamoDB table. This employs DynamoDB's indexes so is generally faster than scanning, but is
@@ -293,7 +257,7 @@ module Dynamoid
       # @param [String] table_name the name of the table
       # @param [Hash] opts the options to query the table with
       # @option opts [String] :hash_value the value of the hash key to find
-      # @option opts [Range] :range_value find the range key within this range
+      # @option opts [Number, Number] :range_between find the range key within this range
       # @option opts [Number] :range_greater_than find range keys greater than this
       # @option opts [Number] :range_less_than find range keys less than this
       # @option opts [Number] :range_gte find range keys greater than or equal to this
@@ -301,18 +265,21 @@ module Dynamoid
       #
       # @return [Enumerator] an iterator of all matching items
       #
-      # @since 0.2.0
+      # @since 1.0.0
+      #
+      # @todo Provide support for various other options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#query-instance_method
+
       def query(table_name, opts = {})
         table = describe_table(table_name)
         hk    = table.hash_key.to_s
         rng   = table.range_key.to_s
         q     = opts.slice(:consistent_read, :scan_index_forward, :limit, :select)
 
-
         opts.delete(:consistent_read)
         opts.delete(:scan_index_forward)
         opts.delete(:limit)
         opts.delete(:select)
+
         opts.delete(:next_token).tap do |token|
           break unless token
           q[:exclusive_start_key] = {
@@ -323,26 +290,28 @@ module Dynamoid
 
         key_conditions = {
           hk => {
+            # TODO: Provide option for other operators like NE, IN, LE, etc
             comparison_operator: EQ,
             attribute_value_list: [
               opts.delete(:hash_value).freeze
             ]
           }
         }
+
         opts.each_pair do |k, v|
+          # TODO: ATM, only few comparison operators are supported, provide support for all operators
           next unless(op = RANGE_MAP[k])
           key_conditions[rng] = {
             comparison_operator: op,
             attribute_value_list: [
               opts.delete(k).freeze
-            ].flatten # between operator specifies array of two elements
+            ].flatten # Flatten as BETWEEN operator specifies array of two elements
           }
         end
 
         q[:table_name]     = table_name
         q[:key_conditions] = key_conditions
 
-        raise "MOAR STUFF" unless opts.empty?
         Enumerator.new { |y|
           result = client.query(q)
           result.items.each { |r|
@@ -352,7 +321,6 @@ module Dynamoid
       end
 
       EQ = "EQ".freeze
-      ID = "id".freeze
 
       RANGE_MAP = {
         range_greater_than: 'GT',
@@ -371,7 +339,9 @@ module Dynamoid
       #
       # @return [Enumerator] an iterator of all matching items
       #
-      # @since 0.2.0
+      # @since 1.0.0
+      #
+      # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#scan-instance_method
       def scan(table_name, scan_hash, select_opts = {})
         limit = select_opts.delete(:limit)
         batch = select_opts.delete(:batch_size)
@@ -381,41 +351,34 @@ module Dynamoid
         request[:scan_filter] = scan_hash.reduce({}) do |memo, kvp| 
           memo[kvp[0].to_s] = {
             attribute_value_list: [kvp[1]],
+            # TODO: Provide support for all comparison operators
             comparison_operator: EQ
           }
           memo
-        end if(scan_hash && scan_hash.present?)
-                
-        raise "non-empty select_opts " if(select_opts && !select_opts.empty?)
-        
+        end if scan_hash.present?
+
         Enumerator.new do |y|
-          #Batch loop, pulls multiple requests until done using the start_key
+          # Batch loop, pulls multiple requests until done using the start_key
           loop do
             results = client.scan(request)
             results.data[:items].each { |row| y << result_item_to_hash(row) }
 
             if((lk = results[:last_evaluated_key]) && batch)
-              #TODO: Properly mix limit and batch
               request[:exclusive_start_key] = lk
             else
               break
             end
           end
         end
-      rescue
-        STDERR.puts("FAILED scan")
-        PP.pp(scan_hash)
-        STDERR.puts("---")
-        PP.pp(select_opts)
-        STDERR.puts("---")
-        PP.pp(request)
-        raise
       end
       
 
       #
       # Truncates all records in the given table
       #
+      # @param [String] table_name the name of the table
+      #
+      # @since 1.0.0
       def truncate(table_name)
         table = describe_table(table_name)
         hk    = table.hash_key
@@ -426,13 +389,6 @@ module Dynamoid
           delete_item(table_name, attributes[hk], opts)
         end
       end
-      
-      #
-      # Legacy method that exposes a DynamoDB v1-list table object
-      #
-      def get_table(table_name)
-        LegacyTable.new(describe_table(table_name))
-      end
 
       def count(table_name)
         describe_table(table_name, true).item_count
@@ -440,34 +396,9 @@ module Dynamoid
 
       protected
       
-      STRING_TYPE = "S".freeze
-      STRING_SET  = "SS".freeze
-      NUM_TYPE    = "N".freeze
-      BOOLEAN_TYPE= "B".freeze
-
-      #
-      # Given a value and an options typedef, returns an AttributeValue hash
-      # 
-      # @param value The value to convert to an AttributeValue hash
-      # @param [String] type The target api_type (e.g. "N", "SS") for value. If not supplied, 
-      #                 the type will be inferred from the Ruby type
-      #
-      def attribute_value(value, type = nil)
-        if(type)
-          value = value.to_s
-        else
-          case(value)
-          when String then
-            type = STRING_TYPE
-          when Enumerable then
-            value = value.to_a
-          when Numeric then
-            #noop
-          else raise "Not sure how to infer type for #{value}"
-          end
-        end
-        { type => value }
-      end
+      STRING_TYPE  = "S".freeze
+      NUM_TYPE     = "N".freeze
+      BOOLEAN_TYPE = "B".freeze
 
       #Converts from symbol to the API string for the given data type
       # E.g. :number -> 'N'
@@ -480,27 +411,18 @@ module Dynamoid
         else raise "Unknown type: #{type}"
         end
       end
-      
-      def load_value(value, type)
-        case(type)
-        when :s  then value
-        when :n  then value.to_f
-        when :ss then Set.new(value.to_a)
-        else raise "Not sure how to load type #{type} for #{value}"
-        end
-      end
-      
+
       #
       # The key hash passed on get_item, put_item, delete_item, update_item, etc
       #
       def key_stanza(table, hash_key, range_key = nil)
-        key = { table.hash_key.to_s => hash_key } #attribute_value(hash_key.to_s, STRING_TYPE) }
-        key[table.range_key.to_s] = range_key if range_key#{ table.range_type => range_key.to_s } if range_key
+        key = { table.hash_key.to_s => hash_key }
+        key[table.range_key.to_s] = range_key if range_key
         key
       end
       
       #
-      # @param [Hash] conditions Condidtions to enforce on operation (e.g. { :if => { :count => 5 }, :unless_exists => ['id']})
+      # @param [Hash] conditions Conditions to enforce on operation (e.g. { :if => { :count => 5 }, :unless_exists => ['id']})
       # @return an Expected stanza for the given conditions hash
       #
       def expected_stanza(conditions = nil)
@@ -567,7 +489,7 @@ module Dynamoid
         end
         
         #
-        # Returns the API type (e.g. "N", "SS") for the given column, if the schema defines it,
+        # Returns the API type (e.g. "N", "S") for the given column, if the schema defines it,
         # nil otherwise
         #
         def col_type(col)
@@ -578,25 +500,6 @@ module Dynamoid
 
         def item_count
           schema[:item_count]
-        end
-      end
-      
-      class LegacyTable
-        def initialize(table)
-          @table = table
-        end
-        
-        def range_key
-          rk = @table.range_key
-          rk && Column.new(@table.range_key)
-        end
-        
-        class Column
-          attr_reader :name
-          
-          def initialize(name)
-            @name = name
-          end
         end
       end
       

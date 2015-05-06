@@ -35,23 +35,16 @@ Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require file }
 
 RSpec.configure do |config|
   config.alias_it_should_behave_like_to :configured_with, "configured with"
-  #config.mock_with(:mocha)
 
   config.before(:each) do
     Dynamoid::Adapter.list_tables.each do |table|
-      if table =~ /^#{Dynamoid::Config.namespace}/
-        
-        Dynamoid::Adapter.truncate(table)
-        #puts "SH ---- 1 #{table}"
-        # table = Dynamoid::Adapter.get_table(table)
-        # table.items.each {|i| i.delete}
-      end
+      Dynamoid::Adapter.truncate(table) if table =~ /^#{Dynamoid::Config.namespace}/
     end
   end
 
   config.after(:suite) do
     Dynamoid::Adapter.list_tables.each do |table|
-      Dynamoid::Adapter.truncate(table) if table =~ /^#{Dynamoid::Config.namespace}/
+      Dynamoid::Adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/
     end
   end
 end

@@ -162,6 +162,7 @@ describe Dynamoid::Adapter::AwsSdkV2 do
 
     # BatchGetItem
     it 'passes options to underlying BatchGet call' do
+      pending "at the moment passing the options to underlying batch get is not supported"
       expect_any_instance_of(Aws::DynamoDB::Client).to receive(:batch_get_item).with(:request_items => {test_table1 => {:keys => [{'id' => '1'}, {'id' => '2'}], :consistent_read => true}}).and_call_original
       described_class.batch_get_item({test_table1 => ['1', '2']}, :consistent_read => true)
     end
