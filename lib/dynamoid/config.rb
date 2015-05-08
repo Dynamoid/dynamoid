@@ -11,7 +11,7 @@ module Dynamoid
     include ActiveModel::Observing if defined?(ActiveModel::Observing)
 
     # All the default options.
-    option :adapter, :default => 'aws-sdk'
+    option :adapter, :default => 'aws_sdk_v2'
     option :namespace, :default => defined?(Rails) ? "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" : "dynamoid"
     option :logger, :default => defined?(Rails)
     option :access_key
@@ -21,7 +21,7 @@ module Dynamoid
     option :warn_on_scan, :default => true
     option :partitioning, :default => false
     option :partition_size, :default => 200
-    option :endpoint, :default => 'dynamodb.us-east-1.amazonaws.com'
+    option :endpoint, :default => nil
     option :use_ssl, :default => true
     option :port, :default => '443'
     option :included_models, :default => []

@@ -85,6 +85,7 @@ Gem::Specification.new do |s|
     "lib/dynamoid.rb",
     "lib/dynamoid/adapter.rb",
     "lib/dynamoid/adapter/aws_sdk.rb",
+    "lib/dynamoid/adapter/aws_sdk_v2.rb",
     "lib/dynamoid/associations.rb",
     "lib/dynamoid/associations/association.rb",
     "lib/dynamoid/associations/belongs_to.rb",
@@ -120,7 +121,7 @@ Gem::Specification.new do |s|
     "spec/app/models/tweet.rb",
     "spec/app/models/user.rb",
     "spec/app/models/vehicle.rb",
-    "spec/dynamoid/adapter/aws_sdk_spec.rb",
+    "spec/dynamoid/adapter/aws_sdk_v2_spec.rb",
     "spec/dynamoid/adapter_spec.rb",
     "spec/dynamoid/associations/association_spec.rb",
     "spec/dynamoid/associations/belongs_to_spec.rb",
@@ -151,8 +152,7 @@ Gem::Specification.new do |s|
   s.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
 
   s.add_runtime_dependency(%q<activemodel>, ["~> 4"])
-  s.add_runtime_dependency(%q<aws-sdk>, ["~> 2"])
-  # s.add_runtime_dependency(%q<aws-sdk-v1>, [">= 0"])
+  s.add_runtime_dependency(%q<aws-sdk-resources>, ["~> 2"])
   s.add_development_dependency(%q<rake>, [">= 0"])
   s.add_development_dependency(%q<rspec>, ["~> 3"])
   s.add_development_dependency(%q<bundler>, [">= 0"])
