@@ -6,7 +6,7 @@ MODELS = File.join(File.dirname(__FILE__), "app/models")
 require 'rspec'
 require 'dynamoid'
 require 'pry'
-require 'aws-sdk'
+require 'aws-sdk-resources'
 
 ENV['ACCESS_KEY'] ||= 'abcd'
 ENV['SECRET_KEY'] ||= '1234'
