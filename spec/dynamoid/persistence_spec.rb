@@ -108,6 +108,24 @@ describe "Dynamoid::Persistence" do
     Address.undump(@address.send(:dump))[:options].should == hash
   end
 
+  it 'supports empty containers in `serialized` fields' do
+    u = User.create(name: 'Philip')
+    u.favorite_colors = Set.new
+    u.save!
+
+    u = User.find(u.id)
+    expect(u.favorite_colors).to eq Set.new
+  end
+
+  it 'supports container types being nil' do
+    u = User.create(name: 'Philip')
+    u.todo_list = nil
+    u.save!
+
+    u = User.find(u.id)
+    expect(u.todo_list).to be_nil
+  end
+
   [true, false].each do |bool|
     it "dumps a #{bool} boolean field" do
       @address.deliverable = bool
@@ -228,7 +246,6 @@ describe "Dynamoid::Persistence" do
     end
 
     it 'support add/delete operation on a field' do
-      puts "#{@tweet.tags}"
       @tweet.update do |t|
         t.add(:count => 3)
         t.delete(:tags => Set.new(['db']))

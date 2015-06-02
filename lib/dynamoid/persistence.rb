@@ -233,27 +233,23 @@ module Dynamoid
     #
     # @since 0.2.0
     def dump_field(value, options)
-      return if value.nil? || (value.respond_to?(:empty?) && value.empty?)
-
       case options[:type]
       when :string
-        value.to_s
+        !value.nil? ? value.to_s : nil
       when :integer
-        value.to_i
+        !value.nil? ? Integer(value) : nil
       when :float
-        value.to_f
-      when :set, :array
-        if value.is_a?(Set) || value.is_a?(Array)
-          value
-        else
-          Set[value]
-        end
+        !value.nil? ? value.to_f : nil
+      when :set
+        !value.nil? ? Set.new(value) : nil
+      when :array
+        !value.nil? ? value : nil
       when :datetime
-        value.to_time.to_f
+        !value.nil? ? value.to_time.to_f : nil
       when :serialized
         options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
       when :boolean
-        value.to_s[0]
+        !value.nil? ? value.to_s[0] : nil
       else
         raise ArgumentError, "Unknown type #{options[:type]}"
       end

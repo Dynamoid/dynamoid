@@ -5,7 +5,10 @@ class User
   field :email
   field :password
   field :last_logged_in_at, :datetime
-  
+
+  field :favorite_colors, :serialized
+  field :todo_list, :array
+
   index :name
   index :email
   index [:name, :email]

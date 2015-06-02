@@ -246,7 +246,7 @@ module Dynamoid
           expected: expected_stanza(options)
         )
       rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
-        raise Errors::ConditionalCheckFailedException 
+        raise Errors::ConditionalCheckFailedException
       end
 
       # Query the DynamoDB table. This employs DynamoDB's indexes so is generally faster than scanning, but is
