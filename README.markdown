@@ -15,7 +15,7 @@ But if you want a fast, scalable, simple, easy-to-use database (and a Gem that s
 Installing Dynamoid is pretty simple. First include the Gem in your Gemfile:
 
 ```ruby
-gem 'dynamoid'
+gem 'dynamoid', '~> 1'
 ```
 ## Prerequisities
 
@@ -30,12 +30,12 @@ gem 'aws-sdk', '~>2'
 
 (or) include the aws-sdk in your Gemfile.
 
-Dynamoid-1.0 doesn't support aws-sdk 1. Use major version 0 for aws-sdk 1.   
+**NOTE:** Dynamoid-1.0 doesn't support aws-sdk Version 1 (Use Dynamoid Major Version 0 for aws-sdk 1)   
 
+Configure AWS access:
+[Reference](https://github.com/aws/aws-sdk-ruby)
 
-[Refer this link for aws setup](https://github.com/aws/aws-sdk-ruby)
-
-For example, you can configure AWS access to make Dynamodb API calls:
+For example, to configure AWS access:
 
 Create config/initializers/aws.rb as follows:
 
@@ -60,7 +60,7 @@ Then you need to initialize Dynamoid config to get it going. Put code similar to
     config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table.
     config.read_capacity = 100 # Read capacity for your tables
     config.write_capacity = 20 # Write capacity for your tables
-    config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful while testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html). 
+    config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html). 
   end
 
 ```
@@ -296,7 +296,7 @@ Calls to `update` and `update!` also increment the `lock_version`, however they 
 ## TODOS
 1. Tranparent Partitioning of DynamoDB
 
-DynamoDB achieves much of its speed by relying on a random pattern of writes and reads: internally, hash keys are distributed across servers, and reading from two consecutive servers is much faster than reading from the same server twice. Of course, many of our applications request one key (like a commonly used role, a superuser, or a very popular product) much more frequently than other keys. In DynamoDB, this will result in lowered throughput and slower response times, and is a design pattern we should try to avoid. Dynamoid should be employing a partitioning strategy to divide up keys randomly across DynamoDB's servers. Each ID can be assigned an additional number (by default 0 to 199, which can be increased in Dynamoid's configuration) upon save; when read, all 200 hashes are retrieved simultaneously and the most recently updated one is returned to the application. This will result in a significant net performance increase, and is usually invisible to the application itself.
+DynamoDB achieves much of its speed by relying on a random pattern of writes and reads: internally, hash keys are distributed across servers, and reading from two consecutive servers is much faster than reading from the same server twice. Of course, many of our applications request one key (like a commonly used role, a superuser, or a very popular product) much more frequently than other keys. In DynamoDB, this will result in lowered throughput and slower response times, and is a design pattern we should try to avoid. Dynamoid should be employing a partitioning strategy to divide up keys randomly across DynamoDB's servers. Each ID can be assigned an additional number (by default 0 to 199, which can be increased in Dynamoid's configuration) upon save; when read, all 200 hashes will be retrieved simultaneously and the most recently updated one will be returned to the application. This will result in a significant net performance increase, and will be invisible to the application itself.
 
 ## Credits
 
