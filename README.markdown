@@ -51,11 +51,6 @@ Create config/initializers/aws.rb as follows:
 For a full list of the DDB regions, you can go
 [here](http://docs.aws.amazon.com/general/latest/gr/rande.html#ddb_region).
 
-
-Refer to the documentation of the AWS module at the below link for all of the configuration options supported by DynamoDB.
-
-[Module AWS](http://docs.amazonwebservices.com/AWSRubySDK/latest/frames.html#!http%3A//docs.amazonwebservices.com/AWSRubySDK/latest/AWS.html)
-
 Then you need to initialize Dynamoid config to get it going. Put code similar to this somewhere (a Rails initializer would be a great place for this if you're using Rails):
 
 ```ruby
