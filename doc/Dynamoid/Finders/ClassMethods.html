@@ -6,7 +6,7 @@
 <title>
   Module: Dynamoid::Finders::ClassMethods
   
-    &mdash; Documentation by YARD 0.8.6.1
+    &mdash; Documentation by YARD 0.8.7.6
   
 </title>
 
@@ -17,7 +17,7 @@
 <script type="text/javascript" charset="utf-8">
   hasFrames = window.top.frames.main ? true : false;
   relpath = '../../';
-  framesUrl = "../../frames.html#!" + escape(window.location.href);
+  framesUrl = "../../frames.html#!Dynamoid/Finders/ClassMethods.html";
 </script>
 
 
@@ -116,7 +116,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Find one or many objects, specified by one id or an array of ids.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Find one or many objects, specified by one id or an array of ids.</p>
 </div></span>
   
 </li>
@@ -139,7 +140,9 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Return objects found by the given array of ids, either hash keys, or hash/range key combinations using BatchGet.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Return objects found by the given array of ids, either hash keys, or
+hash/range key combinations using BatchGet.</p>
 </div></span>
   
 </li>
@@ -162,7 +165,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Find all objects by hash and range keys.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Find all objects by hash and range keys.</p>
 </div></span>
   
 </li>
@@ -185,7 +189,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Find one object directly by hash and range keys.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Find one object directly by hash and range keys.</p>
 </div></span>
   
 </li>
@@ -208,7 +213,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Find one object directly by id.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Find one object directly by id.</p>
 </div></span>
   
 </li>
@@ -231,7 +237,8 @@
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Find using exciting method_missing finders attributes.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Find using exciting method_missing finders attributes.</p>
 </div></span>
   
 </li>
@@ -258,7 +265,9 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Find using exciting method_missing finders attributes. Uses criteria chains under the hood to accomplish this neatness.</p>
+    
+<p>Find using exciting method_missing finders attributes. Uses criteria chains
+under the hood to accomplish this neatness.</p>
 
 
   </div>
@@ -269,13 +278,15 @@
     <p class="tag_title">Examples:</p>
     
       
-        <p class="example_title"><div class='inline'><p>find a user by a first name</p>
+        <p class="example_title"><div class='inline'>
+<p>find a user by a first name</p>
 </div></p>
       
       <pre class="example code"><code><span class='const'>User</span><span class='period'>.</span><span class='id identifier rubyid_find_by_first_name'>find_by_first_name</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Josh</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span></code></pre>
     
       
-        <p class="example_title"><div class='inline'><p>find all users by first and last name</p>
+        <p class="example_title"><div class='inline'>
+<p>find all users by first and last name</p>
 </div></p>
       
       <pre class="example code"><code><span class='const'>User</span><span class='period'>.</span><span class='id identifier rubyid_find_all_by_first_name_and_last_name'>find_all_by_first_name_and_last_name</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Josh</span><span class='tstring_end'>'</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>'</span><span class='tstring_content'>Symonds</span><span class='tstring_end'>'</span></span><span class='rparen'>)</span></code></pre>
@@ -293,7 +304,9 @@
       
       
         &mdash;
-        <div class='inline'><p>the found object, or an array of found objects if all was somewhere in the method</p>
+        <div class='inline'>
+<p>the found object, or an array of found objects if all was somewhere in the
+method</p>
 </div>
       
     </li>
@@ -308,7 +321,8 @@
       
       
         
-        <div class='inline'><p>0.2.0</p>
+        <div class='inline'>
+<p>0.2.0</p>
 </div>
       
     </li>
@@ -382,7 +396,8 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Find one or many objects, specified by one id or an array of ids.</p>
+    
+<p>Find one or many objects, specified by one id or an array of ids.</p>
 
 
   </div>
@@ -401,7 +416,8 @@
       
       
         &mdash;
-        <div class='inline'><p>an array of ids or one single id</p>
+        <div class='inline'>
+<p>an array of ids or one single id</p>
 </div>
       
     </li>
@@ -419,7 +435,9 @@
       
       
         &mdash;
-        <div class='inline'><p>one object or an array of objects, depending on whether the input was an array or not</p>
+        <div class='inline'>
+<p>one object or an array of objects, depending on whether the input was an
+array or not</p>
 </div>
       
     </li>
@@ -434,7 +452,8 @@
       
       
         
-        <div class='inline'><p>0.2.0</p>
+        <div class='inline'>
+<p>0.2.0</p>
 </div>
       
     </li>
@@ -497,8 +516,10 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Return objects found by the given array of ids, either hash keys, or hash/range key combinations using BatchGet.
-Returns empty array if no results found.</p>
+    
+<p>Return objects found by the given array of ids, either hash keys, or
+hash/range key combinations using BatchGet. Returns empty array if no
+results found.</p>
 
 
   </div>
@@ -540,7 +561,8 @@ Returns empty array if no results found.</p>
       
       
         &mdash;
-        <div class='inline'><p>Passed to the underlying query.</p>
+        <div class='inline'>
+<p>Passed to the underlying query.</p>
 </div>
       
     </li>
@@ -582,7 +604,8 @@ Returns empty array if no results found.</p>
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Find all objects by hash and range keys.</p>
+    
+<p>Find all objects by hash and range keys.</p>
 
 
   </div>
@@ -593,7 +616,8 @@ Returns empty array if no results found.</p>
     <p class="tag_title">Examples:</p>
     
       
-        <p class="example_title"><div class='inline'><p>find all ChamberTypes whose level is greater than 1</p>
+        <p class="example_title"><div class='inline'>
+<p>find all ChamberTypes whose level is greater than 1</p>
 </div></p>
       
       <pre class="example code"><code><span class='kw'>class</span> <span class='const'>ChamberType</span>
@@ -618,7 +642,8 @@ Returns empty array if no results found.</p>
       
       
         &mdash;
-        <div class='inline'><p>of the objects to find</p>
+        <div class='inline'>
+<p>of the objects to find</p>
 </div>
       
     </li>
@@ -635,7 +660,8 @@ Returns empty array if no results found.</p>
       
       
         &mdash;
-        <div class='inline'><p>the options for the range key</p>
+        <div class='inline'>
+<p>the options for the range key</p>
 </div>
       
     </li>
@@ -657,7 +683,8 @@ Returns empty array if no results found.</p>
             
           </span>
           
-            &mdash; <div class='inline'><p>find the range key within this range</p>
+            &mdash; <div class='inline'>
+<p>find the range key within this range</p>
 </div>
           
         </li>
@@ -669,7 +696,8 @@ Returns empty array if no results found.</p>
             
           </span>
           
-            &mdash; <div class='inline'><p>find range keys greater than this</p>
+            &mdash; <div class='inline'>
+<p>find range keys greater than this</p>
 </div>
           
         </li>
@@ -681,7 +709,8 @@ Returns empty array if no results found.</p>
             
           </span>
           
-            &mdash; <div class='inline'><p>find range keys less than this</p>
+            &mdash; <div class='inline'>
+<p>find range keys less than this</p>
 </div>
           
         </li>
@@ -693,7 +722,8 @@ Returns empty array if no results found.</p>
             
           </span>
           
-            &mdash; <div class='inline'><p>find range keys greater than or equal to this</p>
+            &mdash; <div class='inline'>
+<p>find range keys greater than or equal to this</p>
 </div>
           
         </li>
@@ -705,7 +735,8 @@ Returns empty array if no results found.</p>
             
           </span>
           
-            &mdash; <div class='inline'><p>find range keys less than or equal to this</p>
+            &mdash; <div class='inline'>
+<p>find range keys less than or equal to this</p>
 </div>
           
         </li>
@@ -724,7 +755,8 @@ Returns empty array if no results found.</p>
       
       
         &mdash;
-        <div class='inline'><p>an array of all matching items</p>
+        <div class='inline'>
+<p>an array of all matching items</p>
 </div>
       
     </li>
@@ -767,7 +799,8 @@ Returns empty array if no results found.</p>
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Find one object directly by hash and range keys</p>
+    
+<p>Find one object directly by hash and range keys</p>
 
 
   </div>
@@ -786,7 +819,8 @@ Returns empty array if no results found.</p>
       
       
         &mdash;
-        <div class='inline'><p>of the object to find</p>
+        <div class='inline'>
+<p>of the object to find</p>
 </div>
       
     </li>
@@ -801,7 +835,8 @@ Returns empty array if no results found.</p>
       
       
         &mdash;
-        <div class='inline'><p>of the object to find</p>
+        <div class='inline'>
+<p>of the object to find</p>
 </div>
       
     </li>
@@ -841,7 +876,8 @@ Returns empty array if no results found.</p>
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Find one object directly by id.</p>
+    
+<p>Find one object directly by id.</p>
 
 
   </div>
@@ -860,7 +896,8 @@ Returns empty array if no results found.</p>
       
       
         &mdash;
-        <div class='inline'><p>the id of the object to find</p>
+        <div class='inline'>
+<p>the id of the object to find</p>
 </div>
       
     </li>
@@ -878,7 +915,8 @@ Returns empty array if no results found.</p>
       
       
         &mdash;
-        <div class='inline'><p>the found object, or nil if nothing was found</p>
+        <div class='inline'>
+<p>the found object, or nil if nothing was found</p>
 </div>
       
     </li>
@@ -893,7 +931,8 @@ Returns empty array if no results found.</p>
       
       
         
-        <div class='inline'><p>0.2.0</p>
+        <div class='inline'>
+<p>0.2.0</p>
 </div>
       
     </li>
@@ -934,9 +973,9 @@ Returns empty array if no results found.</p>
 </div>
 
     <div id="footer">
-  Generated on Thu Jun 27 21:59:10 2013 by
+  Generated on Tue Jun  9 18:49:40 2015 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.8.6.1 (ruby-1.9.3).
+  0.8.7.6 (ruby-1.9.3).
 </div>
 
   </body>

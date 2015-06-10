@@ -6,7 +6,7 @@
 <title>
   Module: Dynamoid::Persistence
   
-    &mdash; Documentation by YARD 0.8.6.1
+    &mdash; Documentation by YARD 0.8.7.6
   
 </title>
 
@@ -17,7 +17,7 @@
 <script type="text/javascript" charset="utf-8">
   hasFrames = window.top.frames.main ? true : false;
   relpath = '../';
-  framesUrl = "../frames.html#!" + escape(window.location.href);
+  framesUrl = "../frames.html#!Dynamoid/Persistence.html";
 </script>
 
 
@@ -94,8 +94,10 @@
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    <p>Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize
-values to be of the same type as when they were passed in, based on the fields in the class.</p>
+    
+<p>Persistence is responsible for dumping objects to and marshalling objects
+from the datastore. It tries to reserialize values to be of the same type
+as when they were passed in, based on the fields in the class.</p>
 
 
   </div>
@@ -142,7 +144,8 @@ values to be of the same type as when they were passed in, based on the fields i
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Returns the value of attribute new_record.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute new_record.</p>
 </div></span>
   
 </li>
@@ -178,7 +181,8 @@ values to be of the same type as when they were passed in, based on the fields i
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Delete this object from the datastore and all indexes.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Delete this object from the datastore and all indexes.</p>
 </div></span>
   
 </li>
@@ -201,7 +205,8 @@ values to be of the same type as when they were passed in, based on the fields i
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Delete this object, but only after running callbacks for it.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Delete this object, but only after running callbacks for it.</p>
 </div></span>
   
 </li>
@@ -224,7 +229,9 @@ values to be of the same type as when they were passed in, based on the fields i
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Dump this object's attributes into hash form, fit to be persisted into the datastore.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Dump this object's attributes into hash form, fit to be persisted into the
+datastore.</p>
 </div></span>
   
 </li>
@@ -247,7 +254,9 @@ values to be of the same type as when they were passed in, based on the fields i
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Is this object persisted in the datastore? Required for some ActiveModel integration stuff.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Is this object persisted in the datastore? Required for some ActiveModel
+integration stuff.</p>
 </div></span>
   
 </li>
@@ -270,7 +279,8 @@ values to be of the same type as when they were passed in, based on the fields i
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Run the callbacks and then persist this object in the datastore.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Run the callbacks and then persist this object in the datastore.</p>
 </div></span>
   
 </li>
@@ -293,7 +303,8 @@ values to be of the same type as when they were passed in, based on the fields i
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Set updated_at and any passed in field to current DateTime.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>Set updated_at and any passed in field to current DateTime.</p>
 </div></span>
   
 </li>
@@ -338,7 +349,9 @@ values to be of the same type as when they were passed in, based on the fields i
   
 
   
-    <span class="summary_desc"><div class='inline'><p>update!() will increment the lock_version if the table has the column, but will not check it.</p>
+    <span class="summary_desc"><div class='inline'>
+<p>update!() will increment the lock_version if the table has the column, but
+will not check it.</p>
 </div></span>
   
 </li>
@@ -369,7 +382,8 @@ values to be of the same type as when they were passed in, based on the fields i
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Returns the value of attribute new_record</p>
+    
+<p>Returns the value of attribute new_record</p>
 
 
   </div>
@@ -383,12 +397,12 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-11
 12
-13</pre>
+13
+14</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 11</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 12</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_new_record'>new_record</span>
   <span class='ivar'>@new_record</span>
@@ -416,7 +430,8 @@ values to be of the same type as when they were passed in, based on the fields i
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Delete this object from the datastore and all indexes.</p>
+    
+<p>Delete this object from the datastore and all indexes.</p>
 
 
   </div>
@@ -432,7 +447,8 @@ values to be of the same type as when they were passed in, based on the fields i
       
       
         
-        <div class='inline'><p>0.2.0</p>
+        <div class='inline'>
+<p>0.2.0</p>
 </div>
       
     </li>
@@ -445,14 +461,14 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-211
 212
 213
 214
-215</pre>
+215
+216</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 211</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 212</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_delete'>delete</span>
   <span class='id identifier rubyid_delete_indexes'>delete_indexes</span>
@@ -475,7 +491,8 @@ values to be of the same type as when they were passed in, based on the fields i
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Delete this object, but only after running callbacks for it.</p>
+    
+<p>Delete this object, but only after running callbacks for it.</p>
 
 
   </div>
@@ -491,7 +508,8 @@ values to be of the same type as when they were passed in, based on the fields i
       
       
         
-        <div class='inline'><p>0.2.0</p>
+        <div class='inline'>
+<p>0.2.0</p>
 </div>
       
     </li>
@@ -504,15 +522,15 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-201
 202
 203
 204
 205
-206</pre>
+206
+207</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 201</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 202</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_destroy'>destroy</span>
   <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:destroy</span><span class='rparen'>)</span> <span class='kw'>do</span>
@@ -536,7 +554,9 @@ values to be of the same type as when they were passed in, based on the fields i
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Dump this object's attributes into hash form, fit to be persisted into the datastore.</p>
+    
+<p>Dump this object's attributes into hash form, fit to be persisted into the
+datastore.</p>
 
 
   </div>
@@ -552,7 +572,8 @@ values to be of the same type as when they were passed in, based on the fields i
       
       
         
-        <div class='inline'><p>0.2.0</p>
+        <div class='inline'>
+<p>0.2.0</p>
 </div>
       
     </li>
@@ -565,16 +586,16 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-220
 221
 222
 223
 224
 225
-226</pre>
+226
+227</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 220</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 221</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_dump'>dump</span>
   <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='period'>.</span><span class='id identifier rubyid_tap'>tap</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_hash'>hash</span><span class='op'>|</span>
@@ -599,7 +620,9 @@ values to be of the same type as when they were passed in, based on the fields i
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Is this object persisted in the datastore? Required for some ActiveModel integration stuff.</p>
+    
+<p>Is this object persisted in the datastore? Required for some ActiveModel
+integration stuff.</p>
 
 
   </div>
@@ -628,7 +651,8 @@ values to be of the same type as when they were passed in, based on the fields i
       
       
         
-        <div class='inline'><p>0.2.0</p>
+        <div class='inline'>
+<p>0.2.0</p>
 </div>
       
     </li>
@@ -641,12 +665,12 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-149
 150
-151</pre>
+151
+152</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 149</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 150</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_persisted?'>persisted?</span>
   <span class='op'>!</span><span class='id identifier rubyid_new_record?'>new_record?</span>
@@ -667,7 +691,8 @@ values to be of the same type as when they were passed in, based on the fields i
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Run the callbacks and then persist this object in the datastore.</p>
+    
+<p>Run the callbacks and then persist this object in the datastore.</p>
 
 
   </div>
@@ -683,7 +708,8 @@ values to be of the same type as when they were passed in, based on the fields i
       
       
         
-        <div class='inline'><p>0.2.0</p>
+        <div class='inline'>
+<p>0.2.0</p>
 </div>
       
     </li>
@@ -696,7 +722,6 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-156
 157
 158
 159
@@ -709,10 +734,11 @@ values to be of the same type as when they were passed in, based on the fields i
 166
 167
 168
-169</pre>
+169
+170</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 156</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 157</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_save'>save</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_create_table'>create_table</span>
@@ -744,7 +770,9 @@ values to be of the same type as when they were passed in, based on the fields i
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Set updated_at and any passed in field to current DateTime. Useful for things like last_login_at, etc.</p>
+    
+<p>Set updated_at and any passed in field to current DateTime. Useful for
+things like last_login_at, etc.</p>
 
 
   </div>
@@ -758,15 +786,15 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-139
 140
 141
 142
 143
-144</pre>
+144
+145</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 139</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 140</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_touch'>touch</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_now'>now</span> <span class='op'>=</span> <span class='const'>DateTime</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span>
@@ -794,15 +822,15 @@ values to be of the same type as when they were passed in, based on the fields i
       <pre class="lines">
 
 
-191
 192
 193
 194
 195
-196</pre>
+196
+197</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 191</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 192</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_update'>update</span><span class='lparen'>(</span><span class='id identifier rubyid_conditions'>conditions</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_update!'>update!</span><span class='lparen'>(</span><span class='id identifier rubyid_conditions'>conditions</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
@@ -826,8 +854,10 @@ values to be of the same type as when they were passed in, based on the fields i
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>update!() will increment the lock_version if the table has the column, but will not check it. Thus, a concurrent save will 
-never cause an update! to fail, but an update! may cause a concurrent save to fail.</p>
+    
+<p>update!() will increment the lock_version if the table has the column, but
+will not check it. Thus, a concurrent save will  never cause an update! to
+fail, but an update! may cause a concurrent save to fail.</p>
 
 
   </div>
@@ -841,7 +871,6 @@ never cause an update! to fail, but an update! may cause a concurrent save to fa
       <pre class="lines">
 
 
-176
 177
 178
 179
@@ -854,10 +883,11 @@ never cause an update! to fail, but an update! may cause a concurrent save to fa
 186
 187
 188
-189</pre>
+189
+190</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 176</span>
+      <pre class="code"><span class="info file"># File 'lib/dynamoid/persistence.rb', line 177</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_update!'>update!</span><span class='lparen'>(</span><span class='id identifier rubyid_conditions'>conditions</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_run_callbacks'>run_callbacks</span><span class='lparen'>(</span><span class='symbol'>:update</span><span class='rparen'>)</span> <span class='kw'>do</span>
@@ -883,9 +913,9 @@ never cause an update! to fail, but an update! may cause a concurrent save to fa
 </div>
 
     <div id="footer">
-  Generated on Thu Jun 27 21:59:13 2013 by
+  Generated on Tue Jun  9 18:49:46 2015 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.8.6.1 (ruby-1.9.3).
+  0.8.7.6 (ruby-1.9.3).
 </div>
 
   </body>
