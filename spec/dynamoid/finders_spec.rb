@@ -41,10 +41,6 @@ describe Dynamoid::Finders do
   #end
 
   context 'with users' do
-    before do
-      User.create_indexes
-    end
-
     it 'finds using method_missing for attributes' do
       array = Address.find_by_city('Chicago')
 

@@ -102,8 +102,6 @@ module Dynamoid
       # @param [Hash] options provide a range key here if the table has a composite key
       #
       # @since 1.0.0
-      #
-      # @todo: Provide support for local and global secondary indexes http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#create_table-instance_method
       def create_table(table_name, key = :id, options = {})
         Dynamoid.logger.info "Creating #{table_name} table. This could take a while."
         read_capacity = options.delete(:read_capacity) || Dynamoid::Config.read_capacity

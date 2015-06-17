@@ -53,13 +53,6 @@ describe Dynamoid::Persistence do
     expect(Address.table_name).to eq 'dynamoid_tests_addresses'
   end
 
-  it 'saves indexes along with itself' do
-    @user = User.new(:name => 'Josh')
-
-    expect(@user).to receive(:save_indexes).once.and_return(true)
-    @user.save
-  end
-
   it 'deletes an item completely' do
     @user = User.create(:name => 'Josh')
     @user.destroy

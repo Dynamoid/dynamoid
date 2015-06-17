@@ -205,11 +205,10 @@ module Dynamoid
       self
     end
 
-    # Delete this object from the datastore and all indexes.
+    # Delete this object from the datastore.
     #
     # @since 0.2.0
     def delete
-      delete_indexes
       options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
       Dynamoid::Adapter.delete(self.class.table_name, self.hash_key, options)
     end
@@ -254,8 +253,7 @@ module Dynamoid
       end
     end
     
-    # Persist the object into the datastore. Assign it an id first if it doesn't have one; then afterwards,
-    # save its indexes.
+    # Persist the object into the datastore. Assign it an id first if it doesn't have one.
     #
     # @since 0.2.0
     def persist(conditions = nil)
@@ -277,7 +275,6 @@ module Dynamoid
         end
 
         Dynamoid::Adapter.write(self.class.table_name, self.dump, conditions)
-        save_indexes
         @new_record = false
         true
       end

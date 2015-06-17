@@ -11,7 +11,6 @@ require "active_model"
 
 require 'dynamoid/errors'
 require 'dynamoid/fields'
-require 'dynamoid/indexes'
 require 'dynamoid/associations'
 require 'dynamoid/persistence'
 require 'dynamoid/dirty'

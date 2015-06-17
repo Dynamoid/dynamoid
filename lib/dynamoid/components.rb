@@ -25,7 +25,6 @@ module Dynamoid
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml
     include Dynamoid::Fields
-    include Dynamoid::Indexes
     include Dynamoid::Persistence
     include Dynamoid::Finders
     include Dynamoid::Associations

@@ -16,7 +16,6 @@ module Dynamoid
       #
       # @since 0.2.0
       def find(*ids)
-        
         options = if ids.last.is_a? Hash
                     ids.slice!(-1)
                   else

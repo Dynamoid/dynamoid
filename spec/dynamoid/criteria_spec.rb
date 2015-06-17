@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe "Dynamoid::Criteria" do
+describe Dynamoid::Criteria do
   before(:all) do
     Magazine.create_table
   end
@@ -34,6 +34,11 @@ describe "Dynamoid::Criteria" do
       expect(u.id == user1.id || u.id == user2.id).to be_truthy
       expect(u.new_record).to be_falsey
     end
+  end
+
+  it 'returns N records' do
+    5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }
+    expect(User.eval_limit(2).all.size).to eq(2)
   end
 
   # TODO This test is broken using the AWS SDK adapter.
