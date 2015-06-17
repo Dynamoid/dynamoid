@@ -10,131 +10,131 @@ describe "Dynamoid::Associations::Chain" do
 
   it 'finds matching index for a query' do
     @chain.query = {:name => 'Josh'}
-    @chain.send(:index).should == User.indexes[[:name]]
+    expect(@chain.send(:index)).to eq User.indexes[[:name]]
 
     @chain.query = {:email => 'josh@joshsymonds.com'}
-    @chain.send(:index).should == User.indexes[[:email]]
+    expect(@chain.send(:index)).to eq User.indexes[[:email]]
 
     @chain.query = {:name => 'Josh', :email => 'josh@joshsymonds.com'}
-    @chain.send(:index).should == User.indexes[[:email, :name]]
+    expect(@chain.send(:index)).to eq User.indexes[[:email, :name]]
   end
 
   it 'makes string symbol for query keys' do
     @chain.query = {'name' => 'Josh'}
-    @chain.send(:index).should == User.indexes[[:name]]
+    expect(@chain.send(:index)).to eq User.indexes[[:name]]
   end
 
   it 'finds matching index for a range query' do
     @chain.query = {"created_at.gt" => @time - 1.day}
-    @chain.send(:index).should == User.indexes[[:created_at]]
+    expect(@chain.send(:index)).to eq User.indexes[[:created_at]]
 
     @chain.query = {:name => 'Josh', "created_at.lt" => @time - 1.day}
-    @chain.send(:index).should == User.indexes[[:created_at, :name]]
+    expect(@chain.send(:index)).to eq User.indexes[[:created_at, :name]]
   end
 
   it 'does not find an index if there is not an appropriate one' do
     @chain.query = {:password => 'Test123'}
-    @chain.send(:index).should be_nil
+    expect(@chain.send(:index)).to be_nil
 
     @chain.query = {:password => 'Test123', :created_at => @time}
-    @chain.send(:index).should be_nil
+    expect(@chain.send(:index)).to be_nil
   end
 
   it 'returns values for index for a query' do
     @chain.query = {:name => 'Josh'}
-    @chain.send(:index_query).should == {:hash_value => 'Josh'}
+    expect(@chain.send(:index_query)).to eq({:hash_value => 'Josh'})
 
     @chain.query = {:email => 'josh@joshsymonds.com'}
-    @chain.send(:index_query).should == {:hash_value => 'josh@joshsymonds.com'}
+    expect(@chain.send(:index_query)).to eq({:hash_value => 'josh@joshsymonds.com'})
 
     @chain.query = {:name => 'Josh', :email => 'josh@joshsymonds.com'}
-    @chain.send(:index_query).should == {:hash_value => 'josh@joshsymonds.com.Josh'}
+    expect(@chain.send(:index_query)).to eq({:hash_value => 'josh@joshsymonds.com.Josh'})
 
     @chain.query = {:name => 'Josh', 'created_at.gt' => @time}
-    @chain.send(:index_query).should == {:hash_value => 'Josh', :range_greater_than => @time.to_f}
+    expect(@chain.send(:index_query)).to eq({:hash_value => 'Josh', :range_greater_than => @time.to_f})
   end
 
   it 'finds records with an index' do
     @chain.query = {:name => 'Josh'}
-    @chain.send(:records_with_index).should == @user
+    expect(@chain.send(:records_with_index)).to eq @user
 
     @chain.query = {:email => 'josh@joshsymonds.com'}
-    @chain.send(:records_with_index).should == @user
+    expect(@chain.send(:records_with_index)).to eq @user
 
     @chain.query = {:name => 'Josh', :email => 'josh@joshsymonds.com'}
-    @chain.send(:records_with_index).should == @user
+    expect(@chain.send(:records_with_index)).to eq @user
   end
 
   it 'returns records with an index for a ranged query' do
     @chain.query = {:name => 'Josh', "created_at.gt" => @time - 1.day}
-    @chain.send(:records_with_index).should == @user
+    expect(@chain.send(:records_with_index)).to eq @user
 
     @chain.query = {:name => 'Josh', "created_at.lt" => @time + 1.day}
-    @chain.send(:records_with_index).should == @user
+    expect(@chain.send(:records_with_index)).to eq @user
   end
 
   it 'finds records without an index' do
     @chain.query = {:password => 'Test123'}
-    @chain.send(:records_without_index).to_a.should == [@user]
+    expect(@chain.send(:records_without_index).to_a).to eq [@user]
   end
 
   it "doesn't crash if it finds a nil id in the index" do
     @chain.query = {:name => 'Josh', "created_at.gt" => @time - 1.day}
     expect(Dynamoid::Adapter).to receive(:query).
                       with("dynamoid_tests_index_user_created_ats_and_names", kind_of(Hash)).and_return([{ids: nil}, {ids: Set.new([42])}])
-    @chain.send(:ids_from_index).should == Set.new([42])
+    expect(@chain.send(:ids_from_index)).to eq Set.new([42])
   end
 
   it 'defines each' do
     @chain.query = {:name => 'Josh'}
     @chain.each {|u| u.update_attribute(:name, 'Justin')}
 
-    User.find(@user.id).name.should == 'Justin'
+    expect(User.find(@user.id).name).to eq 'Justin'
   end
 
   it 'includes Enumerable' do
     @chain.query = {:name => 'Josh'}
 
-    @chain.collect {|u| u.name}.should == ['Josh']
+    expect(@chain.collect {|u| u.name}).to eq ['Josh']
   end
 
   it 'uses a range query when only a hash key or range key is specified in query' do
     # Primary key is [hash_key].
     @chain = Dynamoid::Criteria::Chain.new(Address)
     @chain.query = {}
-    @chain.send(:range?).should be_falsey
+    expect(@chain.send(:range?)).to be_falsey
 
     @chain = Dynamoid::Criteria::Chain.new(Address)
     @chain.query = { :id => 'test' }
-    @chain.send(:range?).should be_truthy
+    expect(@chain.send(:range?)).to be_truthy
 
     @chain = Dynamoid::Criteria::Chain.new(Address)
     @chain.query = { :id => 'test', :city => 'Bucharest' }
-    @chain.send(:range?).should be_falsey
+    expect(@chain.send(:range?)).to be_falsey
 
     # Primary key is [hash_key, range_key].
     @chain = Dynamoid::Criteria::Chain.new(Tweet)
     @chain.query = { }
-    @chain.send(:range?).should be_falsey
+    expect(@chain.send(:range?)).to be_falsey
 
     @chain = Dynamoid::Criteria::Chain.new(Tweet)
     @chain.query = { :tweet_id => 'test' }
-    @chain.send(:range?).should be_truthy
+    expect(@chain.send(:range?)).to be_truthy
 
     @chain.query = {:tweet_id => 'test', :msg => 'hai'}
-    @chain.send(:range?).should be_falsey
+    expect(@chain.send(:range?)).to be_falsey
 
     @chain.query = {:tweet_id => 'test', :group => 'xx'}
-    @chain.send(:range?).should be_truthy
+    expect(@chain.send(:range?)).to be_truthy
 
     @chain.query = {:tweet_id => 'test', :group => 'xx', :msg => 'hai'}
-    @chain.send(:range?).should be_falsey
+    expect(@chain.send(:range?)).to be_falsey
 
     @chain.query = { :group => 'xx' }
-    @chain.send(:range?).should be_falsey
+    expect(@chain.send(:range?)).to be_falsey
 
     @chain.query = { :group => 'xx', :msg => 'hai' }
-    @chain.send(:range?).should be_falsey
+    expect(@chain.send(:range?)).to be_falsey
   end
 
   context 'range queries' do
@@ -147,21 +147,22 @@ describe "Dynamoid::Associations::Chain" do
 
     it 'finds tweets with a simple range query' do
       @chain.query = { :tweet_id => "x" }
-      @chain.send(:records_with_range).to_a.size.should == 2
-      @chain.all.size.should == 2
-      @chain.limit(1).size.should == 1
+      expect(@chain.send(:records_with_range).to_a.size).to eq 2
+      expect(@chain.all.size).to eq 2
+      expect(@chain.limit(1).size).to eq 1
     end
 
     it 'finds tweets with a start' do
       @chain.query = { :tweet_id => "x" }
       @chain.start(@tweet1)
-      @chain.all.should =~ [@tweet2]
+      expect(@chain.count).to eq 1
+      expect(@chain.first).to eq @tweet2
     end
 
     it 'finds one specific tweet' do
       @chain = Dynamoid::Criteria::Chain.new(Tweet)
       @chain.query = { :tweet_id => "xx", :group => "two" }
-      @chain.send(:records_with_range).to_a.should == [@tweet3]
+      expect(@chain.send(:records_with_range).to_a).to eq [@tweet3]
     end
 
     it 'finds posts with "where" method' do
@@ -172,13 +173,13 @@ describe "Dynamoid::Associations::Chain" do
       @chain = Dynamoid::Criteria::Chain.new(Post)
       query = { :post_id => "x", "posted_at.gt" => @time + ts_epsilon }
       resultset = @chain.send(:where, query)
-      resultset.count.should == 1
+      expect(resultset.count).to eq 1
       stored_record = resultset.first
-      stored_record.attributes[:post_id].should == @post2.attributes[:post_id]
+      expect(stored_record.attributes[:post_id]).to eq @post2.attributes[:post_id]
       # Must use an epsilon to compare timestamps after round-trip: https://github.com/Dynamoid/Dynamoid/issues/2
-      stored_record.attributes[:created_at].should be_within(ts_epsilon).of(@post2.attributes[:created_at])
-      stored_record.attributes[:posted_at].should be_within(ts_epsilon).of(@post2.attributes[:posted_at])
-      stored_record.attributes[:updated_at].should be_within(ts_epsilon).of(@post2.attributes[:updated_at])
+      expect(stored_record.attributes[:created_at]).to be_within(ts_epsilon).of(@post2.attributes[:created_at])
+      expect(stored_record.attributes[:posted_at]).to be_within(ts_epsilon).of(@post2.attributes[:posted_at])
+      expect(stored_record.attributes[:updated_at]).to be_within(ts_epsilon).of(@post2.attributes[:updated_at])
     end
   end
   
@@ -192,17 +193,17 @@ describe "Dynamoid::Associations::Chain" do
     
     it 'destroys tweet with a range simple range query' do
       @chain.query = { :tweet_id => "x" }
-      @chain.all.size.should == 2
+      expect(@chain.all.size).to eq 2
       @chain.destroy_all
-      @chain.consistent.all.size.should == 0
+      expect(@chain.consistent.all.size).to eq 0
     end
 
     it 'deletes one specific tweet with range' do
       @chain = Dynamoid::Criteria::Chain.new(Tweet)
       @chain.query = { :tweet_id => "xx", :group => "two" }
-      @chain.all.size.should == 1
+      expect(@chain.all.size).to eq 1
       @chain.destroy_all
-      @chain.consistent.all.size.should == 0
+      expect(@chain.consistent.all.size).to eq 0
     end
   end
 
@@ -213,7 +214,7 @@ describe "Dynamoid::Associations::Chain" do
     end
 
     it 'returns all results' do
-      @chain.batch(2).all.to_a.size.should == @tweets.size
+      expect(@chain.batch(2).all.to_a.size).to eq @tweets.size
     end
 
     it 'throws exception if partitioning is used with batching' do

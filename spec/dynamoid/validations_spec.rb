@@ -15,11 +15,11 @@ describe "Dynamoid::Validations" do
     @document.field :name
     @document.validates_presence_of :name
     doc = @document.new
-    doc.save.should be_falsey
-    doc.new_record.should be_truthy
+    expect(doc.save).to be_falsey
+    expect(doc.new_record).to be_truthy
     doc.name = 'secret'
-    doc.save.should_not be_falsey
-    doc.errors.should be_empty
+    expect(doc.save).to_not be_falsey
+    expect(doc.errors).to be_empty
   end
 
   it 'raises document not found' do
@@ -31,6 +31,6 @@ describe "Dynamoid::Validations" do
     expect { @document.create! }.to raise_error(Dynamoid::Errors::DocumentNotValid)
 
     doc = @document.create!(:name => 'test')
-    doc.errors.should be_empty
+    expect(doc.errors).to be_empty
   end
 end

@@ -5,22 +5,22 @@ describe 'Dynamoid::Dirty' do
   context 'changes' do
     it 'should be empty' do
       tweet = Tweet.new
-      tweet.msg_changed?.should be_falsey
+      expect(tweet.msg_changed?).to be_falsey
     end
 
     it 'should not be empty' do
       tweet = Tweet.new(:tweet_id => "1", :group => 'abc')
-      tweet.changed?.should be_truthy
-      tweet.group_was.should be_nil
+      expect(tweet).to be_changed
+      expect(tweet.group_was).to be_nil
     end
 
     it 'should be empty when loaded from database' do
       Tweet.create!(:tweet_id => "1", :group => 'abc')
       tweet = Tweet.where(:tweet_id => "1", :group => 'abc').first
-      tweet.changed?.should be_falsey
+      expect(tweet).to_not be_changed
       tweet.group = 'abc'
       tweet.reload
-      tweet.changed?.should be_falsey
+      expect(tweet).to_not be_changed
     end
     
     it 'should be empty after an update' do
@@ -28,30 +28,30 @@ describe 'Dynamoid::Dirty' do
       tweet.update! do |t|
         t.set(msg: "foo")
       end
-      tweet.changed?.should be_falsey
+      expect(tweet).to_not be_changed
     end
 
     it 'track changes after saves' do
       tweet = Tweet.new(:tweet_id => "1", :group => 'abc')
       tweet.save!
-      tweet.changed?.should be_falsey
+      expect(tweet).to_not be_changed
 
       tweet.user_name = 'xyz'
-      tweet.user_name_changed?.should be_truthy
-      tweet.user_name_was.should be_nil
+      expect(tweet.user_name_changed?).to be_truthy
+      expect(tweet.user_name_was).to be_nil
       tweet.save!
 
-      tweet.user_name_changed?.should be_falsey
+      expect(tweet.user_name_changed?).to be_falsey
       tweet.user_name = 'abc'
-      tweet.user_name_was.should == 'xyz'
+      expect(tweet.user_name_was).to eq 'xyz'
     end
 
     it 'clear changes on save' do
       tweet = Tweet.new(:tweet_id => "1", :group => 'abc')
       tweet.group = 'xyz'
-      tweet.group_changed?.should be_truthy
+      expect(tweet.group_changed?).to be_truthy
       tweet.save!
-      tweet.group_changed?.should be_falsey
+      expect(tweet.group_changed?).to be_falsey
     end
   end
 end

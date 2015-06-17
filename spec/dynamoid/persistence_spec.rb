@@ -16,14 +16,14 @@ describe "Dynamoid::Persistence" do
       it 'creates a table' do
         Address.create_table(:table_name => Address.table_name)
 
-        Dynamoid::Adapter.list_tables.should include 'dynamoid_tests_addresses'
+        expect(Dynamoid::Adapter.list_tables).to include 'dynamoid_tests_addresses'
       end
 
       it 'checks if a table already exists' do
         Address.create_table(:table_name => Address.table_name)
 
-        Address.table_exists?(Address.table_name).should be_true
-        Address.table_exists?('crazytable').should be_false
+        expect(Address.table_exists?(Address.table_name)).to be_truthy
+        expect(Address.table_exists?('crazytable')).to be_falsey
       end
     end
   end
@@ -31,7 +31,7 @@ describe "Dynamoid::Persistence" do
   it 'assigns itself an id on save' do
     @address.save
 
-    Dynamoid::Adapter.read("dynamoid_tests_addresses", @address.id)[:id].should == @address.id
+    expect(Dynamoid::Adapter.read("dynamoid_tests_addresses", @address.id)[:id]).to eq @address.id
   end
   
   it 'prevents concurrent writes to tables with a lock_version' do
@@ -56,11 +56,11 @@ describe "Dynamoid::Persistence" do
     @address.id = 'test123'
     @address.save
 
-    Dynamoid::Adapter.read("dynamoid_tests_addresses", 'test123').should_not be_empty
+    expect(Dynamoid::Adapter.read("dynamoid_tests_addresses", 'test123')).to_not be_empty
   end
 
   it 'has a table name' do
-    Address.table_name.should == 'dynamoid_tests_addresses'
+    expect(Address.table_name).to eq 'dynamoid_tests_addresses'
   end
 
   it 'saves indexes along with itself' do
@@ -74,38 +74,38 @@ describe "Dynamoid::Persistence" do
     @user = User.create(:name => 'Josh')
     @user.destroy
 
-    Dynamoid::Adapter.read("dynamoid_tests_users", @user.id).should be_nil
+    expect(Dynamoid::Adapter.read("dynamoid_tests_users", @user.id)).to be_nil
   end
 
   it 'keeps string attributes as strings' do
     @user = User.new(:name => 'Josh')
-    @user.send(:dump)[:name].should == 'Josh'
+    expect(@user.send(:dump)[:name]).to eq 'Josh'
   end
 
   it 'dumps datetime attributes' do
     @user = User.create(:name => 'Josh')
-    @user.send(:dump)[:name].should == 'Josh'
+    expect(@user.send(:dump)[:name]).to eq 'Josh'
   end
 
   it 'dumps integer attributes' do
     @subscription = Subscription.create(:length => 10)
-    @subscription.send(:dump)[:length].should == 10
+    expect(@subscription.send(:dump)[:length]).to eq 10
   end
 
   it 'dumps set attributes' do
     @subscription = Subscription.create(:length => 10)
     @magazine = @subscription.magazine.create
 
-    @subscription.send(:dump)[:magazine_ids].should == Set[@magazine.id]
+    expect(@subscription.send(:dump)[:magazine_ids]).to eq Set[@magazine.id]
   end
 
   it 'handles nil attributes properly' do
-    Address.undump(nil).should be_a(Hash)
+    expect(Address.undump(nil)).to be_a(Hash)
   end
 
   it 'dumps and undump a serialized field' do
     @address.options = (hash = {:x => [1, 2], "foobar" => 3.14})
-    Address.undump(@address.send(:dump))[:options].should == hash
+    expect(Address.undump(@address.send(:dump))[:options]).to eq hash
   end
 
   it 'supports empty containers in `serialized` fields' do
@@ -129,7 +129,7 @@ describe "Dynamoid::Persistence" do
   [true, false].each do |bool|
     it "dumps a #{bool} boolean field" do
       @address.deliverable = bool
-      Address.undump(@address.send(:dump))[:deliverable].should == bool
+      expect(Address.undump(@address.send(:dump))[:deliverable]).to eq bool
     end
   end
 
@@ -144,14 +144,14 @@ describe "Dynamoid::Persistence" do
 
   it 'loads a hash into a serialized field' do
     hash = {foo: :bar}
-    Address.new(options: hash).options.should == hash
+    expect(Address.new(options: hash).options).to eq hash
   end
 
   it 'loads attributes from a hash' do
     @time = DateTime.now
     @hash = {:name => 'Josh', :created_at => @time.to_f}
 
-    User.undump(@hash)[:name].should == 'Josh'
+    expect(User.undump(@hash)[:name]).to eq 'Josh'
     User.undump(@hash)[:created_at].to_f == @time.to_f
   end
 
@@ -176,7 +176,7 @@ describe "Dynamoid::Persistence" do
   it 'works with a HashWithIndifferentAccess' do
     hash = ActiveSupport::HashWithIndifferentAccess.new("city" => "Atlanta")
 
-    lambda {Address.create(hash)}.should_not raise_error
+    expect{Address.create(hash)}.to_not raise_error
   end
 
   context 'create' do
@@ -251,28 +251,30 @@ describe "Dynamoid::Persistence" do
         t.delete(:tags => Set.new(['db']))
       end
 
-      @tweet.count.should eq(8)
-      @tweet.tags.to_a.should eq(['sql'])
+      expect(@tweet.count).to eq(8)
+      expect(@tweet.tags.to_a).to eq(['sql'])
     end
 
     it 'checks the conditions on update' do
-      @tweet.update(:if => { :count => 5 }) do |t|
+      result = @tweet.update(:if => { :count => 5 }) do |t|
         t.add(:count => 3)
-      end.should be_truthy
+      end
+      expect(result).to be_truthy
 
-      @tweet.count.should eq(8)
+      expect(@tweet.count).to eq(8)
 
-      @tweet.update(:if => { :count => 5 }) do |t|
+      result = @tweet.update(:if => { :count => 5 }) do |t|
         t.add(:count => 3)
-      end.should be_falsey
+      end
+      expect(result).to be_falsey
 
-      @tweet.count.should eq(8)
+      expect(@tweet.count).to eq(8)
 
-      expect {
+      expect do
         @tweet.update!(:if => { :count => 5 }) do |t|
           t.add(:count => 3)
         end
-      }.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
+      end.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
     end
     
     it 'prevents concurrent saves to tables with a lock_version' do
@@ -290,10 +292,10 @@ describe "Dynamoid::Persistence" do
 
   context 'delete' do
     it 'deletes model with datetime range key' do
-      lambda {
+      expect do
         msg = Message.create!(:message_id => 1, :time => DateTime.now, :text => "Hell yeah")
         msg.destroy
-      }.should_not raise_error
+      end.to_not raise_error
     end
   end
 
@@ -303,7 +305,7 @@ describe "Dynamoid::Persistence" do
 
     it 'saves subclass objects in the parent table' do
       c = car
-      Vehicle.find(c.id).should == c
+      expect(Vehicle.find(c.id)).to eq c
     end
 
     it 'loads subclass item when querying the parent table' do
@@ -311,8 +313,8 @@ describe "Dynamoid::Persistence" do
       s = sub
 
       Vehicle.all.to_a.tap { |v|
-        v.should include(c)
-        v.should include(s)
+        expect(v).to include(c)
+        expect(v).to include(s)
       }
     end
   end

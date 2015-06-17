@@ -9,37 +9,37 @@ describe "Dynamoid::Associations::HasOne" do
   end
   
   it 'determines nil if it has no associated record' do
-    @magazine.sponsor.should be_nil
+    expect(@magazine.sponsor).to be_nil
   end
 
   it 'determines target association correctly' do
-    @camel_case.sponsor.send(:target_association).should == :camel_case
+    expect(@camel_case.sponsor.send(:target_association)).to eq :camel_case
   end
   
   it 'returns only one object when associated' do
     @magazine.sponsor.create
     
-    @magazine.sponsor.should_not be_a_kind_of Array
+    expect(@magazine.sponsor).to_not be_a_kind_of Array
   end
   
   it 'delegates equality to its source record' do
     @sponsor = @magazine.sponsor.create
     
-    @magazine.sponsor.should == @sponsor
+    expect(@magazine.sponsor).to eq @sponsor
   end
   
   it 'is equal from its target record' do
     @sponsor = @magazine.sponsor.create
     
-    @magazine.sponsor.should == @sponsor
+    expect(@magazine.sponsor).to eq @sponsor
   end
   
   it 'associates belongs_to automatically' do
     @sponsor = @magazine.sponsor.create
-    @sponsor.magazine.should == @magazine
-    @magazine.sponsor.should == @sponsor
+    expect(@sponsor.magazine).to eq @magazine
+    expect(@magazine.sponsor).to eq @sponsor
 
     @subscription = @user.monthly.create
-    @subscription.customer.should == @user
+    expect(@subscription.customer).to eq @user
   end
 end

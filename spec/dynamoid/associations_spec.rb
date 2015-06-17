@@ -7,10 +7,10 @@ describe "Dynamoid::Associations" do
   end
   
   it 'defines a getter' do
-    @magazine.should respond_to :subscriptions
+    expect(@magazine).to respond_to :subscriptions
   end
   
   it 'defines a setter' do
-    @magazine.should respond_to :subscriptions=
+    expect(@magazine).to respond_to :subscriptions=
   end
 end

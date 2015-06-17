@@ -11,11 +11,11 @@ describe Dynamoid::Adapter do
   end
   
   it 'extends itself automatically' do
-    lambda {described_class.list_tables}.should_not raise_error
+    expect {described_class.list_tables}.to_not raise_error
   end
 
   it 'raises NoMethodError if we try a method that is not on the child' do
-    lambda {described_class.foobar}.should raise_error(NoMethodError)
+    expect {described_class.foobar}.to raise_error(NoMethodError)
   end
   
   context 'without partioning' do
