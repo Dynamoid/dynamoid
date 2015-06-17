@@ -299,11 +299,6 @@ In this example, all saves to `MyTable` will raise an `AWS::DynamoDB::Errors::Co
 
 Calls to `update` and `update!` also increment the `lock_version`, however they do not check the existing value. This guarantees that a update operation will raise an exception in a concurrent save operation, however a save operation will never cause an update to fail. Thus, `update` is useful & safe only for doing atomic operations (e.g. increment a value, add/remove from a set, etc), but should not be used in a read-modify-write pattern.
  
-## TODOS
-1. Tranparent Partitioning of DynamoDB
-
-DynamoDB achieves much of its speed by relying on a random pattern of writes and reads: internally, hash keys are distributed across servers, and reading from two consecutive servers is much faster than reading from the same server twice. Of course, many of our applications request one key (like a commonly used role, a superuser, or a very popular product) much more frequently than other keys. In DynamoDB, this will result in lowered throughput and slower response times, and is a design pattern we should try to avoid. Dynamoid should be employing a partitioning strategy to divide up keys randomly across DynamoDB's servers. Each ID can be assigned an additional number (by default 0 to 199, which can be increased in Dynamoid's configuration) upon save; when read, all 200 hashes will be retrieved simultaneously and the most recently updated one will be returned to the application. This will result in a significant net performance increase, and will be invisible to the application itself.
-
 ## Credits
 
 Dynamoid borrows code, structure, and even its name very liberally from the truly amazing [Mongoid](https://github.com/mongoid/mongoid). Without Mongoid to crib from none of this would have been possible, and I hope they don't mind me reusing their very awesome ideas to make DynamoDB just as accessible to the Ruby world as MongoDB.

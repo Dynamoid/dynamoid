@@ -19,8 +19,6 @@ module Dynamoid
     option :read_capacity, :default => 100
     option :write_capacity, :default => 20
     option :warn_on_scan, :default => true
-    option :partitioning, :default => false
-    option :partition_size, :default => 200
     option :endpoint, :default => nil
     option :use_ssl, :default => true
     option :port, :default => '443'

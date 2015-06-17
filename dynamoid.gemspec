@@ -143,7 +143,6 @@ Gem::Specification.new do |s|
     "spec/dynamoid/validations_spec.rb",
     "spec/dynamoid_spec.rb",
     "spec/spec_helper.rb",
-    "spec/support/with_partitioning.rb"
   ]
   s.homepage = "http://github.com/Veraticus/Dynamoid"
   s.licenses = ["MIT"]
