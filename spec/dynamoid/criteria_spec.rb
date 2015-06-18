@@ -36,13 +36,6 @@ describe "Dynamoid::Criteria" do
     end
   end
 
-  it 'returns n records' do
-    expect(User.limit(1).size).to eq(1)
-    5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }
-    expect(User.where(:name => 'Josh').all.size).to eq 6
-    expect(User.where(:name => 'Josh').limit(2).size).to eq 2
-  end
-
   # TODO This test is broken using the AWS SDK adapter.
   #it 'start with a record' do
   #  5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }

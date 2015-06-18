@@ -6,7 +6,7 @@ module Dynamoid #:nodoc:
     # chain to relation). It is a chainable object that builds up a query and eventually executes it either on an index
     # or by a full table scan.
     class Chain
-      attr_accessor :query, :source, :index, :values, :limit, :start, :consistent_read
+      attr_accessor :query, :source, :index, :values, :consistent_read
       include Enumerable
 
       # Create a new criteria chain.
@@ -43,11 +43,10 @@ module Dynamoid #:nodoc:
       # Returns all the records matching the criteria.
       #
       # @since 0.2.0
-      def all(opts = {})
-        batch opts[:batch_size] if opts.has_key? :batch_size
+      def all
         records
       end
-      
+
       # Destroys all the records matching the criteria.
       #
       def destroy_all
@@ -105,16 +104,9 @@ module Dynamoid #:nodoc:
         end   
       end
 
-      # Returns the first record matching the criteria.
-      #
-      # @since 0.2.0
-      def first
-        limit(1).first
-      end
-
-      def limit(limit)
-        @limit = limit
-        records
+      def eval_limit(limit)
+        @eval_limit = limit
+        self
       end
 
       def batch(batch_size)
@@ -168,6 +160,8 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def records_with_index
+        Dynamoid.logger.warn 'We ignore eval_limit on index queries.' if @limit
+
         ids = ids_from_index
         if ids.nil? || ids.empty?
           [].to_enum
@@ -178,7 +172,6 @@ module Dynamoid #:nodoc:
             ids = ids.drop_while { |id| id != @start.hash_key }.drop(1)
           end
 
-          ids = ids.take(@limit) if @limit
           source.find(ids, consistent_opts)
         end
       end
@@ -304,7 +297,7 @@ module Dynamoid #:nodoc:
       def query_opts
         opts = {}
         opts[:select] = 'ALL_ATTRIBUTES'
-        opts[:limit] = @limit if @limit
+        opts[:limit] = @eval_limit if @eval_limit
         opts[:next_token] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
         opts
@@ -312,7 +305,7 @@ module Dynamoid #:nodoc:
       
       def scan_opts
         opts = {}
-        opts[:limit] = @limit if @limit
+        opts[:limit] = @eval_limit if @eval_limit
         opts[:next_token] = start_key if @start
         opts[:batch_size] = @batch_size if @batch_size
         opts
