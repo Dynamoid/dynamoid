@@ -2,8 +2,7 @@ module Dynamoid
   module Adapter
 
     # The AwsSdkV2 adapter provides support for the aws-sdk version 2 for ruby.
-    module AwsSdkV2
-      extend self
+    class AwsSdkV2
       attr_reader :table_cache
 
       # Establish the connection to DynamoDB.

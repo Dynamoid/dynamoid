@@ -18,7 +18,6 @@ Aws.config.update({
 
 Dynamoid.configure do |config|
   config.endpoint = 'http://127.0.0.1:8000'
-  config.adapter = 'aws_sdk_v2'
   config.namespace = 'dynamoid_tests'
   config.warn_on_scan = false
 end

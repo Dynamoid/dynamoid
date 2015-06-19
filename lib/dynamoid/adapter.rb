@@ -4,13 +4,14 @@ module Dynamoid
   # Adapter provides a generic, write-through class that abstracts variations in the underlying connections to provide a uniform response
   # to Dynamoid.
   module Adapter
-    extend self
-    attr_accessor :tables
+    def self.tables
+      @tables
+    end
 
     # The actual adapter currently in use: presently AwsSdk.
     #
     # @since 0.2.0
-    def adapter
+    def self.adapter
       reconnect! unless @adapter
       @adapter
     end
@@ -18,11 +19,11 @@ module Dynamoid
     # Establishes a connection to the underyling adapter and caches all its tables for speedier future lookups. Issued when the adapter is first called.
     #
     # @since 0.2.0
-    def reconnect!
+    def self.reconnect!
       require "dynamoid/adapter/#{Dynamoid::Config.adapter}" unless Dynamoid::Adapter.const_defined?(Dynamoid::Config.adapter.camelcase)
-      @adapter = Dynamoid::Adapter.const_get(Dynamoid::Config.adapter.camelcase)
+      @adapter = Dynamoid::Adapter.const_get(Dynamoid::Config.adapter.camelcase).new
       @adapter.connect! if @adapter.respond_to?(:connect!)
-      self.tables = benchmark('Cache Tables') {list_tables}
+      @tables = benchmark('Cache Tables') {list_tables}
     end
 
     # Shows how long it takes a method to run on the adapter. Useful for generating logged output.
@@ -34,7 +35,7 @@ module Dynamoid
     # @return the result of the yield
     #
     # @since 0.2.0
-    def benchmark(method, *args)
+    def self.benchmark(method, *args)
       start = Time.now
       result = yield
       Dynamoid.logger.info "(#{((Time.now - start) * 1000.0).round(2)} ms) #{method.to_s.split('_').collect(&:upcase).join(' ')}#{ " - #{args.inspect}" unless args.nil? || args.empty? }"
@@ -50,7 +51,7 @@ module Dynamoid
     # @return [Object] the persisted object
     #
     # @since 0.2.0
-    def write(table, object, options = nil)
+    def self.write(table, object, options = nil)
       if Dynamoid::Config.partitioning? && object[:id]
         object[:id] = "#{object[:id]}.#{Random.rand(Dynamoid::Config.partition_size)}"
         object[:updated_at] = Time.now.to_f
@@ -69,7 +70,7 @@ module Dynamoid
     #                        unless multiple ids are passed in and Dynamoid::Config.partitioning? is turned off.
     #
     # @since 0.2.0
-    def read(table, ids, options = {})
+    def self.read(table, ids, options = {})
       range_key = options.delete(:range_key)
 
       if ids.respond_to?(:each)
@@ -98,7 +99,7 @@ module Dynamoid
     # @param [Array] ids to delete, can also be a string of just one id
     # @param [Array] range_key of the record to delete, can also be a string of just one range_key
     #
-    def delete(table, ids, options = {})
+    def self.delete(table, ids, options = {})
       range_key = options[:range_key] #array of range keys that matches the ids passed in
       if ids.respond_to?(:each)
         if range_key.respond_to?(:each)
@@ -129,7 +130,7 @@ module Dynamoid
     # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
     #
     # @since 0.2.0
-    def scan(table, query, opts = {})
+    def self.scan(table, query, opts = {})
       if Dynamoid::Config.partitioning?
         results = benchmark('Scan', table, query) {adapter.scan(table, query, opts)}
         result_for_partition(results,table)
@@ -142,7 +143,7 @@ module Dynamoid
       # Method delegation with benchmark to the underlying adapter. Faster than relying on method_missing.
       #
       # @since 0.2.0
-      define_method(m) do |*args|
+      define_singleton_method(m) do |*args|
         benchmark("#{m.to_s}", args) {adapter.send(m, *args)}
       end
     end
@@ -218,7 +219,7 @@ module Dynamoid
     # Delegate all methods that aren't defind here to the underlying adapter.
     #
     # @since 0.2.0
-    def method_missing(method, *args, &block)
+    def self.method_missing(method, *args, &block)
       return benchmark(method, *args) {adapter.send(method, *args, &block)} if @adapter.respond_to?(method)
       super
     end
@@ -238,8 +239,7 @@ module Dynamoid
     #
     # @return [Array] an array of all matching items
     #
-    def query(table_name, opts = {})
-
+    def self.query(table_name, opts = {})
       @adapter.query(table_name, opts)
 
       # TODO: Commenting out the code as partitioning doesn't work. Look into the AWS docs and
