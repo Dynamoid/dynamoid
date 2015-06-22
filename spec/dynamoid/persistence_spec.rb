@@ -313,4 +313,90 @@ describe Dynamoid::Persistence do
       }
     end
   end
+
+  describe 'class-type fields' do
+    subject { doc_class.new }
+
+    context 'when Money can load itself and Money instances can dump themselves with Dynamoid-specific methods' do
+      let(:doc_class) do
+        Class.new do
+          def self.name; 'Doc'; end
+
+          include Dynamoid::Document
+
+          field :price, MoneyInstanceDump
+        end
+      end
+
+      before(:each) do
+        subject.price = MoneyInstanceDump.new(BigDecimal.new('5'))
+        subject.save!
+      end
+
+      it 'round-trips using Dynamoid-specific methods' do
+        expect(doc_class.all.first).to eq subject
+      end
+
+      it 'is findable as a string' do
+        expect(doc_class.where(price: '5.0').first).to eq subject
+      end
+    end
+
+    context 'when MoneyAdapter dumps/loads a class that does not directly support Dynamoid\'s interface' do
+      let(:doc_class) do
+        Class.new do
+          def self.name; 'Doc'; end
+
+          include Dynamoid::Document
+
+          field :price, MoneyAdapter
+        end
+      end
+
+      before(:each) do
+        subject.price = Money.new(BigDecimal.new('5'))
+        subject.save!
+        subject.reload
+      end
+
+      it 'round-trips using Dynamoid-specific methods' do
+        expect(doc_class.all.first.price).to eq subject.price
+      end
+
+      it 'is findable as a string' do
+        expect(doc_class.where(price: '5.0').first).to eq subject
+      end
+
+      it 'is a Money object' do
+        expect(subject.price).to be_a Money
+      end
+    end
+
+    context 'when Money has Dynamoid-specific serialization methods and is a range' do
+      let(:doc_class) do
+        Class.new do
+          def self.name; 'Doc'; end
+
+          include Dynamoid::Document
+
+          range :price, MoneyAsNumber
+        end
+      end
+
+      before(:each) do
+        subject.price = MoneyAsNumber.new(BigDecimal.new('5'))
+        subject.save!
+      end
+
+      it 'round-trips using Dynamoid-specific methods' do
+        expect(doc_class.all.first.price).to eq subject.price
+      end
+
+      it 'is findable with number semantics' do
+        # With the primary key, we're forcing a Query rather than a Scan because of https://github.com/Dynamoid/Dynamoid/issues/6
+        primary_key = subject.id
+        expect(doc_class.where(id: primary_key).where('price.gt' => 4).first).to_not be_nil
+      end
+    end
+  end
 end

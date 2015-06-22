@@ -28,9 +28,7 @@ describe Dynamoid::Fields do
     address.save
 
     address.reload
-    expect(address.created_at).to_not be_nil
     expect(address.created_at).to be_a DateTime
-    expect(address.updated_at).to_not be_nil
     expect(address.updated_at).to be_a DateTime
   end
 

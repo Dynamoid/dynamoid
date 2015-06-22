@@ -96,7 +96,12 @@ These fields will not change an existing table: so specifying a new read_capacit
 
 You'll have to define all the fields on the model and the data type of each field. Every field on the object must be included here; if you miss any they'll be completely bypassed during DynamoDB's initialization and will not appear on the model objects.
 
-By default, fields are assumed to be of type ```:string```. But you can also use ```:integer```, ```:number```, ```:set```, ```:array```, ```:datetime```, ```:boolean```, and ```:serialized```. You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
+By default, fields are assumed to be of type ```:string```. Other built-in types are
+```:integer```, ```:number```, ```:set```, ```:array```, ```:datetime```, ```:boolean```, and ```:serialized```.
+If built-in types do not suit you, you can use a custom field type represented by an arbitrary class, provided that the class supports a compatible serialization interface.
+The primary use case for using a custom field type is to represent your business logic with high-level types, while ensuring portability or backward-compatibility of the serialized representation.
+
+You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
 
 ```ruby
 class User
@@ -118,6 +123,63 @@ You can optionally set a default value on a field using either a plain value or 
   field :actions_taken, :integer, {default: 0}
   field :joined_at, :datetime, {default: ->(){Time.now}}
 ```
+
+To use a custom type for a field, suppose you have a `Money` type.
+
+```ruby
+  class Money
+    # ... your business logic ...
+    
+    def dynamoid_dump
+      "serialized representation as a string"
+    end
+    
+    def self.dynamoid_load(serialized_str)
+      # parse serialized representation and return a Money instance
+      Money.new(...)
+    end
+  end
+  
+  class User
+    include Dynamoid::Document
+    
+    field :balance, Money
+  end
+```
+
+If you want to use a third-party class (which does not support `#dynamoid_dump` and `.dynamoid_load`)
+as your field type, you can use an adapter class providing `.dynamoid_dump` and `.dynamoid_load` class methods
+for your third-party class.  (`.dynamoid_load` can remain the same from the previous example; here we just
+add a level of indirection for serializing.)  Example:
+
+```ruby
+  # Third-party Money class
+  class Money; end
+  
+  class MoneyAdapter
+    def self.dynamoid_load(money_serialized_str)
+      Money.new(...)
+    end
+    
+    def self.dynamoid_dump(money_obj)
+      money_obj.value.to_s
+    end
+  end
+  
+  class User
+    include Dynamoid::Document
+    
+    field :balance, MoneyAdapter
+  end
+```
+
+Lastly, you can control the data type of your custom-class-backed field at the DynamoDB level.
+This is especially important if you want to use your custom field as a numeric range or for
+number-oriented queries.  By default custom fields are persisted as a string attribute, but
+your custom class can override this with a `.dynamoid_field_type` class method, which would
+return either `:string` or `:number`.
+(DynamoDB supports some other attribute types, but Dynamoid yet does not.)
+
 
 ### Associations
 
