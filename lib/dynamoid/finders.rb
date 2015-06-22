@@ -65,7 +65,7 @@ module Dynamoid
       # Find one object directly by hash and range keys
       #
       # @param [String] hash_key of the object to find
-      # @param [String/Integer/Float] range_key of the object to find
+      # @param [String/Number] range_key of the object to find
       #
       def find_by_composite_key(hash_key, range_key, options = {})
         find_by_id(hash_key, options.merge({:range_key => range_key}))

@@ -96,7 +96,7 @@ These fields will not change an existing table: so specifying a new read_capacit
 
 You'll have to define all the fields on the model and the data type of each field. Every field on the object must be included here; if you miss any they'll be completely bypassed during DynamoDB's initialization and will not appear on the model objects.
 
-By default, fields are assumed to be of type ```:string```. But you can also use ```:integer```, ```:float```, ```:set```, ```:array```, ```:datetime```, ```:boolean```, and ```:serialized```. You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
+By default, fields are assumed to be of type ```:string```. But you can also use ```:integer```, ```:number```, ```:set```, ```:array```, ```:datetime```, ```:boolean```, and ```:serialized```. You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
 
 ```ruby
 class User
@@ -105,7 +105,7 @@ class User
   field :name
   field :email
   field :rank, :integer
-  field :number, :float
+  field :number, :number
   field :joined_at, :datetime
   field :hash, :serialized
 
