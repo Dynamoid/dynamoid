@@ -1,20 +1,20 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe 'Dynamoid::Dirty' do
+describe Dynamoid::Dirty do
 
   context 'changes' do
-    it 'should be empty' do
+    it 'is empty' do
       tweet = Tweet.new
       expect(tweet.msg_changed?).to be_falsey
     end
 
-    it 'should not be empty' do
+    it 'is not empty' do
       tweet = Tweet.new(:tweet_id => "1", :group => 'abc')
       expect(tweet).to be_changed
       expect(tweet.group_was).to be_nil
     end
 
-    it 'should be empty when loaded from database' do
+    it 'is empty when loaded from database' do
       Tweet.create!(:tweet_id => "1", :group => 'abc')
       tweet = Tweet.where(:tweet_id => "1", :group => 'abc').first
       expect(tweet).to_not be_changed
@@ -23,7 +23,7 @@ describe 'Dynamoid::Dirty' do
       expect(tweet).to_not be_changed
     end
     
-    it 'should be empty after an update' do
+    it 'is empty after an update' do
       tweet = Tweet.create!(:tweet_id => "1", :group => 'abc')
       tweet.update! do |t|
         t.set(msg: "foo")
@@ -31,7 +31,7 @@ describe 'Dynamoid::Dirty' do
       expect(tweet).to_not be_changed
     end
 
-    it 'track changes after saves' do
+    it 'tracks changes after saves' do
       tweet = Tweet.new(:tweet_id => "1", :group => 'abc')
       tweet.save!
       expect(tweet).to_not be_changed
@@ -46,7 +46,7 @@ describe 'Dynamoid::Dirty' do
       expect(tweet.user_name_was).to eq 'xyz'
     end
 
-    it 'clear changes on save' do
+    it 'clears changes on save' do
       tweet = Tweet.new(:tweet_id => "1", :group => 'abc')
       tweet.group = 'xyz'
       expect(tweet.group_changed?).to be_truthy

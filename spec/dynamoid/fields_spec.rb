@@ -1,93 +1,88 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe "Dynamoid::Fields" do
-
-  before do
-    @address = Address.new
-  end
+describe Dynamoid::Fields do
+  let(:address) { Address.new }
 
   it 'declares read attributes' do
-    expect(@address.city).to be_nil
+    expect(address.city).to be_nil
   end
 
   it 'declares write attributes' do
-    @address.city = 'Chicago'
-    expect(@address.city).to eq 'Chicago'
+    address.city = 'Chicago'
+    expect(address.city).to eq 'Chicago'
   end
 
   it 'declares a query attribute' do
-    expect(@address.city?).to be_falsey
+    expect(address.city?).to be_falsey
 
-    @address.city = 'Chicago'
+    address.city = 'Chicago'
 
-    expect(@address.city?).to be_truthy
+    expect(address.city?).to be_truthy
   end
 
   it 'automatically declares id' do
-    expect{@address.id}.to_not raise_error
+    expect{address.id}.to_not raise_error
   end
 
   it 'automatically declares and fills in created_at and updated_at' do
-    @address.save
+    address.save
 
-    @address = @address.reload
-    expect(@address.created_at).to_not be_nil
-    expect(@address.created_at).to be_a DateTime
-    expect(@address.updated_at).to_not be_nil
-    expect(@address.updated_at).to be_a DateTime
+    address.reload
+    expect(address.created_at).to_not be_nil
+    expect(address.created_at).to be_a DateTime
+    expect(address.updated_at).to_not be_nil
+    expect(address.updated_at).to be_a DateTime
   end
 
   context 'with a saved address' do
-    before do
-      @address = Address.create(:deliverable => true)
-      @original_id = @address.id
-    end
+    let(:address) { Address.create(deliverable: true) }
+    let(:original_id) { address.id }
 
     it 'should write an attribute correctly' do
-      @address.write_attribute(:city, 'Chicago')
+      address.write_attribute(:city, 'Chicago')
     end
 
     it 'should write an attribute with an alias' do
-      @address[:city] = 'Chicago'
+      address[:city] = 'Chicago'
     end
 
     it 'should read a written attribute' do
-      @address.write_attribute(:city, 'Chicago')
-      expect(@address.read_attribute(:city)).to eq 'Chicago'
+      address.write_attribute(:city, 'Chicago')
+      expect(address.read_attribute(:city)).to eq 'Chicago'
     end
 
     it 'should read a written attribute with the alias' do
-      @address.write_attribute(:city, 'Chicago')
-      expect(@address[:city]).to eq 'Chicago'
+      address.write_attribute(:city, 'Chicago')
+      expect(address[:city]).to eq 'Chicago'
     end
 
     it 'should update all attributes' do
-      expect(@address).to receive(:save).once.and_return(true)
-      @address.update_attributes(:city => 'Chicago')
-      expect(@address[:city]).to eq 'Chicago'
-      expect(@address.id).to eq @original_id
+      expect(address).to receive(:save).once.and_return(true)
+      address.update_attributes(:city => 'Chicago')
+      expect(address[:city]).to eq 'Chicago'
+      expect(address.id).to eq original_id
     end
 
     it 'should update one attribute' do
-      expect(@address).to receive(:save).once.and_return(true)
-      @address.update_attribute(:city, 'Chicago')
-      expect(@address[:city]).to eq 'Chicago'
-      expect(@address.id).to eq @original_id
+      expect(address).to receive(:save).once.and_return(true)
+      address.update_attribute(:city, 'Chicago')
+      expect(address[:city]).to eq 'Chicago'
+      expect(address.id).to eq original_id
     end
 
     it 'should update only created_at when no params are passed' do
-      @initial_updated_at = @address.updated_at
-      @address.update_attributes([])
-      expect(@address.updated_at).to_not eq @initial_updated_at
+      initial_updated_at = address.updated_at
+      address.update_attributes([])
+      expect(address.updated_at).to_not eq initial_updated_at
     end
 
     it 'adds in dirty methods for attributes' do
-      @address.city = 'Chicago'
-      @address.save
+      address.city = 'Chicago'
+      address.save
 
-      @address.city = 'San Francisco'
+      address.city = 'San Francisco'
 
-      expect(@address.city_was).to eq 'Chicago'
+      expect(address.city_was).to eq 'Chicago'
     end
 
     it 'returns all attributes' do
@@ -103,7 +98,7 @@ describe "Dynamoid::Fields" do
   end
 
   context '.remove_attribute' do
-    subject { @address }
+    subject { address }
     before(:each) do
       Address.field :foobar
       Address.remove_field :foobar
@@ -127,8 +122,8 @@ describe "Dynamoid::Fields" do
   end
 
   context 'default values for fields' do
-    before do
-      @clazz = Class.new do
+    let(:doc) do
+      Class.new do
         include Dynamoid::Document
 
         field :name, :string, :default => 'x'
@@ -137,21 +132,18 @@ describe "Dynamoid::Fields" do
         def self.name
           'Document'
         end
-      end
-
-
-      @doc = @clazz.new
+      end.new
     end
 
     it 'returns default value' do
-      expect(@doc.name).to eq('x')
-      expect(@doc.uid).to eq(42)
+      expect(doc.name).to eq('x')
+      expect(doc.uid).to eq(42)
     end
 
     it 'should save default value' do
-      @doc.save!
-      expect(@doc.reload.name).to eq('x')
-      expect(@doc.uid).to eq(42)
+      doc.save!
+      expect(doc.reload.name).to eq('x')
+      expect(doc.uid).to eq(42)
     end
   end
 

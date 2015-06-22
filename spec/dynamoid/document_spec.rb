@@ -1,36 +1,36 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe "Dynamoid::Document" do
+describe Dynamoid::Document do
 
   it 'initializes a new document' do
-    @address = Address.new
+    address = Address.new
 
-    expect(@address.new_record).to be_truthy
-    expect(@address.attributes).to eq({:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil, :options=>nil, :deliverable => nil, :lock_version => nil})
+    expect(address.new_record).to be_truthy
+    expect(address.attributes).to eq({:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>nil, :options=>nil, :deliverable => nil, :lock_version => nil})
   end
 
   it 'responds to will_change! methods for all fields' do
-    @address = Address.new
-    expect(@address).to respond_to(:id_will_change!)
-    expect(@address).to respond_to(:options_will_change!)
-    expect(@address).to respond_to(:created_at_will_change!)
-    expect(@address).to respond_to(:updated_at_will_change!)
+    address = Address.new
+    expect(address).to respond_to(:id_will_change!)
+    expect(address).to respond_to(:options_will_change!)
+    expect(address).to respond_to(:created_at_will_change!)
+    expect(address).to respond_to(:updated_at_will_change!)
   end
 
   it 'initializes a new document with attributes' do
-    @address = Address.new(:city => 'Chicago')
+    address = Address.new(:city => 'Chicago')
 
-    expect(@address.new_record).to be_truthy
+    expect(address.new_record).to be_truthy
 
-    expect(@address.attributes).to eq({:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil, :lock_version => nil})
+    expect(address.attributes).to eq({:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil, :lock_version => nil})
   end
 
   it 'initializes a new document with a virtual attribute' do
-    @address = Address.new(:zip_code => '12345')
+    address = Address.new(:zip_code => '12345')
 
-    expect(@address.new_record).to be_truthy
+    expect(address.new_record).to be_truthy
 
-    expect(@address.attributes).to eq({:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil, :lock_version => nil})
+    expect(address.attributes).to eq({:id=>nil, :created_at=>nil, :updated_at=>nil, :city=>"Chicago", :options=>nil, :deliverable => nil, :lock_version => nil})
   end
 
   it 'allows interception of write_attribute on load' do
@@ -43,25 +43,25 @@ describe "Dynamoid::Document" do
   end
 
   it 'creates a new document' do
-    @address = Address.create(:city => 'Chicago')
+    address = Address.create(:city => 'Chicago')
 
-    expect(@address.new_record).to be_falsey
-    expect(@address.id).to_not be_nil
+    expect(address.new_record).to be_falsey
+    expect(address.id).to_not be_nil
   end
 
   it 'knows if a document exists or not' do
-    @address = Address.create(:city => 'Chicago')
-    expect(Address.exists?(@address.id)).to be_truthy
+    address = Address.create(:city => 'Chicago')
+    expect(Address.exists?(address.id)).to be_truthy
     expect(Address.exists?("does-not-exist")).to be_falsey
-    expect(Address.exists?(:city => @address.city)).to be_truthy
+    expect(Address.exists?(:city => address.city)).to be_truthy
     expect(Address.exists?(:city => "does-not-exist")).to be_falsey
   end
 
   it 'gets errors courtesy of ActiveModel' do
-    @address = Address.create(:city => 'Chicago')
+    address = Address.create(:city => 'Chicago')
 
-    expect(@address.errors).to be_empty
-    expect(@address.errors.full_messages).to be_empty
+    expect(address.errors).to be_empty
+    expect(address.errors.full_messages).to be_empty
   end
 
   context '.reload' do
@@ -89,9 +89,9 @@ describe "Dynamoid::Document" do
   end
 
   it 'has default table options' do
-    @address = Address.create
+    address = Address.create
 
-    expect(@address.id).to_not be_nil
+    expect(address.id).to_not be_nil
     expect(Address.table_name).to eq 'dynamoid_tests_addresses'
     expect(Address.hash_key).to eq :id
     expect(Address.read_capacity).to eq 100
@@ -99,10 +99,10 @@ describe "Dynamoid::Document" do
   end
 
   it 'follows any table options provided to it' do
-    @tweet = Tweet.create(:group => 12345)
+    tweet = Tweet.create(:group => 12345)
 
-    expect{@tweet.id}.to raise_error(NoMethodError)
-    expect(@tweet.tweet_id).to_not be_nil
+    expect{tweet.id}.to raise_error(NoMethodError)
+    expect(tweet.tweet_id).to_not be_nil
     expect(Tweet.table_name).to eq 'dynamoid_tests_twitters'
     expect(Tweet.hash_key).to eq :tweet_id
     expect(Tweet.read_capacity).to eq 200

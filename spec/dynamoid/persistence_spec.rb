@@ -1,11 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe "Dynamoid::Persistence" do
-
-  before do
-    allow(Random).to receive(:rand).with(Dynamoid::Config.partition_size).and_return(0)
-    @address = Address.new
-  end
+describe Dynamoid::Persistence do
+  let(:address) { Address.new }
 
   context 'without AWS keys' do
     unless ENV['ACCESS_KEY'] && ENV['SECRET_KEY']
@@ -29,15 +25,15 @@ describe "Dynamoid::Persistence" do
   end
 
   it 'assigns itself an id on save' do
-    @address.save
+    address.save
 
-    expect(Dynamoid::Adapter.read("dynamoid_tests_addresses", @address.id)[:id]).to eq @address.id
+    expect(Dynamoid::Adapter.read("dynamoid_tests_addresses", address.id)[:id]).to eq address.id
   end
   
   it 'prevents concurrent writes to tables with a lock_version' do
-    @address.save!
-    a1 = @address
-    a2 = Address.find(@address.id)
+    address.save!
+    a1 = address
+    a2 = Address.find(address.id)
     
     a1.city = 'Seattle'
     a2.city = 'San Francisco'
@@ -53,8 +49,8 @@ describe "Dynamoid::Persistence" do
   end
   
   it 'assigns itself an id on save only if it does not have one' do
-    @address.id = 'test123'
-    @address.save
+    address.id = 'test123'
+    address.save
 
     expect(Dynamoid::Adapter.read("dynamoid_tests_addresses", 'test123')).to_not be_empty
   end
@@ -104,8 +100,8 @@ describe "Dynamoid::Persistence" do
   end
 
   it 'dumps and undump a serialized field' do
-    @address.options = (hash = {:x => [1, 2], "foobar" => 3.14})
-    expect(Address.undump(@address.send(:dump))[:options]).to eq hash
+    address.options = (hash = {:x => [1, 2], "foobar" => 3.14})
+    expect(Address.undump(address.send(:dump))[:options]).to eq hash
   end
 
   it 'supports empty containers in `serialized` fields' do
@@ -128,15 +124,15 @@ describe "Dynamoid::Persistence" do
 
   [true, false].each do |bool|
     it "dumps a #{bool} boolean field" do
-      @address.deliverable = bool
-      expect(Address.undump(@address.send(:dump))[:deliverable]).to eq bool
+      address.deliverable = bool
+      expect(Address.undump(address.send(:dump))[:deliverable]).to eq bool
     end
   end
 
   it 'raises on an invalid boolean value' do
     expect do
-      @address.deliverable = true
-      data = @address.send(:dump)
+      address.deliverable = true
+      data = address.send(:dump)
       data[:deliverable] = 'foo'
       Address.undump(data)
     end.to raise_error(ArgumentError)
@@ -278,13 +274,13 @@ describe "Dynamoid::Persistence" do
     end
     
     it 'prevents concurrent saves to tables with a lock_version' do
-      @address.save!
-      a2 = Address.find(@address.id)
+      address.save!
+      a2 = Address.find(address.id)
       a2.update! { |a| a.set(:city => "Chicago") }
       
       expect do
-        @address.city = "Seattle"
-        @address.save!
+        address.city = "Seattle"
+        address.save!
       end.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
     end
 

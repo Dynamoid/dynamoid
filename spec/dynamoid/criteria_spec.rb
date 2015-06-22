@@ -4,22 +4,20 @@ describe "Dynamoid::Criteria" do
   before(:all) do
     Magazine.create_table
   end
-  
-  before do
-    @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
-    @user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
-  end
-  
+
+  let!(:user1) {User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')}
+  let!(:user2) {User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')}
+
   it 'finds first using where' do
-    expect(User.where(:name => 'Josh').first).to eq @user1
+    expect(User.where(:name => 'Josh').first).to eq user1
   end
   
   it 'finds all using where' do
-    expect(User.where(:name => 'Josh').all).to eq [@user1]
+    expect(User.where(:name => 'Josh').all).to eq [user1]
   end
   
   it 'returns all records' do
-    expect(Set.new(User.all)).to eq Set.new([@user1, @user2])
+    expect(Set.new(User.all)).to eq Set.new([user1, user2])
     expect(User.all.first.new_record).to be_falsey
   end
   
@@ -33,7 +31,7 @@ describe "Dynamoid::Criteria" do
   
   it 'passes each to all members' do
     User.each do |u|
-      expect(u.id == @user1.id || u.id == @user2.id).to be_truthy
+      expect(u.id == user1.id || u.id == user2.id).to be_truthy
       expect(u.new_record).to be_falsey
     end
   end
