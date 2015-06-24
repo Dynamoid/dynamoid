@@ -42,16 +42,7 @@ module Dynamoid
           :range_key => range_key_hash
         }.merge(options)
 
-        return true if table_exists?(options[:table_name])
-
-        Dynamoid::Adapter.tables << options[:table_name] if Dynamoid::Adapter.create_table(options[:table_name], options[:id], options)
-      end
-
-      # Does a table with this name exist?
-      #
-      # @since 0.2.0
-      def table_exists?(table_name)
-        Dynamoid::Adapter.tables ? Dynamoid::Adapter.tables.include?(table_name) : false
+        Dynamoid::Adapter.create_table(options[:table_name], options[:id], options)
       end
 
       def from_database(attrs = {})
@@ -156,7 +147,7 @@ module Dynamoid
     # @since 0.2.0
     def save(options = {})
       self.class.create_table
-      
+
       if new_record?
         conditions = { :unless_exists => [self.class.hash_key]}
         conditions[:unless_exists] << range_key if(range_key)

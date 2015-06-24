@@ -112,6 +112,7 @@ describe Dynamoid::Finders do
     end
 
     it 'should return an empty array when fields exist but nothing is found' do
+      User.create_table
       array = User.find_all_by_password('Test')
 
       expect(array).to be_empty
