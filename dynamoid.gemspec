@@ -4,7 +4,18 @@ Gem::Specification.new do |s|
   s.name = "dynamoid"
   s.version = "0.7.1"
 
-  s.authors = ["Josh Symonds"]
+  # Keep in sync with README
+  s.authors = %w(
+    Josh Symonds
+    Logan Bowers
+    Craig Heneveld
+    Anatha Kumaran
+    Jason Dew
+    Luis Arias
+    Stefan Neculai
+    Philip White
+    Peeyush Kumar
+  )
   s.date = "2013-08-05"
   s.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   s.email = "josh@joshsymonds.com"
