@@ -112,6 +112,13 @@ class User
 end
 ```
 
+You can optionally set a default value on a field using either a plain value or a lambda:
+
+```ruby
+  field :actions_taken, :integer, {default: 0}
+  field :joined_at, :datetime, {default: ->(){Time.now}}
+```
+
 ### Indexes
 
 You can also define indexes on fields, combinations of fields, and one range field. Yes, only one range field: in DynamoDB tables can have at most one range index, so make good use of it! To make an index, just specify the fields you want it on, either single or in an array. If the entire index is a range, pass ```:range => true```. Otherwise, pass the attribute that will become the range key. The only range attributes you can use right now are integers, floats, and datetimes. If you pass a string as a range key likely DynamoDB will complain a lot.
@@ -129,7 +136,6 @@ class User
   index :name, :range_key => :joined_at
 
 end
-```
 
 ### Associations
 
