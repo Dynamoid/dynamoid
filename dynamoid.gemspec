@@ -16,9 +16,7 @@ Gem::Specification.new do |s|
     Philip White
     Peeyush Kumar
   )
-  s.date = "2013-08-05"
   s.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
-  s.email = "josh@joshsymonds.com"
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.markdown"
