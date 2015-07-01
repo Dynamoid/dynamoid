@@ -168,21 +168,26 @@ module Dynamoid
     def update!(conditions = {}, &block)
       run_callbacks(:update) do
         options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
-        new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions)) do |t|
-          if(self.class.attributes[:lock_version])
-            t.add(lock_version: 1)
-          end
 
-          yield t
+        begin
+          new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions)) do |t|
+            if(self.class.attributes[:lock_version])
+              t.add(lock_version: 1)
+            end
+
+            yield t
+          end
+          load(new_attrs)
+        rescue Dynamoid::Errors::ConditionalCheckFailedException
+          raise Dynamoid::Errors::StaleObjectError.new(self, 'update')
         end
-        load(new_attrs)
       end
     end
 
     def update(conditions = {}, &block)
       update!(conditions, &block)
       true
-    rescue Dynamoid::Errors::ConditionalCheckFailedException
+    rescue Dynamoid::Errors::StaleObjectError
       false
     end
 
@@ -265,11 +270,18 @@ module Dynamoid
           (conditions[:if] ||= {})[:lock_version] = changes[:lock_version][0] if(changes[:lock_version][0])
         end
 
-        Dynamoid::Adapter.write(self.class.table_name, self.dump, conditions)
-        @new_record = false
-        true
+        begin
+          Dynamoid::Adapter.write(self.class.table_name, self.dump, conditions)
+          @new_record = false
+          true
+        rescue Dynamoid::Errors::ConditionalCheckFailedException => e
+          if new_record?
+            raise Dynamoid::Errors::RecordNotUnique.new(e, self)
+          else
+            raise Dynamoid::Errors::StaleObjectError.new(self, 'persist')
+          end
+        end
       end
     end
   end
-
 end
