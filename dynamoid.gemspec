@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
     dynamoid.gemspec
     lib/dynamoid.rb
     lib/dynamoid/adapter.rb
-    lib/dynamoid/adapter/aws_sdk_v2.rb
+    lib/dynamoid/adapter_plugin/aws_sdk_v2.rb
     lib/dynamoid/associations.rb
     lib/dynamoid/associations/association.rb
     lib/dynamoid/associations/belongs_to.rb
