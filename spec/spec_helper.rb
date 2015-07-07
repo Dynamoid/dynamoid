@@ -38,10 +38,10 @@ RSpec.configure do |config|
   config.alias_it_should_behave_like_to :configured_with, "configured with"
 
   config.before(:each) do
-    Dynamoid::Adapter.list_tables.each do |table|
-      Dynamoid::Adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/
+    Dynamoid.adapter.list_tables.each do |table|
+      Dynamoid.adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/
     end
-    Dynamoid::Adapter.tables.clear
+    Dynamoid.adapter.tables.clear
   end
 end
 

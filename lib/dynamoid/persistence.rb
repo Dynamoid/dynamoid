@@ -43,7 +43,7 @@ module Dynamoid
           :range_key => range_key_hash
         }.merge(options)
 
-        Dynamoid::Adapter.create_table(options[:table_name], options[:id], options)
+        Dynamoid.adapter.create_table(options[:table_name], options[:id], options)
       end
 
       def from_database(attrs = {})
@@ -170,7 +170,7 @@ module Dynamoid
         options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
 
         begin
-          new_attrs = Dynamoid::Adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions)) do |t|
+          new_attrs = Dynamoid.adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions)) do |t|
             if(self.class.attributes[:lock_version])
               t.add(lock_version: 1)
             end
@@ -206,7 +206,7 @@ module Dynamoid
     # @since 0.2.0
     def delete
       options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
-      Dynamoid::Adapter.delete(self.class.table_name, self.hash_key, options)
+      Dynamoid.adapter.delete(self.class.table_name, self.hash_key, options)
     end
 
     # Dump this object's attributes into hash form, fit to be persisted into the datastore.
@@ -271,7 +271,7 @@ module Dynamoid
         end
 
         begin
-          Dynamoid::Adapter.write(self.class.table_name, self.dump, conditions)
+          Dynamoid.adapter.write(self.class.table_name, self.dump, conditions)
           @new_record = false
           true
         rescue Dynamoid::Errors::ConditionalCheckFailedException => e

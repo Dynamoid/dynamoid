@@ -135,7 +135,7 @@ describe Dynamoid::Finders do
     it 'passes options to the adapter' do
       pending "This test is broken as we are overriding the consistent_read option to true inside the adapter"
       user_ids = [%w(1 red), %w(1 green)]
-      Dynamoid::Adapter.expects(:read).with(anything, user_ids, :consistent_read => true)
+      Dynamoid.adapter.expects(:read).with(anything, user_ids, :consistent_read => true)
       User.find_all(user_ids, :consistent_read => true)
     end
 

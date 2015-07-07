@@ -1,5 +1,5 @@
 module Dynamoid
-  module Adapter
+  module AdapterPlugin
 
     # The AwsSdkV2 adapter provides support for the aws-sdk version 2 for ruby.
     class AwsSdkV2

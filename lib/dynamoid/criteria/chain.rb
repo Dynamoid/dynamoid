@@ -53,18 +53,18 @@ module Dynamoid #:nodoc:
         
         if key_present?
           ranges = []
-          Dynamoid::Adapter.query(source.table_name, range_query).collect do |hash| 
+          Dynamoid.adapter.query(source.table_name, range_query).collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym]
           end
           
-          Dynamoid::Adapter.delete(source.table_name, ids,{:range_key => ranges})
+          Dynamoid.adapter.delete(source.table_name, ids,{:range_key => ranges})
         else
-          Dynamoid::Adapter.scan(source.table_name, query, scan_opts).collect do |hash| 
+          Dynamoid.adapter.scan(source.table_name, query, scan_opts).collect do |hash|
             ids << hash[source.hash_key.to_sym]
           end
           
-          Dynamoid::Adapter.delete(source.table_name, ids)
+          Dynamoid.adapter.delete(source.table_name, ids)
         end   
       end
 
@@ -117,7 +117,7 @@ module Dynamoid #:nodoc:
 
       def records_via_query
         Enumerator.new do |yielder|
-          Dynamoid::Adapter.query(source.table_name, range_query).each do |hash|
+          Dynamoid.adapter.query(source.table_name, range_query).each do |hash|
             yielder.yield source.from_database(hash)
           end
         end
@@ -139,7 +139,7 @@ module Dynamoid #:nodoc:
         end
 
         Enumerator.new do |yielder|
-          Dynamoid::Adapter.scan(source.table_name, query, scan_opts).each do |hash|
+          Dynamoid.adapter.scan(source.table_name, query, scan_opts).each do |hash|
             yielder.yield source.from_database(hash)
           end
         end

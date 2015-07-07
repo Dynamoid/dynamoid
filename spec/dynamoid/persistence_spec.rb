@@ -6,13 +6,13 @@ describe Dynamoid::Persistence do
   context 'without AWS keys' do
     unless ENV['ACCESS_KEY'] && ENV['SECRET_KEY']
       before do
-        Dynamoid::Adapter.delete_table(Address.table_name) if Dynamoid::Adapter.list_tables.include?(Address.table_name)
+        Dynamoid.adapter.delete_table(Address.table_name) if Dynamoid.adapter.list_tables.include?(Address.table_name)
       end
 
       it 'creates a table' do
         Address.create_table(:table_name => Address.table_name)
 
-        expect(Dynamoid::Adapter.list_tables).to include 'dynamoid_tests_addresses'
+        expect(Dynamoid.adapter.list_tables).to include 'dynamoid_tests_addresses'
       end
 
       it 'checks if a table already exists' do
@@ -27,7 +27,7 @@ describe Dynamoid::Persistence do
   it 'assigns itself an id on save' do
     address.save
 
-    expect(Dynamoid::Adapter.read("dynamoid_tests_addresses", address.id)[:id]).to eq address.id
+    expect(Dynamoid.adapter.read("dynamoid_tests_addresses", address.id)[:id]).to eq address.id
   end
   
   it 'prevents concurrent writes to tables with a lock_version' do
@@ -46,7 +46,7 @@ describe Dynamoid::Persistence do
     address.id = 'test123'
     address.save
 
-    expect(Dynamoid::Adapter.read("dynamoid_tests_addresses", 'test123')).to_not be_empty
+    expect(Dynamoid.adapter.read("dynamoid_tests_addresses", 'test123')).to_not be_empty
   end
 
   it 'has a table name' do
@@ -57,7 +57,7 @@ describe Dynamoid::Persistence do
     @user = User.create(:name => 'Josh')
     @user.destroy
 
-    expect(Dynamoid::Adapter.read("dynamoid_tests_users", @user.id)).to be_nil
+    expect(Dynamoid.adapter.read("dynamoid_tests_users", @user.id)).to be_nil
   end
 
   it 'keeps string attributes as strings' do
