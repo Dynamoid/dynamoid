@@ -1,71 +1,67 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
-describe "Dynamoid::Associations::BelongsTo" do
+describe Dynamoid::Associations::BelongsTo do
   
   context 'has many' do
-    before do
-      @subscription = Subscription.create
-      @camel_case = CamelCase.create
-    end
-  
+    let!(:subscription) {Subscription.create}
+    let!(:camel_case) {CamelCase.create}
+
     it 'determines nil if it has no associated record' do
-      @subscription.magazine.should be_nil
+      expect(subscription.magazine).to be_nil
     end
 
     it 'determines target association correctly' do
-      @camel_case.magazine.send(:target_association).should == :camel_cases
+      expect(camel_case.magazine.send(:target_association)).to eq :camel_cases
     end
 
   
     it 'delegates equality to its source record' do
-      @magazine = @subscription.magazine.create
+      magazine = subscription.magazine.create
 
-      @subscription.magazine.should == @magazine
+      expect(subscription.magazine).to eq magazine
     end
   
     it 'associates has_many automatically' do
-      @magazine = @subscription.magazine.create
+      magazine = subscription.magazine.create
     
-      @magazine.subscriptions.should include @subscription
+      expect(magazine.subscriptions).to include subscription
 
-      @magazine = Magazine.create
-      @user = @magazine.owner.create
-      @user.books.size.should == 1
-      @user.books.should include @magazine
+      magazine = Magazine.create
+      user = magazine.owner.create
+      expect(user.books.size).to eq 1
+      expect(user.books).to include magazine
     end
     
     it 'behaves like the object it is trying to be' do
-      @magazine = @subscription.magazine.create
+      magazine = subscription.magazine.create
 
-      @subscription.magazine.update_attribute(:title, 'Test Title')
+      subscription.magazine.update_attribute(:title, 'Test Title')
 
-      Magazine.first.title.should == 'Test Title'
+      expect(Magazine.first.title).to eq 'Test Title'
     end
   end
   
   context 'has one' do
-    before do
-      @sponsor = Sponsor.create
-      @subscription = Subscription.create
-    end
-    
+    let(:sponsor) {Sponsor.create}
+    let!(:subscription) {Subscription.create}
+
     it 'determins nil if it has no associated record' do
-      @sponsor.magazine.should be_nil
+      expect(sponsor.magazine).to be_nil
     end
   
     it 'delegates equality to its source record' do
-      @magazine = @sponsor.magazine.create
+      magazine = sponsor.magazine.create
     
-      @sponsor.magazine.should == @magazine
+      expect(sponsor.magazine).to eq magazine
     end
   
     it 'associates has_one automatically' do
-      @magazine = @sponsor.magazine.create
+      magazine = sponsor.magazine.create
       
-      @magazine.sponsor.should == @sponsor
+      expect(magazine.sponsor).to eq sponsor
 
-      @user = @subscription.customer.create
-      @user.monthly.should == @subscription
+      user = subscription.customer.create
+      expect(user.monthly).to eq subscription
     end
   end
 end

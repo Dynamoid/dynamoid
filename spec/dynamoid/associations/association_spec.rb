@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
-describe "Dynamoid::Associations::Association" do
+describe Dynamoid::Associations::Association do
 
   it 'returns an empty array if there are no associations' do
     expect(Magazine.create.subscriptions).to be_empty

@@ -1,47 +1,44 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
-describe "Dynamoid::Associations::HasAndBelongsToMany" do
+describe Dynamoid::Associations::HasAndBelongsToMany do
+  let(:subscription) {Subscription.create}
+  let(:camel_case) {CamelCase.create}
 
-  before do
-    @subscription = Subscription.create
-    @camel_case = CamelCase.create
-  end
-  
   it 'determines equality from its records' do
-    @user = @subscription.users.create
+    user = subscription.users.create
     
-    @subscription.users.size.should == 1
-    @subscription.users.should include @user
+    expect(subscription.users.size).to eq 1
+    expect(subscription.users).to include user
   end
 
   it 'determines target association correctly' do
-    @subscription.users.send(:target_association).should == :subscriptions
-    @camel_case.subscriptions.send(:target_association).should == :camel_cases
+    expect(subscription.users.send(:target_association)).to eq :subscriptions
+    expect(camel_case.subscriptions.send(:target_association)).to eq :camel_cases
   end
   
   it 'determines target attribute' do
-    @subscription.users.send(:target_attribute).should == :subscriptions_ids
+    expect(subscription.users.send(:target_attribute)).to eq :subscriptions_ids
   end
   
   it 'associates has_and_belongs_to_many automatically' do
-    @user = @subscription.users.create
+    user = subscription.users.create
     
-    @user.subscriptions.size.should == 1
-    @user.subscriptions.should include @subscription
-    @subscription.users.size.should == 1
-    @subscription.users.should include @user
+    expect(user.subscriptions.size).to eq 1
+    expect(user.subscriptions).to include subscription
+    expect(subscription.users.size).to eq 1
+    expect(subscription.users).to include user
 
-    @user = User.create
-    @follower = @user.followers.create
-    @follower.following.should include @user
-    @user.followers.should include @follower
+    user = User.create
+    follower = user.followers.create
+    expect(follower.following).to include user
+    expect(user.followers).to include follower
   end
   
   it 'disassociates has_and_belongs_to_many automatically' do
-    @user = @subscription.users.create
+    user = subscription.users.create
     
-    @subscription.users.delete(@user)
-    @subscription.users.size.should == 0
-    @user.subscriptions.size.should == 0
+    subscription.users.delete(user)
+    expect(subscription.users.size).to eq 0
+    expect(user.subscriptions.size).to eq 0
   end
 end

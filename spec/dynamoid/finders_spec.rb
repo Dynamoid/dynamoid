@@ -1,32 +1,29 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe "Dynamoid::Finders" do
-
-  before do
-    @address = Address.create(:city => 'Chicago')
-  end
+describe Dynamoid::Finders do
+  let!(:address) { Address.create(:city => 'Chicago') }
 
   it 'finds an existing address' do
-    found = Address.find(@address.id)
+    found = Address.find(address.id)
 
-    found.should == @address
-    found.city.should == 'Chicago'
+    expect(found).to eq address
+    expect(found.city).to eq 'Chicago'
   end
 
   it 'is not a new object' do
-    found = Address.find(@address.id)
+    found = Address.find(address.id)
 
-    found.new_record.should_not be_truthy
+    expect(found.new_record).to be_falsey
   end
 
   it 'returns nil when nothing is found' do
-    Address.find('1234').should be_nil
+    expect(Address.find('1234')).to be_nil
   end
 
   it 'finds multiple ids' do
-    @address2 = Address.create(:city => 'Illinois')
+    address2 = Address.create(:city => 'Illinois')
 
-    Address.find(@address.id, @address2.id).should include @address, @address2
+    expect(Set.new(Address.find(address.id, address2.id))).to eq Set.new([address, address2])
   end
 
   # TODO: ATM, adapter sets consistent read to be true for all query. Provide option for setting consistent_read option
@@ -43,77 +40,77 @@ describe "Dynamoid::Finders" do
     it 'finds using method_missing for attributes' do
       array = Address.find_by_city('Chicago')
 
-      array.should == @address
+      expect(array).to eq address
     end
 
     it 'finds using method_missing for multiple attributes' do
-      @user = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      user = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
 
       array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com')
 
-      array.should == [@user]
+      expect(array).to eq [user]
     end
 
     it 'finds using method_missing for single attributes and multiple results' do
-      @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
-      @user2 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      user2 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
 
       array = User.find_all_by_name('Josh')
 
-      array.size.should == 2
-      array.should include @user1
-      array.should include @user2
+      expect(array.size).to eq 2
+      expect(array).to include user1
+      expect(array).to include user2
     end
 
     it 'finds using method_missing for multiple attributes and multiple results' do
-      @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
-      @user2 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      user2 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
 
       array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com')
 
-      array.size.should == 2
-      array.should include @user1
-      array.should include @user2
+      expect(array.size).to eq 2
+      expect(array).to include user1
+      expect(array).to include user2
     end
 
     it 'finds using method_missing for multiple attributes and no results' do
-      @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
-      @user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
+      user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
 
       array = User.find_all_by_name_and_email('Gaga','josh@joshsymonds.com')
 
-      array.should be_empty
+      expect(array).to be_empty
     end
 
     it 'finds using method_missing for a single attribute and no results' do
-      @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
-      @user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
+      user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
+      user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
 
       array = User.find_all_by_name('Gaga')
 
-      array.should be_empty
+      expect(array).to be_empty
     end
 
     it 'should find on a query that is not indexed' do
-      @user = User.create(:password => 'Test')
+      user = User.create(:password => 'Test')
 
       array = User.find_all_by_password('Test')
 
-      array.should == [@user]
+      expect(array).to eq [user]
     end
 
     it 'should find on a query on multiple attributes that are not indexed' do
-      @user = User.create(:password => 'Test', :name => 'Josh')
+      user = User.create(:password => 'Test', :name => 'Josh')
 
       array = User.find_all_by_password_and_name('Test', 'Josh')
 
-      array.should == [@user]
+      expect(array).to eq [user]
     end
 
     it 'should return an empty array when fields exist but nothing is found' do
       array = User.find_all_by_password('Test')
 
-      array.should be_empty
+      expect(array).to be_empty
     end
 
   end
@@ -131,11 +128,11 @@ describe "Dynamoid::Finders" do
     end
 
     it 'should return an empty array' do
-      User.find_all([]).should eq([])
+      expect(User.find_all([])).to eq([])
     end
 
     it 'returns empty array when there are no results' do
-      Address.find_all('bad' + @address.id.to_s).should eq []
+      expect(Address.find_all('bad' + address.id.to_s)).to eq []
     end
 
     it 'passes options to the adapter' do

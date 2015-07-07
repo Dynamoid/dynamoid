@@ -4,45 +4,43 @@ describe "Dynamoid::Criteria" do
   before(:all) do
     Magazine.create_table
   end
-  
-  before do
-    @user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
-    @user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
-  end
-  
+
+  let!(:user1) {User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')}
+  let!(:user2) {User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')}
+
   it 'finds first using where' do
-    User.where(:name => 'Josh').first.should == @user1
+    expect(User.where(:name => 'Josh').first).to eq user1
   end
   
   it 'finds all using where' do
-    User.where(:name => 'Josh').all.should == [@user1]
+    expect(User.where(:name => 'Josh').all).to eq [user1]
   end
   
   it 'returns all records' do
-    User.all.should =~ [@user1, @user2]
-    User.all.first.new_record.should be_falsey
+    expect(Set.new(User.all)).to eq Set.new([user1, user2])
+    expect(User.all.first.new_record).to be_falsey
   end
   
   it 'returns empty attributes for where' do
-    Magazine.where(:name => 'Josh').all.should == []
+    expect(Magazine.where(:name => 'Josh').all).to eq []
   end
   
   it 'returns empty attributes for all' do
-    Magazine.all.should == []
+    expect(Magazine.all).to eq []
   end
   
   it 'passes each to all members' do
     User.each do |u|
-      u.id.should == @user1.id || @user2.id
-      u.new_record.should be_false
+      expect(u.id == user1.id || u.id == user2.id).to be_truthy
+      expect(u.new_record).to be_falsey
     end
   end
 
   it 'returns n records' do
-    User.limit(1).size.should eq(1)
+    expect(User.limit(1).size).to eq(1)
     5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }
-    User.where(:name => 'Josh').all.size.should == 6
-    User.where(:name => 'Josh').limit(2).size.should == 2
+    expect(User.where(:name => 'Josh').all.size).to eq 6
+    expect(User.where(:name => 'Josh').limit(2).size).to eq 2
   end
 
   # TODO This test is broken using the AWS SDK adapter.

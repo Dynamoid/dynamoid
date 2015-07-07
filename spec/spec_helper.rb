@@ -33,6 +33,8 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require file }
 
 RSpec.configure do |config|
+  config.order = :random
+  config.raise_errors_for_deprecations!
   config.alias_it_should_behave_like_to :configured_with, "configured with"
 
   config.before(:each) do

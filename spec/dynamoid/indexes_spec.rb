@@ -3,7 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe "Dynamoid::Indexes" do
   
   it 'adds indexes to the index array' do
-    User.indexes.keys.should =~ [[:created_at], [:created_at, :name], [:email], [:email, :name], [:last_logged_in_at, :name], [:name]]
+    expect(Set.new(User.indexes.keys)).to eq Set.new([[:created_at], [:created_at, :name], [:email], [:email, :name], [:last_logged_in_at, :name], [:name]])
   end
   
   it 'saves indexes to their tables' do
