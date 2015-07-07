@@ -11,20 +11,6 @@ rescue Bundler::BundlerError => e
 end
 require 'rake'
 
-require 'jeweler'
-Jeweler::Tasks.new do |gem|
-  # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-  gem.name = "dynamoid"
-  gem.homepage = "http://github.com/Veraticus/Dynamoid"
-  gem.license = "MIT"
-  gem.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
-  gem.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
-  gem.email = "josh@joshsymonds.com"
-  gem.authors = ["Josh Symonds"]
-  # dependencies defined in Gemfile
-end
-Jeweler::RubygemsDotOrgTasks.new
-
 require 'rspec/core'
 require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new(:spec) do |spec|
@@ -36,31 +22,19 @@ RSpec::Core::RakeTask.new(:rcov) do |spec|
   spec.rcov = true
 end
 
-desc "Start fake_dynamo, run tests, cleanup" 
+desc "Start DynamoDBLocal, run tests, clean up"
 task :unattended_spec do |t|
-  require 'tmpdir'
-  require 'socket'
-
-  dir = Dir.mktmpdir
-  data_file = File.join(dir, "data.fdb")
-
-  #Launch fake_dynamo
-  pid = Process.spawn'fake_dynamo', '-d', data_file, err: '/dev/null', out: '/dev/null'
-  #Cleanup
-  at_exit {
-    Process.kill('TERM', pid)
-    FileUtils.rmtree(dir)
-  }
   
-  #Wait for fake_dynamo to start taking requests
-  40.downto(0) do |count| #Wait up to 2 seconds
-    begin
-      s = TCPSocket.new 'localhost', 4567
-      s.close
-      break
-    rescue Errno::ECONNREFUSED
-      raise if(count == 0)
-      sleep 0.1
+  if system('bin/start_dynamodblocal')
+    puts 'DynamoDBLocal started; proceeding with specs.'
+  else
+    raise 'Unable to start DynamoDBLocal.  Cannot run unattended specs.'
+  end
+
+  #Cleanup
+  at_exit do
+    unless system('bin/stop_dynamodblocal')
+      $stderr.puts 'Unable to cleanly stop DynamoDBLocal.'
     end
   end
   

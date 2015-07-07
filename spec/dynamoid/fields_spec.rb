@@ -1,121 +1,129 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe "Dynamoid::Fields" do
-
-  before do
-    @address = Address.new
-  end
+describe Dynamoid::Fields do
+  let(:address) { Address.new }
 
   it 'declares read attributes' do
-    @address.city.should be_nil
+    expect(address.city).to be_nil
   end
 
   it 'declares write attributes' do
-    @address.city = 'Chicago'
-    @address.city.should == 'Chicago'
+    address.city = 'Chicago'
+    expect(address.city).to eq 'Chicago'
   end
 
   it 'declares a query attribute' do
-    @address.city?.should be_false
+    expect(address.city?).to be_falsey
 
-    @address.city = 'Chicago'
+    address.city = 'Chicago'
 
-    @address.city?.should be_true
+    expect(address.city?).to be_truthy
   end
 
   it 'automatically declares id' do
-    lambda {@address.id}.should_not raise_error
+    expect{address.id}.to_not raise_error
   end
 
   it 'automatically declares and fills in created_at and updated_at' do
-    @address.save
+    address.save
 
-    @address = @address.reload
-    @address.created_at.should_not be_nil
-    @address.created_at.class.should == DateTime
-    @address.updated_at.should_not be_nil
-    @address.updated_at.class.should == DateTime
+    address.reload
+    expect(address.created_at).to_not be_nil
+    expect(address.created_at).to be_a DateTime
+    expect(address.updated_at).to_not be_nil
+    expect(address.updated_at).to be_a DateTime
   end
 
   context 'with a saved address' do
-    before do
-      @address = Address.create(:deliverable => true)
-      @original_id = @address.id
-    end
+    let(:address) { Address.create(deliverable: true) }
+    let(:original_id) { address.id }
 
     it 'should write an attribute correctly' do
-      @address.write_attribute(:city, 'Chicago')
+      address.write_attribute(:city, 'Chicago')
     end
 
     it 'should write an attribute with an alias' do
-      @address[:city] = 'Chicago'
+      address[:city] = 'Chicago'
     end
 
     it 'should read a written attribute' do
-      @address.write_attribute(:city, 'Chicago')
-      @address.read_attribute(:city).should == 'Chicago'
+      address.write_attribute(:city, 'Chicago')
+      expect(address.read_attribute(:city)).to eq 'Chicago'
     end
 
     it 'should read a written attribute with the alias' do
-      @address.write_attribute(:city, 'Chicago')
-      @address[:city].should == 'Chicago'
+      address.write_attribute(:city, 'Chicago')
+      expect(address[:city]).to eq 'Chicago'
     end
 
     it 'should update all attributes' do
-      @address.expects(:save).once.returns(true)
-      @address.update_attributes(:city => 'Chicago')
-      @address[:city].should == 'Chicago'
-      @address.id.should == @original_id
+      expect(address).to receive(:save).once.and_return(true)
+      address.update_attributes(:city => 'Chicago')
+      expect(address[:city]).to eq 'Chicago'
+      expect(address.id).to eq original_id
     end
 
     it 'should update one attribute' do
-      @address.expects(:save).once.returns(true)
-      @address.update_attribute(:city, 'Chicago')
-      @address[:city].should == 'Chicago'
-      @address.id.should == @original_id
+      expect(address).to receive(:save).once.and_return(true)
+      address.update_attribute(:city, 'Chicago')
+      expect(address[:city]).to eq 'Chicago'
+      expect(address.id).to eq original_id
     end
 
     it 'should update only created_at when no params are passed' do
-      @initial_updated_at = @address.updated_at
-      @address.update_attributes([])
-      @address.updated_at.should_not == @initial_updated_at
+      initial_updated_at = address.updated_at
+      address.update_attributes([])
+      expect(address.updated_at).to_not eq initial_updated_at
     end
 
     it 'adds in dirty methods for attributes' do
-      @address.city = 'Chicago'
-      @address.save
+      address.city = 'Chicago'
+      address.save
 
-      @address.city = 'San Francisco'
+      address.city = 'San Francisco'
 
-      @address.city_was.should == 'Chicago'
+      expect(address.city_was).to eq 'Chicago'
     end
 
     it 'returns all attributes' do
-      Address.attributes.should == {:id=>{:type=>:string}, :created_at=>{:type=>:datetime}, :updated_at=>{:type=>:datetime}, :city=>{:type=>:string}, :options=>{:type=>:serialized}, :deliverable => {:type => :boolean}, :lock_version => {:type => :integer}}
+      expect(Address.attributes).to eq({:id=>{:type=>:string}, :created_at=>{:type=>:datetime}, :updated_at=>{:type=>:datetime}, :city=>{:type=>:string}, :options=>{:type=>:serialized}, :deliverable => {:type => :boolean}, :lock_version => {:type => :integer}})
     end
   end
 
   it "gives a warning when setting a single value larger than the maximum item size" do
-    Dynamoid.logger.expects(:warn).with(regexp_matches(/city field has a length of 66000/))
+    expect(Dynamoid.logger).to receive(:warn) do |input|
+      expect(input).to include "city field has a length of 66000"
+    end
     Address.new city: ("Ten chars " * 6_600)
   end
 
   context '.remove_attribute' do
-    subject { @address }
+    subject { address }
     before(:each) do
       Address.field :foobar
       Address.remove_field :foobar
     end
 
-    it('should not be in the attributes hash') { Address.attributes.should_not have_key(:foobar) }
-    it('removes the accessor') { should_not respond_to(:foobar)  }
-    it('removes the writer')   { should_not respond_to(:foobar=) }
-    it('removes the interrogative') { should_not respond_to(:foobar?) }
+    it 'should not be in the attributes hash' do
+      expect(Address.attributes).to_not have_key(:foobar)
+    end
+
+    it 'removes the accessor' do
+      expect(subject).to_not respond_to(:foobar)
+    end
+
+    it 'removes the writer' do
+      expect(subject).to_not respond_to(:foobar=)
+    end
+
+    it 'removes the interrogative' do
+      expect(subject).to_not respond_to(:foobar?)
+    end
   end
 
   context 'default values for fields' do
-    before do
-      @clazz = Class.new do
+    let(:doc) do
+      Class.new do
         include Dynamoid::Document
 
         field :name, :string, :default => 'x'
@@ -124,32 +132,29 @@ describe "Dynamoid::Fields" do
         def self.name
           'Document'
         end
-      end
-
-
-      @doc = @clazz.new
+      end.new
     end
 
     it 'returns default value' do
-      @doc.name.should eq('x')
-      @doc.uid.should eq(42)
+      expect(doc.name).to eq('x')
+      expect(doc.uid).to eq(42)
     end
 
     it 'should save default value' do
-      @doc.save!
-      @doc.reload.name.should eq('x')
-      @doc.uid.should eq(42)
+      doc.save!
+      expect(doc.reload.name).to eq('x')
+      expect(doc.uid).to eq(42)
     end
   end
 
   context 'single table inheritance' do
     it "has only base class fields on the base class" do
-      Vehicle.attributes.keys.to_set.should == Set.new([:type, :description, :created_at, :updated_at, :id])
+      expect(Vehicle.attributes.keys.to_set).to eq Set.new([:type, :description, :created_at, :updated_at, :id])
     end
 
     it "has only the base and derived fields on a sub-class" do
       #Only NuclearSubmarines have torpedoes
-      Car.attributes.should_not have_key(:torpedoes)
+      expect(Car.attributes).to_not have_key(:torpedoes)
     end
   end
 

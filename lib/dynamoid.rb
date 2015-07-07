@@ -1,6 +1,7 @@
 require "delegate"
 require "time"
 require "securerandom"
+require "active_support"
 require "active_support/core_ext"
 require 'active_support/json'
 require "active_support/inflector"

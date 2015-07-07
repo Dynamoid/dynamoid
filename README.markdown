@@ -15,82 +15,52 @@ But if you want a fast, scalable, simple, easy-to-use database (and a Gem that s
 Installing Dynamoid is pretty simple. First include the Gem in your Gemfile:
 
 ```ruby
-gem 'dynamoid'
+gem 'dynamoid', '~> 1'
 ```
 ## Prerequisities
 
-Dynamoid depends on  the aws-sdk, and this is tested on the current version of aws-sdk (1.6.9), rails 3.2.8.
+Dynamoid depends on the aws-sdk, and this is tested on the current version of aws-sdk (~> 2), rails (~> 4).
 Hence the configuration as needed for aws to work will be dealt with by aws setup.
 
 Here are the steps to setup aws-sdk.
 
 ```ruby
-gem 'aws-sdk'
+gem 'aws-sdk', '~>2'
 ```
+
 (or) include the aws-sdk in your Gemfile.
 
+**NOTE:** Dynamoid-1.0 doesn't support aws-sdk Version 1 (Use Dynamoid Major Version 0 for aws-sdk 1)   
 
-[Refer this link for aws setup](https://github.com/amazonwebservices/aws-sdk-for-ruby)
+Configure AWS access:
+[Reference](https://github.com/aws/aws-sdk-ruby)
 
-1. Just like the config/database.yml this file requires an entry for each environment, create config/aws.yml as follows:
+For example, to configure AWS access:
 
-Fill in your AWS Access Key ID and Secret Access Key
-
-```ruby
-
-
-  development: &development
-    access_key_id: REPLACE_WITH_ACCESS_KEY_ID
-    secret_access_key: REPLACE_WITH_SECRET_ACCESS_KEY
-    dynamo_db_endpoint:  dynamodb.ap-southeast-1.amazonaws.com
-
-  test:
-    <<: *development
-
-  production:
-    <<: *development
-
-```
-
-(or)
-
-
-2. Create config/initializers/aws.rb as follows:
+Create config/initializers/aws.rb as follows:
 
 ```ruby
 
-#Additionally include any of the dynamodb paramters as needed.
-#(eg: if you would like to change the dynamodb endpoint, then add the parameter in
-# in the file  aws.yml or aws.rb
-
- AWS.config({
-    :access_key_id => 'REPLACE_WITH_ACCESS_KEY_ID',
-    :secret_access_key => 'REPLACE_WITH_SECRET_ACCESS_KEY',
-    :dynamo_db_endpoint => 'dynamodb.ap-southeast-1.amazonaws.com'
+  Aws.config.update({
+    region: 'us-west-2',
+    credentials: Aws::Credentials.new('REPLACE_WITH_ACCESS_KEY_ID', 'REPLACE_WITH_SECRET_ACCESS_KEY'),
   })
-
 
 ```
 
 For a full list of the DDB regions, you can go
 [here](http://docs.aws.amazon.com/general/latest/gr/rande.html#ddb_region).
 
-
-Refer to the documentation of the AWS module at the below link for all of the configuration options supported by DynamoDB.
-
-[Module AWS](http://docs.amazonwebservices.com/AWSRubySDK/latest/frames.html#!http%3A//docs.amazonwebservices.com/AWSRubySDK/latest/AWS.html)
-
 Then you need to initialize Dynamoid config to get it going. Put code similar to this somewhere (a Rails initializer would be a great place for this if you're using Rails):
 
 ```ruby
   Dynamoid.configure do |config|
-    config.adapter = 'aws_sdk' # This adapter establishes a connection to the DynamoDB servers using Amazon's own AWS gem.
+    config.adapter = 'aws_sdk_v2' # This adapter establishes a connection to the DynamoDB servers using Amazon's own AWS gem.
     config.namespace = "dynamoid_app_development" # To namespace tables created by Dynamoid from other tables you might have.
     config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table.
-    config.partitioning = true # Spread writes randomly across the database. See "partitioning" below for more.
-    config.partition_size = 200  # Determine the key space size that writes are randomly spread across.
     config.read_capacity = 100 # Read capacity for your tables
     config.write_capacity = 20 # Write capacity for your tables
+    config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html). 
   end
 
 ```
@@ -305,14 +275,6 @@ User.where("created_at.lt" => DateTime.now - 1.day).all
 
 It also supports .gte and .lte. Turning those into symbols and allowing a Rails SQL-style string syntax is in the works. You can only have one range argument per query, because of DynamoDB's inherent limitations, so use it sensibly!
 
-## Partitioning, Provisioning, and Performance
-
-DynamoDB achieves much of its speed by relying on a random pattern of writes and reads: internally, hash keys are distributed across servers, and reading from two consecutive servers is much faster than reading from the same server twice. Of course, many of our applications request one key (like a commonly used role, a superuser, or a very popular product) much more frequently than other keys. In DynamoDB, this will result in lowered throughput and slower response times, and is a design pattern we should try to avoid.
-
-Dynamoid attempts to obviate this problem transparently by employing a partitioning strategy to divide up keys randomly across DynamoDB's servers. Each ID is assigned an additional number (by default 0 to 199, but you can increase the partition size in Dynamoid's configuration) upon save; when read, all 200 hashes are retrieved simultaneously and the most recently updated one is returned to the application. This results in a significant net performance increase, and is usually invisible to the application itself. It does, however, bring up the important issue of provisioning your DynamoDB tables correctly.
-
-When your read or write throughput exceed your table's allowed provisioning, DynamoDB will wait on connections until throughput is available again. This will appear as very, very slow requests and can be somewhat frustrating. Partitioning significantly increases the amount of throughput tables will experience; though DynamoDB will ignore keys that don't exist, if you have 20 partitioned keys representing one object, all will be retrieved every time the object is requested. Ensure that your tables are set up for this kind of throughput, or turn provisioning off, to make sure that DynamoDB doesn't throttle your requests.
-
 ## Concurrency
 
 Dynamoid supports basic, ActiveRecord-like optimistic locking on save operations. Simply add a `lock_version` column to your table like so: 
@@ -329,7 +291,12 @@ end
 
 In this example, all saves to `MyTable` will raise an `AWS::DynamoDB::Errors::ConditionalCheckFailedException` if a concurrent process loaded, edited, and saved the same row. Your code should trap this exception, reload the row (so that it will pick up the newest values), and try the save again. 
 
-Calls to `update` and `update!` also increment the `lock_version`, however they do not check the existing value. This guarantees that a update operation will raise an exception in a concurrent save operation, however a save operation will never cause an update to fail. Thus, `update` is useful & safe only for doing atomic operations (e.g. increment a value, add/remove from a set, etc), but should not be used in a read-modify-write pattern. 
+Calls to `update` and `update!` also increment the `lock_version`, however they do not check the existing value. This guarantees that a update operation will raise an exception in a concurrent save operation, however a save operation will never cause an update to fail. Thus, `update` is useful & safe only for doing atomic operations (e.g. increment a value, add/remove from a set, etc), but should not be used in a read-modify-write pattern.
+ 
+## TODOS
+1. Tranparent Partitioning of DynamoDB
+
+DynamoDB achieves much of its speed by relying on a random pattern of writes and reads: internally, hash keys are distributed across servers, and reading from two consecutive servers is much faster than reading from the same server twice. Of course, many of our applications request one key (like a commonly used role, a superuser, or a very popular product) much more frequently than other keys. In DynamoDB, this will result in lowered throughput and slower response times, and is a design pattern we should try to avoid. Dynamoid should be employing a partitioning strategy to divide up keys randomly across DynamoDB's servers. Each ID can be assigned an additional number (by default 0 to 199, which can be increased in Dynamoid's configuration) upon save; when read, all 200 hashes will be retrieved simultaneously and the most recently updated one will be returned to the application. This will result in a significant net performance increase, and will be invisible to the application itself.
 
 ## Credits
 
@@ -344,10 +311,12 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 * [Jason Dew](https://github.com/jasondew)
 * [Luis Arias](https://github.com/luisantonioa)
 * [Stefan Neculai](https://github.com/stefanneculai)
+* [Philip White](https://github.com/philipmw)
+* [Peeyush Kumar](https://github.com/peeyush1234)
 
 ## Running the tests
 
-Running the tests is fairly simple. In one window, run `fake_dynamo --port 4567`, and in the other, use `rake`.
+Running the tests is fairly simple. In one window, run `bin/start_dynamodblocal`, and in the other, use `rake`.
 
 [![Build Status](https://travis-ci.org/Dynamoid/Dynamoid.svg)](https://travis-ci.org/Dynamoid/Dynamoid)
 

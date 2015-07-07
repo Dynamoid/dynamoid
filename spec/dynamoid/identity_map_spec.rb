@@ -13,22 +13,22 @@ describe "Dynamoid::IdentityMap" do
     it 'maintains a single object' do
       tweet = Tweet.create(:tweet_id => "x", :group => "one")
       tweet1 = Tweet.where(:tweet_id => "x", :group => "one").first
-      tweet.should equal(tweet1)
+      expect(tweet).to equal(tweet1)
     end
   end
 
   context 'cache' do
     it 'uses cache' do
       tweet = Tweet.create(:tweet_id => "x", :group => "one")
-      Dynamoid::Adapter.expects(:read).never
+      expect(Dynamoid::Adapter).to receive(:read).never
       tweet1 = Tweet.find_by_id("x", :range_key => "one")
-      tweet.should equal(tweet1)
+      expect(tweet).to equal(tweet1)
     end
 
     it 'clears cache on delete' do
       tweet = Tweet.create(:tweet_id => "x", :group => "one")
       tweet.delete
-      Tweet.find_by_id("x", :range_key => "one").should be_nil
+      expect(Tweet.find_by_id("x", :range_key => "one")).to be_nil
     end
   end
 
@@ -37,9 +37,9 @@ describe "Dynamoid::IdentityMap" do
       Tweet.create(:tweet_id => "x", :group => "one")
       Tweet.create(:tweet_id => "x", :group => "two")
 
-      Tweet.identity_map.size.should eq(2)
+      expect(Tweet.identity_map.size).to eq(2)
       Dynamoid::IdentityMap.clear
-      Tweet.identity_map.size.should eq(0)
+      expect(Tweet.identity_map.size).to eq(0)
     end
   end
 end

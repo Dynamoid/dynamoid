@@ -1,8 +1,8 @@
 language: ruby
-gemfile:
-  - Gemfile
-  - Gemfile_activemodel4
 rvm:
-  - 1.9.3
-  - 2.1.6
+  - ruby-1.9.3-p551
+  - ruby-2.2.2
+  - jruby-1.7.11
+  - jruby-head
+  - rbx-2
 script: bundle exec rake unattended_spec
