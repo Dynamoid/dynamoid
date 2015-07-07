@@ -6,9 +6,4 @@ describe "Dynamoid" do
     expect(User.new.books).to eq([])
   end
 
-  it "doesn't connect automatically when configured" do
-    expect(Dynamoid::Adapter).to receive(:reconnect!).never
-    Dynamoid.configure { |config| nil }
-  end
-
 end

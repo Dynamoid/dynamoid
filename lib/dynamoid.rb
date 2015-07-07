@@ -29,7 +29,7 @@ module Dynamoid
   extend self
 
   MAX_ITEM_SIZE = 65_536
-  
+
   def configure
     block_given? ? yield(Dynamoid::Config) : Dynamoid::Config
   end
@@ -42,5 +42,8 @@ module Dynamoid
   def included_models
     @included_models ||= []
   end
-  
+
+  def adapter
+    @adapter ||= Adapter.new
+  end
 end

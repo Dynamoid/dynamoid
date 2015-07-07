@@ -152,6 +152,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency(%q<activemodel>, ["~> 4"])
   s.add_runtime_dependency(%q<aws-sdk-resources>, ["~> 2"])
+  s.add_runtime_dependency(%q<concurrent-ruby>, ["~> 0.9"])
   s.add_development_dependency(%q<rake>, [">= 0"])
   s.add_development_dependency(%q<rspec>, ["~> 3"])
   s.add_development_dependency(%q<bundler>, [">= 0"])
