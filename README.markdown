@@ -247,10 +247,10 @@ u.addresses.where(:city => 'Chicago').all
 
 But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.
 
-You can also limit returned results, or select a record from which to start, to support pagination:
+You can also limit the number of evaluated records, or select a record from which to start, to support pagination:
 
 ```ruby
-Address.limit(5).start(address) # Only 5 addresses.
+Address.eval_limit(5).start(address) # Only 5 addresses.
 ```
 
 For large queries that return many rows, Dynamoid can use AWS' support for requesting documents in batches:

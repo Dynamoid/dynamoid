@@ -144,7 +144,11 @@ describe Dynamoid::Criteria::Chain do
       chain.query = { :tweet_id => "x" }
       expect(chain.send(:records_with_range).to_a.size).to eq 2
       expect(chain.all.size).to eq 2
-      expect(chain.limit(1).size).to eq 1
+    end
+
+    it 'limits evaluated records' do
+      chain.query = {}
+      expect(chain.eval_limit(1).count).to eq 1
     end
 
     it 'finds tweets with a start' do
