@@ -53,21 +53,21 @@ describe Dynamoid::Criteria::Chain do
 
   it 'finds records with an index' do
     chain.query = {:name => 'Josh'}
-    expect(chain.send(:records_with_index)).to eq user
+    expect(chain.send(:records_with_index)).to eq [user]
 
     chain.query = {:email => 'josh@joshsymonds.com'}
-    expect(chain.send(:records_with_index)).to eq user
+    expect(chain.send(:records_with_index)).to eq [user]
 
     chain.query = {:name => 'Josh', :email => 'josh@joshsymonds.com'}
-    expect(chain.send(:records_with_index)).to eq user
+    expect(chain.send(:records_with_index)).to eq [user]
   end
 
   it 'returns records with an index for a ranged query' do
     chain.query = {:name => 'Josh', "created_at.gt" => time - 1.day}
-    expect(chain.send(:records_with_index)).to eq user
+    expect(chain.send(:records_with_index)).to eq [user]
 
     chain.query = {:name => 'Josh', "created_at.lt" => time + 1.day}
-    expect(chain.send(:records_with_index)).to eq user
+    expect(chain.send(:records_with_index)).to eq [user]
   end
 
   it 'finds records without an index' do
