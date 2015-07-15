@@ -3,11 +3,7 @@ module Dynamoid
     extend ActiveSupport::Concern
 
     def self.clear
-      models.each { |m| m.identity_map.clear }
-    end
-
-    def self.models
-      Dynamoid::Config.included_models
+      Dynamoid.included_models.each { |m| m.identity_map.clear }
     end
 
     module ClassMethods

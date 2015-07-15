@@ -13,7 +13,7 @@ module Dynamoid #:nodoc:
       self.read_only_attributes = []
       self.base_class = self
 
-      Dynamoid::Config.included_models << self
+      Dynamoid.included_models << self
     end
 
     module ClassMethods

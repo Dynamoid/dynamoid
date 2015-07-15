@@ -24,7 +24,6 @@ module Dynamoid
     option :endpoint, :default => nil
     option :use_ssl, :default => true
     option :port, :default => '443'
-    option :included_models, :default => []
     option :identity_map, :default => false
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
