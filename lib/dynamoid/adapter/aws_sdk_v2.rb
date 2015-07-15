@@ -104,9 +104,9 @@ module Dynamoid
       # @since 1.0.0
       def create_table(table_name, key = :id, options = {})
         Dynamoid.logger.info "Creating #{table_name} table. This could take a while."
-        read_capacity = options.delete(:read_capacity) || Dynamoid::Config.read_capacity
-        write_capacity = options.delete(:write_capacity) || Dynamoid::Config.write_capacity
-        range_key = options.delete(:range_key)
+        read_capacity = options[:read_capacity] || Dynamoid::Config.read_capacity
+        write_capacity = options[:write_capacity] || Dynamoid::Config.write_capacity
+        range_key = options[:range_key]
         
         key_schema = [
           { attribute_name: key.to_s, key_type: HASH_KEY }
@@ -176,7 +176,7 @@ module Dynamoid
         table    = describe_table(table_name)
         range_key = options.delete(:range_key)
 
-        item = client.get_item(table_name: table_name, 
+        item = client.get_item(table_name: table_name,
           key: key_stanza(table, key, range_key)
         )[:item]
         item ? result_item_to_hash(item) : nil
@@ -257,7 +257,7 @@ module Dynamoid
       # @option opts [Number] :range_gte find range keys greater than or equal to this
       # @option opts [Number] :range_lte find range keys less than or equal to this
       #
-      # @return [Enumerator] an iterator of all matching items
+      # @return [Enumerable] matching items
       #
       # @since 1.0.0
       #
@@ -307,6 +307,7 @@ module Dynamoid
 
         Enumerator.new { |y|
           result = client.query(q)
+
           result.items.each { |r|
             y << result_item_to_hash(r)
           }
@@ -330,7 +331,7 @@ module Dynamoid
       # @param [String] table_name the name of the table
       # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
       #
-      # @return [Enumerator] an iterator of all matching items
+      # @return [Enumerable] matching items
       #
       # @since 1.0.0
       #
@@ -354,6 +355,7 @@ module Dynamoid
           # Batch loop, pulls multiple requests until done using the start_key
           loop do
             results = client.scan(request)
+
             results.data[:items].each { |row| y << result_item_to_hash(row) }
 
             if((lk = results[:last_evaluated_key]) && batch)
