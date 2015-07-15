@@ -42,12 +42,6 @@ describe Dynamoid::Persistence do
     expect { a2.save! }.to raise_exception(Dynamoid::Errors::ConditionalCheckFailedException)
   end
   
-  configured_with 'partitioning' do
-    it 'raises an error when attempting to use optimistic locking' do
-      expect { address.save! }.to raise_exception
-    end
-  end
-  
   it 'assigns itself an id on save only if it does not have one' do
     address.id = 'test123'
     address.save

@@ -210,12 +210,5 @@ describe Dynamoid::Criteria::Chain do
     it 'returns all results' do
       expect(chain.batch(2).all.to_a.size).to eq tweets.size
     end
-
-    it 'throws exception if partitioning is used with batching' do
-      previous_value = Dynamoid::Config.partitioning
-      Dynamoid::Config.partitioning = true
-      expect { chain.batch(2) }.to raise_error
-      Dynamoid::Config.partitioning = previous_value
-    end
   end
 end

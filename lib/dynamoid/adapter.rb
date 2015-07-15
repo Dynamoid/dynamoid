@@ -42,7 +42,7 @@ module Dynamoid
       return result
     end
 
-    # Write an object to the adapter. Partition it to a randomly selected key first if necessary.
+    # Write an object to the adapter.
     #
     # @param [String] table the name of the table to write the object to
     # @param [Object] object the object itself
@@ -52,22 +52,19 @@ module Dynamoid
     #
     # @since 0.2.0
     def self.write(table, object, options = nil)
-      if Dynamoid::Config.partitioning? && object[:id]
-        object[:id] = "#{object[:id]}.#{Random.rand(Dynamoid::Config.partition_size)}"
-        object[:updated_at] = Time.now.to_f
-      end
       put_item(table, object, options)
     end
 
-    # Read one or many keys from the selected table. This method intelligently calls batch_get or get on the underlying adapter depending on
-    # whether ids is a range or a single key: additionally, if partitioning is enabled, it batch_gets all keys in the partition space
-    # automatically. Finally, if a range key is present, it will also interpolate that into the ids so that the batch get will acquire the
-    # correct record.
+    # Read one or many keys from the selected table.
+    # This method intelligently calls batch_get or get on the underlying adapter
+    # depending on whether ids is a range or a single key.
+    # If a range key is present, it will also interpolate that into the ids so
+    # that the batch get will acquire the correct record.
     #
     # @param [String] table the name of the table to write the object to
     # @param [Array] ids to fetch, can also be a string of just one id
     # @param [Hash] options: Passed to the underlying query. The :range_key option is required whenever the table has a range key,
-    #                        unless multiple ids are passed in and Dynamoid::Config.partitioning? is turned off.
+    #                        unless multiple ids are passed in.
     #
     # @since 0.2.0
     def self.read(table, ids, options = {})
@@ -75,25 +72,14 @@ module Dynamoid
 
       if ids.respond_to?(:each)
         ids = ids.collect{|id| range_key ? [id, range_key] : id}
-        if Dynamoid::Config.partitioning?
-          results = batch_get_item({table => id_with_partitions(ids)}, options)
-          {table => result_for_partition(results[table],table)}
-        else
-          batch_get_item({table => ids}, options)
-        end
+        batch_get_item({table => ids}, options)
       else
-        if Dynamoid::Config.partitioning?
-          ids = range_key ? [[ids, range_key]] : ids
-          results = batch_get_item({table => id_with_partitions(ids)}, options)
-          result_for_partition(results[table],table).first
-        else
-          options[:range_key] = range_key if range_key
-          get_item(table, ids, options)
-        end
+        options[:range_key] = range_key if range_key
+        get_item(table, ids, options)
       end
     end
 
-    # Delete an item from a table. If partitioning is turned on, deletes all partitioned keys as well.
+    # Delete an item from a table.
     #
     # @param [String] table the name of the table to write the object to
     # @param [Array] ids to delete, can also be a string of just one id
@@ -109,18 +95,9 @@ module Dynamoid
           ids = range_key ? [[ids, range_key]] : ids
         end
         
-        if Dynamoid::Config.partitioning?
-          batch_delete_item(table => id_with_partitions(ids))
-        else
-          batch_delete_item(table => ids)
-        end
+        batch_delete_item(table => ids)
       else
-        if Dynamoid::Config.partitioning?
-          ids = range_key ? [[ids, range_key]] : ids
-          batch_delete_item(table => id_with_partitions(ids))
-        else
-          delete_item(table, ids, options)
-        end
+        delete_item(table, ids, options)
       end
     end
 
@@ -131,12 +108,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def self.scan(table, query, opts = {})
-      if Dynamoid::Config.partitioning?
-        results = benchmark('Scan', table, query) {adapter.scan(table, query, opts)}
-        result_for_partition(results,table)
-      else
-        benchmark('Scan', table, query) {adapter.scan(table, query, opts)}
-      end
+      benchmark('Scan', table, query) {adapter.scan(table, query, opts)}
     end
 
     [:batch_get_item, :create_table, :delete_item, :delete_table, :get_item, :list_tables, :put_item].each do |m|
@@ -148,74 +120,6 @@ module Dynamoid
       end
     end
 
-    # Takes a list of ids and returns them with partitioning added. If an array of arrays is passed, we assume the second key is the range key
-    # and pass it in unchanged.
-    #
-    # @example Partition id 1
-    #   Dynamoid::Adapter.id_with_partitions(['1']) # ['1.0', '1.1', '1.2', ..., '1.199']
-    # @example Partition id 1 and range_key 1.0
-    #   Dynamoid::Adapter.id_with_partitions([['1', 1.0]]) # [['1.0', 1.0], ['1.1', 1.0], ['1.2', 1.0], ..., ['1.199', 1.0]]
-    #
-    # @param [Array] ids array of ids to partition
-    #
-    # @since 0.2.0
-    def id_with_partitions(ids)
-      Array(ids).collect {|id| (0...Dynamoid::Config.partition_size).collect{|n| id.is_a?(Array) ? ["#{id.first}.#{n}", id.last] : "#{id}.#{n}"}}.flatten(1)
-    end
-    
-    #Get original id (hash_key) and partiton number from a hash_key
-    #
-    # @param [String] id the id or hash_key of a record, ex. xxxxx.13
-    #
-    # @return [String,String] original_id and the partition number, ex original_id = xxxxx partition = 13
-    def get_original_id_and_partition id
-      partition = id.split('.').last
-      id = id.split(".#{partition}").first
-
-      return id, partition
-    end
-
-    # Takes an array of query results that are partitioned, find the most recently updated ones that share an id and range_key, and return only the most recently updated. Compares each result by
-    # their id and updated_at attributes; if the updated_at is the greatest, then it must be the correct result.
-    #
-    # @param [Array] returned partitioned results from a query
-    # @param [String] table_name the name of the table
-    #
-    # @since 0.2.0
-    def result_for_partition(results, table_name)
-      table = @adapter.get_table(table_name)
-      if table.range_key
-        range_key_name = table.range_key.name.to_sym
-        
-        final_hash = {}
-
-        results.each do |record|
-          test_record = final_hash[record[range_key_name]]
-          
-          if test_record.nil? || ((record[range_key_name] == test_record[range_key_name]) && (record[:updated_at] > test_record[:updated_at]))
-            #get ride of our partition and put it in the array with the range key
-            record[:id], partition = get_original_id_and_partition  record[:id]
-            final_hash[record[range_key_name]] = record
-          end
-        end
-  
-        return final_hash.values
-      else
-        {}.tap do |hash|
-          Array(results).each do |result|
-            next if result.nil?
-            #Need to find the value of id with out the . and partition number
-            id, partition = get_original_id_and_partition result[:id]
-  
-            if !hash[id] || (result[:updated_at] > hash[id][:updated_at])
-              result[:id] = id
-              hash[id] = result
-            end
-          end
-        end.values
-      end
-    end
-
     # Delegate all methods that aren't defind here to the underlying adapter.
     #
     # @since 0.2.0
@@ -223,10 +127,10 @@ module Dynamoid
       return benchmark(method, *args) {adapter.send(method, *args, &block)} if @adapter.respond_to?(method)
       super
     end
-    
+
     # Query the DynamoDB table. This employs DynamoDB's indexes so is generally faster than scanning, but is
     # only really useful for range queries, since it can only find by one hash key at once. Only provide
-    # one range key to the hash. If paritioning is on, will run a query for every parition and join the results
+    # one range key to the hash.
     #
     # @param [String] table_name the name of the table
     # @param [Hash] opts the options to query the table with
@@ -241,30 +145,6 @@ module Dynamoid
     #
     def self.query(table_name, opts = {})
       @adapter.query(table_name, opts)
-
-      # TODO: Commenting out the code as partitioning doesn't work. Look into the AWS docs and
-      # fizx partitioning code
-      #unless Dynamoid::Config.partitioning?
-        #no paritioning? just pass to the standard query method
-
-      #else
-        #get all the hash_values that could be possible
-        #ids = id_with_partitions(opts[:hash_value])
-
-        #lets not overwrite with the original options
-        #modified_options = opts.clone
-        #results = []
-        
-        #loop and query on each of the partition ids
-        #ids.each do |id|
-          #modified_options[:hash_value] = id
-
-          #query_result = adapter.query(table_name, modified_options)
-          #results += query_result.inject([]){|array, result| array += [result]} if query_result.any?
-        #end
-
-        #result_for_partition results, table_name
-      #end
     end
   end
 end

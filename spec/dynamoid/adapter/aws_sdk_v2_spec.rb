@@ -21,20 +21,12 @@ describe Dynamoid::Adapter::AwsSdkV2 do
   end
 
   #
-  # Returns a random key parition if partitioning is on, or an empty string if
-  # it is off, useful for shared examples where partitioning may or may not be on
-  #
-  def key_partition
-    Dynamoid::Config.partitioning? ? ".#{Random.rand(Dynamoid::Config.partition_size)}" : ''
-  end
-
-  #
   # Tests adapter against ranged tables
   #
   shared_examples 'range queries' do
     before do
-      Dynamoid::Adapter.put_item(test_table3, {:id => "1#{key_partition}", :range => 1.0})
-      Dynamoid::Adapter.put_item(test_table3, {:id => "1#{key_partition}", :range => 3.0})
+      Dynamoid::Adapter.put_item(test_table3, {:id => "1", :range => 1.0})
+      Dynamoid::Adapter.put_item(test_table3, {:id => "1", :range => 3.0})
     end
 
     it 'performs query on a table with a range and selects items in a range' do
@@ -67,13 +59,12 @@ describe Dynamoid::Adapter::AwsSdkV2 do
   #
   shared_examples 'correct ordering' do
     before(:each) do
-      pending "Order is not preserved on paritioned tables" if(Dynamoid::Config.partitioning?)
-      Dynamoid::Adapter.put_item(test_table4, {:id => "1#{key_partition}", :order => 1, :range => 1.0})
-      Dynamoid::Adapter.put_item(test_table4, {:id => "1#{key_partition}", :order => 2, :range => 2.0})
-      Dynamoid::Adapter.put_item(test_table4, {:id => "1#{key_partition}", :order => 3, :range => 3.0})
-      Dynamoid::Adapter.put_item(test_table4, {:id => "1#{key_partition}", :order => 4, :range => 4.0})
-      Dynamoid::Adapter.put_item(test_table4, {:id => "1#{key_partition}", :order => 5, :range => 5.0})
-      Dynamoid::Adapter.put_item(test_table4, {:id => "1#{key_partition}", :order => 6, :range => 6.0})
+      Dynamoid::Adapter.put_item(test_table4, {:id => "1", :order => 1, :range => 1.0})
+      Dynamoid::Adapter.put_item(test_table4, {:id => "1", :order => 2, :range => 2.0})
+      Dynamoid::Adapter.put_item(test_table4, {:id => "1", :order => 3, :range => 3.0})
+      Dynamoid::Adapter.put_item(test_table4, {:id => "1", :order => 4, :range => 4.0})
+      Dynamoid::Adapter.put_item(test_table4, {:id => "1", :order => 5, :range => 5.0})
+      Dynamoid::Adapter.put_item(test_table4, {:id => "1", :order => 6, :range => 6.0})
     end
 
     it 'performs query on a table with a range and selects items less than that is in the correct order, scan_index_forward true' do
@@ -299,10 +290,6 @@ describe Dynamoid::Adapter::AwsSdkV2 do
     it_behaves_like 'correct ordering'
   end
   
-  context 'with a preexisting table with paritioning' do
-    # TODO: write partitioning specs when dynamo partitioning is working
-  end
-
   # DescribeTable
 
   # UpdateItem
