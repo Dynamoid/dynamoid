@@ -119,24 +119,6 @@ You can optionally set a default value on a field using either a plain value or 
   field :joined_at, :datetime, {default: ->(){Time.now}}
 ```
 
-### Indexes
-
-You can also define indexes on fields, combinations of fields, and one range field. Yes, only one range field: in DynamoDB tables can have at most one range index, so make good use of it! To make an index, just specify the fields you want it on, either single or in an array. If the entire index is a range, pass ```:range => true```. Otherwise, pass the attribute that will become the range key. The only range attributes you can use right now are integers, floats, and datetimes. If you pass a string as a range key likely DynamoDB will complain a lot.
-
-```ruby
-class User
-  include Dynamoid::Document
-
-  ...
-
-  index :name
-  index :email
-  index [:name, :email]
-  index :created_at, :range => true
-  index :name, :range_key => :joined_at
-
-end
-
 ### Associations
 
 Just like in ActiveRecord (or your other favorite ORM), Dynamoid uses associations to create links between models.
@@ -221,7 +203,7 @@ Save forces persistence to the datastore: a unique ID is also assigned, but it i
 u.id # => "3a9f7216-4726-4aea-9fbc-8554ae9292cb"
 ```
 
-Along with persisting the model's attributes, indexes are automatically updated on save. To use associations, you use association methods very similar to ActiveRecord's:
+To use associations, you use association methods very similar to ActiveRecord's:
 
 ```ruby
 address = u.addresses.create

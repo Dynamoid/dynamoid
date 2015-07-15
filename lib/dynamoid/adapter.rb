@@ -1,8 +1,10 @@
 # encoding: utf-8
 module Dynamoid
 
-  # Adapter provides a generic, write-through class that abstracts variations in the underlying connections to provide a uniform response
-  # to Dynamoid.
+  # Adapter's value-add:
+  # 1) For the rest of Dynamoid, the gateway to DynamoDB.
+  # 2) Allows switching `config.adapter` to ease development of a new adapter.
+  # 3) Caches the list of tables Dynamoid knows about.
   module Adapter
     def self.tables
       @tables
@@ -111,7 +113,14 @@ module Dynamoid
       benchmark('Scan', table, query) {adapter.scan(table, query, opts)}
     end
 
-    [:batch_get_item, :create_table, :delete_item, :delete_table, :get_item, :list_tables, :put_item].each do |m|
+    def self.create_table(table_name, key, options = {})
+      if !tables.include?(table_name)
+        benchmark('Create Table') { adapter.create_table(table_name, key, options) }
+        tables << table_name
+      end
+    end
+
+    [:batch_get_item, :delete_item, :delete_table, :get_item, :list_tables, :put_item].each do |m|
       # Method delegation with benchmark to the underlying adapter. Faster than relying on method_missing.
       #
       # @since 0.2.0

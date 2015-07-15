@@ -42,16 +42,7 @@ module Dynamoid
           :range_key => range_key_hash
         }.merge(options)
 
-        return true if table_exists?(options[:table_name])
-
-        Dynamoid::Adapter.tables << options[:table_name] if Dynamoid::Adapter.create_table(options[:table_name], options[:id], options)
-      end
-
-      # Does a table with this name exist?
-      #
-      # @since 0.2.0
-      def table_exists?(table_name)
-        Dynamoid::Adapter.tables ? Dynamoid::Adapter.tables.include?(table_name) : false
+        Dynamoid::Adapter.create_table(options[:table_name], options[:id], options)
       end
 
       def from_database(attrs = {})
@@ -156,7 +147,7 @@ module Dynamoid
     # @since 0.2.0
     def save(options = {})
       self.class.create_table
-      
+
       if new_record?
         conditions = { :unless_exists => [self.class.hash_key]}
         conditions[:unless_exists] << range_key if(range_key)
@@ -205,11 +196,10 @@ module Dynamoid
       self
     end
 
-    # Delete this object from the datastore and all indexes.
+    # Delete this object from the datastore.
     #
     # @since 0.2.0
     def delete
-      delete_indexes
       options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
       Dynamoid::Adapter.delete(self.class.table_name, self.hash_key, options)
     end
@@ -254,8 +244,7 @@ module Dynamoid
       end
     end
     
-    # Persist the object into the datastore. Assign it an id first if it doesn't have one; then afterwards,
-    # save its indexes.
+    # Persist the object into the datastore. Assign it an id first if it doesn't have one.
     #
     # @since 0.2.0
     def persist(conditions = nil)
@@ -277,7 +266,6 @@ module Dynamoid
         end
 
         Dynamoid::Adapter.write(self.class.table_name, self.dump, conditions)
-        save_indexes
         @new_record = false
         true
       end

@@ -41,10 +41,6 @@ describe Dynamoid::Finders do
   #end
 
   context 'with users' do
-    before do
-      User.create_indexes
-    end
-
     it 'finds using method_missing for attributes' do
       array = Address.find_by_city('Chicago')
 
@@ -116,6 +112,7 @@ describe Dynamoid::Finders do
     end
 
     it 'should return an empty array when fields exist but nothing is found' do
+      User.create_table
       array = User.find_all_by_password('Test')
 
       expect(array).to be_empty

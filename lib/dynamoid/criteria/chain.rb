@@ -3,10 +3,9 @@ module Dynamoid #:nodoc:
   module Criteria
 
     # The criteria chain is equivalent to an ActiveRecord relation (and realistically I should change the name from
-    # chain to relation). It is a chainable object that builds up a query and eventually executes it either on an index
-    # or by a full table scan.
+    # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
     class Chain
-      attr_accessor :query, :source, :index, :values, :consistent_read
+      attr_accessor :query, :source, :values, :consistent_read
       include Enumerable
 
       # Create a new criteria chain.
@@ -52,7 +51,7 @@ module Dynamoid #:nodoc:
       def destroy_all
         ids = []
         
-        if range?
+        if key_present?
           ranges = []
           Dynamoid::Adapter.query(source.table_name, range_query).collect do |hash| 
             ids << hash[source.hash_key.to_sym]
@@ -60,41 +59,6 @@ module Dynamoid #:nodoc:
           end
           
           Dynamoid::Adapter.delete(source.table_name, ids,{:range_key => ranges})
-        elsif index
-          #TODO: test this throughly and find a way to delete all index table records for one source record
-          if index.range_key?
-            results = Dynamoid::Adapter.query(index.table_name, index_query.merge(consistent_opts))
-          else
-            results = Dynamoid::Adapter.read(index.table_name, index_query[:hash_value], consistent_opts)
-          end
-          
-          results.collect do |hash| 
-            ids << hash[source.hash_key.to_sym]
-            index_ranges << hash[source.range_key.to_sym]
-          end
-        
-          unless ids.nil? || ids.empty?
-            ids = ids.to_a
-  
-            if @start
-              ids = ids.drop_while { |id| id != @start.hash_key }.drop(1)
-              index_ranges = index_ranges.drop_while { |range| range != @start.hash_key }.drop(1) unless index_ranges.nil?
-            end
-  
-            if @limit           
-              ids = ids.take(@limit) 
-              index_ranges = index_ranges.take(@limit)
-            end
-            
-            Dynamoid::Adapter.delete(source.table_name, ids)
-            
-            if index.range_key?
-              Dynamoid::Adapter.delete(index.table_name, ids,{:range_key => index_ranges})
-            else
-              Dynamoid::Adapter.delete(index.table_name, ids)
-            end
-            
-          end
         else
           Dynamoid::Adapter.scan(source.table_name, query, scan_opts).collect do |hash| 
             ids << hash[source.hash_key.to_sym]
@@ -143,53 +107,15 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def records
-        results = if range?
-          records_with_range
-        elsif index
-          records_with_index
+        results = if key_present?
+          records_via_query
         else
-          records_without_index
+          records_via_scan
         end
         @batch_size ? results : Array(results)
       end
 
-      # If the query matches an index on the associated class, then this method will retrieve results from the index table.
-      #
-      # @return [Enumerator] an iterator of the found records.
-      #
-      # @since 0.2.0
-      def records_with_index
-        Dynamoid.logger.warn 'We ignore eval_limit on index queries.' if @limit
-
-        ids = ids_from_index
-        if ids.nil? || ids.empty?
-          [].to_enum
-        else
-          ids = ids.to_a
-
-          if @start
-            ids = ids.drop_while { |id| id != @start.hash_key }.drop(1)
-          end
-
-          source.find(ids, consistent_opts)
-        end
-      end
-
-      # Returns the Set of IDs from the index table.
-      #
-      # @return [Set] a Set containing the IDs from the index.
-      def ids_from_index
-        if index.range_key?
-          Dynamoid::Adapter.query(index.table_name, index_query.merge(consistent_opts)).inject(Set.new) do |all, record|
-            all + Set.new(record[:ids])
-          end
-        else
-          results = Dynamoid::Adapter.read(index.table_name, index_query[:hash_value], consistent_opts)
-          results ? results[:ids] : []
-        end
-      end
-
-      def records_with_range
+      def records_via_query
         Enumerator.new do |yielder|
           Dynamoid::Adapter.query(source.table_name, range_query).each do |hash|
             yielder.yield source.from_database(hash)
@@ -202,7 +128,7 @@ module Dynamoid #:nodoc:
       # @return [Enumerator] an iterator of the found records.
       #
       # @since 0.2.0
-      def records_without_index
+      def records_via_scan
         if Dynamoid::Config.warn_on_scan
           Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
           Dynamoid.logger.warn "You can index this query by adding this to #{source.to_s.downcase}.rb: index [#{source.attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
@@ -215,26 +141,6 @@ module Dynamoid #:nodoc:
         Enumerator.new do |yielder|
           Dynamoid::Adapter.scan(source.table_name, query, scan_opts).each do |hash|
             yielder.yield source.from_database(hash)
-          end
-        end
-      end
-
-      # Format the provided query so that it can be used to query results from DynamoDB.
-      #
-      # @return [Hash] a hash with keys of :hash_value and :range_value
-      #
-      # @since 0.2.0
-      def index_query
-        values = index.values(query)
-        {}.tap do |hash|
-          hash[:hash_value] = values[:hash_value]
-          if index.range_key?
-            key = query.keys.find{|k| k.to_s.include?('.')}
-            if key
-              hash.merge!(range_hash(key))
-            else
-              raise Dynamoid::Errors::MissingRangeKey, 'This index requires a range key'
-            end
           end
         end
       end
@@ -266,22 +172,12 @@ module Dynamoid #:nodoc:
         opts.merge(query_opts).merge(consistent_opts)
       end
 
-      # Return an index that fulfills all the attributes the criteria is querying, or nil if none is found.
-      #
-      # @since 0.2.0
-      def index
-        index = source.find_index(query_keys)
-        return nil if index.blank?
-        index
-      end
-
       def query_keys
         query.keys.collect{|k| k.to_s.split('.').first}
       end
 
-      # Use range query only when [hash_key] or [hash_key, range_key] is specified in query keys.
-      def range?
-        return false unless query_keys.include?(source.hash_key.to_s) or query_keys.include?(source.range_key.to_s)
+      # [hash_key] or [hash_key, range_key] is specified in query keys.
+      def key_present?
         query_keys == [source.hash_key.to_s] || (query_keys.to_set == [source.hash_key.to_s, source.range_key.to_s].to_set)
       end
 
