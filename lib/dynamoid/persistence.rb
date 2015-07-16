@@ -1,3 +1,4 @@
+require 'bigdecimal'
 require 'securerandom'
 require 'yaml'
 
@@ -63,8 +64,7 @@ module Dynamoid
         end
       end
 
-      # Undump a value for a given type. Given a string, it'll determine (based on the type provided) whether to turn it into a
-      # string, integer, float, set, array, datetime, or serialized return value.
+      # Undump a string value for a given type.
       #
       # @since 0.2.0
       def undump_field(value, options)
@@ -79,8 +79,8 @@ module Dynamoid
           value.to_s
         when :integer
           value.to_i
-        when :float
-          value.to_f
+        when :number
+          BigDecimal.new(value.to_s)
         when :set, :array
           if value.is_a?(Set) || value.is_a?(Array)
             value
@@ -115,7 +115,7 @@ module Dynamoid
 
       def dynamo_type(type)
         case type
-        when :integer, :float, :datetime
+        when :integer, :number, :datetime
           :number
         when :string, :serialized
           :string
@@ -227,8 +227,8 @@ module Dynamoid
         !value.nil? ? value.to_s : nil
       when :integer
         !value.nil? ? Integer(value) : nil
-      when :float
-        !value.nil? ? value.to_f : nil
+      when :number
+        !value.nil? ? value.to_s : nil
       when :set
         !value.nil? ? Set.new(value) : nil
       when :array

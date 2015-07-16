@@ -86,7 +86,14 @@ describe Dynamoid::Fields do
     end
 
     it 'returns all attributes' do
-      expect(Address.attributes).to eq({:id=>{:type=>:string}, :created_at=>{:type=>:datetime}, :updated_at=>{:type=>:datetime}, :city=>{:type=>:string}, :options=>{:type=>:serialized}, :deliverable => {:type => :boolean}, :lock_version => {:type => :integer}})
+      expect(Address.attributes).to eq({id: {type: :string},
+                                        created_at: {type: :datetime},
+                                        updated_at: {type: :datetime},
+                                        city: {type: :string},
+                                        options: {type: :serialized},
+                                        deliverable: {type: :boolean},
+                                        latitude: {type: :number},
+                                        lock_version: {type: :integer}})
     end
   end
 
@@ -144,6 +151,32 @@ describe Dynamoid::Fields do
       doc.save!
       expect(doc.reload.name).to eq('x')
       expect(doc.uid).to eq(42)
+    end
+  end
+
+  describe 'deprecated :float field type' do
+    let(:doc) do
+      Class.new do
+        include Dynamoid::Document
+
+        field :distance_m, :float
+
+        def self.name
+          'Document'
+        end
+      end.new
+    end
+
+    it 'acts as a :number field' do
+      doc.distance_m = 5.33
+      doc.save!
+      doc.reload
+      expect(doc.distance_m).to eq 5.33
+    end
+
+    it 'warns' do
+      expect(Dynamoid.logger).to receive(:warn).with(/deprecated/)
+      doc
     end
   end
 

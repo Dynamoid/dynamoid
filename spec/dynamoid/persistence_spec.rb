@@ -91,6 +91,18 @@ describe Dynamoid::Persistence do
     expect(Address.undump(address.send(:dump))[:options]).to eq hash
   end
 
+  it 'dumps and undumps an integer in number field' do
+    expect(Address.undump(Address.new(latitude: 123).send(:dump))[:latitude]).to eq 123
+  end
+
+  it 'dumps and undumps a float in number field' do
+    expect(Address.undump(Address.new(latitude: 123.45).send(:dump))[:latitude]).to eq 123.45
+  end
+
+  it 'dumps and undumps a BigDecimal in number field' do
+    expect(Address.undump(Address.new(latitude: BigDecimal.new(123.45, 3)).send(:dump))[:latitude]).to eq 123
+  end
+
   it 'supports empty containers in `serialized` fields' do
     u = User.create(name: 'Philip')
     u.favorite_colors = Set.new
