@@ -34,12 +34,12 @@ describe Dynamoid::Persistence do
     address.save!
     a1 = address
     a2 = Address.find(address.id)
-    
+
     a1.city = 'Seattle'
     a2.city = 'San Francisco'
     
     a1.save!
-    expect { a2.save! }.to raise_exception(Dynamoid::Errors::ConditionalCheckFailedException)
+    expect { a2.save! }.to raise_exception(Dynamoid::Errors::StaleObjectError)
   end
   
   it 'assigns itself an id on save only if it does not have one' do
@@ -186,7 +186,7 @@ describe Dynamoid::Persistence do
         t1.save
         expect do
           t2.save!
-        end.to raise_exception Dynamoid::Errors::ConditionalCheckFailedException
+        end.to raise_exception Dynamoid::Errors::RecordNotUnique
       end
     end
   end
@@ -269,7 +269,7 @@ describe Dynamoid::Persistence do
         @tweet.update!(:if => { :count => 5 }) do |t|
           t.add(:count => 3)
         end
-      end.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
+      end.to raise_error(Dynamoid::Errors::StaleObjectError)
     end
     
     it 'prevents concurrent saves to tables with a lock_version' do
@@ -280,7 +280,7 @@ describe Dynamoid::Persistence do
       expect do
         address.city = "Seattle"
         address.save!
-      end.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
+      end.to raise_error(Dynamoid::Errors::StaleObjectError)
     end
 
   end

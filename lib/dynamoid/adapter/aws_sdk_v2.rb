@@ -192,23 +192,24 @@ module Dynamoid
       #
       # @todo Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#update_item-instance_method
       def update_item(table_name, key, options = {})
-          range_key = options.delete(:range_key)
-          conditions = options.delete(:conditions)
-          table = describe_table(table_name)
-          
-          yield(iu = ItemUpdater.new(table, key, range_key))
+        range_key = options.delete(:range_key)
+        conditions = options.delete(:conditions)
+        table = describe_table(table_name)
 
-          raise "non-empty options: #{options}" unless options.empty?
+        yield(iu = ItemUpdater.new(table, key, range_key))
+
+        raise "non-empty options: #{options}" unless options.empty?
+        begin
           result = client.update_item(table_name: table_name,
             key: key_stanza(table, key, range_key),
             attribute_updates: iu.to_h,
             expected: expected_stanza(conditions),
             return_values: "ALL_NEW"
           )
-        result_item_to_hash(result[:attributes])
-
-      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException
-        raise Dynamoid::Errors::ConditionalCheckFailedException
+          result_item_to_hash(result[:attributes])
+        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
+          raise Dynamoid::Errors::ConditionalCheckFailedException, e
+        end
       end
 
       # List all tables on DynamoDB.
@@ -236,12 +237,14 @@ module Dynamoid
           item[k.to_s] = v
         end
 
-        client.put_item(table_name: table_name,
-          item: item,
-          expected: expected_stanza(options)
-        )
-      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
-        raise Errors::ConditionalCheckFailedException
+        begin
+          client.put_item(table_name: table_name,
+            item: item,
+            expected: expected_stanza(options)
+          )
+        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
+          raise Dynamoid::Errors::ConditionalCheckFailedException, e
+        end
       end
 
       # Query the DynamoDB table. This employs DynamoDB's indexes so is generally faster than scanning, but is
