@@ -26,14 +26,6 @@ describe Dynamoid::Finders do
     expect(Set.new(Address.find(address.id, address2.id))).to eq Set.new([address, address2])
   end
 
-  it 'returns array if passed in array' do
-    expect(Address.find([address.id])).to eq [address]
-  end
-
-  it 'returns object if non array id is passed in' do
-    expect(Address.find(address.id)).to eq address
-  end
-
   # TODO: ATM, adapter sets consistent read to be true for all query. Provide option for setting consistent_read option
   #it 'sends consistent option to the adapter' do
   #  expects(Dynamoid::Adapter).to receive(:get_item).with { |table_name, key, options| options[:consistent_read] == true }
