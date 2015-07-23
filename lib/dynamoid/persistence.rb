@@ -68,59 +68,69 @@ module Dynamoid
       #
       # @since 0.2.0
       def undump_field(value, options)
-        if value.nil? && (default_value = options[:default])
-          value = default_value.respond_to?(:call) ? default_value.call : default_value
-        else
-          return if value.nil? || (value.respond_to?(:empty?) && value.empty?)
-        end
+        if (field_class = options[:type]).is_a?(Class)
+          raise 'Dynamoid class-type fields do not support default values' if options[:default]
 
-        case options[:type]
-        when :string
-          value.to_s
-        when :integer
-          value.to_i
-        when :number
-          BigDecimal.new(value.to_s)
-        when :set, :array
-          if value.is_a?(Set) || value.is_a?(Array)
-            value
-          else
-            Set[value]
+          if field_class.respond_to?(:dynamoid_load)
+            field_class.dynamoid_load(value)
           end
-        when :datetime
-          if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
-            value
-          else
-            Time.at(value).to_datetime
-          end
-        when :serialized
+        elsif options[:type] == :serialized
           if value.is_a?(String)
             options[:serializer] ? options[:serializer].load(value) : YAML.load(value)
           else
             value
           end
-        when :boolean
-          # persisted as 't', but because undump is called during initialize it can come in as true
-          if value == 't' || value == true
-            true
-          elsif value == 'f' || value == false
-            false
-          else
-            raise ArgumentError, "Boolean column neither true nor false"
-          end
         else
-          raise ArgumentError, "Unknown type #{options[:type]}"
+          if value.nil? && (default_value = options[:default])
+            value = default_value.respond_to?(:call) ? default_value.call : default_value
+          end
+
+          if !value.nil?
+            case options[:type]
+              when :string
+                value.to_s
+              when :integer
+                Integer(value)
+              when :number
+                BigDecimal.new(value.to_s)
+              when :array
+                value.to_a
+              when :set
+                Set.new(value)
+              when :datetime
+                if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
+                  value
+                else
+                  Time.at(value).to_datetime
+                end
+              when :boolean
+                # persisted as 't', but because undump is called during initialize it can come in as true
+                if value == 't' || value == true
+                  true
+                elsif value == 'f' || value == false
+                  false
+                else
+                  raise ArgumentError, "Boolean column neither true nor false"
+                end
+              else
+                raise ArgumentError, "Unknown type #{options[:type]}"
+            end
+          end
         end
       end
 
       def dynamo_type(type)
-        case type
-        when :integer, :number, :datetime
-          :number
-        when :string, :serialized
-          :string
+        if type.is_a?(Class)
+          type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
         else
-          raise 'unknown type'
+          case type
+            when :integer, :number, :datetime
+              :number
+            when :string, :serialized
+              :string
+            else
+              raise 'unknown type'
+          end
         end
       end
 
@@ -227,25 +237,35 @@ module Dynamoid
     #
     # @since 0.2.0
     def dump_field(value, options)
-      case options[:type]
-      when :string
-        !value.nil? ? value.to_s : nil
-      when :integer
-        !value.nil? ? Integer(value) : nil
-      when :number
-        !value.nil? ? value.to_s : nil
-      when :set
-        !value.nil? ? Set.new(value) : nil
-      when :array
-        !value.nil? ? value : nil
-      when :datetime
-        !value.nil? ? value.to_time.to_f : nil
-      when :serialized
-        options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
-      when :boolean
-        !value.nil? ? value.to_s[0] : nil
+      if (field_class = options[:type]).is_a?(Class)
+        if value.respond_to?(:dynamoid_dump)
+          value.dynamoid_dump
+        elsif field_class.respond_to?(:dynamoid_dump)
+          field_class.dynamoid_dump(value)
+        else
+          raise ArgumentError, "Neither #{field_class} nor #{value} support serialization for Dynamoid."
+        end
       else
-        raise ArgumentError, "Unknown type #{options[:type]}"
+        case options[:type]
+          when :string
+            !value.nil? ? value.to_s : nil
+          when :integer
+            !value.nil? ? Integer(value) : nil
+          when :number
+            !value.nil? ? value : nil
+          when :set
+            !value.nil? ? Set.new(value) : nil
+          when :array
+            !value.nil? ? value : nil
+          when :datetime
+            !value.nil? ? value.to_time.to_f : nil
+          when :serialized
+            options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
+          when :boolean
+            !value.nil? ? value.to_s[0] : nil
+          else
+            raise ArgumentError, "Unknown type #{options[:type]}"
+        end
       end
     end
     

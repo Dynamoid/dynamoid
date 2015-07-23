@@ -30,6 +30,8 @@ MODELS = File.join(File.dirname(__FILE__), "app/models")
 # in ./support/ and its subdirectories.
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
+Dir["#{File.dirname(__FILE__)}/app/field_types/*.rb"].each {|f| require f}
+
 Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require file }
 
 RSpec.configure do |config|
