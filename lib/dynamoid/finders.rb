@@ -21,10 +21,12 @@ module Dynamoid
                   else
                     {}
                   end
+        expects_array = ids.first.kind_of?(Array)
 
         ids = Array(ids.flatten.uniq)
         if ids.count == 1
-          self.find_by_id(ids.first, options)
+          result = self.find_by_id(ids.first, options)
+          expects_array ? Array(result) : result
         else
           find_all(ids)
         end
