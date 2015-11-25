@@ -70,5 +70,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency(%q<yard>, [">= 0"])
   s.add_development_dependency(%q<github-markup>, [">= 0"])
   s.add_development_dependency(%q<pry>, [">= 0"])
+  s.add_development_dependency(%q<coveralls>, [">= 0"])
 end
 
