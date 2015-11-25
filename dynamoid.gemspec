@@ -54,7 +54,7 @@ Gem::Specification.new do |s|
     lib/dynamoid/persistence.rb
     lib/dynamoid/validations.rb
   )
-  s.homepage = "http://github.com/Veraticus/Dynamoid"
+  s.homepage = "http://github.com/Dynamoid/Dynamoid"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
   s.rubygems_version = "1.8.24"
