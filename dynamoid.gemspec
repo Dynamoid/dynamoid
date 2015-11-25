@@ -5,17 +5,17 @@ Gem::Specification.new do |s|
   s.version = "1.0.0"
 
   # Keep in sync with README
-  s.authors = %w(
-    Josh Symonds
-    Logan Bowers
-    Craig Heneveld
-    Anatha Kumaran
-    Jason Dew
-    Luis Arias
-    Stefan Neculai
-    Philip White
-    Peeyush Kumar
-  )
+  s.authors = [
+    'Josh Symonds',
+    'Logan Bowers',
+    'Craig Heneveld',
+    'Anatha Kumaran',
+    'Jason Dew',
+    'Luis Arias',
+    'Stefan Neculai',
+    'Philip White',
+    'Peeyush Kumar',
+  ]
   s.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   s.extra_rdoc_files = [
     "LICENSE.txt",
@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   ]
   # file list is generated with `git ls-files | grep -v -E -e '^spec/' -e '^\.' -e 'bin/'`
   s.files = %w(
+    CHANGELOG.md
     Gemfile
     LICENSE.txt
     README.markdown
