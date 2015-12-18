@@ -65,7 +65,7 @@ module Dynamoid
         results = client.batch_get_item(
           request_items: request_items
         )
-        
+
         ret = Hash.new([].freeze) # Default for tables where no rows are returned
         results.data[:responses].each do |table, rows|
           ret[table] = rows.collect { |r| result_item_to_hash(r) }
@@ -107,14 +107,14 @@ module Dynamoid
         read_capacity = options[:read_capacity] || Dynamoid::Config.read_capacity
         write_capacity = options[:write_capacity] || Dynamoid::Config.write_capacity
         range_key = options[:range_key]
-        
+
         key_schema = [
           { attribute_name: key.to_s, key_type: HASH_KEY }
         ]
-        key_schema << { 
+        key_schema << {
           attribute_name: range_key.keys.first.to_s, key_type: RANGE_KEY
         } if(range_key)
-        
+
         #TODO: Provide support for number and binary hash key
         attribute_definitions = [
           { attribute_name: key.to_s, attribute_type: 'S' }
@@ -122,10 +122,10 @@ module Dynamoid
         attribute_definitions << {
           attribute_name: range_key.keys.first.to_s, attribute_type: api_type(range_key.values.first)
         } if(range_key)
-        
+
         client.create_table(table_name: table_name,
           provisioned_throughput: {
-            read_capacity_units: read_capacity, 
+            read_capacity_units: read_capacity,
             write_capacity_units: write_capacity
           },
           key_schema: key_schema,
@@ -144,9 +144,17 @@ module Dynamoid
       # @since 1.0.0
       #
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#delete_item-instance_method
-      def delete_item(table_name, key, options = nil)
+      def delete_item(table_name, key, options = {})
+        range_key = options[:range_key]
+        conditions = options[:conditions]
         table = describe_table(table_name)
-        client.delete_item(table_name: table_name, key: key_stanza(table, key, options && options[:range_key]))
+        client.delete_item(
+          table_name: table_name,
+          key: key_stanza(table, key, range_key),
+          expected: expected_stanza(conditions)
+        )
+      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
+        raise Dynamoid::Errors::ConditionalCheckFailedException, e
       end
 
       # Deletes an entire table from DynamoDB.
@@ -231,7 +239,7 @@ module Dynamoid
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#put_item-instance_method
       def put_item(table_name, object, options = nil)
         item = {}
-        
+
         object.each do |k, v|
           next if v.nil? || (v.respond_to?(:empty?) && v.empty?)
           item[k.to_s] = v
@@ -342,10 +350,10 @@ module Dynamoid
       def scan(table_name, scan_hash, select_opts = {})
         limit = select_opts.delete(:limit)
         batch = select_opts.delete(:batch_size)
-        
+
         request = { table_name: table_name }
         request[:limit] = batch || limit if batch || limit
-        request[:scan_filter] = scan_hash.reduce({}) do |memo, kvp| 
+        request[:scan_filter] = scan_hash.reduce({}) do |memo, kvp|
           memo[kvp[0].to_s] = {
             attribute_value_list: [kvp[1]],
             # TODO: Provide support for all comparison operators
@@ -369,7 +377,7 @@ module Dynamoid
           end
         end
       end
-      
+
 
       #
       # Truncates all records in the given table
@@ -381,7 +389,7 @@ module Dynamoid
         table = describe_table(table_name)
         hk    = table.hash_key
         rk    = table.range_key
-        
+
         scan(table_name, {}, {}).each do |attributes|
           opts = {range_key: attributes[rk.to_sym] } if rk
           delete_item(table_name, attributes[hk], opts)
@@ -393,7 +401,7 @@ module Dynamoid
       end
 
       protected
-      
+
       STRING_TYPE  = "S".freeze
       NUM_TYPE     = "N".freeze
       BOOLEAN_TYPE = "B".freeze
@@ -418,7 +426,7 @@ module Dynamoid
         key[table.range_key.to_s] = range_key if range_key
         key
       end
-      
+
       #
       # @param [Hash] conditions Conditions to enforce on operation (e.g. { :if => { :count => 5 }, :unless_exists => ['id']})
       # @return an Expected stanza for the given conditions hash
@@ -426,20 +434,20 @@ module Dynamoid
       def expected_stanza(conditions = nil)
         expected = Hash.new { |h,k| h[k] = {} }
         return expected unless conditions
-        
+
         conditions[:unless_exists].try(:each) do |col|
           expected[col.to_s][:exists] = false
         end
         conditions[:if].try(:each) do |col,val|
           expected[col.to_s][:value] = val
         end
-        
+
         expected
       end
-      
+
       HASH_KEY  = "HASH".freeze
       RANGE_KEY = "RANGE".freeze
-      
+
       #
       # New, semi-arbitrary API to get data on the table
       #
@@ -448,7 +456,7 @@ module Dynamoid
           table_cache[table_name] = Table.new(client.describe_table(table_name: table_name).data)
         end
       end
-      
+
       #
       # Converts a hash returned by get_item, scan, etc. into a key-value hash
       #
@@ -457,35 +465,35 @@ module Dynamoid
           item.each { |k,v| r[k.to_sym] = v }
         end
       end
-      
+
       #
       # Represents a table. Exposes data from the "DescribeTable" API call, and also
       # provides methods for coercing values to the proper types based on the table's schema data
       #
       class Table
         attr_reader :schema
-        
+
         #
         # @param [Hash] schema Data returns from a "DescribeTable" call
         #
         def initialize(schema)
           @schema = schema[:table]
         end
-        
+
         def range_key
           @range_key ||= schema[:key_schema].find { |d| d[:key_type] == RANGE_KEY }.try(:attribute_name)
         end
-        
+
         def range_type
-          range_type ||= schema[:attribute_definitions].find { |d| 
+          range_type ||= schema[:attribute_definitions].find { |d|
             d[:attribute_name] == range_key
           }.try(:fetch,:attribute_type, nil)
         end
-        
+
         def hash_key
           @hash_key ||= schema[:key_schema].find { |d| d[:key_type] == HASH_KEY  }.try(:attribute_name).to_sym
         end
-        
+
         #
         # Returns the API type (e.g. "N", "S") for the given column, if the schema defines it,
         # nil otherwise
@@ -500,31 +508,31 @@ module Dynamoid
           schema[:item_count]
         end
       end
-      
+
       #
-      # Mimics behavior of the yielded object on DynamoDB's update_item API (high level). 
+      # Mimics behavior of the yielded object on DynamoDB's update_item API (high level).
       #
       class ItemUpdater
         attr_reader :table, :key, :range_key
-        
+
         def initialize(table, key, range_key = nil)
           @table = table; @key = key, @range_key = range_key
           @additions = {}
           @deletions = {}
           @updates   = {}
         end
-        
+
         #
-        # Adds the given values to the values already stored in the corresponding columns. 
-        # The column must contain a Set or a number. 
+        # Adds the given values to the values already stored in the corresponding columns.
+        # The column must contain a Set or a number.
         #
-        # @param [Hash] vals keys of the hash are the columns to update, vals are the values to 
+        # @param [Hash] vals keys of the hash are the columns to update, vals are the values to
         #               add. values must be a Set, Array, or Numeric
         #
         def add(values)
           @additions.merge!(values)
         end
-        
+
         #
         # Removes values from the sets of the given columns
         #
@@ -538,19 +546,19 @@ module Dynamoid
         #
         # Replaces the values of one or more attributes
         #
-        def set(values) 
+        def set(values)
           @updates.merge!(values)
         end
-        
+
         #
         # Returns an AttributeUpdates hash suitable for passing to the V2 Client API
         #
         def to_h
           ret = {}
-          
+
           @additions.each do |k,v|
-            ret[k.to_s] = { 
-              action: ADD, 
+            ret[k.to_s] = {
+              action: ADD,
               value: v
             }
           end
@@ -569,7 +577,7 @@ module Dynamoid
 
           ret
         end
-        
+
         ADD    = "ADD".freeze
         DELETE = "DELETE".freeze
         PUT    = "PUT".freeze

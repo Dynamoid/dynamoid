@@ -171,8 +171,8 @@ module Dynamoid
     end
 
     #
-    # update!() will increment the lock_version if the table has the column, but will not check it. Thus, a concurrent save will 
-    # never cause an update! to fail, but an update! may cause a concurrent save to fail. 
+    # update!() will increment the lock_version if the table has the column, but will not check it. Thus, a concurrent save will
+    # never cause an update! to fail, but an update! may cause a concurrent save to fail.
     #
     #
     def update!(conditions = {}, &block)
@@ -216,7 +216,21 @@ module Dynamoid
     # @since 0.2.0
     def delete
       options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
+
+      # Add an optimistic locking check if the lock_version column exists
+      if(self.class.attributes[:lock_version])
+        conditions = {:if => {}}
+        conditions[:if][:lock_version] =
+          if changes[:lock_version].nil?
+            self.lock_version
+          else
+            changes[:lock_version][0]
+          end
+        options[:conditions] = conditions
+      end
       Dynamoid.adapter.delete(self.class.table_name, self.hash_key, options)
+    rescue Dynamoid::Errors::ConditionalCheckFailedException
+      raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
     end
 
     # Dump this object's attributes into hash form, fit to be persisted into the datastore.
@@ -268,14 +282,14 @@ module Dynamoid
         end
       end
     end
-    
+
     # Persist the object into the datastore. Assign it an id first if it doesn't have one.
     #
     # @since 0.2.0
     def persist(conditions = nil)
       run_callbacks(:save) do
         self.hash_key = SecureRandom.uuid if self.hash_key.nil? || self.hash_key.blank?
-        
+
         # Add an exists check to prevent overwriting existing records with new ones
         if(new_record?)
           conditions ||= {}

@@ -29,7 +29,7 @@ describe Dynamoid::Persistence do
 
     expect(Dynamoid.adapter.read("dynamoid_tests_addresses", address.id)[:id]).to eq address.id
   end
-  
+
   it 'prevents concurrent writes to tables with a lock_version' do
     address.save!
     a1 = address
@@ -37,11 +37,11 @@ describe Dynamoid::Persistence do
 
     a1.city = 'Seattle'
     a2.city = 'San Francisco'
-    
+
     a1.save!
     expect { a2.save! }.to raise_exception(Dynamoid::Errors::StaleObjectError)
   end
-  
+
   it 'assigns itself an id on save only if it does not have one' do
     address.id = 'test123'
     address.save
@@ -271,12 +271,12 @@ describe Dynamoid::Persistence do
         end
       end.to raise_error(Dynamoid::Errors::StaleObjectError)
     end
-    
+
     it 'prevents concurrent saves to tables with a lock_version' do
       address.save!
       a2 = Address.find(address.id)
       a2.update! { |a| a.set(:city => "Chicago") }
-      
+
       expect do
         address.city = "Seattle"
         address.save!
@@ -291,6 +291,32 @@ describe Dynamoid::Persistence do
         msg = Message.create!(:message_id => 1, :time => DateTime.now, :text => "Hell yeah")
         msg.destroy
       end.to_not raise_error
+    end
+
+    context 'with lock version' do
+      it 'deletes a record if lock version matches' do
+        address.save!
+        expect { address.destroy }.to_not raise_error
+      end
+
+      it 'does not delete a record if lock version does not match' do
+        address.save!
+        a1 = address
+        a2 = Address.find(address.id)
+
+        a1.city = 'Seattle'
+        a1.save!
+
+        expect { a2.destroy }.to raise_exception(Dynamoid::Errors::StaleObjectError)
+      end
+
+      it 'uses the correct lock_version even if it is modified' do
+        address.save!
+        a1 = address
+        a1.lock_version = 100
+
+        expect { a1.destroy }.to_not raise_error
+      end
     end
   end
 
