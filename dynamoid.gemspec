@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = "dynamoid"
-  s.version = "1.0.0"
+  s.version = "1.1.0"
 
   # Keep in sync with README
   s.authors = [

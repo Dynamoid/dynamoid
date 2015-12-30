@@ -1,3 +1,8 @@
+# 1.1.0
+
+* Added support for optimistic locking on delete (PR #29, sumocoder)
+* upgrade concurrent-ruby requirement to 1.0 (PR #31, keithmgould)
+
 # 1.0.0
 
 * Add support for AWS SDK v2.
