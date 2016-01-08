@@ -6,6 +6,33 @@ module Dynamoid #:nodoc:
   module Fields
     extend ActiveSupport::Concern
 
+    # Scalar attribute types
+    SCALAR_TYPES = [
+      :binary,
+      :boolean,
+      :datetime,
+      :integer,
+      :number,
+      :string,
+    ]
+
+    # Collection/Document attribute types
+    COLLECTION_TYPES = [
+      :array,
+      :hash,
+      :set, # legacy support
+      :string_set,
+      :number_set,
+      :binary_set
+    ]
+
+    OTHER_TYPES = [
+      :serialized
+    ]
+
+    # All attribute types
+    ATTRIBUTE_TYPES = [SCALAR_TYPES, COLLECTION_TYPES, OTHER_TYPES].flatten
+
     # Initialize the attributes we know the class has, in addition to our magic attributes: id, created_at, and updated_at.
     included do
       class_attribute :attributes
@@ -19,7 +46,6 @@ module Dynamoid #:nodoc:
     end
 
     module ClassMethods
-
       # Specify a field for a document.
       #
       # Its type determines how it is coerced when read in and out of the datastore.
@@ -37,11 +63,22 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def field(name, type = :string, options = {})
+        unless name.present?
+          msg = 'field requires a :name to be specified'
+          raise Dynamoid::Errors::InvalidField.new(msg)
+        end
+
         named = name.to_s
         if type == :float
           Dynamoid.logger.warn("Field type :float, which you declared for '#{name}', is deprecated in favor of :number.")
           type = :number
         end
+
+        if !type.is_a?(Class) && !ATTRIBUTE_TYPES.include?(type)
+          msg = "invalid :type :#{type} specified for field :#{name}"
+          raise Dynamoid::Errors::InvalidField.new(msg)
+        end
+
         self.attributes = attributes.merge(name => {:type => type}.merge(options))
 
         define_method(named) { read_attribute(named) }

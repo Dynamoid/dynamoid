@@ -178,6 +178,19 @@ describe Dynamoid::Fields do
     end
   end
 
+
+  describe 'unknown field type' do
+    it 'raise invalid field exception' do
+      expect {
+        Class.new do
+          include Dynamoid::Document
+          table :name => :addresses
+          field :address, :bad_type_specifier
+        end
+      }.to raise_error(Dynamoid::Errors::InvalidField)
+    end
+  end
+
   context 'single table inheritance' do
     it "has only base class fields on the base class" do
       expect(Vehicle.attributes.keys.to_set).to eq Set.new([:type, :description, :created_at, :updated_at, :id])

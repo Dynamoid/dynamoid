@@ -68,13 +68,15 @@ module Dynamoid
       #
       # @since 0.2.0
       def undump_field(value, options)
-        if (field_class = options[:type]).is_a?(Class)
+        type = options[:type]
+
+        if (field_class = type).is_a?(Class)
           raise 'Dynamoid class-type fields do not support default values' if options[:default]
 
           if field_class.respond_to?(:dynamoid_load)
             field_class.dynamoid_load(value)
           end
-        elsif options[:type] == :serialized
+        elsif type == :serialized
           if value.is_a?(String)
             options[:serializer] ? options[:serializer].load(value) : YAML.load(value)
           else
@@ -85,38 +87,75 @@ module Dynamoid
             value = default_value.respond_to?(:call) ? default_value.call : default_value
           end
 
-          if !value.nil?
-            case options[:type]
-              when :string
-                value.to_s
-              when :integer
-                Integer(value)
-              when :number
-                BigDecimal.new(value.to_s)
-              when :array
-                value.to_a
-              when :set
-                Set.new(value)
-              when :datetime
-                if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
-                  value
-                else
-                  Time.at(value).to_datetime
-                end
-              when :boolean
-                # persisted as 't', but because undump is called during initialize it can come in as true
-                if value == 't' || value == true
-                  true
-                elsif value == 'f' || value == false
-                  false
-                else
-                  raise ArgumentError, "Boolean column neither true nor false"
-                end
-              else
-                raise ArgumentError, "Unknown type #{options[:type]}"
-            end
+          return nil if value.nil?
+
+          if Dynamoid::Fields::SCALAR_TYPES.include?(type)
+            unmarshal_scalar(value, type)
+          elsif Dynamoid::Fields::COLLECTION_TYPES.include?(type)
+            value
+          else
+            raise ArgumentError, "Unknown type #{type}"
           end
         end
+      end
+
+      # This method can be called during initialize, and it could have
+      # bad data for the type. So we need to check the type and allow it
+      # else assign nil
+      def unmarshal_scalar(value, type)
+        case type
+          when :binary
+            (value.is_a?(IO) || value.is_a?(StringIO)) ? value : nil
+          when :string
+            value.to_s
+          when :integer
+            value.respond_to?(:to_i) ? value.to_i : nil
+          when :number
+            BigDecimal.new(value.to_s)
+          when :datetime
+            if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
+              value
+            else
+              Time.at(value).to_datetime
+            end
+          when :boolean
+            # legacy support t/f
+            if value == 't' || value == true
+              true
+            elsif value == 'f' || value == false
+              false
+            else
+              raise ArgumentError, "Boolean column neither true nor false"
+            end
+          else
+            raise ArgumentError, "Unhandled scalar type #{type}"
+        end
+      end
+
+      def unmarshal_collection(value, type)
+        case type
+          when :hash
+            value.is_a?(Hash) ? value : nil
+          when :array
+            value.respond_to?(:to_a) ? value.to_a : nil
+          when :set
+            Set.new(value)
+          when :number_set
+            unmarshal_set(value, :number)
+          when :string_set
+            unmarshal_set(value, :string)
+          when :binary_set
+            unmarshal_set(value, :binary)
+          else
+            raise ArgumentError, "Unhandled scalar type #{type}"
+        end
+      end
+
+      def unmarshal_set(value, type)
+        return nil unless value.respond_to?(:map)
+        array = value.map { |elem| unmarshal_scalar(elem, type) }
+        array.compact!
+        Set.new(array)
       end
 
       def dynamo_type(type)
@@ -128,6 +167,8 @@ module Dynamoid
               :number
             when :string, :serialized
               :string
+            when :binary
+              :binary
             else
               raise 'unknown type'
           end
@@ -251,36 +292,98 @@ module Dynamoid
     #
     # @since 0.2.0
     def dump_field(value, options)
-      if (field_class = options[:type]).is_a?(Class)
+      type = options[:type]
+
+      if (field_class = type).is_a?(Class)
         if value.respond_to?(:dynamoid_dump)
           value.dynamoid_dump
         elsif field_class.respond_to?(:dynamoid_dump)
           field_class.dynamoid_dump(value)
         else
-          raise ArgumentError, "Neither #{field_class} nor #{value} support serialization for Dynamoid."
+          raise ArgumentError, "Neither #{field_class} nor #{value} support" \
+            "serialization for Dynamoid."
         end
       else
-        case options[:type]
-          when :string
-            !value.nil? ? value.to_s : nil
-          when :integer
-            !value.nil? ? Integer(value) : nil
-          when :number
-            !value.nil? ? value : nil
-          when :set
-            !value.nil? ? Set.new(value) : nil
-          when :array
-            !value.nil? ? value : nil
-          when :datetime
-            !value.nil? ? value.to_time.to_f : nil
-          when :serialized
-            options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
-          when :boolean
-            !value.nil? ? value.to_s[0] : nil
-          else
-            raise ArgumentError, "Unknown type #{options[:type]}"
+        if Dynamoid::Fields::SCALAR_TYPES.include?(type)
+          marshal_scalar(value, type)
+        elsif Dynamoid::Fields::COLLECTION_TYPES.include?(type)
+          marshal_collection(value, type, options[:collection_of])
+        elsif type == :serialized
+          options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
+        else
+          raise ArgumentError, "Unknown type #{type}"
         end
       end
+    end
+
+    # Converts a Dynamoid scalar attribute value to an AWS scalar attribute
+    # value.
+    #
+    # @param [Object] value the dynamoid value.
+    # @param [Symbol] type the dynamoid (scalar) type.
+    # @return [Object] the equivalent AWS value.
+    def marshal_scalar(value, type)
+      return nil if value.nil?
+
+      case type
+        when :binary
+          (value.is_a?(IO) || value.is_a?(StringIO)) ? value : nil
+        when :string
+          value.to_s
+        when :integer
+          value.respond_to?(:to_i) ? value.to_i : nil
+        when :number
+          BigDecimal.new(value.to_s)
+        when :datetime
+          value.respond_to?(:to_time) ? value.to_time.to_f : nil
+        when :boolean
+          if (value == true || value == "t")
+            true
+          elsif (value == false || value == "f")
+            false
+          else
+            nil
+          end
+        else
+          raise ArgumentError, "Unhandled scalar type #{type}"
+      end
+    end
+
+    # Converts a Dynamoid collection/document attribute value to its AWS
+    # equivalent attribute value.
+    #
+    # @param [Object] value the dynamoid value.
+    # @param [Symbol] type the dynamoid (collection) type.
+    # @param [Symbol] collection_of the type of elements in the collection
+    #        (if applicable); if not specified treat the collection as a
+    #        document (don't marshal element values)
+    # @return [Object] the equivalent AWS value.
+    def marshal_collection(value, type, collection_of=nil)
+      return nil if value.nil?
+
+      case type
+      when :array
+        value
+      when :hash
+        value
+      when :set #legacy support
+        Set.new(value)
+      when :number_set
+        marshal_set(value, :number)
+      when :string_set
+        marshal_set(value, :string)
+      when :binary_set
+        marshal_set(value, :binary)
+      else
+        raise ArgumentError, "Unhandled collection type #{type}"
+      end
+    end
+
+    def marshal_set(value, type)
+      return nil unless value.respond_to?(:map)
+      array = value.map { |elem| marshal_scalar(elem, type) }
+      array.compact!
+      Set.new(array)
     end
 
     # Persist the object into the datastore. Assign it an id first if it doesn't have one.

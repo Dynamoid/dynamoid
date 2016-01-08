@@ -199,21 +199,19 @@ describe Dynamoid::Persistence do
 
         field :city
         field :options, :serialized
-        field :deliverable, :bad_type_specifier
       end
     end
 
     it 'raises when undumping a column with an unknown field type' do
       expect do
-        clazz.new(:deliverable => true) #undump is called here
+        clazz.undump_field('test', {:type => :bad_type_specifier})
       end.to raise_error(ArgumentError)
     end
 
     it 'raises when dumping a column with an unknown field type' do
       doc = clazz.new
-      doc.deliverable = true
       expect do
-        doc.dump
+        doc.send(:dump, 'test', {:type => :bad_type_specifier})
       end.to raise_error(ArgumentError)
     end
   end
