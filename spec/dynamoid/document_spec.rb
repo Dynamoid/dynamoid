@@ -63,6 +63,16 @@ describe Dynamoid::Document do
     expect(Model.new(:city => "Chicago").city).to eq "chicago"
   end
 
+  it 'ignores unknown fields (does not raise error)' do
+    class Model
+      include Dynamoid::Document
+      field :city
+    end
+
+    model = Model.new(:unknown_field => "test", :city => "Chicago")
+    expect(model.city).to eql "Chicago"
+  end
+
   it 'creates a new document' do
     address = Address.create(:city => 'Chicago')
 
