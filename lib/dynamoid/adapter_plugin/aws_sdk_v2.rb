@@ -404,7 +404,7 @@ module Dynamoid
 
       STRING_TYPE  = "S".freeze
       NUM_TYPE     = "N".freeze
-      BOOLEAN_TYPE = "B".freeze
+      BINARY_TYPE = "B".freeze
 
       #Converts from symbol to the API string for the given data type
       # E.g. :number -> 'N'
@@ -412,8 +412,7 @@ module Dynamoid
         case(type)
         when :string  then STRING_TYPE
         when :number  then NUM_TYPE
-        when :datetime then NUM_TYPE
-        when :boolean then BOOLEAN_TYPE
+        when :binary then BINARY_TYPE
         else raise "Unknown type: #{type}"
         end
       end
