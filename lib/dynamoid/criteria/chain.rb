@@ -50,22 +50,22 @@ module Dynamoid #:nodoc:
       #
       def destroy_all
         ids = []
-        
+
         if key_present?
           ranges = []
           Dynamoid.adapter.query(source.table_name, range_query).collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym]
           end
-          
+
           Dynamoid.adapter.delete(source.table_name, ids,{:range_key => ranges})
         else
           Dynamoid.adapter.scan(source.table_name, query, scan_opts).collect do |hash|
             ids << hash[source.hash_key.to_sym]
           end
-          
+
           Dynamoid.adapter.delete(source.table_name, ids)
-        end   
+        end
       end
 
       def eval_limit(limit)
@@ -197,7 +197,7 @@ module Dynamoid #:nodoc:
         opts[:scan_index_forward] = @scan_index_forward
         opts
       end
-      
+
       def scan_opts
         opts = {}
         opts[:limit] = @eval_limit if @eval_limit

@@ -1,6 +1,6 @@
 class User
   include Dynamoid::Document
-  
+
   field :name
   field :email
   field :password

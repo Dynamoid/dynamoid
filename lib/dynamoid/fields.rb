@@ -1,10 +1,16 @@
 # encoding: utf-8
 module Dynamoid #:nodoc:
-
   # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not
   # specified with field, then they will be ignored.
   module Fields
     extend ActiveSupport::Concern
+
+    PERMITTED_KEY_TYPES = [
+      :number,
+      :integer,
+      :string,
+      :datetime
+    ]
 
     # Initialize the attributes we know the class has, in addition to our magic attributes: id, created_at, and updated_at.
     included do

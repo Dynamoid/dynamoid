@@ -11,6 +11,7 @@ require "active_model"
 
 require 'dynamoid/errors'
 require 'dynamoid/fields'
+require 'dynamoid/indexes'
 require 'dynamoid/associations'
 require 'dynamoid/persistence'
 require 'dynamoid/dirty'
@@ -34,11 +35,11 @@ module Dynamoid
     block_given? ? yield(Dynamoid::Config) : Dynamoid::Config
   end
   alias :config :configure
-  
+
   def logger
     Dynamoid::Config.logger
   end
-  
+
   def included_models
     @included_models ||= []
   end
