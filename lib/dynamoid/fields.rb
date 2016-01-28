@@ -45,7 +45,15 @@ module Dynamoid #:nodoc:
         self.attributes = attributes.merge(name => {:type => type}.merge(options))
 
         define_method(named) { read_attribute(named) }
-        define_method("#{named}?") { !read_attribute(named).nil? }
+        define_method("#{named}?") do
+          value = read_attribute(named)
+          case value
+          when true        then true
+          when false, nil  then false
+          else
+            !value.nil?
+          end
+        end
         define_method("#{named}=") {|value| write_attribute(named, value) }
       end
 
