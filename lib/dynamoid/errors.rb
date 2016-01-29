@@ -23,6 +23,15 @@ module Dynamoid
       end
     end
 
+    class RecordNotDestroyed < Error
+      attr_reader :record
+
+      def initialize(record)
+        super("Failed to destroy item")
+        @record = record
+      end
+    end
+
     # This class is intended to be private to Dynamoid.
     class ConditionalCheckFailedException < Error
       attr_reader :inner_exception
