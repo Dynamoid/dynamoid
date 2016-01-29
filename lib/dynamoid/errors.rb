@@ -1,13 +1,22 @@
 # encoding: utf-8
 module Dynamoid
-  
+
   # All the errors specific to Dynamoid.  The goal is to mimic ActiveRecord.
   module Errors
-    
+
     # Generic Dynamoid error
     class Error < StandardError; end
-    
+
     class MissingRangeKey < Error; end
+
+    class RecordNotDestroyed < Error
+      attr_reader :record
+
+      def initialize(record)
+        super("Failed to destroy item")
+        @record = record
+      end
+    end
 
     # This class is intended to be private to Dynamoid.
     class ConditionalCheckFailedException < Error
