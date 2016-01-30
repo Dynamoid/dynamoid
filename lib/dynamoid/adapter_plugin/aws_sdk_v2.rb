@@ -267,7 +267,7 @@ module Dynamoid
       # @option opts [Number] :range_less_than find range keys less than this
       # @option opts [Number] :range_gte find range keys greater than or equal to this
       # @option opts [Number] :range_lte find range keys less than or equal to this
-      #
+      # @option opts [Boolean] :fetch_all fetch all the results for the query instead of limiting to 1MB
       # @return [Enumerable] matching items
       #
       # @since 1.0.0
@@ -317,11 +317,18 @@ module Dynamoid
         q[:key_conditions] = key_conditions
 
         Enumerator.new { |y|
-          result = client.query(q)
+          loop do
+            result = client.query(q)
 
-          result.items.each { |r|
-            y << result_item_to_hash(r)
-          }
+            result.items.each { |r| y << result_item_to_hash(r) }
+            last_key = result.last_evaluated_key
+
+            if(last_key && opts[:fetch_all] == true)
+              q[:exclusive_start_key] = last_key
+            else
+              break
+            end
+          end
         }
       end
 
