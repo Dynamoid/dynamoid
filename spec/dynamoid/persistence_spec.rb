@@ -53,6 +53,34 @@ describe Dynamoid::Persistence do
     expect(Address.table_name).to eq 'dynamoid_tests_addresses'
   end
 
+  context 'with namespace set to nil' do
+    def reload_address
+      Object.send(:remove_const, 'Address')
+      load 'app/models/address.rb'
+    end
+
+    namespace = Dynamoid::Config.namespace
+
+    before do
+      reload_address
+      Dynamoid.configure do |config|
+        config.namespace = nil
+      end
+    end
+
+    after do
+      reload_address
+      Dynamoid.configure do |config|
+        config.namespace = namespace
+      end
+    end
+
+    it 'does not add a namespace prefix to table names' do
+      table_name = Address.table_name
+      expect(table_name).to eq 'addresses'
+    end
+  end
+
   it 'deletes an item completely' do
     @user = User.create(:name => 'Josh')
     @user.destroy
