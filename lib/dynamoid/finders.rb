@@ -122,14 +122,15 @@ module Dynamoid
       #     table :key => :email
       #     global_secondary_index :hash_key => :age, :range_key => :gender
       #   end
-      #   User.find_all_by_secondary_index(:age => 5, {"rank.lte" => 10})
+      #   User.find_all_by_secondary_index(:age => 5, :range => {"rank.lte" => 10})
       #
       # @param [Hash] eg: {:age => 5}
       # @param [Hash] eg: {"rank.lte" => 10}
       # @param [Hash] options - @TODO support more options in future such as
       #               query filter, projected keys etc
       # @return [Array] an array of all matching items
-      def find_all_by_secondary_index(hash, range = {}, options = {})
+      def find_all_by_secondary_index(hash, options = {})
+        range = options[:range] || {}
         hash_key_field, hash_key_value = hash.first
         range_key_field, range_key_value = range.first
         range_op_mapped = nil
