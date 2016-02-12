@@ -82,7 +82,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(:post_id => 'x', :posted_at => time)
       post2 = Post.create(:post_id => 'x', :posted_at => (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => "x", "posted_at.gt" => time + ts_epsilon }
+      query = { :post_id => "x", "posted_at.gt" => (time + ts_epsilon).to_f }
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first
