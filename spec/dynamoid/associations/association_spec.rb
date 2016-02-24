@@ -110,7 +110,7 @@ describe Dynamoid::Associations::Association do
     subscription2 = magazine.subscriptions.create
     subscription3 = magazine.subscriptions.create
 
-    expect(magazine.subscriptions.collect(&:id).sort).to eq [subscription1.id, subscription2.id, subscription3.id].sort
+    expect(magazine.subscriptions.collect(&:hash_key).sort).to eq [subscription1.hash_key, subscription2.hash_key, subscription3.hash_key].sort
   end
 
   it 'works for camel-cased associations' do
@@ -146,7 +146,7 @@ describe Dynamoid::Associations::Association do
     expect(subscription2.reload.magazine_ids).to be_present
 
     magazine.subscriptions = subscription3
-    expect(magazine.subscriptions_ids).to eq Set[subscription3.id]
+    expect(magazine.subscriptions_ids).to eq Set[subscription3.hash_key]
 
     expect(subscription1.reload.magazine_ids).to be_blank
     expect(subscription2.reload.magazine_ids).to be_blank

@@ -9,7 +9,7 @@ module Dynamoid #:nodoc:
 
       def setter(object)
         delete
-        source.update_attribute(source_attribute, Set[object.id])
+        source.update_attribute(source_attribute, Set[object.hash_key])
         self.send(:associate_target, object) if target_association
         object
       end
