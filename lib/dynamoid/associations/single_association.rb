@@ -25,7 +25,7 @@ module Dynamoid #:nodoc:
       end
 
       def create(attributes = {})
-        setter(target_class.create!(attributes))
+        setter(target_class.create(attributes))
       end
 
 
