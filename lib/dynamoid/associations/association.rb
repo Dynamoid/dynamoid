@@ -99,6 +99,17 @@ module Dynamoid #:nodoc:
         source.send(source_attribute) || Set.new
       end
 
+      # Create a new instance of the target class without trying to add it to the association. This creates a base, that caller can update before setting or adding it.
+      #
+      # @param [Hash] attribute hash for the new object
+      #
+      # @return [Dynamoid::Document] the newly-created object
+      #
+      # @since 1.1.1
+      def build(attributes = {})
+        target_class.build(attributes)
+      end
+
     end
   end
 
