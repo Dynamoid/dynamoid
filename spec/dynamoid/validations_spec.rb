@@ -22,6 +22,16 @@ describe Dynamoid::Validations do
     expect(doc.errors).to be_empty
   end
 
+  it 'validates presence of boolean field' do
+    doc_class.field :flag, :boolean
+    doc_class.validates_presence_of :flag
+    doc = doc_class.new
+    expect(doc.save).to be_falsey
+    doc.flag = false
+    expect(doc.save).to_not be_falsey
+    expect(doc.errors).to be_empty
+  end
+
   it 'raises document not found' do
     doc_class.field :name
     doc_class.validates_presence_of :name
