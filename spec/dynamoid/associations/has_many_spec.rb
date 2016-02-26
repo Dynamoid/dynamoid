@@ -36,4 +36,31 @@ describe Dynamoid::Associations::HasMany do
     expect(magazine.owner).to eq user
   end
 
+  it 'has a where method to filter associates' do
+    red = magazine.camel_cases.create
+    red.color = 'red'
+    red.save
+
+    blue = magazine.camel_cases.create
+    blue.color = 'blue'
+    blue.save
+
+    expect(magazine.camel_cases.count).to eq 2
+    expect(magazine.camel_cases.where(color: 'red').count).to eq 1
+  end
+
+  it 'is not modified by the where method' do
+    red = magazine.camel_cases.create
+    red.color = 'red'
+    red.save
+
+    blue = magazine.camel_cases.create
+    blue.color = 'blue'
+    blue.save
+
+    expect(magazine.camel_cases.where(color: 'red').count).to eq 1
+    expect(magazine.camel_cases.where(color: 'yellow').count).to eq 0
+    expect(magazine.camel_cases.count).to eq 2
+  end
+
 end
