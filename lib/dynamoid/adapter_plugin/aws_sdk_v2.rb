@@ -419,7 +419,8 @@ module Dynamoid
         rk    = table.range_key
 
         scan(table_name, {}, {}).each do |attributes|
-          opts = {range_key: attributes[rk.to_sym] } if rk
+          opts = {}
+          opts[:range_key] = attributes[rk.to_sym] if rk
           delete_item(table_name, attributes[hk], opts)
         end
       end
