@@ -131,14 +131,14 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def set_created_at
-      self.created_at = DateTime.now
+      self.created_at = DateTime.now if Dynamoid::Config.use_timestamps
     end
 
     # Automatically called during the save callback to set the updated_at time.
     #
     # @since 0.2.0
     def set_updated_at
-      self.updated_at = DateTime.now
+      self.updated_at = DateTime.now if Dynamoid::Config.use_timestamps
     end
 
     def set_type
