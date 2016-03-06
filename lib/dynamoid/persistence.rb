@@ -27,7 +27,7 @@ module Dynamoid
       # @option options [Integer] :read_capacity set the read capacity for the table; does not work on existing tables
       # @option options [Integer] :write_capacity set the write capacity for the table; does not work on existing tables
       # @option options [Hash] {range_key => :type} a hash of the name of the range key and a symbol of its type
-      #
+      # @option options [Symbol] :hash_key_type the dynamo type of the hash key (:string or :number)
       # @since 0.4.0
       def create_table(options = {})
         if self.range_key
@@ -40,7 +40,10 @@ module Dynamoid
           :table_name => self.table_name,
           :write_capacity => self.write_capacity,
           :read_capacity => self.read_capacity,
-          :range_key => range_key_hash
+          :range_key => range_key_hash,
+          :hash_key_type => dynamo_type(attributes[self.hash_key][:type]),
+          :local_secondary_indexes => self.local_secondary_indexes.values,
+          :global_secondary_indexes => self.global_secondary_indexes.values
         }.merge(options)
 
         Dynamoid.adapter.create_table(options[:table_name], options[:id], options)

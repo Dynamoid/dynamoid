@@ -156,4 +156,127 @@ describe Dynamoid::Finders do
     end
 
   end
+
+
+  describe '.find_all_by_secondary_index' do
+    def time_to_f(time)
+      time.to_time.to_f
+    end
+
+    it 'returns exception if index could not be found' do
+      Post.create(:post_id => 1, :posted_at => Time.now)
+      expect do
+        Post.find_all_by_secondary_index(:posted_at => Time.now.to_i)
+      end.to raise_exception(Dynamoid::Errors::MissingIndex)
+    end
+
+    context 'local secondary index' do
+      it 'queries the local secondary index' do
+        time = DateTime.now
+        p1 = Post.create(:name => "p1", :post_id => 1, :posted_at => time)
+        p2 = Post.create(:name => "p2", :post_id => 1, :posted_at => time + 1.day)
+        p3 = Post.create(:name => "p3", :post_id => 2, :posted_at => time)
+
+        posts = Post.find_all_by_secondary_index(
+          {:post_id => p1.post_id},
+          :range => {:name => "p1"}
+        )
+        post = posts.first
+
+        expect(posts.count).to eql 1
+        expect(post.name).to eql "p1"
+        expect(post.post_id).to eql "1"
+      end
+    end
+
+    context 'global secondary index' do
+      it 'queries gsi with hash key' do
+        time = DateTime.now
+        p1 = Post.create(:post_id => 1, :posted_at => time, :length => "10")
+        p2 = Post.create(:post_id => 2, :posted_at => time, :length => "30")
+        p3 = Post.create(:post_id => 3, :posted_at => time, :length => "10")
+
+        posts = Post.find_all_by_secondary_index(:length => "10")
+        expect(posts.map(&:post_id).sort).to eql ["1", "3"]
+      end
+
+      it 'queries gsi with hash and range key' do
+        time = DateTime.now
+        p1 = Post.create(:post_id => 1, :posted_at => time, :name => "post1")
+        p2 = Post.create(:post_id => 2, :posted_at => time + 1.day, :name => "post1")
+        p3 = Post.create(:post_id => 3, :posted_at => time, :name => "post3")
+
+        posts = Post.find_all_by_secondary_index(
+          {:name => "post1"},
+          :range =>  {:posted_at => time_to_f(time)}
+        )
+        expect(posts.map(&:post_id).sort).to eql ["1"]
+      end
+    end
+
+    describe 'custom range queries' do
+      describe 'string comparisons' do
+        it 'filters based on begins_with operator' do
+          time = DateTime.now
+          Post.create(:post_id => 1, :posted_at => time, :name => "fb_post")
+          Post.create(:post_id => 1, :posted_at => time + 1.day, :name => "blog_post")
+
+          posts = Post.find_all_by_secondary_index(
+            {:post_id => "1"}, :range => {"name.begins_with" => "blog_"}
+          )
+          expect(posts.map(&:name)).to eql ["blog_post"]
+        end
+      end
+
+      describe 'numeric comparisons' do
+        before(:each) do
+          @time = DateTime.now
+          p1 = Post.create(:post_id => 1, :posted_at => @time, :name => "post")
+          p2 = Post.create(:post_id => 2, :posted_at => @time + 1.day, :name => "post")
+          p3 = Post.create(:post_id => 3, :posted_at => @time + 2.days, :name => "post")
+        end
+
+        it 'filters based on gt (greater than)' do
+          posts = Post.find_all_by_secondary_index(
+            {:name => "post"},
+            :range => {"posted_at.gt" => time_to_f(@time + 1.day)}
+          )
+          expect(posts.map(&:post_id).sort).to eql ["3"]
+        end
+
+        it 'filters based on lt (less than)' do
+          posts = Post.find_all_by_secondary_index(
+            {:name => "post"},
+            :range => {"posted_at.lt" => time_to_f(@time + 1.day)}
+          )
+          expect(posts.map(&:post_id).sort).to eql ["1"]
+        end
+
+        it 'filters based on gte (greater than or equal to)' do
+          posts = Post.find_all_by_secondary_index(
+            {:name => "post"},
+            :range => {"posted_at.gte" => time_to_f(@time + 1.day)}
+          )
+          expect(posts.map(&:post_id).sort).to eql ["2", "3"]
+        end
+
+        it 'filters based on lte (less than or equal to)' do
+          posts = Post.find_all_by_secondary_index(
+            {:name => "post"},
+            :range => {"posted_at.lte" => time_to_f(@time + 1.day)}
+          )
+          expect(posts.map(&:post_id).sort).to eql ["1", "2"]
+        end
+
+        it 'filters based on between operator' do
+          between = [time_to_f(@time - 1.day), time_to_f(@time + 1.5.day)]
+          posts = Post.find_all_by_secondary_index(
+            {:name => "post"},
+            :range => {"posted_at.between" => between}
+          )
+          expect(posts.map(&:post_id).sort).to eql ["1", "2"]
+        end
+      end
+    end
+  end
 end

@@ -53,7 +53,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_lte => 3.0).to_a).to eq [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
   end
-  
+
   #
   # Tests scan_index_forwards flag behavior on range queries
   #
@@ -76,7 +76,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(query[4]).to eq({:id => '1', :order => 5, :range => BigDecimal.new(5)})
       expect(query[5]).to eq({:id => '1', :order => 6, :range => BigDecimal.new(6)})
     end
-    
+
     it 'performs query on a table with a range and selects items less than that is in the correct order, scan_index_forward false' do
       query = Dynamoid.adapter.query(test_table4, :hash_value => '1', :range_greater_than => 0, :scan_index_forward => false).to_a
       expect(query[5]).to eq({:id => '1', :order => 1, :range => BigDecimal.new(1)})
@@ -87,8 +87,8 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(query[0]).to eq({:id => '1', :order => 6, :range => BigDecimal.new(6)})
     end
   end
-  
-  
+
+
   context 'without a preexisting table' do
     # CreateTable and DeleteTable
     it 'performs CreateTable and DeleteTable' do
@@ -97,6 +97,72 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(Dynamoid.adapter.list_tables).to include 'CreateTable'
 
       Dynamoid.adapter.delete_table('CreateTable')
+    end
+
+    describe 'create table with secondary index' do
+      let(:doc_class) do
+        Class.new do
+          include Dynamoid::Document
+          range :range => :number
+          field :range2
+          field :hash2
+        end
+      end
+
+      it 'creates table with local_secondary_index' do
+        # setup
+        doc_class.table({:name => 'table_lsi', :key => :id})
+        doc_class.local_secondary_index ({
+          :range_key => :range2,
+        })
+
+        Dynamoid.adapter.create_table('table_lsi', :id, {
+          :local_secondary_indexes => doc_class.local_secondary_indexes.values,
+          :range_key => { :range => :number }
+        })
+
+        # execute
+        data = Dynamoid.adapter.client.describe_table(table_name: 'table_lsi').data
+        lsi = data.table.local_secondary_indexes.first
+
+        # test
+        expect(lsi.index_name).to eql "dynamoid_tests_table_lsi_index_id_range2"
+        expect(lsi.key_schema.map(&:to_hash)).to eql [
+          {:attribute_name=>"id", :key_type=>"HASH"},
+          {:attribute_name=>"range2", :key_type=>"RANGE"}
+        ]
+        expect(lsi.projection.to_hash).to eql ({:projection_type=>"KEYS_ONLY"})
+      end
+
+      it 'creates table with global_secondary_index' do
+        # setup
+        doc_class.table({:name => 'table_gsi', :key => :id})
+        doc_class.global_secondary_index ({
+          :hash_key => :hash2,
+          :range_key => :range2,
+          :write_capacity => 10,
+          :read_capacity => 20
+
+        })
+        Dynamoid.adapter.create_table('table_gsi', :id, {
+          :global_secondary_indexes => doc_class.global_secondary_indexes.values,
+          :range_key => { :range => :number }
+        })
+
+        # execute
+        data = Dynamoid.adapter.client.describe_table(table_name: 'table_gsi').data
+        gsi = data.table.global_secondary_indexes.first
+
+        # test
+        expect(gsi.index_name).to eql "dynamoid_tests_table_gsi_index_hash2_range2"
+        expect(gsi.key_schema.map(&:to_hash)).to eql [
+          {:attribute_name=>"hash2", :key_type=>"HASH"},
+          {:attribute_name=>"range2", :key_type=>"RANGE"}
+        ]
+        expect(gsi.projection.to_hash).to eql ({:projection_type=>"KEYS_ONLY"})
+        expect(gsi.provisioned_throughput.read_capacity_units).to eql 20
+        expect(gsi.provisioned_throughput.write_capacity_units).to eql 10
+      end
     end
   end
 
@@ -185,14 +251,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(results[test_table3]).to include({:name => 'Josh', :id => '1', :range => 1.0})
       expect(results[test_table3]).to include({:name => 'Justin', :id => '2', :range => 2.0})
     end
-    
+
     # BatchDeleteItem
     it "performs BatchDeleteItem with singular keys" do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table2, {:id => '1', :name => 'Justin'})
 
       Dynamoid.adapter.batch_delete_item(test_table1 => ['1'], test_table2 => ['1'])
-      
+
       results = Dynamoid.adapter.batch_get_item(test_table1 => '1', test_table2 => '1')
       expect(results.size).to eq 2
 
@@ -205,7 +271,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Justin'})
 
       Dynamoid.adapter.batch_delete_item(test_table1 => ['1', '2'])
-      
+
       results = Dynamoid.adapter.batch_get_item(test_table1 => ['1', '2'])
 
       expect(results.size).to eq 1
@@ -256,7 +322,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
 
       expect(Dynamoid.adapter.query(test_table1, :hash_value => '1').first).to eq({ :id=> '1', :name=>"Josh" })
     end
-    
+
     it_behaves_like 'range queries'
 
     # Scan
@@ -286,10 +352,10 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
 
       expect(Dynamoid.adapter.scan(test_table1, {})).to include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
     end
-    
+
     it_behaves_like 'correct ordering'
   end
-  
+
   # DescribeTable
 
   # UpdateItem

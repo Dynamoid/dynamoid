@@ -1,13 +1,27 @@
 # encoding: utf-8
 module Dynamoid
-  
+
   # All the errors specific to Dynamoid.  The goal is to mimic ActiveRecord.
   module Errors
-    
+
     # Generic Dynamoid error
     class Error < StandardError; end
-    
+
     class MissingRangeKey < Error; end
+
+    class MissingIndex < Error; end
+
+    # InvalidIndex is raised when an invalid index is specified, for example if
+    # specified key attribute(s) or projected attributes do not exist.
+    class InvalidIndex < Error
+      def initialize(item)
+        if (item.is_a? String)
+          super(item)
+        else
+          super("Validation failed: #{item.errors.full_messages.join(", ")}")
+        end
+      end
+    end
 
     # This class is intended to be private to Dynamoid.
     class ConditionalCheckFailedException < Error
