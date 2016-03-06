@@ -16,7 +16,8 @@ module Dynamoid
     module ClassMethods
 
       def table_name
-        @table_name ||= "#{Dynamoid::Config.namespace}_#{options[:name] || base_class.name.split('::').last.downcase.pluralize}"
+        base_name = options[:name] || base_class.name.split('::').last.downcase.pluralize
+        @table_name ||= (Dynamoid::Config.use_namespace ? "#{Dynamoid::Config.namespace}_#{base_name}" : base_name)
       end
 
       # Creates a table.
@@ -143,7 +144,7 @@ module Dynamoid
     #
     def touch(name = nil)
       now = DateTime.now
-      self.updated_at = now
+      self.updated_at = now if Dynamoid::Config.use_timestamps
       attributes[name] = now if name
       save
     end
