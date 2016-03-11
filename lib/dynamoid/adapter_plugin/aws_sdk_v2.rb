@@ -526,7 +526,7 @@ module Dynamoid
         }
 
         # If the projection type is include, specify the non key attributes
-        if index.projection_type == "INCLUDE"
+        if index.projection_type == :include
           hash[:projection][:non_key_attributes] = index.projected_attributes
         end
 
