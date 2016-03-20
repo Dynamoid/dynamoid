@@ -26,6 +26,7 @@ module Dynamoid
     option :timestamps, :default => true
     option :sync_retry_max_times, :default => 60 # a bit over 2 minutes
     option :sync_retry_wait_seconds, :default => 2
+    option :convert_big_decimal, :default => false
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #

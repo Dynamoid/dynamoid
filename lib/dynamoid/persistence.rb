@@ -91,7 +91,7 @@ module Dynamoid
             value = default_value.respond_to?(:call) ? default_value.call : default_value
           end
 
-          if !value.nil?
+          unless value.nil?
             case options[:type]
               when :string
                 value.to_s
@@ -101,6 +101,12 @@ module Dynamoid
                 BigDecimal.new(value.to_s)
               when :array
                 value.to_a
+              when :raw
+                if value.is_a?(Hash)
+                  transform_hash(value)
+                else
+                  value
+                end
               when :set
                 Set.new(value)
               when :datetime
@@ -140,6 +146,30 @@ module Dynamoid
         end
       end
 
+      private
+
+            def transform_hash(hash)
+        {}.tap do |h|
+          hash.each { |key, value| h[key.to_sym] = transform(value) }
+        end
+      end
+
+      def transform(val)
+        case val
+        when BigDecimal
+          if Dynamoid::Config.convert_big_decimal
+            val.to_f
+          else
+            val
+          end
+        when Hash
+          transform_hash(val)
+        when Array
+          val.map { |v| transform(v) }
+        else
+          val
+        end
+      end
     end
 
     # Set updated_at and any passed in field to current DateTime. Useful for things like last_login_at, etc.
@@ -281,6 +311,8 @@ module Dynamoid
             !value.nil? ? value.to_time.to_f : nil
           when :serialized
             options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
+          when :raw
+            !value.nil? ? value : nil
           when :boolean
             !value.nil? ? value.to_s[0] : nil
           else
