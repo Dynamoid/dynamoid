@@ -23,6 +23,7 @@ module Dynamoid
     option :use_ssl, :default => true
     option :port, :default => '443'
     option :identity_map, :default => false
+    option :convert_big_decimal, :default => false
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #

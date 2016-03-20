@@ -65,6 +65,12 @@ describe Dynamoid::Persistence do
     expect(@user.send(:dump)[:name]).to eq 'Josh'
   end
 
+  it 'keeps raw Hash attributes as Hash' do
+    config = {acres: 5, trees: {cyprus: 30, poplar: 10, joshua: 1}, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1}
+    @addr = Address.new(:config => config)
+    expect(@addr.send(:dump)[:config]).to eq config
+  end
+
   it 'dumps datetime attributes' do
     @user = User.create(:name => 'Josh')
     expect(@user.send(:dump)[:name]).to eq 'Josh'
