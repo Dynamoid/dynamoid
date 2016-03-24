@@ -97,7 +97,7 @@ module Dynamoid
                 value.to_a
               when :raw
                 if value.is_a?(Hash)
-                  transform_hash(value)
+                  undump_hash(value)
                 else
                   value
                 end
@@ -142,13 +142,13 @@ module Dynamoid
 
       private
 
-            def transform_hash(hash)
+      def undump_hash(hash)
         {}.tap do |h|
-          hash.each { |key, value| h[key.to_sym] = transform(value) }
+          hash.each { |key, value| h[key.to_sym] = undump_hash_value(value) }
         end
       end
 
-      def transform(val)
+      def undump_hash_value(val)
         case val
         when BigDecimal
           if Dynamoid::Config.convert_big_decimal
@@ -157,9 +157,9 @@ module Dynamoid
             val
           end
         when Hash
-          transform_hash(val)
+          undump_hash(val)
         when Array
-          val.map { |v| transform(v) }
+          val.map { |v| undump_hash_value(v) }
         else
           val
         end
