@@ -124,7 +124,7 @@ describe Dynamoid::Persistence do
   end
 
   it 'keeps raw Hash attributes as a Hash' do
-    config = {acres: 5, trees: {cyprus: 30, poplar: 10, joshua: 1}, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1}
+    config = {:acres => 5, :trees => {:cyprus => 30, :poplar => 10, :joshua => 1}, :horses => ['Lucky', 'Dummy'], :lake => 1, :tennis_court => 1}
     @addr = Address.new(:config => config)
     expect(@addr.send(:dump)[:config]).to eq config
   end
@@ -423,10 +423,10 @@ describe Dynamoid::Persistence do
   end
 
   describe ':raw datatype persistence' do
-    subject { Address.new()}
+    subject { Address.new() }
 
     it 'it persists raw Hash and reads the same back' do
-      config = {acres: 5, trees: {cyprus: 30, poplar: 10, joshua: 1}, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1}
+      config = {:acres => 5, :trees => {:cyprus => 30, :poplar => 10, :joshua => 1}, :horses => ['Lucky', 'Dummy'], :lake => 1, :tennis_court => 1}
       subject.config = config
       subject.save!
       subject.reload
