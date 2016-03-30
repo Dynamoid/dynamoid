@@ -145,8 +145,10 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def where(args)
-        args.each {|k, v| query[k] = v}
-        self
+        filtered = clone
+        filtered.query = query.clone
+        args.each {|k, v| filtered.query[k] = v}
+        filtered
       end
 
       # Is this array equal to the association's records?
