@@ -52,6 +52,7 @@ Gem::Specification.new do |s|
     lib/dynamoid/finders.rb
     lib/dynamoid/identity_map.rb
     lib/dynamoid/middleware/identity_map.rb
+    lib/dynamoid/indexes.rb
     lib/dynamoid/persistence.rb
     lib/dynamoid/validations.rb
   )
