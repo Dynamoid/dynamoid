@@ -76,13 +76,13 @@ describe Dynamoid::Criteria::Chain do
       expect(chain.all).to eq [tweet3]
     end
 
-    it 'finds posts with "where" method' do
+    it 'finds posts with "where" method with "gt" query' do
       ts_epsilon = 0.001 # 1 ms
       time = DateTime.now
       post1 = Post.create(:post_id => 'x', :posted_at => time)
       post2 = Post.create(:post_id => 'x', :posted_at => (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => "x", "posted_at.gt" => time + ts_epsilon }
+      query = { :post_id => "x", "posted_at.gt" => (time + ts_epsilon).to_f }
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first
@@ -91,6 +91,40 @@ describe Dynamoid::Criteria::Chain do
       expect(stored_record.attributes[:created_at]).to be_within(ts_epsilon).of(post2.attributes[:created_at])
       expect(stored_record.attributes[:posted_at]).to be_within(ts_epsilon).of(post2.attributes[:posted_at])
       expect(stored_record.attributes[:updated_at]).to be_within(ts_epsilon).of(post2.attributes[:updated_at])
+    end
+
+    it 'finds posts with "where" method with "lt" query' do
+      ts_epsilon = 0.001 # 1 ms
+      time = DateTime.now
+      post1 = Post.create(:post_id => 'x', :posted_at => time)
+      post2 = Post.create(:post_id => 'x', :posted_at => (time + 1.hour))
+      chain = Dynamoid::Criteria::Chain.new(Post)
+      query = { :post_id => "x", "posted_at.lt" => (time + 1.hour - ts_epsilon).to_f }
+      resultset = chain.send(:where, query)
+      expect(resultset.count).to eq 1
+      stored_record = resultset.first
+      expect(stored_record.attributes[:post_id]).to eq post2.attributes[:post_id]
+      # Must use an epsilon to compare timestamps after round-trip: https://github.com/Dynamoid/Dynamoid/issues/2
+      expect(stored_record.attributes[:created_at]).to be_within(ts_epsilon).of(post1.attributes[:created_at])
+      expect(stored_record.attributes[:posted_at]).to be_within(ts_epsilon).of(post1.attributes[:posted_at])
+      expect(stored_record.attributes[:updated_at]).to be_within(ts_epsilon).of(post1.attributes[:updated_at])
+    end
+
+    it 'finds posts with "where" method with "between" query' do
+      ts_epsilon = 0.001 # 1 ms
+      time = DateTime.now
+      post1 = Post.create(:post_id => 'x', :posted_at => time)
+      post2 = Post.create(:post_id => 'x', :posted_at => (time + 1.hour))
+      chain = Dynamoid::Criteria::Chain.new(Post)
+      query = { :post_id => "x", "posted_at.between" => [(time - ts_epsilon).to_f, (time + ts_epsilon).to_f]}
+      resultset = chain.send(:where, query)
+      expect(resultset.count).to eq 1
+      stored_record = resultset.first
+      expect(stored_record.attributes[:post_id]).to eq post2.attributes[:post_id]
+      # Must use an epsilon to compare timestamps after round-trip: https://github.com/Dynamoid/Dynamoid/issues/2
+      expect(stored_record.attributes[:created_at]).to be_within(ts_epsilon).of(post1.attributes[:created_at])
+      expect(stored_record.attributes[:posted_at]).to be_within(ts_epsilon).of(post1.attributes[:posted_at])
+      expect(stored_record.attributes[:updated_at]).to be_within(ts_epsilon).of(post1.attributes[:updated_at])
     end
 
     describe 'destroy' do
