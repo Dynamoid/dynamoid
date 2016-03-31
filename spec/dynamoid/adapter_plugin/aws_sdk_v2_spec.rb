@@ -353,6 +353,30 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(Dynamoid.adapter.scan(test_table1, {})).to include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
     end
 
+    # Truncate
+    it 'performs truncate on an existing table' do
+      Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
+      Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Pascal'})
+
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq({:name => 'Josh', :id => '1'})
+      expect(Dynamoid.adapter.get_item(test_table1, '2')).to eq({:name => 'Pascal', :id => '2'})
+
+      Dynamoid.adapter.truncate(test_table1)
+
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to be_nil
+      expect(Dynamoid.adapter.get_item(test_table1, '2')).to be_nil
+    end
+
+    it 'performs truncate on an existing table with a range key' do
+      Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Josh', :range => 1.0})
+      Dynamoid.adapter.put_item(test_table3, {:id => '2', :name => 'Justin', :range => 2.0})
+
+      Dynamoid.adapter.truncate(test_table3)
+
+      expect(Dynamoid.adapter.get_item(test_table3, '1', :range_key => 1.0)).to be_nil
+      expect(Dynamoid.adapter.get_item(test_table3, '2', :range_key => 2.0)).to be_nil
+    end
+    
     it_behaves_like 'correct ordering'
   end
 
