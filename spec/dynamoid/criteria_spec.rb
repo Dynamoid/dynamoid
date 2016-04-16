@@ -7,11 +7,11 @@ describe Dynamoid::Criteria do
   it 'finds first using where' do
     expect(User.where(:name => 'Josh').first).to eq user1
   end
-  
+
   it 'finds all using where' do
     expect(User.where(:name => 'Josh').all).to eq [user1]
   end
-  
+
   it 'returns all records' do
     expect(Set.new(User.all)).to eq Set.new([user1, user2])
     expect(User.all.first.new_record).to be_falsey
@@ -70,5 +70,5 @@ describe Dynamoid::Criteria do
       User.where(:password => 'password').consistent.first
     end.to raise_error(Dynamoid::Errors::InvalidQuery)
   end
-    
+
 end

@@ -1,2 +1,2 @@
-DIST_DIR=spec/DynamoDBLocal-2015-01-27
+DIST_DIR=spec/DynamoDBLocal-latest
 PIDFILE=dynamodb.pid

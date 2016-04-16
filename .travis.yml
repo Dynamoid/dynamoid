@@ -5,4 +5,10 @@ rvm:
   - jruby-1.7.11
   - jruby-head
   - rbx-2
-script: bundle exec rake unattended_spec
+install:
+  - wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.zip --quiet -O spec/dynamodb_temp.zip
+  - unzip -qq spec/dynamodb_temp.zip -d spec/DynamoDBLocal-latest
+  - rm spec/dynamodb_temp.zip
+script:
+  - gem install bundler; bundle install
+  - bundle exec rake unattended_spec
