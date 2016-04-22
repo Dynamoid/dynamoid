@@ -24,7 +24,7 @@ end
 
 desc "Start DynamoDBLocal, run tests, clean up"
 task :unattended_spec do |t|
-  
+
   if system('bin/start_dynamodblocal')
     puts 'DynamoDBLocal started; proceeding with specs.'
   else
@@ -37,7 +37,7 @@ task :unattended_spec do |t|
       $stderr.puts 'Unable to cleanly stop DynamoDBLocal.'
     end
   end
-  
+
   Rake::Task["spec"].invoke
 end
 

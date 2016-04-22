@@ -11,6 +11,8 @@ require 'dynamoid'
 require 'pry'
 require 'aws-sdk-resources'
 
+require 'dynamodb_local'
+
 ENV['ACCESS_KEY'] ||= 'abcd'
 ENV['SECRET_KEY'] ||= '1234'
 
@@ -43,6 +45,8 @@ RSpec.configure do |config|
   config.alias_it_should_behave_like_to :configured_with, "configured with"
 
   config.before(:each) do
+    DynamoDBLocal.ensure_is_running!
+
     Dynamoid.adapter.list_tables.each do |table|
       Dynamoid.adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/
     end

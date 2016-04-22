@@ -160,8 +160,8 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
           {:attribute_name=>"range2", :key_type=>"RANGE"}
         ]
         expect(gsi.projection.to_hash).to eql ({:projection_type=>"KEYS_ONLY"})
-        expect(gsi.provisioned_throughput.read_capacity_units).to eql 20
         expect(gsi.provisioned_throughput.write_capacity_units).to eql 10
+        expect(gsi.provisioned_throughput.read_capacity_units).to eql 20
       end
     end
   end
@@ -376,7 +376,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(Dynamoid.adapter.get_item(test_table3, '1', :range_key => 1.0)).to be_nil
       expect(Dynamoid.adapter.get_item(test_table3, '2', :range_key => 2.0)).to be_nil
     end
-    
+
     it_behaves_like 'correct ordering'
   end
 

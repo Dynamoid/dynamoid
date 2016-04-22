@@ -23,7 +23,7 @@ fi
 
 hash lsof 2>/dev/null && lsof -i :$LISTEN_PORT && { echo >&2 "Something is already listening on port $LISTEN_PORT; I will not attempt to start DynamoDBLocal."; exit 1; }
 
-nohup $JAVA_HOME/bin/java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -delayTransientStatuses -port $LISTEN_PORT 0<&- >/dev/null 2>&1 &
+nohup $JAVA_HOME/bin/java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -dbPath ./ -delayTransientStatuses -port $LISTEN_PORT 0<&- >/dev/null 2>&1 &
 pid=$!
 echo "Launched to listen on port $LISTEN_PORT."
 

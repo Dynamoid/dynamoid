@@ -361,7 +361,18 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 
 ## Running the tests
 
-Running the tests is fairly simple. In one window, run `bin/start_dynamodblocal`, and in the other, use `rake`.
+Running the tests is fairly simple. You should have an instance of DynamoDB running locally. Follow this steps to be able to run the tests:
+
+ * First download and unpack the latest version of DynamoDB.
+
+ ```shell
+ wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.zip --quiet -O spec/dynamodb_temp.zip
+ unzip -qq spec/dynamodb_temp.zip -d spec/DynamoDBLocal-latest
+ rm spec/dynamodb_temp.zip
+ ```
+
+ * Then run `sh bin/start_dynamodblocal`, to start the local instance of DynamoDB to listen in ***8000*** port
+ * and lastly, use `rake` to run the tests.
 
 [![Build Status](https://travis-ci.org/Dynamoid/Dynamoid.svg)](https://travis-ci.org/Dynamoid/Dynamoid)
 [![Coverage Status](https://coveralls.io/repos/Dynamoid/Dynamoid/badge.svg?branch=master&service=github)](https://coveralls.io/github/Dynamoid/Dynamoid?branch=master)
