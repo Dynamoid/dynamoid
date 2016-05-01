@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'activemodel-serializers-xml'
 module Dynamoid
 
   # All modules that a Document is composed of are defined in this
@@ -23,7 +24,7 @@ module Dynamoid
     include ActiveModel::Naming
     include ActiveModel::Observing if defined?(ActiveModel::Observing)
     include ActiveModel::Serializers::JSON
-    include ActiveModel::Serializers::Xml if defined?(ActiveModel::Serializers::Xml)
+    include ActiveModel::Serializers::Xml
     include Dynamoid::Fields
     include Dynamoid::Indexes
     include Dynamoid::Persistence
