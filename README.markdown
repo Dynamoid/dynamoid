@@ -30,7 +30,7 @@ gem 'aws-sdk', '~>2'
 
 (or) include the aws-sdk in your Gemfile.
 
-**NOTE:** Dynamoid-1.0 doesn't support aws-sdk Version 1 (Use Dynamoid Major Version 0 for aws-sdk 1)   
+**NOTE:** Dynamoid-1.0 doesn't support aws-sdk Version 1 (Use Dynamoid Major Version 0 for aws-sdk 1)
 
 Configure AWS access:
 [Reference](https://github.com/aws/aws-sdk-ruby)
@@ -56,11 +56,11 @@ Then you need to initialize Dynamoid config to get it going. Put code similar to
 ```ruby
   Dynamoid.configure do |config|
     config.adapter = 'aws_sdk_v2' # This adapter establishes a connection to the DynamoDB servers using Amazon's own AWS gem.
-    config.namespace = "dynamoid_app_development" # To namespace tables created by Dynamoid from other tables you might have.
+    config.namespace = "dynamoid_app_development" # To namespace tables created by Dynamoid from other tables you might have. Set to nil to avoid namespacing.
     config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table.
     config.read_capacity = 100 # Read capacity for your tables
     config.write_capacity = 20 # Write capacity for your tables
-    config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html). 
+    config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
   end
 
 ```
@@ -129,20 +129,20 @@ To use a custom type for a field, suppose you have a `Money` type.
 ```ruby
   class Money
     # ... your business logic ...
-    
+
     def dynamoid_dump
       "serialized representation as a string"
     end
-    
+
     def self.dynamoid_load(serialized_str)
       # parse serialized representation and return a Money instance
       Money.new(...)
     end
   end
-  
+
   class User
     include Dynamoid::Document
-    
+
     field :balance, Money
   end
 ```
@@ -155,20 +155,20 @@ add a level of indirection for serializing.)  Example:
 ```ruby
   # Third-party Money class
   class Money; end
-  
+
   class MoneyAdapter
     def self.dynamoid_load(money_serialized_str)
       Money.new(...)
     end
-    
+
     def self.dynamoid_dump(money_obj)
       money_obj.value.to_s
     end
   end
-  
+
   class User
     include Dynamoid::Document
-    
+
     field :balance, MoneyAdapter
   end
 ```
@@ -327,14 +327,14 @@ It also supports .gte and .lte. Turning those into symbols and allowing a Rails 
 
 ## Concurrency
 
-Dynamoid supports basic, ActiveRecord-like optimistic locking on save operations. Simply add a `lock_version` column to your table like so: 
+Dynamoid supports basic, ActiveRecord-like optimistic locking on save operations. Simply add a `lock_version` column to your table like so:
 
 ```ruby
 class MyTable
   ...
-  
+
   field :lock_version, :integer
-  
+
   ...
 end
 ```
@@ -342,7 +342,7 @@ end
 In this example, all saves to `MyTable` will raise an `Dynamoid::Errors::StaleObjectError` if a concurrent process loaded, edited, and saved the same row. Your code should trap this exception, reload the row (so that it will pick up the newest values), and try the save again.
 
 Calls to `update` and `update!` also increment the `lock_version`, however they do not check the existing value. This guarantees that a update operation will raise an exception in a concurrent save operation, however a save operation will never cause an update to fail. Thus, `update` is useful & safe only for doing atomic operations (e.g. increment a value, add/remove from a set, etc), but should not be used in a read-modify-write pattern.
- 
+
 ## Credits
 
 Dynamoid borrows code, structure, and even its name very liberally from the truly amazing [Mongoid](https://github.com/mongoid/mongoid). Without Mongoid to crib from none of this would have been possible, and I hope they don't mind me reusing their very awesome ideas to make DynamoDB just as accessible to the Ruby world as MongoDB.
