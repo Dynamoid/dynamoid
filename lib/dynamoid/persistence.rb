@@ -16,13 +16,8 @@ module Dynamoid
     module ClassMethods
 
       def table_name
-        table_base_name = options[:name] || base_class.name.split('::').last
-          .downcase.pluralize
-        table_prefix = if Dynamoid::Config.namespace.nil? then
-          ''
-        else
-          "#{Dynamoid::Config.namespace}_"
-        end
+        table_base_name = options[:name] || base_class.name.split('::').last.downcase.pluralize
+        table_prefix = Dynamoid::Config.namespace.nil? ? '' : "#{Dynamoid::Config.namespace}_"
         @table_name ||= "#{table_prefix}#{table_base_name}"
       end
 
