@@ -5,7 +5,7 @@ namespace :dynamoid do
   desc "Creates DynamoDB tables, one for each of your Dynamoid models - does not modify pre-existing tables"
   task :create_tables do
     tables = Dynamoid::Tasks::Database.create_tables
-    result = tables[:created].map( |c| "#{c} created") + tables[:existing].map( |e| "#{e} not modified")
+    result = tables[:created].map{ |c| "#{c} created" } + tables[:existing].map{ |e| "#{e} not modified" }
     result.sort.each{ |r| puts r }
   end
 
