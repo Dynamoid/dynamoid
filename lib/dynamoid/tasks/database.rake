@@ -12,6 +12,8 @@ namespace :dynamoid do
   desc 'Tests if the DynamoDB instance can be contacted using your configuration'
   task :ping do
     success = ::Dynamoid::Tasks::Database.ping
+    puts 'Settings...'
+    puts Dynamoid.config.settings
     msg = "Connection to DynamoDB #{success ? 'OK' : 'FAILED'}"
     msg << if Dynamoid.config.endpoint
              " at local endpoint: #{Dynamoid.config.endpoint}"

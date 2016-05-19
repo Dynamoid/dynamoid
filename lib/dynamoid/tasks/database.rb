@@ -20,9 +20,8 @@ module Dynamoid
 
       # Is the DynamoDB reachable?
       def ping
-        adapter = Dynamoid::Adapter.new
         begin
-          adapter.adapter.connect!
+          Dynamoid.adapter.list_tables
           true
         rescue
           false
