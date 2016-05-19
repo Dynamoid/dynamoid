@@ -3,8 +3,10 @@ require 'dynamoid/tasks/database'
 
 namespace :dynamoid do
   desc "Foobar"
-  task :setup do
-    Dynamoid::Tasks::Database.create_tables
+  task :create_tables do
+    tables = Dynamoid::Tasks::Database.create_tables
+    result = tables[:created].map( |c| "#{c} created") + tables[:existing].map( |e| "#{e} not modified")
+    result.sort.each{ |r| puts r }
   end
 
   desc 'TOTO'
