@@ -55,6 +55,7 @@ Gem::Specification.new do |s|
     lib/dynamoid/indexes.rb
     lib/dynamoid/persistence.rb
     lib/dynamoid/validations.rb
+    lib/dynamoid/tasks/database.rb
   )
   s.homepage = "http://github.com/Dynamoid/Dynamoid"
   s.licenses = ["MIT"]
@@ -73,4 +74,3 @@ Gem::Specification.new do |s|
   s.add_development_dependency(%q<pry>, [">= 0"])
   s.add_development_dependency(%q<coveralls>, [">= 0"])
 end
-

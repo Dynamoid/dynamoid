@@ -2,6 +2,9 @@
 
 require 'rubygems'
 require 'bundler'
+
+load "./lib/dynamoid/tasks/database.rake"
+
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
