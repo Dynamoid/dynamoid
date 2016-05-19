@@ -28,6 +28,10 @@ require 'dynamoid/tasks/database'
 
 require 'dynamoid/middleware/identity_map'
 
+if defined?(Rails)
+  require "dynamoid/railtie"
+end
+
 module Dynamoid
   extend self
 
