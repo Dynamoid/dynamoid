@@ -1,13 +1,13 @@
-if defined? (Railsx)
+if defined? (Rails)
 
-require 'rails'
+  require 'rails'
 
-module Dynamoid
-  class Railtie < Rails::Railtie
-    rake_tasks do
-      Dir[File.join(File.dirname(__FILE__),'tasks/*.rake')].each { |f| load f }
+  module Dynamoid
+    class Railtie < Rails::Railtie
+      rake_tasks do
+        Dir[File.join(File.dirname(__FILE__),'tasks/*.rake')].each { |f| load f }
+      end
     end
   end
-end
 
 end
