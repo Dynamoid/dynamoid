@@ -3,7 +3,9 @@
 require 'rubygems'
 require 'bundler'
 
-load "./lib/dynamoid/tasks/database.rake"
+if defined?(Rails)
+  load "./lib/dynamoid/tasks/database.rake"
+end
 
 begin
   Bundler.setup(:default, :development)

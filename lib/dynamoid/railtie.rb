@@ -1,7 +1,5 @@
 if defined? (Rails)
 
-  require 'rails'
-
   module Dynamoid
     class Railtie < Rails::Railtie
       rake_tasks do
