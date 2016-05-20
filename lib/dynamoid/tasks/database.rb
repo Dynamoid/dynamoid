@@ -20,12 +20,8 @@ module Dynamoid
 
       # Is the DynamoDB reachable?
       def ping
-        begin
-          Dynamoid.adapter.list_tables
-          true
-        rescue
-          false
-        end
+        Dynamoid.adapter.list_tables
+        true
       end
 
     end

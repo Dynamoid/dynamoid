@@ -5,7 +5,7 @@ describe Dynamoid::Tasks::Database do
   describe '#ping' do
     context 'when the database is reachable' do
       it 'should be able to ping (connect to) DynamoDB' do
-        expect( Dynamoid::Tasks::Database.ping ).to be_truthy
+        expect{ Dynamoid::Tasks::Database.ping }.not_to raise_exception
       end
     end
   end
