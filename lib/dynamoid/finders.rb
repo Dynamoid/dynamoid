@@ -154,6 +154,10 @@ module Dynamoid
           :hash_value => hash_key_value,
           :index_name => index.name,
         }
+
+        opts[:select] = options[:select] if options[:select].present?
+        opts[:batch_size] = options[:batch_size] if options[:batch_size].present?
+
         if range_key_field
           opts[:range_key] = range_key_field
           opts[range_op_mapped] = range_key_value

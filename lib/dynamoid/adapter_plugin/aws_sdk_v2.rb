@@ -295,6 +295,8 @@ module Dynamoid
       # @todo Provide support for various other options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#query-instance_method
       def query(table_name, opts = {})
         table = describe_table(table_name)
+        limit = opts.delete(:limit)
+        batch = opts.delete(:batch_size)
         hk    = (opts[:hash_key].present? ? opts[:hash_key] : table.hash_key).to_s
         rng   = (opts[:range_key].present? ? opts[:range_key] : table.range_key).to_s
         q     = opts.slice(
@@ -342,13 +344,22 @@ module Dynamoid
 
         q[:table_name]     = table_name
         q[:key_conditions] = key_conditions
+        q[:limit] = batch || limit if batch || limit
 
         Enumerator.new { |y|
-          result = client.query(q)
+          # Batch loop, pulls multiple requests until done using the start_key
+          loop do
+            results = client.query(q)
 
-          result.items.each { |r|
-            y << result_item_to_hash(r)
-          }
+            results.data[:items].each { |row| y << result_item_to_hash(row) }
+
+            if((lk = results[:last_evaluated_key]) && batch)
+              q[:exclusive_start_key] = lk
+            else
+              break
+            end
+          end
+
         }
       end
 
