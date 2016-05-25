@@ -128,8 +128,7 @@ module Dynamoid
       #
       # @param [Hash] eg: {:age => 5}
       # @param [Hash] eg: {"rank.lte" => 10}
-      # @param [Hash] options - @TODO support more options in future such as
-      #               query filter, projected keys etc
+      # @param [Hash] options - query filter, projected keys, scan_index_forward etc
       # @return [Array] an array of all matching items
       def find_all_by_secondary_index(hash, options = {})
         range = options[:range] || {}
@@ -148,7 +147,7 @@ module Dynamoid
 
         # Find the index
         index = self.find_index(hash_key_field, range_key_field)
-        raise Dynamoid::Errors::MissingIndex if index.nil?
+        raise Dynamoid::Errors::MissingIndex.new("attempted to find #{[hash_key_field, range_key_field]}") if index.nil?
 
         # query
         opts = {
@@ -160,7 +159,8 @@ module Dynamoid
           opts[:range_key] = range_key_field
           opts[range_op_mapped] = range_key_value
         end
-        Dynamoid.adapter.query(self.table_name, opts).map do |item|
+        dynamo_options = opts.merge(options.reject {|key, _| key == :range })
+        Dynamoid.adapter.query(self.table_name, dynamo_options).map do |item|
           from_database(item)
         end
       end
