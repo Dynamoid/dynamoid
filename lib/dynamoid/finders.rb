@@ -120,9 +120,11 @@ module Dynamoid
       #     field :gender,         :string
       #     field :rank            :number
       #     table :key => :email
-      #     global_secondary_index :hash_key => :age, :range_key => :gender
+      #     global_secondary_index :hash_key => :age, :range_key => :rank
       #   end
-      #   User.find_all_by_secondary_index(:age => 5, :range => {"rank.lte" => 10})
+      #   # NOTE: the first param and the second param are both hashes,
+      #   #       so curly braces must be used on first hash param if sending both params
+      #   User.find_all_by_secondary_index({:age => 5}, :range => {"rank.lte" => 10})
       #
       # @param [Hash] eg: {:age => 5}
       # @param [Hash] eg: {"rank.lte" => 10}
