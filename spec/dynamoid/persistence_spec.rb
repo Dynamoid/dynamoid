@@ -53,7 +53,7 @@ describe Dynamoid::Persistence do
     expect(Address.table_name).to eq 'dynamoid_tests_addresses'
   end
 
-  context 'with namespace set to nil' do
+  context 'with namespace is empty' do
     def reload_address
       Object.send(:remove_const, 'Address')
       load 'app/models/address.rb'
@@ -64,7 +64,7 @@ describe Dynamoid::Persistence do
     before do
       reload_address
       Dynamoid.configure do |config|
-        config.namespace = nil
+        config.namespace = ""
       end
     end
 
@@ -77,6 +77,7 @@ describe Dynamoid::Persistence do
 
     it 'does not add a namespace prefix to table names' do
       table_name = Address.table_name
+      expect(Dynamoid::Config.namespace).to be_empty
       expect(table_name).to eq 'addresses'
     end
   end
