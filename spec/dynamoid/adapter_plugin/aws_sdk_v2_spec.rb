@@ -262,6 +262,22 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(results[test_table3]).to include({:name => 'Justin', :id => '2', :range => 2.0})
     end
 
+    it 'performs BatchGetItem with ranges of 100 keys' do
+      table_ids = []
+
+      (1..101).each do |i|
+        id, range = i.to_s, i.to_f
+        Dynamoid.adapter.put_item(test_table3, {:id => id, :name => "Josh_#{i}", :range => range})
+        table_ids << [id, range]
+      end
+
+      results = Dynamoid.adapter.batch_get_item(test_table3 => table_ids)
+
+      expect(results.size).to eq 1
+
+      expect(results[test_table3]).to include({:name => 'Josh_101', :id => '101', :range => 101.0})
+    end
+
     # BatchDeleteItem
     it "performs BatchDeleteItem with singular keys" do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
