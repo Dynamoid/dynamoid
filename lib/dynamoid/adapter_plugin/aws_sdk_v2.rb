@@ -47,8 +47,8 @@ module Dynamoid
               return_item_collection_metrics: "SIZE"
             }.merge!(options)
           )
-        rescue Exception => e
-          puts e.message
+        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
+          raise Dynamoid::Errors::ConditionalCheckFailedException, e
         end
       end
 
