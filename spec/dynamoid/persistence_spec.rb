@@ -107,7 +107,7 @@ describe Dynamoid::Persistence do
     @subscription = Subscription.create(:length => 10)
     @magazine = @subscription.magazine.create
 
-    expect(@subscription.send(:dump)[:magazine_ids]).to eq Set[@magazine.id]
+    expect(@subscription.send(:dump)[:magazine_ids]).to eq Set[@magazine.hash_key]
   end
 
   it 'handles nil attributes properly' do
