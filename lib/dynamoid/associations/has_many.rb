@@ -23,7 +23,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0                  
       def associate_target(object)
-        object.update_attribute(target_attribute, Set[source.id])
+        object.update_attribute(target_attribute, Set[source.hash_key])
       end
       
       # Disassociate a source object from this association.
