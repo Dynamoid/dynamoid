@@ -82,7 +82,7 @@ module Dynamoid
       # Get many items at once from DynamoDB. More efficient than getting each item individually.
       #
       # @example Retrieve IDs 1 and 2 from the table testtable
-      #   Dynamoid::Adapter::AwsSdkV2.batch_get_item({'table1' => ['1', '2']})
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item({'table1' => ['1', '2']})
       #
       # @param [Hash] table_ids the hash of tables and IDs to retrieve
       # @param [Hash] options to be passed to underlying BatchGet call
@@ -131,9 +131,9 @@ module Dynamoid
       # Delete many items at once from DynamoDB. More efficient than delete each item individually.
       #
       # @example Delete IDs 1 and 2 from the table testtable
-      #   Dynamoid::Adapter::AwsSdk.batch_delete_item('table1' => ['1', '2'])
+      #   Dynamoid::AdapterPlugin::AwsSdk.batch_delete_item('table1' => ['1', '2'])
       #or
-      #   Dynamoid::Adapter::AwsSdkV2.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
       #
       # @param [Hash] options the hash of tables and IDs to delete
       #
