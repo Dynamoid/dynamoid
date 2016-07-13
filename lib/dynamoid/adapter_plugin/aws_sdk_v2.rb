@@ -587,7 +587,7 @@ module Dynamoid
         expected = Hash.new { |h,k| h[k] = {} }
         return expected unless conditions
 
-        conditions[:unless_exists].try(:each) do |col|
+        conditions.delete(:unless_exists).try(:each) do |col|
           expected[col.to_s][:exists] = false
         end
         conditions[:if].try(:each) do |col,val|
