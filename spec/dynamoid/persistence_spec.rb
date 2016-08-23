@@ -81,6 +81,35 @@ describe Dynamoid::Persistence do
     end
   end
 
+  context 'with timestamps set to false' do
+    def reload_address
+      Object.send(:remove_const, 'Address')
+      load 'app/models/address.rb'
+    end
+
+    timestamps = Dynamoid::Config.timestamps
+
+    before do
+      reload_address
+      Dynamoid.configure do |config|
+        config.timestamps = false
+      end
+    end
+
+    after do
+      reload_address
+      Dynamoid.configure do |config|
+        config.timestamps = timestamps
+      end
+    end
+
+    it 'sets nil to created_at and updated_at' do
+      address = Address.create
+      expect(address.created_at).to be_nil
+      expect(address.updated_at).to be_nil
+    end
+  end
+
   it 'deletes an item completely' do
     @user = User.create(:name => 'Josh')
     @user.destroy
