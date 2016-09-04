@@ -1,8 +1,4 @@
-#!/usr/bin/env bash
-
-# http://redsymbol.net/articles/unofficial-bash-strict-mode/
-set -euo
-IFS=$'\n\t'
+#!/bin/sh
 
 # Source variables
 . $(dirname $0)/_dynamodblocal
