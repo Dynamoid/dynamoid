@@ -1,29 +1,29 @@
-require 'coveralls'
+require "coveralls"
 Coveralls.wear!
 
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 MODELS = File.join(File.dirname(__FILE__), "app/models")
 
-require 'rspec'
-require 'dynamoid'
-require 'pry'
-require 'aws-sdk-resources'
+require "rspec"
+require "dynamoid"
+require "pry"
+require "aws-sdk-resources"
 
-require 'dynamodb_local'
+require "dynamodb_local"
 
-ENV['ACCESS_KEY'] ||= 'abcd'
-ENV['SECRET_KEY'] ||= '1234'
+ENV["ACCESS_KEY"] ||= "abcd"
+ENV["SECRET_KEY"] ||= "1234"
 
 Aws.config.update({
-          region: 'us-west-2',
-          credentials: Aws::Credentials.new(ENV['ACCESS_KEY'], ENV['SECRET_KEY'])
+          region: "us-west-2",
+          credentials: Aws::Credentials.new(ENV["ACCESS_KEY"], ENV["SECRET_KEY"])
           })
 
 Dynamoid.configure do |config|
-  config.endpoint = 'http://127.0.0.1:8000'
-  config.namespace = 'dynamoid_tests'
+  config.endpoint = "http://127.0.0.1:8000"
+  config.namespace = "dynamoid_tests"
   config.warn_on_scan = false
 end
 
