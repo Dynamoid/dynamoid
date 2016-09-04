@@ -1,2 +1,4 @@
-source "http://www.rubygems.org"
+source "https://rubygems.org"
+
+# Specify your gem's dependencies in dynamoid.gemspec
 gemspec
