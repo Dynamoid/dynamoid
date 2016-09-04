@@ -20,13 +20,12 @@ if [ ! -f DynamoDBLocal.jar ] || [ ! -d DynamoDBLocal_lib ]; then
   exit 1
 fi
 
-hash lsof 2>/dev/null && lsof -i :$LISTEN_PORT && { echo >&2 "Something is already listening on port $LISTEN_PORT; I will not attempt to start DynamoDBLocal."; exit 1; }
-
 mkdir -p $LOG_DIR
 echo "DynamoDB Local output will save to ${DIST_DIR}/${LOG_DIR}/"
+hash lsof 2>/dev/null && lsof -i :$LISTEN_PORT && { echo >&2 "Something is already listening on port $LISTEN_PORT; I will not attempt to start DynamoDBLocal."; exit 1; }
 
 NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-exec java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -port 8000 -inMemory 1>"${LOG_DIR}/${NOW}.out.log" 2>"${LOG_DIR}/${NOW}.err.log" &
+nohup $JAVA_HOME/bin/java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -delayTransientStatuses -port $LISTEN_PORT -inMemory 1>"${LOG_DIR}/${NOW}.out.log" 2>"${LOG_DIR}/${NOW}.err.log" &
 PID=$!
 
 echo 'Verifying that DynamoDBLocal actually started...'
