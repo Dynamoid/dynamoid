@@ -4,8 +4,6 @@ Coveralls.wear!
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
-MODELS = File.join(File.dirname(__FILE__), "app/models")
-
 require "rspec"
 require "dynamoid"
 require "pry"
@@ -45,8 +43,10 @@ RSpec.configure do |config|
   config.alias_it_should_behave_like_to :configured_with, "configured with"
 
   config.before(:each) do
-    DynamoDBLocal.ensure_is_running!
-
+    unless DynamoDBLocal.ensure_is_running!
+      puts "Sleeping to allow DynamoDB to finish booting"
+      sleep 5 # restarting dynamodblocal requires 5 second sleep afterword before it is fully available.
+    end
     Dynamoid.adapter.list_tables.each do |table|
       Dynamoid.adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/
     end

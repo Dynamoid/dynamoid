@@ -6,11 +6,14 @@ class DynamoDBLocal
     if File.exists? PIDFILE
       begin
         pid = File.read(PIDFILE).gsub(/\n/,'').to_i
-        Process.kill(0, pid)
+        Process.kill(0, pid) # Does nothing if process is running, fails if not running
       rescue Errno::ESRCH
         STDERR.puts "The #{PIDFILE} exist but the process was not running"
         self.start!
+        return false
       end
+    else
+      self.start!
     end
   end
 
