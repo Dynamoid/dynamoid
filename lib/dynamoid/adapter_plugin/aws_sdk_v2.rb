@@ -60,6 +60,7 @@ module Dynamoid
       #See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
       def batch_write_item table_name, objects, options = {}
         request_items = []
+        options ||= {}
         objects.each do |o|
           request_items << { "put_request" => { item: o } }
         end
@@ -250,6 +251,7 @@ module Dynamoid
       #
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#delete_item-instance_method
       def delete_item(table_name, key, options = {})
+        options ||= {}
         range_key = options[:range_key]
         conditions = options[:conditions]
         table = describe_table(table_name)
@@ -297,6 +299,7 @@ module Dynamoid
       #
       # @todo Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#get_item-instance_method
       def get_item(table_name, key, options = {})
+        options ||= {}
         table    = describe_table(table_name)
         range_key = options.delete(:range_key)
 
@@ -355,6 +358,7 @@ module Dynamoid
       # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#put_item-instance_method
       def put_item(table_name, object, options = {})
         item = {}
+        options ||= {}
 
         object.each do |k, v|
           next if v.nil? || (v.respond_to?(:empty?) && v.empty?)
