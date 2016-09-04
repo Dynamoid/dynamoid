@@ -1,12 +1,16 @@
-class DynamoDBLocal
+module DynamoDBLocal
   DIST_DIR = File.join(File.dirname(__FILE__), 'DynamoDBLocal-latest')
   PIDFILE = "#{DIST_DIR}/dynamodb.pid"
+
+  def self.raise_unless_running!
+    pid = File.read(PIDFILE).gsub(/\n/,'').to_i
+    Process.kill(0, pid) # Does nothing if process is running, fails if not running
+  end
 
   def self.ensure_is_running!
     if File.exists? PIDFILE
       begin
-        pid = File.read(PIDFILE).gsub(/\n/,'').to_i
-        Process.kill(0, pid) # Does nothing if process is running, fails if not running
+        self.raise_unless_running!
       rescue Errno::ESRCH
         STDERR.puts "The #{PIDFILE} exist but the process was not running"
         self.start!
@@ -14,6 +18,7 @@ class DynamoDBLocal
       end
     else
       self.start!
+      return true
     end
   end
 
