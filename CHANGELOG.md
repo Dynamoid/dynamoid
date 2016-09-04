@@ -1,3 +1,12 @@
+# 1.2.1
+
+* Remove accidental Gemfile.lock; fix .gitignore (#95, @pboling)
+* Allow options to put_items (#95, @alexperto)
+* Support range key in secondary index queries (#95, @pboling)
+* Better handling of options generally (#95, @pboling)
+* Support for batch_delete_item API (#95, @pboling)
+* Support for batch_write_item API (#95, @alexperto)
+
 # 1.2.0
 
 * Add create_table_syncronously, and sync: option to regular create_table (@pboling)
