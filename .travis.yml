@@ -5,7 +5,6 @@ rvm:
   - ruby-2.2.5
   - ruby-2.3.1
   - jruby-9.1.4.0
-  - rbx-3.58
 before_install: gem install bundler -v 1.12.5
 install:
   - wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.zip --quiet -O spec/dynamodb_temp.zip
