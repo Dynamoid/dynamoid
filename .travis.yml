@@ -4,8 +4,7 @@ rvm:
   - ruby-2.1.10
   - ruby-2.2.5
   - ruby-2.3.1
-  - jruby-1.7.11
-  - jruby-head
+  - jruby-9.1.4.0
   - rbx-2
 before_install: gem install bundler -v 1.12.5
 install:
