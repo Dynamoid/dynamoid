@@ -1,16 +1,28 @@
-class DynamoDBLocal
+module DynamoDBLocal
   DIST_DIR = File.join(File.dirname(__FILE__), 'DynamoDBLocal-latest')
   PIDFILE = "#{DIST_DIR}/dynamodb.pid"
 
+  def self.raise_unless_running!
+    pid = File.read(PIDFILE).gsub(/\n/,'').to_i
+    Process.kill(0, pid) # Does nothing if process is running, fails if not running
+  end
+
   def self.ensure_is_running!
-    if File.exists? PIDFILE
-      begin
-        pid = File.read(PIDFILE).gsub(/\n/,'').to_i
-        Process.kill(0, pid)
-      rescue Errno::ESRCH
-        STDERR.puts "The #{PIDFILE} exist but the process was not running"
+    begin
+      if File.exists? PIDFILE
+        self.raise_unless_running!
+      else
+        STDERR.puts "The #{PIDFILE} did not exist. Starting Dynamo DB Local."
         self.start!
+        sleep 1
+        self.raise_unless_running!
+        return true
       end
+    rescue Errno::ESRCH
+      STDERR.puts "The #{PIDFILE} exists but the process was not running"
+      self.start!
+      sleep 1
+      retry
     end
   end
 
@@ -23,5 +35,14 @@ class DynamoDBLocal
   def self.stop!
     output = `sh bin/stop_dynamodblocal`
     STDERR.puts output
+  end
+
+  def self.delete_all_specified_tables!
+    if !Dynamoid.adapter.tables.empty?
+      Dynamoid.adapter.list_tables.each do |table|
+        Dynamoid.adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/
+      end
+      Dynamoid.adapter.tables.clear
+    end
   end
 end

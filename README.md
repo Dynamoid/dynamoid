@@ -356,8 +356,14 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 * [Jason Dew](https://github.com/jasondew)
 * [Luis Arias](https://github.com/luisantonioa)
 * [Stefan Neculai](https://github.com/stefanneculai)
-* [Philip White](https://github.com/philipmw)
+* [Philip White](https://github.com/philipmw) *
 * [Peeyush Kumar](https://github.com/peeyush1234)
+* [Sumanth Ravipati](https://github.com/sumocoder)
+* [Pascal Corpet](https://github.com/pcorpet)
+* [Brian Glusman](https://github.com/bglusman) *
+* [Peter Boling](https://github.com/pboling) *
+
+\* Current Maintianers
 
 ## Running the tests
 
@@ -365,14 +371,21 @@ Running the tests is fairly simple. You should have an instance of DynamoDB runn
 
  * First download and unpack the latest version of DynamoDB.
 
- ```shell
- wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.zip --quiet -O spec/dynamodb_temp.zip
- unzip -qq spec/dynamodb_temp.zip -d spec/DynamoDBLocal-latest
- rm spec/dynamodb_temp.zip
- ```
+    ```shell
+    bin/setup
+    ```
 
- * Then run `sh bin/start_dynamodblocal`, to start the local instance of DynamoDB to listen in ***8000*** port
+ * Start the local instance of DynamoDB to listen in ***8000*** port
+
+    ```shell
+    bin/start_dynamodblocal
+    ```
+ 
  * and lastly, use `rake` to run the tests.
+ 
+    ```shell
+    rake
+    ```
 
 [![Build Status](https://travis-ci.org/Dynamoid/Dynamoid.svg)](https://travis-ci.org/Dynamoid/Dynamoid)
 [![Coverage Status](https://coveralls.io/repos/Dynamoid/Dynamoid/badge.svg?branch=master&service=github)](https://coveralls.io/github/Dynamoid/Dynamoid?branch=master)

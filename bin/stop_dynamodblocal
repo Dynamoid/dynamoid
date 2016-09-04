@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Source variables
 . $(dirname $0)/_dynamodblocal
 
 cd $DIST_DIR

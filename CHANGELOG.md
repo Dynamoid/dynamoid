@@ -1,5 +1,7 @@
 # 1.2.0
 
+* Add create_table_syncronously, and sync: option to regular create_table (@pboling)
+  * make required for tables created with secondary indexes
 * Expose and fix truncate method on adapter (#52, @pcorpet)
 * Enable saving without updating timestamps (#58, @cignoir)
 * Fix projected attributes by checking for :include (#56, @yoshida_tetsuhiro)

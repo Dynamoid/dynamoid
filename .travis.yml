@@ -1,14 +1,15 @@
 language: ruby
 rvm:
-  - ruby-1.9.3-p551
-  - ruby-2.2.2
-  - jruby-1.7.11
-  - jruby-head
-  - rbx-2
+  - ruby-2.0.0-p648
+  - ruby-2.1.10
+  - ruby-2.2.5
+  - ruby-2.3.1
+  - jruby-9.1.4.0
+before_install: gem install bundler -v 1.12.5
 install:
   - wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.zip --quiet -O spec/dynamodb_temp.zip
   - unzip -qq spec/dynamodb_temp.zip -d spec/DynamoDBLocal-latest
   - rm spec/dynamodb_temp.zip
 script:
-  - gem install bundler; bundle install
+  - bundle install
   - bundle exec rake unattended_spec

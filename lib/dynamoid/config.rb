@@ -24,6 +24,8 @@ module Dynamoid
     option :port, :default => '443'
     option :identity_map, :default => false
     option :timestamps, :default => true
+    option :sync_retry_max_times, :default => 60 # a bit over 2 minutes
+    option :sync_retry_wait_seconds, :default => 2
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #
