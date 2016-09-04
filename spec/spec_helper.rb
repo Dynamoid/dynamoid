@@ -5,6 +5,7 @@ $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require "rspec"
+require "rspec/retry"
 require "dynamoid"
 require "pry"
 require "aws-sdk-resources"
@@ -60,5 +61,13 @@ RSpec.configure do |config|
     DynamoDBLocal.delete_all_specified_tables!
   end
 
-end
+  # show retry status in spec process
+  config.verbose_retry = true
+  # show exception that triggers a retry if verbose_retry is set to true
+  config.display_try_failure_messages = true
 
+  # run retry only on features
+  config.around :each do |ex|
+    ex.run_with_retry retry: 3
+  end
+end

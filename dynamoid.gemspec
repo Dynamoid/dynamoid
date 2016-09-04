@@ -48,4 +48,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency(%q<github-markup>, [">= 0"])
   spec.add_development_dependency(%q<pry>, [">= 0"])
   spec.add_development_dependency(%q<coveralls>, [">= 0"])
+  spec.add_development_dependency(%q<rspec-retry>, [">= 0"])
 end

@@ -131,6 +131,7 @@ module Dynamoid
       end
     end
 
+    # @since 0.2.0
     def delete_table(table_name, *args)
       if tables.include?(table_name)
         benchmark('Delete Table') { adapter.delete_table(table_name, *args) }
