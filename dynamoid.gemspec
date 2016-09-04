@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
   spec.extra_rdoc_files = [
       "LICENSE.txt",
-      "README.markdown"
+      "README.md"
   ]
   spec.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(bin|test|spec|features)/}) }
   spec.homepage = "http://github.com/Dynamoid/Dynamoid"
