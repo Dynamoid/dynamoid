@@ -3,28 +3,29 @@ require "time"
 require "securerandom"
 require "active_support"
 require "active_support/core_ext"
-require 'active_support/json'
+require "active_support/json"
 require "active_support/inflector"
 require "active_support/lazy_load_hooks"
 require "active_support/time_with_zone"
 require "active_model"
 
-require 'dynamoid/errors'
-require 'dynamoid/fields'
-require 'dynamoid/indexes'
-require 'dynamoid/associations'
-require 'dynamoid/persistence'
-require 'dynamoid/dirty'
-require 'dynamoid/validations'
-require 'dynamoid/criteria'
-require 'dynamoid/finders'
-require 'dynamoid/identity_map'
-require 'dynamoid/config'
-require 'dynamoid/components'
-require 'dynamoid/document'
-require 'dynamoid/adapter'
+require "dynamoid/version"
+require "dynamoid/errors"
+require "dynamoid/fields"
+require "dynamoid/indexes"
+require "dynamoid/associations"
+require "dynamoid/persistence"
+require "dynamoid/dirty"
+require "dynamoid/validations"
+require "dynamoid/criteria"
+require "dynamoid/finders"
+require "dynamoid/identity_map"
+require "dynamoid/config"
+require "dynamoid/components"
+require "dynamoid/document"
+require "dynamoid/adapter"
 
-require 'dynamoid/middleware/identity_map'
+require "dynamoid/middleware/identity_map"
 
 module Dynamoid
   extend self
