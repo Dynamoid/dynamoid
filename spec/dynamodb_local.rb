@@ -34,9 +34,11 @@ module DynamoDBLocal
   end
 
   def self.delete_all_specified_tables!
-    Dynamoid.adapter.list_tables.each do |table|
-      Dynamoid.adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/
+    if !Dynamoid.adapter.tables.empty?
+      Dynamoid.adapter.list_tables.each do |table|
+        Dynamoid.adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/
+      end
+      Dynamoid.adapter.tables.clear
     end
-    Dynamoid.adapter.tables.clear
   end
 end

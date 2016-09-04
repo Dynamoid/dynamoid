@@ -179,8 +179,8 @@ module Dynamoid
           end
         end
         resp = client.create_table(client_opts)
-        options[:sync] = true if ls_indexes.present? || gs_indexes.present?
-        until_table_exists(table_name) if options[:sync] &&
+        options[:sync] = true if !options.has_key?(:sync) && ls_indexes.present? || gs_indexes.present?
+        until_past_table_status(table_name) if options[:sync] &&
             (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
             status != TABLE_STATUSES[:creating]
         # Response to original create_table, which, if options[:sync]
@@ -237,11 +237,22 @@ module Dynamoid
       # Deletes an entire table from DynamoDB.
       #
       # @param [String] table_name the name of the table to destroy
+      # @option options [Boolean] sync Wait for table status check to raise ResourceNotFoundException
       #
       # @since 1.0.0
-      def delete_table(table_name)
-        client.delete_table(table_name: table_name)
-        table_cache.clear
+      def delete_table(table_name, options = {})
+        resp = client.delete_table(table_name: table_name)
+        until_past_table_status(table_name, :deleting) if options[:sync] &&
+            (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
+            status != TABLE_STATUSES[:deleting]
+        table_cache.delete(table_name)
+      rescue Aws::DynamoDB::Errors::ResourceInUseException => e
+        Dynamoid.logger.error "Table #{table_name} cannot be deleted as it is in use"
+        raise e
+      end
+
+      def delete_table_synchronously(table_name, options = {})
+        delete_table(table_name, options.merge(sync: true))
       end
 
       # @todo Add a DescribeTable method.
@@ -475,14 +486,14 @@ module Dynamoid
 
       protected
 
-      def check_table_status?(counter, resp)
+      def check_table_status?(counter, resp, expect_status)
         status = PARSE_TABLE_STATUS.call(resp)
         again = counter < Dynamoid::Config.sync_retry_max_times &&
-                status == TABLE_STATUSES[:creating]
+                status == TABLE_STATUSES[expect_status]
         {again: again, status: status, counter: counter}
       end
 
-      def until_table_exists(table_name)
+      def until_past_table_status(table_name, status = :creating)
         counter = 0
         resp = nil
         begin
@@ -490,7 +501,7 @@ module Dynamoid
           while check[:again]
             sleep Dynamoid::Config.sync_retry_wait_seconds
             resp = client.describe_table({ table_name: table_name })
-            check = check_table_status?(counter, resp)
+            check = check_table_status?(counter, resp, status)
             Dynamoid.logger.info "Checked table status for #{table_name} (check #{check.inspect})"
             counter += 1
           end
@@ -500,13 +511,19 @@ module Dynamoid
         #   and the metadata for your table might not be available at that moment.
         # Wait for a few seconds, and then try the DescribeTable request again.
         # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#describe_table-instance_method
-        rescue ResourceNotFoundException => e
-          if counter >= Dynamoid::Config.sync_retry_max_times
-            Dynamoid.logger.warn "Waiting on table metadata for #{table_name} (check #{counter})"
-            retry # start over at first line of begin, does not reset counter
+        rescue Aws::DynamoDB::Errors::ResourceNotFoundException => e
+          case status
+          when :creating then
+            if counter >= Dynamoid::Config.sync_retry_max_times
+              Dynamoid.logger.warn "Waiting on table metadata for #{table_name} (check #{counter})"
+              retry # start over at first line of begin, does not reset counter
+            else
+              Dynamoid.logger.error "Exhausted max retries (Dynamoid::Config.sync_retry_max_times) waiting on table metadata for #{table_name} (check #{counter})"
+              raise e
+            end
           else
-            Dynamoid.logger.error "Exhausted max retries (Dynamoid::Config.sync_retry_max_times) waiting on table metadata for #{table_name} (check #{counter})"
-            raise e
+            # When deleting a table, "not found" is the goal.
+            Dynamoid.logger.info "Checked table status for #{table_name}: Not Found (check #{check.inspect})"
           end
         end
       end
