@@ -8,19 +8,21 @@ module DynamoDBLocal
   end
 
   def self.ensure_is_running!
-    if File.exists? PIDFILE
-      begin
+    begin
+      if File.exists? PIDFILE
         self.raise_unless_running!
-      rescue Errno::ESRCH
-        STDERR.puts "The #{PIDFILE} exists but the process was not running"
+      else
+        STDERR.puts "The #{PIDFILE} did not exist. Starting Dynamo DB Local."
         self.start!
         sleep 1
-        retry
+        self.raise_unless_running!
+        return true
       end
-    else
+    rescue Errno::ESRCH
+      STDERR.puts "The #{PIDFILE} exists but the process was not running"
       self.start!
       sleep 1
-      return true
+      retry
     end
   end
 

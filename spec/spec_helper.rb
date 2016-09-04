@@ -47,7 +47,7 @@ RSpec.configure do |config|
   config.before(:each) do
     while !DynamoDBLocal.ensure_is_running!
       puts "Sleeping to allow DynamoDB to finish booting"
-      sleep 5 # wait 5 seconds after restarting dynamodblocal
+      sleep 1 # wait 5 seconds after restarting dynamodblocal
     end
     DynamoDBLocal.delete_all_specified_tables!
   end
@@ -55,7 +55,7 @@ RSpec.configure do |config|
   config.after(:each) do
     while !DynamoDBLocal.ensure_is_running!
       puts "Sleeping to allow DynamoDB to finish booting"
-      sleep 5 # wait 5 seconds after restarting dynamodblocal
+      sleep 1 # wait 5 seconds after restarting dynamodblocal
     end
     DynamoDBLocal.delete_all_specified_tables!
   end
