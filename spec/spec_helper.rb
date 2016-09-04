@@ -48,10 +48,17 @@ RSpec.configure do |config|
       sleep 5 # wait 5 seconds after restarting dynamodblocal
       DynamoDBLocal.raise_unless_running! # then fail if not running
     end
-    Dynamoid.adapter.list_tables.each do |table|
-      Dynamoid.adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/
-    end
-    Dynamoid.adapter.tables.clear
+    DynamoDBLocal.delete_all_specified_tables!
   end
+
+  config.after(:each) do
+    unless DynamoDBLocal.ensure_is_running!
+      puts "Sleeping to allow DynamoDB to finish booting"
+      sleep 5 # wait 5 seconds after restarting dynamodblocal
+      DynamoDBLocal.raise_unless_running! # then fail if not running
+    end
+    DynamoDBLocal.delete_all_specified_tables!
+  end
+
 end
 

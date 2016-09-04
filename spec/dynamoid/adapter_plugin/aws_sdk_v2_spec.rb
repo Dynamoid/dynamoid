@@ -122,10 +122,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
         })
 
         # execute
-        data = Dynamoid.adapter.client.describe_table(table_name: 'table_lsi').data
+        resp = Dynamoid.adapter.client.describe_table(table_name: 'table_lsi')
+        data = resp.data
         lsi = data.table.local_secondary_indexes.first
 
         # test
+        expect(Dynamoid::AdapterPlugin::AwsSdkV2::PARSE_TABLE_STATUS.call(resp)).to eq(Dynamoid::AdapterPlugin::AwsSdkV2::TABLE_STATUSES[:active])
         expect(lsi.index_name).to eql "dynamoid_tests_table_lsi_index_id_range2"
         expect(lsi.key_schema.map(&:to_hash)).to eql [
           {:attribute_name=>"id", :key_type=>"HASH"},
@@ -150,10 +152,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
         })
 
         # execute
-        data = Dynamoid.adapter.client.describe_table(table_name: 'table_gsi').data
+        resp = Dynamoid.adapter.client.describe_table(table_name: 'table_gsi')
+        data = resp.data
         gsi = data.table.global_secondary_indexes.first
 
         # test
+        expect(Dynamoid::AdapterPlugin::AwsSdkV2::PARSE_TABLE_STATUS.call(resp)).to eq(Dynamoid::AdapterPlugin::AwsSdkV2::TABLE_STATUSES[:active])
         expect(gsi.index_name).to eql "dynamoid_tests_table_gsi_index_hash2_range2"
         expect(gsi.key_schema.map(&:to_hash)).to eql [
           {:attribute_name=>"hash2", :key_type=>"HASH"},

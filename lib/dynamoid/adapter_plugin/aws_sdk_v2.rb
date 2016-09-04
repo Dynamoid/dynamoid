@@ -3,6 +3,33 @@ module Dynamoid
 
     # The AwsSdkV2 adapter provides support for the aws-sdk version 2 for ruby.
     class AwsSdkV2
+      EQ = "EQ".freeze
+      RANGE_MAP = {
+          range_greater_than: 'GT',
+          range_less_than:    'LT',
+          range_gte:          'GE',
+          range_lte:          'LE',
+          range_begins_with:  'BEGINS_WITH',
+          range_between:      'BETWEEN',
+          range_eq:           'EQ'
+      }
+      HASH_KEY  = "HASH".freeze
+      RANGE_KEY = "RANGE".freeze
+      STRING_TYPE  = "S".freeze
+      NUM_TYPE     = "N".freeze
+      BINARY_TYPE  = "B".freeze
+      TABLE_STATUSES = {
+          creating: "CREATING",
+          updating: "UPDATING",
+          deleting: "DELETING",
+          active: "ACTIVE"
+      }.freeze
+      PARSE_TABLE_STATUS = ->(resp, lookup = :table) {
+        # lookup is table for describe_table API
+        # lookup is table_description for create_table API
+        #   because Amazon, damnit.
+        resp.send(lookup).table_status
+      }
       attr_reader :table_cache
 
       # Establish the connection to DynamoDB.
@@ -103,6 +130,7 @@ module Dynamoid
       # @option options [Array<Dynamoid::Indexes::Index>] local_secondary_indexes
       # @option options [Array<Dynamoid::Indexes::Index>] global_secondary_indexes
       # @option options [Symbol] hash_key_type The type of the hash key
+      # @option options [Boolean] sync Wait for table status to be ACTIVE?
       # @since 1.0.0
       def create_table(table_name, key = :id, options = {})
         Dynamoid.logger.info "Creating #{table_name} table. This could take a while."
@@ -150,9 +178,38 @@ module Dynamoid
             index_to_aws_hash(index)
           end
         end
-        client.create_table(client_opts)
+        resp = client.create_table(client_opts)
+        options[:sync] = true if ls_indexes.present? || gs_indexes.present?
+        until_table_exists(table_name) if options[:sync] &&
+            (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
+            status != TABLE_STATUSES[:creating]
+        # Response to original create_table, which, if options[:sync]
+        #   may have an outdated table_description.table_status of "CREATING"
+        resp
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         Dynamoid.logger.error "Table #{table_name} cannot be created as it already exists"
+      end
+
+      # Create a table on DynamoDB *synchronously*.
+      # This usually takes a long time to complete.
+      # CreateTable is normally an asynchronous operation.
+      # You can optionally define secondary indexes on the new table,
+      #   as part of the CreateTable operation.
+      # If you want to create multiple tables with secondary indexes on them,
+      #   you must create the tables sequentially.
+      # Only one table with secondary indexes can be
+      #   in the CREATING state at any given time.
+      # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#create_table-instance_method
+      #
+      # @param [String] table_name the name of the table to create
+      # @param [Symbol] key the table's primary key (defaults to :id)
+      # @param [Hash] options provide a range key here if the table has a composite key
+      # @option options [Array<Dynamoid::Indexes::Index>] local_secondary_indexes
+      # @option options [Array<Dynamoid::Indexes::Index>] global_secondary_indexes
+      # @option options [Symbol] hash_key_type The type of the hash key
+      # @since 1.2.0
+      def create_table_synchronously(table_name, key = :id, options = {})
+        create_table(table_name, key, options.merge(sync: true))
       end
 
       # Removes an item from DynamoDB.
@@ -352,18 +409,6 @@ module Dynamoid
         }
       end
 
-      EQ = "EQ".freeze
-
-      RANGE_MAP = {
-        range_greater_than: 'GT',
-        range_less_than:    'LT',
-        range_gte:          'GE',
-        range_lte:          'LE',
-        range_begins_with:  'BEGINS_WITH',
-        range_between:      'BETWEEN',
-        range_eq:           'EQ'
-      }
-
       # Scan the DynamoDB table. This is usually a very slow operation as it naively filters all data on
       # the DynamoDB servers.
       #
@@ -406,7 +451,6 @@ module Dynamoid
         end
       end
 
-
       #
       # Truncates all records in the given table
       #
@@ -431,9 +475,41 @@ module Dynamoid
 
       protected
 
-      STRING_TYPE  = "S".freeze
-      NUM_TYPE     = "N".freeze
-      BINARY_TYPE  = "B".freeze
+      def check_table_status?(counter, resp)
+        status = PARSE_TABLE_STATUS.call(resp)
+        again = counter < Dynamoid::Config.sync_retry_max_times &&
+                status == TABLE_STATUSES[:creating]
+        {again: again, status: status, counter: counter}
+      end
+
+      def until_table_exists(table_name)
+        counter = 0
+        resp = nil
+        begin
+          check = {again: true}
+          while check[:again]
+            sleep Dynamoid::Config.sync_retry_wait_seconds
+            resp = client.describe_table({ table_name: table_name })
+            check = check_table_status?(counter, resp)
+            Dynamoid.logger.info "Checked table status for #{table_name} (check #{check.inspect})"
+            counter += 1
+          end
+        # If you issue a DescribeTable request immediately after a CreateTable
+        #   request, DynamoDB might return a ResourceNotFoundException.
+        # This is because DescribeTable uses an eventually consistent query,
+        #   and the metadata for your table might not be available at that moment.
+        # Wait for a few seconds, and then try the DescribeTable request again.
+        # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#describe_table-instance_method
+        rescue ResourceNotFoundException => e
+          if counter >= Dynamoid::Config.sync_retry_max_times
+            Dynamoid.logger.warn "Waiting on table metadata for #{table_name} (check #{counter})"
+            retry # start over at first line of begin, does not reset counter
+          else
+            Dynamoid.logger.error "Exhausted max retries (Dynamoid::Config.sync_retry_max_times) waiting on table metadata for #{table_name} (check #{counter})"
+            raise e
+          end
+        end
+      end
 
       #Converts from symbol to the API string for the given data type
       # E.g. :number -> 'N'
@@ -472,9 +548,6 @@ module Dynamoid
 
         expected
       end
-
-      HASH_KEY  = "HASH".freeze
-      RANGE_KEY = "RANGE".freeze
 
       #
       # New, semi-arbitrary API to get data on the table
