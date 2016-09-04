@@ -132,9 +132,9 @@ module Dynamoid
     end
 
     # @since 0.2.0
-    def delete_table(table_name, *args)
+    def delete_table(table_name, options = {})
       if tables.include?(table_name)
-        benchmark('Delete Table') { adapter.delete_table(table_name, *args) }
+        benchmark('Delete Table') { adapter.delete_table(table_name, options) }
         idx = tables.index(table_name)
         tables.delete_at(idx)
       end
