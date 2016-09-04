@@ -14,11 +14,12 @@ module DynamoDBLocal
       rescue Errno::ESRCH
         STDERR.puts "The #{PIDFILE} exists but the process was not running"
         self.start!
-        sleep 5 # sleep 5 seconds to give it time to startup
+        sleep 1
         retry
       end
     else
       self.start!
+      sleep 1
       return true
     end
   end
