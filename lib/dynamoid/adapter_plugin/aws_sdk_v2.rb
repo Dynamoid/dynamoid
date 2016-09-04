@@ -51,10 +51,39 @@ module Dynamoid
         @client
       end
 
+      # Puts or deletes multiple items in one or more tables
+      #
+      # @param [String] table_name the name of the table
+      # @param [Array]  items to be processed
+      # @param [Hash]   additional options
+      #
+      #See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
+      def batch_write_item table_name, objects, options = {}
+        request_items = []
+        options ||= {}
+        objects.each do |o|
+          request_items << { "put_request" => { item: o } }
+        end
+
+        begin
+          client.batch_write_item(
+            {
+              request_items: {
+                table_name => request_items,
+              },
+              return_consumed_capacity: "TOTAL",
+              return_item_collection_metrics: "SIZE"
+            }.merge!(options)
+          )
+        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
+          raise Dynamoid::Errors::ConditionalCheckFailedException, e
+        end
+      end
+
       # Get many items at once from DynamoDB. More efficient than getting each item individually.
       #
       # @example Retrieve IDs 1 and 2 from the table testtable
-      #   Dynamoid::Adapter::AwsSdkV2.batch_get_item({'table1' => ['1', '2']})
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item({'table1' => ['1', '2']})
       #
       # @param [Hash] table_ids the hash of tables and IDs to retrieve
       # @param [Hash] options to be passed to underlying BatchGet call
@@ -103,9 +132,9 @@ module Dynamoid
       # Delete many items at once from DynamoDB. More efficient than delete each item individually.
       #
       # @example Delete IDs 1 and 2 from the table testtable
-      #   Dynamoid::Adapter::AwsSdk.batch_delete_item('table1' => ['1', '2'])
+      #   Dynamoid::AdapterPlugin::AwsSdk.batch_delete_item('table1' => ['1', '2'])
       #or
-      #   Dynamoid::Adapter::AwsSdkV2.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
       #
       # @param [Hash] options the hash of tables and IDs to delete
       #
@@ -222,6 +251,7 @@ module Dynamoid
       #
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#delete_item-instance_method
       def delete_item(table_name, key, options = {})
+        options ||= {}
         range_key = options[:range_key]
         conditions = options[:conditions]
         table = describe_table(table_name)
@@ -269,6 +299,7 @@ module Dynamoid
       #
       # @todo Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#get_item-instance_method
       def get_item(table_name, key, options = {})
+        options ||= {}
         table    = describe_table(table_name)
         range_key = options.delete(:range_key)
 
@@ -324,9 +355,10 @@ module Dynamoid
       #
       # @since 1.0.0
       #
-      # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#put_item-instance_method
-      def put_item(table_name, object, options = nil)
+      # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#put_item-instance_method
+      def put_item(table_name, object, options = {})
         item = {}
+        options ||= {}
 
         object.each do |k, v|
           next if v.nil? || (v.respond_to?(:empty?) && v.empty?)
@@ -334,9 +366,12 @@ module Dynamoid
         end
 
         begin
-          client.put_item(table_name: table_name,
-            item: item,
-            expected: expected_stanza(options)
+          client.put_item(
+            {
+              table_name: table_name,
+              item: item,
+              expected: expected_stanza(options)
+            }.merge!(options)
           )
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
           raise Dynamoid::Errors::ConditionalCheckFailedException, e
@@ -556,10 +591,10 @@ module Dynamoid
         expected = Hash.new { |h,k| h[k] = {} }
         return expected unless conditions
 
-        conditions[:unless_exists].try(:each) do |col|
+        conditions.delete(:unless_exists).try(:each) do |col|
           expected[col.to_s][:exists] = false
         end
-        conditions[:if].try(:each) do |col,val|
+        conditions.delete(:if).try(:each) do |col,val|
           expected[col.to_s][:value] = val
         end
 
