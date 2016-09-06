@@ -38,7 +38,8 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_runtime_dependency(%q<activemodel>, ["~> 4"])
+  spec.add_runtime_dependency(%q<activemodel>, [">= 4"])
+  spec.add_runtime_dependency(%q<ative_model_serializers>)
   spec.add_runtime_dependency(%q<aws-sdk-resources>, ["~> 2"])
   spec.add_runtime_dependency(%q<concurrent-ruby>, [">= 1.0"])
   spec.add_development_dependency(%q<rake>, [">= 10"])
