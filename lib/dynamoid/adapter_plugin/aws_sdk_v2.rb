@@ -447,11 +447,16 @@ module Dynamoid
         q[:key_conditions] = key_conditions
 
         Enumerator.new { |y|
-          result = client.query(q)
+          loop do
+            results = client.query(q)
+            results.items.each { |row| y << result_item_to_hash(row) }
 
-          result.items.each { |r|
-            y << result_item_to_hash(r)
-          }
+            if(lk = results.last_evaluated_key)
+              q[:exclusive_start_key] = lk
+            else
+              break
+            end
+          end
         }
       end
 
