@@ -52,6 +52,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     it 'performs query on a table with a range and selects items lte' do
       expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_lte => 3.0).to_a).to eq [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
+
+    it 'performs query on a table with a range and selects all items' do
+      200.times { |i| Dynamoid.adapter.put_item(test_table3, {:id => "1", :range => i.to_f, :data => "A"*1024*16}) }
+      # 64 of these items will exceed the 1MB result limit thus query won't return all results on first loop
+      expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_gte => 0.0).count).to eq(200)
+    end
   end
 
   #
