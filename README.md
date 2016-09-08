@@ -343,6 +343,48 @@ In this example, all saves to `MyTable` will raise an `Dynamoid::Errors::StaleOb
 
 Calls to `update` and `update!` also increment the `lock_version`, however they do not check the existing value. This guarantees that a update operation will raise an exception in a concurrent save operation, however a save operation will never cause an update to fail. Thus, `update` is useful & safe only for doing atomic operations (e.g. increment a value, add/remove from a set, etc), but should not be used in a read-modify-write pattern.
  
+## Test Environment
+
+In test environment you will most likely want to clean the database between test runs to keep tests completely isolated. This can be achieved like so
+
+```ruby
+module DynamoidReset
+  def self.all
+    Dynamoid.adapter.list_tables.each do |table|
+      # Only delete tables in our namespace
+      if table =~ /^#{Dynamoid::Config.namespace}/
+        Dynamoid.adapter.delete_table(table)
+      end
+    end
+    Dynamoid.adapter.tables.clear
+    # Recreate all tables to avoid unexpected errors
+    Dynamoid.included_models.each(&:create_table)
+  end
+end
+
+# Reduce noise in test output
+Dynamoid.logger.level = Logger::FATAL
+```
+
+If you're using RSpec you can invoke the above like so:
+
+```ruby
+RSpec.configure do |config|
+  config.before(:each) do
+    DynamoidReset.all
+  end
+end
+```
+
+In Rails, you may also want to ensure you do not delete non-test data accidentally by adding the following to your test environment setup:
+
+```ruby
+raise "Tests should be run in 'test' environment only" if Rails.env != 'test'
+Dynamoid.configure do |config|
+  config.namespace = "#{Rails.application.railtie_name}_#{Rails.env}"
+end
+```
+
 ## Credits
 
 Dynamoid borrows code, structure, and even its name very liberally from the truly amazing [Mongoid](https://github.com/mongoid/mongoid). Without Mongoid to crib from none of this would have been possible, and I hope they don't mind me reusing their very awesome ideas to make DynamoDB just as accessible to the Ruby world as MongoDB.
