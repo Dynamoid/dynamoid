@@ -13,6 +13,7 @@ describe Dynamoid::Document do
                                       options: nil,
                                       deliverable: nil,
                                       latitude: nil,
+                                      config: nil,
                                       lock_version: nil})
   end
 
@@ -36,6 +37,7 @@ describe Dynamoid::Document do
                                       options: nil,
                                       deliverable: nil,
                                       latitude: nil,
+                                      config: nil,
                                       lock_version: nil})
   end
 
@@ -51,6 +53,7 @@ describe Dynamoid::Document do
                                       options: nil,
                                       deliverable: nil,
                                       latitude: nil,
+                                      config: nil,
                                       lock_version: nil})
   end
 

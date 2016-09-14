@@ -110,6 +110,7 @@ describe Dynamoid::Fields do
                                         options: {type: :serialized},
                                         deliverable: {type: :boolean},
                                         latitude: {type: :number},
+                                        config: {type: :raw},
                                         lock_version: {type: :integer}})
     end
   end
