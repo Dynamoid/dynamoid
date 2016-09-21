@@ -56,7 +56,7 @@ module Dynamoid #:nodoc:
       def empty?
         # This is needed to that ActiveSupport's #blank? and #present?
         # methods work as expected for SingleAssociations.
-        target.empty?
+        target.nil?
       end
 
       private
