@@ -29,14 +29,14 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def associate_target(object)
-        object.update_attribute(target_attribute, target_ids.merge(Array(source.id)))
+        object.update_attribute(target_attribute, target_ids.merge(Array(source.hash_key)))
       end
 
       # Disassociate a source object from this association.
       #
       # @since 0.2.0      
       def disassociate_target(object)
-        source.update_attribute(source_attribute, target_ids - Array(source.id))
+        source.update_attribute(source_attribute, target_ids - Array(source.hash_key))
       end
     end
   end

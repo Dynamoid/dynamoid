@@ -1,5 +1,6 @@
 class Magazine
   include Dynamoid::Document
+  table :key => :title
   
   field :title
   

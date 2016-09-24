@@ -52,7 +52,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def delete(object)
-        source.update_attribute(source_attribute, source_ids - Array(object).collect(&:id))
+        source.update_attribute(source_attribute, source_ids - Array(object).collect(&:hash_key))
         Array(object).each {|o| self.send(:disassociate_target, o)} if target_association
         object
       end
@@ -67,7 +67,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def <<(object)
-        source.update_attribute(source_attribute, source_ids.merge(Array(object).collect(&:id)))
+        source.update_attribute(source_attribute, source_ids.merge(Array(object).collect(&:hash_key)))
         Array(object).each {|o| self.send(:associate_target, o)} if target_association
         object
       end
