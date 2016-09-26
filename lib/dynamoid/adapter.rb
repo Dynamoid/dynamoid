@@ -19,7 +19,7 @@ module Dynamoid
       if !@tables_.value
         @tables_.swap{|value, args| benchmark('Cache Tables') { list_tables } }
       end
-      @tables_.value
+      @tables_.value || []
     end
 
     # The actual adapter currently in use.
