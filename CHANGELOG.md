@@ -1,3 +1,13 @@
+# 1.3.0
+
+* Adds Support for Rails 5! (#109, @gastzars)
+* Table Namespace Fix (#79, @alexperto)
+* Improve Testing Docs (#103, @tadast)
+* Query All Items by Looping (#102, @richardhsu)
+* Store document in DocumentNotValid error for easier debugging (#98, holyketzer)
+* Better support for raw datatype (#104, @OpenGov)
+* Fix associative tables with non-id primary keys (#86, @everett-wetchler)
+
 # 1.2.1
 
 * Remove accidental Gemfile.lock; fix .gitignore (#95, @pboling)
