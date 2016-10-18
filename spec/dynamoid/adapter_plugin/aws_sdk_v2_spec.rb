@@ -52,6 +52,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     it 'performs query on a table with a range and selects items lte' do
       expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_lte => 3.0).to_a).to eq [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
+
+    it 'performs query on a table with a range and selects all items' do
+      200.times { |i| Dynamoid.adapter.put_item(test_table3, {:id => "1", :range => i.to_f, :data => "A"*1024*16}) }
+      # 64 of these items will exceed the 1MB result limit thus query won't return all results on first loop
+      expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_gte => 0.0).count).to eq(200)
+    end
   end
 
   #
@@ -122,10 +128,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
         })
 
         # execute
-        data = Dynamoid.adapter.client.describe_table(table_name: 'table_lsi').data
+        resp = Dynamoid.adapter.client.describe_table(table_name: 'table_lsi')
+        data = resp.data
         lsi = data.table.local_secondary_indexes.first
 
         # test
+        expect(Dynamoid::AdapterPlugin::AwsSdkV2::PARSE_TABLE_STATUS.call(resp)).to eq(Dynamoid::AdapterPlugin::AwsSdkV2::TABLE_STATUSES[:active])
         expect(lsi.index_name).to eql "dynamoid_tests_table_lsi_index_id_range2"
         expect(lsi.key_schema.map(&:to_hash)).to eql [
           {:attribute_name=>"id", :key_type=>"HASH"},
@@ -150,10 +158,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
         })
 
         # execute
-        data = Dynamoid.adapter.client.describe_table(table_name: 'table_gsi').data
+        resp = Dynamoid.adapter.client.describe_table(table_name: 'table_gsi')
+        data = resp.data
         gsi = data.table.global_secondary_indexes.first
 
         # test
+        expect(Dynamoid::AdapterPlugin::AwsSdkV2::PARSE_TABLE_STATUS.call(resp)).to eq(Dynamoid::AdapterPlugin::AwsSdkV2::TABLE_STATUSES[:active])
         expect(gsi.index_name).to eql "dynamoid_tests_table_gsi_index_hash2_range2"
         expect(gsi.key_schema.map(&:to_hash)).to eql [
           {:attribute_name=>"hash2", :key_type=>"HASH"},

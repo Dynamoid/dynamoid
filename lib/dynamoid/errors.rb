@@ -53,8 +53,11 @@ module Dynamoid
     end
 
     class DocumentNotValid < Error
+      attr_reader :document
+
       def initialize(document)
         super("Validation failed: #{document.errors.full_messages.join(", ")}")
+        @document = document
       end
     end
 

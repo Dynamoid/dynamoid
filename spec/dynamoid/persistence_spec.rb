@@ -53,7 +53,7 @@ describe Dynamoid::Persistence do
     expect(Address.table_name).to eq 'dynamoid_tests_addresses'
   end
 
-  context 'with namespace set to nil' do
+  context 'with namespace is empty' do
     def reload_address
       Object.send(:remove_const, 'Address')
       load 'app/models/address.rb'
@@ -64,7 +64,7 @@ describe Dynamoid::Persistence do
     before do
       reload_address
       Dynamoid.configure do |config|
-        config.namespace = nil
+        config.namespace = ""
       end
     end
 
@@ -77,6 +77,7 @@ describe Dynamoid::Persistence do
 
     it 'does not add a namespace prefix to table names' do
       table_name = Address.table_name
+      expect(Dynamoid::Config.namespace).to be_empty
       expect(table_name).to eq 'addresses'
     end
   end
@@ -120,6 +121,30 @@ describe Dynamoid::Persistence do
   it 'keeps string attributes as strings' do
     @user = User.new(:name => 'Josh')
     expect(@user.send(:dump)[:name]).to eq 'Josh'
+  end
+
+  it 'keeps raw Hash attributes as a Hash' do
+    config = {:acres => 5, :trees => {:cyprus => 30, :poplar => 10, :joshua => 1}, :horses => ['Lucky', 'Dummy'], :lake => 1, :tennis_court => 1}
+    @addr = Address.new(:config => config)
+    expect(@addr.send(:dump)[:config]).to eq config
+  end
+
+  it 'keeps raw Array attributes as an Array' do
+    config = ['windows', 'roof', 'doors']
+    @addr = Address.new(:config => config)
+    expect(@addr.send(:dump)[:config]).to eq config
+  end
+
+  it 'keeps raw String attributes as a String' do
+    config = 'Configy'
+    @addr = Address.new(:config => config)
+    expect(@addr.send(:dump)[:config]).to eq config
+  end
+
+  it 'keeps raw Number attributes as a Number' do
+    config = 100
+    @addr = Address.new(:config => config)
+    expect(@addr.send(:dump)[:config]).to eq config
   end
 
   it 'dumps datetime attributes' do
@@ -394,6 +419,55 @@ describe Dynamoid::Persistence do
         expect(v).to include(c)
         expect(v).to include(s)
       }
+    end
+  end
+
+  describe ':raw datatype persistence' do
+    subject { Address.new() }
+
+    it 'it persists raw Hash and reads the same back' do
+      config = {:acres => 5, :trees => {:cyprus => 30, :poplar => 10, :joshua => 1}, :horses => ['Lucky', 'Dummy'], :lake => 1, :tennis_court => 1}
+      subject.config = config
+      subject.save!
+      subject.reload
+      expect(subject.config).to eq config
+    end
+
+    it 'it persists raw Array and reads the same back' do
+      config = ['windows', 'doors', 'roof']
+      subject.config = config
+      subject.save!
+      subject.reload
+      expect(subject.config).to eq config
+    end
+
+    it 'it persists raw Number and reads the same back' do
+      config = 100
+      subject.config = config
+      subject.save!
+      subject.reload
+      expect(subject.config).to eq config
+    end
+
+    it 'it persists raw String and reads the same back' do
+      config = 'Configy'
+      subject.config = config
+      subject.save!
+      subject.reload
+      expect(subject.config).to eq config
+    end
+
+    it 'it persists raw value, then reads back, then deletes the value by setting to nil, persists and reads the nil back' do
+      config = 'To become nil'
+      subject.config = config
+      subject.save!
+      subject.reload
+      expect(subject.config).to eq config
+
+      subject.config = nil
+      subject.save!
+      subject.reload
+      expect(subject.config).to be_nil
     end
   end
 

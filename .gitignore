@@ -8,12 +8,13 @@ rdoc
 
 # yardoc generated
 .yardoc
+/_yardoc/
 
 # bundler
-.bundle
+/.bundle/
 
 # jeweler generated
-pkg
+/pkg/
 
 # Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore:
 #
@@ -52,9 +53,15 @@ pkg
 .rvmrc
 
 # For RubyMine:
-.idea
+/.idea/
 
 # For Ctags
 .gemtags
 .tags
 .tags_sorted_by_file
+
+Gemfile.lock
+/doc/
+/spec/reports/
+/tmp/
+/spec/DynamoDBLocal-latest/

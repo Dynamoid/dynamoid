@@ -190,6 +190,41 @@ describe Dynamoid::Finders do
     end
 
     context 'global secondary index' do
+      it 'can sort' do
+        time = DateTime.now
+        first_visit = Bar.create(:name => "Drank", :visited_at => (time - 1.day).to_i)
+        Bar.create(:name => "Drank", :visited_at => time.to_i)
+        last_visit = Bar.create(:name => "Drank", :visited_at => (time + 1.day).to_i)
+
+        bars = Bar.find_all_by_secondary_index(
+            {:name => "Drank"}, :range => {"visited_at.lte" => (time + 10.days).to_i}
+        )
+        first_bar = bars.first
+        last_bar = bars.last
+        expect(bars.count).to eql 3
+        expect(first_bar.name).to eql first_visit.name
+        expect(first_bar.bar_id).to eql first_visit.bar_id
+        expect(last_bar.name).to eql last_visit.name
+        expect(last_bar.bar_id).to eql last_visit.bar_id
+      end
+      it 'honors :scan_index_forward => false' do
+        time = DateTime.now
+        first_visit = Bar.create(:name => "Drank", :visited_at => time - 1.day)
+        Bar.create(:name => "Drank", :visited_at => time)
+        last_visit = Bar.create(:name => "Drank", :visited_at => time + 1.day)
+        different_bar = Bar.create(:name => "Junk", :visited_at => time + 7.days)
+        bars = Bar.find_all_by_secondary_index(
+            {:name => "Drank"}, :range => {"visited_at.lte" => (time + 10.days).to_i},
+            :scan_index_forward => false
+        )
+        first_bar = bars.first
+        last_bar = bars.last
+        expect(bars.count).to eql 3
+        expect(first_bar.name).to eql last_visit.name
+        expect(first_bar.bar_id).to eql last_visit.bar_id
+        expect(last_bar.name).to eql first_visit.name
+        expect(last_bar.bar_id).to eql first_visit.bar_id
+      end
       it 'queries gsi with hash key' do
         time = DateTime.now
         p1 = Post.create(:post_id => 1, :posted_at => time, :length => "10")

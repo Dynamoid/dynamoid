@@ -17,7 +17,7 @@ module Dynamoid
 
     def tables
       if !@tables_.value
-        @tables_.swap{|value, args| benchmark('Cache Tables') {list_tables}}
+        @tables_.swap{|value, args| benchmark('Cache Tables') { list_tables } }
       end
       @tables_.value
     end
@@ -131,7 +131,16 @@ module Dynamoid
       end
     end
 
-    [:batch_get_item, :delete_item, :delete_table, :get_item, :list_tables, :put_item, :truncate].each do |m|
+    # @since 0.2.0
+    def delete_table(table_name, options = {})
+      if tables.include?(table_name)
+        benchmark('Delete Table') { adapter.delete_table(table_name, options) }
+        idx = tables.index(table_name)
+        tables.delete_at(idx)
+      end
+    end
+
+    [:batch_get_item, :delete_item, :get_item, :list_tables, :put_item, :truncate, :batch_write_item, :batch_delete_item].each do |m|
       # Method delegation with benchmark to the underlying adapter. Faster than relying on method_missing.
       #
       # @since 0.2.0

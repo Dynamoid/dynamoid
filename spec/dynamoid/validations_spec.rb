@@ -36,7 +36,9 @@ describe Dynamoid::Validations do
     doc_class.field :name
     doc_class.validates_presence_of :name
     doc = doc_class.new
-    expect { doc.save! }.to raise_error(Dynamoid::Errors::DocumentNotValid)
+    expect { doc.save! }.to raise_error(Dynamoid::Errors::DocumentNotValid) do |error|
+      expect(error.document).to eq doc
+    end
 
     expect { doc_class.create! }.to raise_error(Dynamoid::Errors::DocumentNotValid)
 

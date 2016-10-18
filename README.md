@@ -30,7 +30,7 @@ gem 'aws-sdk', '~>2'
 
 (or) include the aws-sdk in your Gemfile.
 
-**NOTE:** Dynamoid-1.0 doesn't support aws-sdk Version 1 (Use Dynamoid Major Version 0 for aws-sdk 1)   
+**NOTE:** Dynamoid-1.0 doesn't support aws-sdk Version 1 (Use Dynamoid Major Version 0 for aws-sdk 1)
 
 Configure AWS access:
 [Reference](https://github.com/aws/aws-sdk-ruby)
@@ -60,7 +60,7 @@ Then you need to initialize Dynamoid config to get it going. Put code similar to
     config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table.
     config.read_capacity = 5 # Read capacity for your tables
     config.write_capacity = 5 # Write capacity for your tables
-    config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html). 
+    config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
   end
 
 ```
@@ -129,20 +129,20 @@ To use a custom type for a field, suppose you have a `Money` type.
 ```ruby
   class Money
     # ... your business logic ...
-    
+
     def dynamoid_dump
       "serialized representation as a string"
     end
-    
+
     def self.dynamoid_load(serialized_str)
       # parse serialized representation and return a Money instance
       Money.new(...)
     end
   end
-  
+
   class User
     include Dynamoid::Document
-    
+
     field :balance, Money
   end
 ```
@@ -155,20 +155,20 @@ add a level of indirection for serializing.)  Example:
 ```ruby
   # Third-party Money class
   class Money; end
-  
+
   class MoneyAdapter
     def self.dynamoid_load(money_serialized_str)
       Money.new(...)
     end
-    
+
     def self.dynamoid_dump(money_obj)
       money_obj.value.to_s
     end
   end
-  
+
   class User
     include Dynamoid::Document
-    
+
     field :balance, MoneyAdapter
   end
 ```
@@ -178,7 +178,7 @@ This is especially important if you want to use your custom field as a numeric r
 number-oriented queries.  By default custom fields are persisted as a string attribute, but
 your custom class can override this with a `.dynamoid_field_type` class method, which would
 return either `:string` or `:number`.
-(DynamoDB supports some other attribute types, but Dynamoid yet does not.)
+(DynamoDB supports some other attribute types, but Dynamoid does not yet.)
 
 
 ### Associations
@@ -327,14 +327,14 @@ It also supports .gte and .lte. Turning those into symbols and allowing a Rails 
 
 ## Concurrency
 
-Dynamoid supports basic, ActiveRecord-like optimistic locking on save operations. Simply add a `lock_version` column to your table like so: 
+Dynamoid supports basic, ActiveRecord-like optimistic locking on save operations. Simply add a `lock_version` column to your table like so:
 
 ```ruby
 class MyTable
   ...
-  
+
   field :lock_version, :integer
-  
+
   ...
 end
 ```
@@ -342,7 +342,49 @@ end
 In this example, all saves to `MyTable` will raise an `Dynamoid::Errors::StaleObjectError` if a concurrent process loaded, edited, and saved the same row. Your code should trap this exception, reload the row (so that it will pick up the newest values), and try the save again.
 
 Calls to `update` and `update!` also increment the `lock_version`, however they do not check the existing value. This guarantees that a update operation will raise an exception in a concurrent save operation, however a save operation will never cause an update to fail. Thus, `update` is useful & safe only for doing atomic operations (e.g. increment a value, add/remove from a set, etc), but should not be used in a read-modify-write pattern.
- 
+
+## Test Environment
+
+In test environment you will most likely want to clean the database between test runs to keep tests completely isolated. This can be achieved like so
+
+```ruby
+module DynamoidReset
+  def self.all
+    Dynamoid.adapter.list_tables.each do |table|
+      # Only delete tables in our namespace
+      if table =~ /^#{Dynamoid::Config.namespace}/
+        Dynamoid.adapter.delete_table(table)
+      end
+    end
+    Dynamoid.adapter.tables.clear
+    # Recreate all tables to avoid unexpected errors
+    Dynamoid.included_models.each(&:create_table)
+  end
+end
+
+# Reduce noise in test output
+Dynamoid.logger.level = Logger::FATAL
+```
+
+If you're using RSpec you can invoke the above like so:
+
+```ruby
+RSpec.configure do |config|
+  config.before(:each) do
+    DynamoidReset.all
+  end
+end
+```
+
+In Rails, you may also want to ensure you do not delete non-test data accidentally by adding the following to your test environment setup:
+
+```ruby
+raise "Tests should be run in 'test' environment only" if Rails.env != 'test'
+Dynamoid.configure do |config|
+  config.namespace = "#{Rails.application.railtie_name}_#{Rails.env}"
+end
+```
+
 ## Credits
 
 Dynamoid borrows code, structure, and even its name very liberally from the truly amazing [Mongoid](https://github.com/mongoid/mongoid). Without Mongoid to crib from none of this would have been possible, and I hope they don't mind me reusing their very awesome ideas to make DynamoDB just as accessible to the Ruby world as MongoDB.
@@ -356,8 +398,14 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 * [Jason Dew](https://github.com/jasondew)
 * [Luis Arias](https://github.com/luisantonioa)
 * [Stefan Neculai](https://github.com/stefanneculai)
-* [Philip White](https://github.com/philipmw)
+* [Philip White](https://github.com/philipmw) *
 * [Peeyush Kumar](https://github.com/peeyush1234)
+* [Sumanth Ravipati](https://github.com/sumocoder)
+* [Pascal Corpet](https://github.com/pcorpet)
+* [Brian Glusman](https://github.com/bglusman) *
+* [Peter Boling](https://github.com/pboling) *
+
+\* Current Maintianers
 
 ## Running the tests
 
@@ -365,14 +413,21 @@ Running the tests is fairly simple. You should have an instance of DynamoDB runn
 
  * First download and unpack the latest version of DynamoDB.
 
- ```shell
- wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.zip --quiet -O spec/dynamodb_temp.zip
- unzip -qq spec/dynamodb_temp.zip -d spec/DynamoDBLocal-latest
- rm spec/dynamodb_temp.zip
- ```
+    ```shell
+    bin/setup
+    ```
 
- * Then run `sh bin/start_dynamodblocal`, to start the local instance of DynamoDB to listen in ***8000*** port
+ * Start the local instance of DynamoDB to listen in ***8000*** port
+
+    ```shell
+    bin/start_dynamodblocal
+    ```
+
  * and lastly, use `rake` to run the tests.
+
+    ```shell
+    rake
+    ```
 
 [![Build Status](https://travis-ci.org/Dynamoid/Dynamoid.svg)](https://travis-ci.org/Dynamoid/Dynamoid)
 [![Coverage Status](https://coveralls.io/repos/Dynamoid/Dynamoid/badge.svg?branch=master&service=github)](https://coveralls.io/github/Dynamoid/Dynamoid?branch=master)

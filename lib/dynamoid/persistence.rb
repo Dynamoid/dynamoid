@@ -18,13 +18,8 @@ module Dynamoid
       def table_name
         table_base_name = options[:name] || base_class.name.split('::').last
           .downcase.pluralize
-        table_prefix = if Dynamoid::Config.namespace.nil? then
-          ''
-        else
-          "#{Dynamoid::Config.namespace}_"
-        end
 
-        @table_name ||= "#{table_prefix}#{table_base_name}"
+        @table_name ||= [Dynamoid::Config.namespace.to_s,table_base_name].reject(&:empty?).join("_")
       end
 
       # Creates a table.
@@ -96,7 +91,7 @@ module Dynamoid
             value = default_value.respond_to?(:call) ? default_value.call : default_value
           end
 
-          if !value.nil?
+          unless value.nil?
             case options[:type]
               when :string
                 value.to_s
@@ -106,6 +101,12 @@ module Dynamoid
                 BigDecimal.new(value.to_s)
               when :array
                 value.to_a
+              when :raw
+                if value.is_a?(Hash)
+                  undump_hash(value)
+                else
+                  value
+                end
               when :set
                 Set.new(value)
               when :datetime
@@ -145,6 +146,30 @@ module Dynamoid
         end
       end
 
+      private
+
+      def undump_hash(hash)
+        {}.tap do |h|
+          hash.each { |key, value| h[key.to_sym] = undump_hash_value(value) }
+        end
+      end
+
+      def undump_hash_value(val)
+        case val
+        when BigDecimal
+          if Dynamoid::Config.convert_big_decimal
+            val.to_f
+          else
+            val
+          end
+        when Hash
+          undump_hash(val)
+        when Array
+          val.map { |v| undump_hash_value(v) }
+        else
+          val
+        end
+      end
     end
 
     # Set updated_at and any passed in field to current DateTime. Useful for things like last_login_at, etc.
@@ -286,6 +311,8 @@ module Dynamoid
             !value.nil? ? value.to_time.to_f : nil
           when :serialized
             options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
+          when :raw
+            !value.nil? ? value : nil
           when :boolean
             !value.nil? ? value.to_s[0] : nil
           else
