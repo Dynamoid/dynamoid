@@ -1,3 +1,6 @@
+require 'active_support'
+require 'active_support/core_ext/object'
+
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe Dynamoid::Associations::HasOne do
@@ -5,8 +8,15 @@ describe Dynamoid::Associations::HasOne do
   let(:user) {User.create}
   let(:camel_case) {CamelCase.create}
 
-  it 'determines nil if it has no associated record' do
+  it 'considers an association nil/blank if it has no associated record' do
     expect(magazine.sponsor).to be_nil
+    expect(magazine.sponsor).to be_blank
+  end
+
+  it 'considers an association present if it has an associated record' do
+    magazine.sponsor.create
+
+    expect(magazine.sponsor).to be_present
   end
 
   it 'determines target association correctly' do
