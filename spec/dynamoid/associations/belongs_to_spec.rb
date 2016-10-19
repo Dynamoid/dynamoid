@@ -1,3 +1,6 @@
+require 'active_support'
+require 'active_support/core_ext/object'
+
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe Dynamoid::Associations::BelongsTo do
@@ -15,7 +18,6 @@ describe Dynamoid::Associations::BelongsTo do
     it 'determines target association correctly' do
       expect(camel_case.magazine.send(:target_association)).to eq :camel_cases
     end
-
 
     it 'delegates equality to its source record' do
       expect(subscription.magazine).to eq magazine
@@ -40,8 +42,15 @@ describe Dynamoid::Associations::BelongsTo do
     let(:magazine) {sponsor.magazine.create}
     let(:user) {subscription.customer.create}
 
-    it 'determins nil if it has no associated record' do
+    it 'considers an association nil/blank if it has no associated record' do
       expect(sponsor.magazine).to be_nil
+      expect(sponsor.magazine).to be_blank
+    end
+
+    it 'considers an association present if it has an associated record' do
+      sponsor.magazine.create
+
+      expect(magazine.sponsor).to be_present
     end
 
     it 'delegates equality to its source record' do
