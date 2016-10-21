@@ -16,6 +16,7 @@ module Dynamoid
     option :logger, :default => defined?(Rails)
     option :access_key
     option :secret_key
+    option :batch_size, :default => 100
     option :read_capacity, :default => 100
     option :write_capacity, :default => 20
     option :warn_on_scan, :default => true
