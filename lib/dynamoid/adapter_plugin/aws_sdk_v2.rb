@@ -97,35 +97,41 @@ module Dynamoid
         request_items = Hash.new{|h, k| h[k] = []}
         return request_items if table_ids.all?{|k, v| v.empty?}
 
+        ret = Hash.new([].freeze) # Default for tables where no rows are returned
+
         table_ids.each do |t, ids|
           next if ids.empty?
           tbl = describe_table(t)
           hk  = tbl.hash_key.to_s
           rng = tbl.range_key.to_s
 
-          keys = if rng.present?
-            Array(ids).map do |h,r|
-              { hk => h, rng => r }
+          Array(ids).each_slice(Dynamoid::Config.batch_size) do |ids|
+            request_items = Hash.new{|h, k| h[k] = []}
+
+            keys = if rng.present?
+              Array(ids).map do |h,r|
+                { hk => h, rng => r }
+              end
+            else
+              Array(ids).map do |id|
+                { hk => id }
+              end
             end
-          else
-            Array(ids).map do |id|
-              { hk => id }
+
+            request_items[t] = {
+              keys: keys
+            }
+
+            results = client.batch_get_item(
+              request_items: request_items
+            )
+
+            results.data[:responses].each do |table, rows|
+              ret[table] += rows.collect { |r| result_item_to_hash(r) }
             end
           end
-
-          request_items[t] = {
-            keys: keys
-          }
         end
 
-        results = client.batch_get_item(
-          request_items: request_items
-        )
-
-        ret = Hash.new([].freeze) # Default for tables where no rows are returned
-        results.data[:responses].each do |table, rows|
-          ret[table] = rows.collect { |r| result_item_to_hash(r) }
-        end
         ret
       end
 
