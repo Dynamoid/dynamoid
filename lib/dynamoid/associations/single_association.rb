@@ -53,6 +53,12 @@ module Dynamoid #:nodoc:
         target.nil?
       end
 
+      def empty?
+        # This is needed to that ActiveSupport's #blank? and #present?
+        # methods work as expected for SingleAssociations.
+        target.nil?
+      end
+
       private
 
       # Find the target of the has_one association.
