@@ -207,7 +207,7 @@ class Address
 
   ...
 
-  belongs_to :address # Automatically links up with the user model
+  belongs_to :user # Automatically links up with the user model
 
 end
 ```
