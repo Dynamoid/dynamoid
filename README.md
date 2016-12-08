@@ -48,6 +48,16 @@ Create config/initializers/aws.rb as follows:
 
 ```
 
+Alternatively, if you don't want Aws connection settings to be overwritten for you entire project, you can specify connection settings for Dynamoid only, by setting those in the `Dynamoid.configure` clause:
+
+```ruby
+  Dynamoid.configure do |config|
+    config.access_key = 'REPLACE_WITH_ACCESS_KEY_ID'
+    config.secret_key = 'REPLACE_WITH_SECRET_ACCESS_KEY'
+    config.region = 'us-west-2'
+  end
+```
+
 For a full list of the DDB regions, you can go
 [here](http://docs.aws.amazon.com/general/latest/gr/rande.html#ddb_region).
 
