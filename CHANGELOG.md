@@ -1,5 +1,11 @@
+# HEAD
+
 # 1.3.0
 
+* Fixed specs (@AlexNisnevich & @pboling)
+* Fix `blank?` and `present?` behavior for single associations (#110, @AlexNisnevich & @bayesimpact)
+* Support BatchGet for more than 100 items (#80, @getninjas)
+* Add ability to specify connection settings specific to Dynamoid (#116, @NielsKSchjoedt)
 * Adds Support for Rails 5! (#109, @gastzars)
 * Table Namespace Fix (#79, @alexperto)
 * Improve Testing Docs (#103, @tadast)
