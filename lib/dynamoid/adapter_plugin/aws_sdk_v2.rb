@@ -36,12 +36,27 @@ module Dynamoid
       #
       # @return [Aws::DynamoDB::Client] the DynamoDB connection
       def connect!
-        @client = if Dynamoid::Config.endpoint?
-          Aws::DynamoDB::Client.new(endpoint: Dynamoid::Config.endpoint)
-        else
-          Aws::DynamoDB::Client.new
-        end
+        @client = Aws::DynamoDB::Client.new(connection_config)
         @table_cache = {}
+      end
+
+      def connection_config
+        @connection_hash = {}
+
+        if Dynamoid::Config.endpoint?
+          @connection_hash[:endpoint] = Dynamoid::Config.endpoint
+        end
+        if Dynamoid::Config.access_key?
+          @connection_hash[:access_key_id] = Dynamoid::Config.access_key
+        end
+        if Dynamoid::Config.secret_key?
+          @connection_hash[:secret_access_key] = Dynamoid::Config.secret_key
+        end
+        if Dynamoid::Config.region?
+          @connection_hash[:region] = Dynamoid::Config.region
+        end
+
+        @connection_hash
       end
 
       # Return the client object.
