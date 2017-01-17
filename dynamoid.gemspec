@@ -43,6 +43,7 @@ Gem::Specification.new do |spec|
   else
     spec.add_runtime_dependency(%q<activemodel>, ["~> 5"])
   end
+  spec.add_runtime_dependency(%q<activemodel-serializers-xml>)
   spec.add_runtime_dependency(%q<aws-sdk-resources>, ["~> 2"])
   spec.add_runtime_dependency(%q<concurrent-ruby>, [">= 1.0"])
   spec.add_development_dependency(%q<rake>, [">= 10"])
