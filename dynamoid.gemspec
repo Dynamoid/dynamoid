@@ -38,10 +38,12 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  if Gem::Version.new(RUBY_VERSION) > Gem::Version.new("2.2.2")
-    spec.add_runtime_dependency(%q<activemodel>, [">= 4"])
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.2.2")
+    spec.add_runtime_dependency(%q<activemodel>, [">= 4", "< 5.1.0"])
+    spec.add_development_dependency(%q<activesupport>, [">= 4", "< 5.1.0"])
   else
     spec.add_runtime_dependency(%q<activemodel>, ["~> 4"])
+    spec.add_development_dependency(%q<activesupport>, ["~> 4"])
   end
   spec.add_runtime_dependency(%q<aws-sdk-resources>, ["~> 2"])
   spec.add_runtime_dependency(%q<concurrent-ruby>, [">= 1.0"])
@@ -53,5 +55,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency(%q<pry>, [">= 0"])
   spec.add_development_dependency(%q<coveralls>, [">= 0"])
   spec.add_development_dependency(%q<rspec-retry>, [">= 0"])
-  spec.add_development_dependency(%q<activesupport>, ["~> 4"])
 end
