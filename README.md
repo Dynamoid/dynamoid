@@ -369,7 +369,7 @@ RANGE_MAP = {
   'between'       => :range_between,
   'eq'            => :range_eq
 }
-```ruby
+```
 
 Most range searches, like `eq`, need a single value, and searches like `between`, need an array with two values.
 
