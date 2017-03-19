@@ -340,6 +340,39 @@ User.where("created_at.lt" => DateTime.now - 1.day).all
 
 It also supports .gte and .lte. Turning those into symbols and allowing a Rails SQL-style string syntax is in the works. You can only have one range argument per query, because of DynamoDB's inherent limitations, so use it sensibly!
 
+### Global Secondary Indexes
+
+The query I use is as follows, but I really do not know a lot about Dynamoid, and got this working by reading through other Amazon Dynamo code bases and the documentation form Amazon.
+
+```ruby
+find_all_by_secondary_index(
+    {
+        dynamo_primary_key_column_name => dynamo_primary_key_value
+    }, # The signature of find_all_by_secondary_index is ugly, so must be an explicit hash here
+    :range => {
+        "#{range_column}.#{range_modifier}" => range_value
+    },
+    # false is the same as DESC in SQL (newest timestamp first)
+    # true is the same as ASC in SQL (oldest timestamp first)
+    :scan_index_forward => false # or true
+)
+```
+where the range modifier is one of Dynamoid::Finders::RANGE_MAP.keys, where the RANGE_MAP is:
+
+```ruby
+RANGE_MAP = {
+  'gt'            => :range_greater_than,
+  'lt'            => :range_less_than,
+  'gte'           => :range_gte,
+  'lte'           => :range_lte,
+  'begins_with'   => :range_begins_with,
+  'between'       => :range_between,
+  'eq'            => :range_eq
+}
+```ruby
+
+Most range searches, like `eq`, need a single value, and searches like `between`, need an array with two values.
+
 ## Concurrency
 
 Dynamoid supports basic, ActiveRecord-like optimistic locking on save operations. Simply add a `lock_version` column to your table like so:
