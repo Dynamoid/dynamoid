@@ -1,5 +1,10 @@
 # HEAD
 
+* Adds support for Rails 5 without warnings.
+* Added wwtd and appraisal to spec suite for easier verification of the compatibility matrix
+* Support is now officially Ruby 2.0+, (including JRuby 9000) and Rails 4.0+
+
+
 # 1.3.0
 
 * Fixed specs (@AlexNisnevich & @pboling)
