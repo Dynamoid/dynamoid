@@ -80,7 +80,18 @@ Then you need to initialize Dynamoid config to get it going. Put code similar to
 
 ```
 
-Once you have the configuration set up, you need to move on to making models.
+### Compatibility Matrix
+
+| Ruby / Active Record  | 4.0.x | 4.1.x | 4.2.x | 5.0.x |
+|:---------------------:|:-----:|:-----:|:-----:|:-----:|
+| 2.0.0                 | ✓     | ✓     | ✓     |       |
+| 2.1.x                 | ✓     | ✓     | ✓     |       |
+| 2.2.0-2.2.1           | ✓     | ✓     | ✓     |       |
+| 2.2.2+                | ✓     | ✓     | ✓     | ✓     |
+| 2.3.x                 | ✓     | ✓     | ✓     | ✓     |
+| 2.3.x                 | ✓     | ✓     | ✓     | ✓     |
+| 2.4.x                 |       | ✓     | ✓     | ✓     |
+| jruby-9.0.x           | ✓     | ✓     | ✓     | ✓     |
 
 ## Setup
 
@@ -475,7 +486,21 @@ Running the tests is fairly simple. You should have an instance of DynamoDB runn
 
     ```shell
     rake
+
+ * When you are done, remember to stop the local test instance of dynamodb
+
+    ```shell
+    bin/stop_dynamodblocal
     ```
+
+If you want to run all the specs that travis runs, use `bundle exec wwtd`, but first you will need to setup all the rubies, for each of `%w( 2.0.0-p648 2.1.10 2.2.6 2.3.3 2.4.1 jruby-9.1.8.0 )`.  WHen you run `bundle exec wwtd` it will take care of starting and stopping the local dynamodb instance.
+
+```shell
+rvm use 2.0.0-p648
+gem install rubygems-update
+gem install bundler
+bundle install
+```
 
 [![Build Status](https://travis-ci.org/Dynamoid/Dynamoid.svg)](https://travis-ci.org/Dynamoid/Dynamoid)
 [![Coverage Status](https://coveralls.io/repos/Dynamoid/Dynamoid/badge.svg?branch=master&service=github)](https://coveralls.io/github/Dynamoid/Dynamoid?branch=master)
