@@ -24,6 +24,56 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe 'delete_table' do
+    it 'deletes the table' do
+      Address.create_table
+      Address.delete_table
+
+      tables = Dynamoid.adapter.list_tables
+      expect(tables.include?(Address.table_name)).to be_falsey
+    end
+  end
+
+  describe 'record deletion' do
+    let(:klass) do
+      Class.new do
+        include Dynamoid::Document
+        table :name => :addresses
+        field :city
+
+        before_destroy {|i| false }
+      end
+    end
+
+    describe 'destroy' do
+      it 'deletes an item completely' do
+        @user = User.create(:name => 'Josh')
+        @user.destroy
+
+        expect(Dynamoid.adapter.read("dynamoid_tests_users", @user.id)).to be_nil
+      end
+
+      it 'returns false when destroy fails (due to callback)' do
+        a = klass.create!
+        expect(a.destroy).to eql false
+        expect(klass.first.id).to eql a.id
+      end
+    end
+
+    describe 'destroy!' do
+      it 'deletes the item' do
+        address.save!
+        address.destroy!
+        expect(Address.count).to eql 0
+      end
+
+      it 'raises exception when destroy fails (due to callback)' do
+        a = klass.create!
+        expect { a.destroy! }.to raise_error(Dynamoid::Errors::RecordNotDestroyed)
+      end
+    end
+  end
+
   it 'assigns itself an id on save' do
     address.save
 

@@ -52,6 +52,11 @@ module Dynamoid
         Dynamoid.adapter.create_table(options[:table_name], options[:id], options)
       end
 
+      # Deletes the table for the model
+      def delete_table
+        Dynamoid.adapter.delete_table(self.table_name)
+      end
+
       def from_database(attrs = {})
         clazz = attrs[:type] ? obj = attrs[:type].constantize : self
         clazz.new(attrs).tap { |r| r.new_record = false }
@@ -241,10 +246,14 @@ module Dynamoid
     #
     # @since 0.2.0
     def destroy
-      run_callbacks(:destroy) do
+      ret = run_callbacks(:destroy) do
         self.delete
       end
-      self
+      (ret == false) ? false : self
+    end
+
+    def destroy!
+      destroy || raise(Dynamoid::Errors::RecordNotDestroyed.new(self))
     end
 
     # Delete this object from the datastore.
