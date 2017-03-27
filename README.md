@@ -90,8 +90,8 @@ Then you need to initialize Dynamoid config to get it going. Put code similar to
 | 2.2.2+                | ✓     | ✓     | ✓     | ✓     |
 | 2.3.x                 | ✓     | ✓     | ✓     | ✓     |
 | 2.3.x                 | ✓     | ✓     | ✓     | ✓     |
-| 2.4.x                 |       | ✓     | ✓     | ✓     |
-| jruby-9.0.x           | ✓     | ✓     | ✓     | ✓     |
+| 2.4.x                 |       |       | ✓     | ✓     |
+| jruby-9.X             | ✓     | ✓     | ✓     | ✓     |
 
 ## Setup
 

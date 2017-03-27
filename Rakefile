@@ -61,4 +61,6 @@ task :publish do
   `git checkout master`
 end
 
+require "wwtd/tasks"
+
 task :default => :spec

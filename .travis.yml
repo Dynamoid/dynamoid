@@ -19,6 +19,8 @@ matrix:
       gemfile: gemfiles/rails_5_0.gemfile
     - rvm: ruby-2.4.1
       gemfile: gemfiles/rails_4_0.gemfile
+    - rvm: ruby-2.4.1
+      gemfile: gemfiles/rails_4_1.gemfile
 before_install: gem install bundler -v 1.14.6
 install:
   - wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.zip --quiet -O spec/dynamodb_temp.zip
