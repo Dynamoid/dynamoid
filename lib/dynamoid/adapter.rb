@@ -17,7 +17,7 @@ module Dynamoid
 
     def tables
       if !@tables_.value
-        @tables_.swap{|value, args| benchmark('Cache Tables') { list_tables } }
+        @tables_.swap{|value, args| benchmark('Cache Tables') { list_tables || [] } }
       end
       @tables_.value
     end
