@@ -486,6 +486,7 @@ Running the tests is fairly simple. You should have an instance of DynamoDB runn
 
     ```shell
     rake
+    ```
 
  * When you are done, remember to stop the local test instance of dynamodb
 

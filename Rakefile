@@ -1,11 +1,15 @@
 require "bundler/gem_tasks"
 
+require "bundler/setup"
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
   $stderr.puts e.message
   $stderr.puts "Run `bundle install` to install missing gems"
   exit e.status_code
+end
+if defined?(Rails)
+  load "./lib/dynamoid/tasks/database.rake"
 end
 
 require "rake"
