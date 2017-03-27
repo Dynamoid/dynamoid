@@ -402,6 +402,11 @@ In this example, all saves to `MyTable` will raise an `Dynamoid::Errors::StaleOb
 
 Calls to `update` and `update!` also increment the `lock_version`, however they do not check the existing value. This guarantees that a update operation will raise an exception in a concurrent save operation, however a save operation will never cause an update to fail. Thus, `update` is useful & safe only for doing atomic operations (e.g. increment a value, add/remove from a set, etc), but should not be used in a read-modify-write pattern.
 
+## Rake Tasks
+
+  * `rake dynamoid:create_tables`
+  * `rake dynamoid:ping`
+
 ## Test Environment
 
 In test environment you will most likely want to clean the database between test runs to keep tests completely isolated. This can be achieved like so

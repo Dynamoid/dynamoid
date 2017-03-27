@@ -3,6 +3,11 @@
 # 1.3.1
 
 * Adds support for Rails 5 without warnings.
+* Adds rake tasks for working with a DynamoDB database:
+  * rake dynamoid:create_tables
+  * rake dynamoid:ping
+* Automatically requires the Railtie when in Rails (which loads the rake tasks)
+* Prevent duplicate entries in Dynamoid.included_models
 * Added wwtd and appraisal to spec suite for easier verification of the compatibility matrix
 * Support is now officially Ruby 2.0+, (including JRuby 9000) and Rails 4.0+
 
