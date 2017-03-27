@@ -204,7 +204,7 @@ This is especially important if you want to use your custom field as a numeric r
 number-oriented queries.  By default custom fields are persisted as a string attribute, but
 your custom class can override this with a `.dynamoid_field_type` class method, which would
 return either `:string` or `:number`.
-(DynamoDB supports some other attribute types, but Dynamoid yet does not.)
+(DynamoDB supports some other attribute types, but Dynamoid does not yet.)
 
 
 ### Associations
@@ -486,6 +486,7 @@ Running the tests is fairly simple. You should have an instance of DynamoDB runn
 
     ```shell
     rake
+    ```
 
  * When you are done, remember to stop the local test instance of dynamodb
 
