@@ -2,6 +2,9 @@
 
 # 1.3.1
 
+* Implements #135
+  * dump values for :integer, :string, :boolean fields passed to where query
+    * e.g. You can search for booleans with any of: `[true, false, "t", "f", "true", "false"]`
 * Adds support for Rails 5 without warnings.
 * Adds rake tasks for working with a DynamoDB database:
   * rake dynamoid:create_tables
