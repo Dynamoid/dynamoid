@@ -53,7 +53,7 @@ describe Dynamoid::Adapter do
   it 'raises NoMethodError if we try a method that is not on the child' do
     expect {subject.foobar}.to raise_error(NoMethodError)
   end
-  
+
   it 'writes through the adapter' do
     expect(subject).to receive(:put_item).with(test_table, {:id => single_id}, nil).and_return(true)
     subject.write(test_table, {:id => single_id})

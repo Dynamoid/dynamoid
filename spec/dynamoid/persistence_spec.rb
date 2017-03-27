@@ -197,6 +197,32 @@ describe Dynamoid::Persistence do
     expect(@addr.send(:dump)[:config]).to eq config
   end
 
+  context "transforms booleans" do
+    it 'handles true' do
+      deliverable = true
+      @addr = Address.new(:deliverable => deliverable)
+      expect(@addr.send(:dump)[:deliverable]).to eq 't'
+    end
+
+    it 'handles false' do
+      deliverable = false
+      @addr = Address.new(:deliverable => deliverable)
+      expect(@addr.send(:dump)[:deliverable]).to eq 'f'
+    end
+
+    it 'handles t' do
+      deliverable = 't'
+      @addr = Address.new(:deliverable => deliverable)
+      expect(@addr.send(:dump)[:deliverable]).to eq 't'
+    end
+
+    it 'handles f' do
+      deliverable = 'f'
+      @addr = Address.new(:deliverable => deliverable)
+      expect(@addr.send(:dump)[:deliverable]).to eq 'f'
+    end
+  end
+
   it 'dumps datetime attributes' do
     @user = User.create(:name => 'Josh')
     expect(@user.send(:dump)[:name]).to eq 'Josh'

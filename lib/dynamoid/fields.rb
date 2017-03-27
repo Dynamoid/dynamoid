@@ -5,6 +5,7 @@ module Dynamoid #:nodoc:
   module Fields
     extend ActiveSupport::Concern
 
+    # Types allowed in indexes:
     PERMITTED_KEY_TYPES = [
       :number,
       :integer,

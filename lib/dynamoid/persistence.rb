@@ -136,6 +136,41 @@ module Dynamoid
         end
       end
 
+      def dump_field(value, options)
+        if (field_class = options[:type]).is_a?(Class)
+          if value.respond_to?(:dynamoid_dump)
+            value.dynamoid_dump
+          elsif field_class.respond_to?(:dynamoid_dump)
+            field_class.dynamoid_dump(value)
+          else
+            raise ArgumentError, "Neither #{field_class} nor #{value} support serialization for Dynamoid."
+          end
+        else
+          case options[:type]
+            when :string
+              !value.nil? ? value.to_s : nil
+            when :integer
+              !value.nil? ? Integer(value) : nil
+            when :number
+              !value.nil? ? value : nil
+            when :set
+              !value.nil? ? Set.new(value) : nil
+            when :array
+              !value.nil? ? value : nil
+            when :datetime
+              !value.nil? ? value.to_time.to_f : nil
+            when :serialized
+              options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
+            when :raw
+              !value.nil? ? value : nil
+            when :boolean
+              !value.nil? ? value.to_s[0] : nil
+            else
+              raise ArgumentError, "Unknown type #{options[:type]}"
+          end
+        end
+      end
+
       def dynamo_type(type)
         if type.is_a?(Class)
           type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
@@ -296,38 +331,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def dump_field(value, options)
-      if (field_class = options[:type]).is_a?(Class)
-        if value.respond_to?(:dynamoid_dump)
-          value.dynamoid_dump
-        elsif field_class.respond_to?(:dynamoid_dump)
-          field_class.dynamoid_dump(value)
-        else
-          raise ArgumentError, "Neither #{field_class} nor #{value} support serialization for Dynamoid."
-        end
-      else
-        case options[:type]
-          when :string
-            !value.nil? ? value.to_s : nil
-          when :integer
-            !value.nil? ? Integer(value) : nil
-          when :number
-            !value.nil? ? value : nil
-          when :set
-            !value.nil? ? Set.new(value) : nil
-          when :array
-            !value.nil? ? value : nil
-          when :datetime
-            !value.nil? ? value.to_time.to_f : nil
-          when :serialized
-            options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
-          when :raw
-            !value.nil? ? value : nil
-          when :boolean
-            !value.nil? ? value.to_s[0] : nil
-          else
-            raise ArgumentError, "Unknown type #{options[:type]}"
-        end
-      end
+      self.class.dump_field(value, options)
     end
 
     # Persist the object into the datastore. Assign it an id first if it doesn't have one.

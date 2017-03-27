@@ -1,8 +1,8 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Criteria do
-  let!(:user1) {User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')}
-  let!(:user2) {User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')}
+  let!(:user1) {User.create(:name => 'Josh', :email => 'josh@joshsymonds.com', admin: true)}
+  let!(:user2) {User.create(:name => 'Justin', :email => 'justin@joshsymonds.com', admin: false)}
 
   it 'finds first using where' do
     expect(User.where(:name => 'Josh').first).to eq user1
@@ -10,6 +10,20 @@ describe Dynamoid::Criteria do
 
   it 'finds all using where' do
     expect(User.where(:name => 'Josh').all).to eq [user1]
+  end
+
+  context "transforms booleans" do
+    it 'accepts native' do
+      expect(User.where(:admin => 't').all).to eq [user1]
+    end
+
+    it 'accepts string' do
+      expect(User.where(:admin => 'true').all).to eq [user1]
+    end
+
+    it 'accepts boolean' do
+      expect(User.where(:admin => true).all).to eq [user1]
+    end
   end
 
   it 'returns all records' do

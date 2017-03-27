@@ -5,9 +5,10 @@ module Dynamoid #:nodoc:
     # The criteria chain is equivalent to an ActiveRecord relation (and realistically I should change the name from
     # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
     class Chain
+      # TODO: Should we transform any other types of query values?
+      TYPES_TO_DUMP_FOR_QUERY = [:string, :integer, :boolean]
       attr_accessor :query, :source, :values, :consistent_read
       include Enumerable
-
       # Create a new criteria chain.
       #
       # @param [Class] source the class upon which the ultimate query will be performed.
@@ -30,7 +31,14 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def where(args)
-        args.each {|k, v| query[k.to_sym] = v}
+        args.each do |k, v|
+          sym = k.to_sym
+          query[sym] = if (field_options = source.attributes[sym]) && (type = field_options[:type]) && TYPES_TO_DUMP_FOR_QUERY.include?(type)
+                         source.dump_field(v, field_options)
+                       else
+                         v
+                       end
+        end
         self
       end
 

@@ -4,6 +4,7 @@ class User
   field :name
   field :email
   field :password
+  field :admin, :boolean
   field :last_logged_in_at, :datetime
 
   field :favorite_colors, :serialized
