@@ -147,7 +147,7 @@ describe Dynamoid::Fields do
   end
 
   context 'default values for fields' do
-    let(:doc) do
+    let(:doc_class) do
       Class.new do
         include Dynamoid::Document
 
@@ -157,7 +157,13 @@ describe Dynamoid::Fields do
         def self.name
           'Document'
         end
-      end.new
+      end
+    end
+    let(:doc) { doc_class.new }
+
+    it 'should return default per instance' do
+      doc.name << 'y'
+      expect(doc_class.new.name).to eq('x')
     end
 
     it 'returns default value' do
