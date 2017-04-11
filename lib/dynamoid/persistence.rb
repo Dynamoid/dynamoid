@@ -93,7 +93,7 @@ module Dynamoid
           end
         else
           if value.nil? && (default_value = options[:default])
-            value = default_value.respond_to?(:call) ? default_value.call : default_value
+            value = default_value.respond_to?(:call) ? default_value.call : default_value.dup
           end
 
           unless value.nil?
