@@ -1,10 +1,7 @@
 require 'dynamoid'
 require 'dynamoid/tasks/database'
 
-MODELS = File.join(Rails.root, "app/models")
-
-Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require file }
-
+Rails.application.eager_load!
 
 namespace :dynamoid do
   desc "Creates DynamoDB tables, one for each of your Dynamoid models - does not modify pre-existing tables"
