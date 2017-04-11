@@ -1,7 +1,7 @@
 require 'dynamoid'
 require 'dynamoid/tasks/database'
 
-MODELS = File.join(Rails.root, "app/models")
+MODELS ||= File.join(Rails.root, "app/models")
 
 Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require file }
 
