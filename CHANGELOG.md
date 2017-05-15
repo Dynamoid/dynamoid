@@ -1,5 +1,8 @@
 # HEAD
 
+* Allow configuration of the Dynamoid models directory, as not everyone keeps non AR models in app/models
+  - Dynamoid::Config.models_dir = "app/whatever"
+
 # 1.3.2
 
 * Fix migrations by stopping the loading of all rails models outside the rails env.
