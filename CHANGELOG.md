@@ -1,5 +1,7 @@
 # HEAD
 
+# 1.3.3
+
 * Allow configuration of the Dynamoid models directory, as not everyone keeps non AR models in app/models
   - Dynamoid::Config.models_dir = "app/whatever"
 
