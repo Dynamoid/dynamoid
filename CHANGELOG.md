@@ -1,5 +1,7 @@
 # HEAD
 
+* Fix migrations by stopping the loading of all rails models outside the rails env.
+
 # 1.3.1
 
 * Implements #135

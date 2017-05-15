@@ -3,12 +3,11 @@ require 'dynamoid/tasks/database'
 
 MODELS ||= File.join(Rails.root, "app/models")
 
-Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require file }
-
-
 namespace :dynamoid do
   desc "Creates DynamoDB tables, one for each of your Dynamoid models - does not modify pre-existing tables"
   task :create_tables => :environment do
+    # Load models so Dynamoid will be able to discover tables expected.
+    Dir[ File.join(MODELS, "*.rb") ].sort.each { |file| require file }
     tables = Dynamoid::Tasks::Database.create_tables
     result = tables[:created].map{ |c| "#{c} created" } + tables[:existing].map{ |e| "#{e} already exists" }
     result.sort.each{ |r| puts r }
