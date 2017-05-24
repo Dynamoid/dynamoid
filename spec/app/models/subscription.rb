@@ -1,6 +1,7 @@
 class Subscription
   include Dynamoid::Document
-
+  table :key => :subs_id
+  
   field :length, :integer
 
   belongs_to :magazine
