@@ -215,4 +215,36 @@ describe Dynamoid::Fields do
     end
   end
 
+  context 'extention overides field accessors' do
+    let(:klass) {
+      extention = Module.new do
+        def name
+          super.upcase
+        end
+
+        def name=(s)
+          super(s.try(:downcase))
+        end
+      end
+
+      Class.new do
+        include Dynamoid::Document
+        include extention
+
+        field :name
+      end
+    }
+
+    it 'can access new setter' do
+      address = klass.new
+      address.name = 'AB cd'
+      expect(address[:name]).to eq('ab cd')
+    end
+
+    it 'can access new getter' do
+      address = klass.new
+      address.name = 'ABcd'
+      expect(address.name).to eq('ABCD')
+    end
+  end
 end
