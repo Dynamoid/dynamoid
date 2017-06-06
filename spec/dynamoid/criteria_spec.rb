@@ -85,4 +85,21 @@ describe Dynamoid::Criteria do
     end.to raise_error(Dynamoid::Errors::InvalidQuery)
   end
 
+
+  context 'when scans and warn_on_scan config option is true' do
+    before do
+      @warn_on_scan = Dynamoid::Config.warn_on_scan
+      Dynamoid::Config.warn_on_scan = true
+    end
+    after do
+      Dynamoid::Config.warn_on_scan = @warn_on_scan
+    end
+
+    it 'logs warnings' do
+      expect(Dynamoid.logger).to receive(:warn).with('Queries without an index are forced to use scan and are generally much slower than indexed queries!')
+      expect(Dynamoid.logger).to receive(:warn).with('You can index this query by adding this to user.rb: index [:name, :password]')
+
+      User.where(name: 'x', password: 'password').all
+    end
+  end
 end
