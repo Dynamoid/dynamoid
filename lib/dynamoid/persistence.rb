@@ -120,6 +120,12 @@ module Dynamoid
                 else
                   Time.at(value).to_datetime
                 end
+              when :date
+                if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
+                  value.to_date
+                else
+                  Time.at(value).to_date
+                end
               when :boolean
                 # persisted as 't', but because undump is called during initialize it can come in as true
                 if value == 't' || value == true
@@ -159,6 +165,8 @@ module Dynamoid
               !value.nil? ? value : nil
             when :datetime
               !value.nil? ? value.to_time.to_f : nil
+            when :date
+              !value.nil? ? value.to_time.to_i: nil
             when :serialized
               options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
             when :raw

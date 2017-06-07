@@ -228,6 +228,11 @@ describe Dynamoid::Persistence do
     expect(@user.send(:dump)[:name]).to eq 'Josh'
   end
 
+  it 'dumps date attributes' do
+    @user = Address.create(:registered_on => '2017-06-18'.to_date)
+    expect(@user.send(:dump)[:registered_on]).to eq '2017-06-18'.to_time.to_i
+  end
+
   it 'dumps integer attributes' do
     @subscription = Subscription.create(:length => 10)
     expect(@subscription.send(:dump)[:length]).to eq 10
@@ -259,6 +264,13 @@ describe Dynamoid::Persistence do
 
   it 'dumps and undumps a BigDecimal in number field' do
     expect(Address.undump(Address.new(latitude: BigDecimal.new(123.45, 3)).send(:dump))[:latitude]).to eq 123
+  end
+
+  it 'dumps and undumps a date' do
+    date = '2017-06-18'.to_date
+    expect(
+      Address.undump(Address.new(registered_on: date).send(:dump))[:registered_on]
+    ).to eq date
   end
 
   it 'supports empty containers in `serialized` fields' do

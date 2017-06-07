@@ -30,7 +30,7 @@ module Dynamoid #:nodoc:
       # Specify a field for a document.
       #
       # Its type determines how it is coerced when read in and out of the datastore.
-      # You can specify :integer, :number, :set, :array, :datetime, and :serialized,
+      # You can specify :integer, :number, :set, :array, :datetime, :date and :serialized,
       # or specify a class that defines a serialization strategy.
       #
       # If you specify a class for field type, Dynamoid will serialize using
