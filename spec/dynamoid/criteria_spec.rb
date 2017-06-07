@@ -8,6 +8,10 @@ describe Dynamoid::Criteria do
     expect(User.where(:name => 'Josh').first).to eq user1
   end
 
+  it 'finds last using where' do
+    expect(User.where(admin: false).last).to eq user2
+  end
+
   it 'finds all using where' do
     expect(User.where(:name => 'Josh').all).to eq [user1]
   end

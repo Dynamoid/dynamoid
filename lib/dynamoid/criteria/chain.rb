@@ -54,6 +54,12 @@ module Dynamoid #:nodoc:
         records
       end
 
+      # Returns the last fetched record matched the criteria
+      #
+      def last
+        all.last
+      end
+
       # Destroys all the records matching the criteria.
       #
       def destroy_all
