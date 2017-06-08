@@ -15,7 +15,7 @@ module Dynamoid #:nodoc:
 
     # Initialize the attributes we know the class has, in addition to our magic attributes: id, created_at, and updated_at.
     included do
-      class_attribute :attributes
+      class_attribute :attributes, instance_accessor: false
       class_attribute :range_key
 
       self.attributes = {}
