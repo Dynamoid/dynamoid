@@ -111,6 +111,7 @@ describe Dynamoid::Fields do
                                         deliverable: {type: :boolean},
                                         latitude: {type: :number},
                                         config: {type: :raw},
+                                        registered_on: {type: :date},
                                         lock_version: {type: :integer}})
     end
   end

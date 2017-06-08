@@ -14,6 +14,7 @@ describe Dynamoid::Document do
                                       deliverable: nil,
                                       latitude: nil,
                                       config: nil,
+                                      registered_on: nil,
                                       lock_version: nil})
   end
 
@@ -38,6 +39,7 @@ describe Dynamoid::Document do
                                       deliverable: nil,
                                       latitude: nil,
                                       config: nil,
+                                      registered_on: nil,
                                       lock_version: nil})
   end
 
@@ -54,6 +56,7 @@ describe Dynamoid::Document do
                                       deliverable: nil,
                                       latitude: nil,
                                       config: nil,
+                                      registered_on: nil,
                                       lock_version: nil})
   end
 

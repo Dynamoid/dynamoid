@@ -6,6 +6,7 @@ class Address
   field :deliverable, :boolean
   field :latitude, :number
   field :config, :raw
+  field :registered_on, :date
 
   field :lock_version, :integer #Provides Optimistic Locking
 
