@@ -58,21 +58,21 @@ describe Dynamoid::Document do
   end
 
   it 'allows interception of write_attribute on load' do
-    class Model
+    klass = Class.new do
       include Dynamoid::Document
       field :city
       def city=(value); self[:city] = value.downcase; end
     end
-    expect(Model.new(:city => "Chicago").city).to eq "chicago"
+    expect(klass.new(:city => "Chicago").city).to eq "chicago"
   end
 
   it 'ignores unknown fields (does not raise error)' do
-    class Model
+    klass = Class.new do
       include Dynamoid::Document
       field :city
     end
 
-    model = Model.new(:unknown_field => "test", :city => "Chicago")
+    model = klass.new(:unknown_field => "test", :city => "Chicago")
     expect(model.city).to eql "Chicago"
   end
 
