@@ -19,7 +19,7 @@ module Dynamoid
     
     # Create the association tracking attribute and initialize it to an empty hash.
     included do
-      class_attribute :associations
+      class_attribute :associations, instance_accessor: false
       
       self.associations = {}
     end

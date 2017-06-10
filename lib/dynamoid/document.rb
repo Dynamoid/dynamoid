@@ -8,7 +8,7 @@ module Dynamoid #:nodoc:
     include Dynamoid::Components
 
     included do
-      class_attribute :options, :read_only_attributes, :base_class
+      class_attribute :options, :read_only_attributes, :base_class, instance_accessor: false
       self.options = {}
       self.read_only_attributes = []
       self.base_class = self
@@ -120,6 +120,10 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def initialize(attrs = {})
+      # we need this hack for Rails 4.0 only
+      # because `run_callbacks` calls `attributes` getter while it is still nil
+      @attributes = {}
+
       run_callbacks :initialize do
         @new_record = true
         @attributes ||= {}

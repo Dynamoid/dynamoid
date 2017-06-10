@@ -15,7 +15,7 @@ module Dynamoid #:nodoc:
 
     # Initialize the attributes we know the class has, in addition to our magic attributes: id, created_at, and updated_at.
     included do
-      class_attribute :attributes
+      class_attribute :attributes, instance_accessor: false
       class_attribute :range_key
 
       self.attributes = {}
@@ -51,17 +51,19 @@ module Dynamoid #:nodoc:
         end
         self.attributes = attributes.merge(name => {:type => type}.merge(options))
 
-        define_method(named) { read_attribute(named) }
-        define_method("#{named}?") do
-          value = read_attribute(named)
-          case value
-          when true        then true
-          when false, nil  then false
-          else
-            !value.nil?
+        generated_methods.module_eval do
+          define_method(named) { read_attribute(named) }
+          define_method("#{named}?") do
+            value = read_attribute(named)
+            case value
+            when true        then true
+            when false, nil  then false
+            else
+              !value.nil?
+            end
           end
+          define_method("#{named}=") {|value| write_attribute(named, value) }
         end
-        define_method("#{named}=") {|value| write_attribute(named, value) }
       end
 
       def range(name, type = :string)
@@ -80,9 +82,22 @@ module Dynamoid #:nodoc:
       def remove_field(field)
         field = field.to_sym
         attributes.delete(field) or raise "No such field"
-        remove_method field
-        remove_method :"#{field}="
-        remove_method :"#{field}?"
+
+        generated_methods.module_eval do
+          remove_method field
+          remove_method :"#{field}="
+          remove_method :"#{field}?"
+        end
+      end
+
+      private
+
+      def generated_methods
+        @generated_methods ||= begin
+          Module.new.tap do |mod|
+            include(mod)
+          end
+        end
       end
     end
 

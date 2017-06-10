@@ -3,8 +3,8 @@ module Dynamoid
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :local_secondary_indexes
-      class_attribute :global_secondary_indexes
+      class_attribute :local_secondary_indexes, instance_accessor: false
+      class_attribute :global_secondary_indexes, instance_accessor: false
       self.local_secondary_indexes = {}
       self.global_secondary_indexes = {}
     end
