@@ -274,6 +274,29 @@ class User
 end
 ```
 
+### STI
+
+Dynamoid supports STI (Single Table Inheritance) like Active Record does. You need just specify `type` field in a base class. Example:
+
+```ruby
+class Animal
+  include Dynamoid::Document
+
+  field :name
+  field :type
+end
+
+class Cat < Animal
+  field :lives, :integer
+end
+
+cat = Cat.create(name: 'Morgan')
+animal = Animal.find(cat.id)
+animal.class
+#=>  Cat
+
+```
+
 ## Usage
 
 ### Object Creation
