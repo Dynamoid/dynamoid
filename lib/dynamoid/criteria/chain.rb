@@ -145,7 +145,7 @@ module Dynamoid #:nodoc:
       def records_via_scan
         if Dynamoid::Config.warn_on_scan
           Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
-          Dynamoid.logger.warn "You can index this query by adding this to #{source.to_s.downcase}.rb: index [#{source.attributes.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
+          Dynamoid.logger.warn "You can index this query by adding this to #{source.to_s.downcase}.rb: index [#{query.keys.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
         end
 
         if @consistent_read
