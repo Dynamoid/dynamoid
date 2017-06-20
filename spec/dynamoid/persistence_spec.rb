@@ -302,6 +302,21 @@ describe Dynamoid::Persistence do
     expect(u.favorite_colors).to eq Set.new
   end
 
+  it 'supports array being empty' do
+    user = User.create(todo_list: [])
+    expect(User.find(user.id).todo_list).to eq []
+  end
+
+  it 'saves empty set as nil' do
+    tweet = Tweet.create(group: "one", tags: [])
+    expect(Tweet.find_by_tweet_id(tweet.tweet_id).tags).to eq nil
+  end
+
+  it 'saves empty string as nil' do
+    user = User.create(name: '')
+    expect(User.find(user.id).name).to eq nil
+  end
+
   it 'supports container types being nil' do
     u = User.create(name: 'Philip')
     u.todo_list = nil

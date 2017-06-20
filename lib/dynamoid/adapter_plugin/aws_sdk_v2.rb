@@ -397,7 +397,7 @@ module Dynamoid
         options ||= {}
 
         object.each do |k, v|
-          next if v.nil? || (v.respond_to?(:empty?) && v.empty?)
+          next if v.nil? || ((v.is_a?(Set) || v.is_a?(String)) && v.empty?)
           item[k.to_s] = v
         end
 
