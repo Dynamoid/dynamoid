@@ -70,4 +70,13 @@ RSpec.configure do |config|
   config.around :each do |ex|
     ex.run_with_retry retry: 3
   end
+
+  config.around :each, :application_timezone do |example|
+    application_timezone_old = Dynamoid::Config.application_timezone
+    Dynamoid::Config.application_timezone = example.metadata[:application_timezone]
+
+    example.run
+
+    Dynamoid::Config.application_timezone = application_timezone_old
+  end
 end
