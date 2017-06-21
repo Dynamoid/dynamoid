@@ -145,7 +145,7 @@ module Dynamoid
       #
       # @since 0.2.0
       define_method(m) do |*args|
-        benchmark("#{m.to_s}", args) {adapter.send(m, *args)}
+        benchmark("#{m.to_s}", *args) {adapter.send(m, *args)}
       end
     end
 
