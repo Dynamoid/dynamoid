@@ -408,6 +408,18 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe 'save' do
+    it 'creates table if it does not exist' do
+      klass = Class.new do
+        include Dynamoid::Document
+        table :name => :foo_bars
+      end
+
+      expect { klass.create }.not_to raise_error(Aws::DynamoDB::Errors::ResourceNotFoundException)
+      expect(klass.create.id).to be_present
+    end
+  end
+
   context 'update' do
 
     before :each do
