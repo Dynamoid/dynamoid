@@ -329,7 +329,7 @@ For large queries that return many rows, Dynamoid can use AWS' support for reque
 ```ruby
 #Do some maintenance on the entire table without flooding DynamoDB
 Address.all(batch_size: 100).each { |address| address.do_some_work; sleep(0.01) }
-Address.limit(10_000).batch(100). each { … } #batch specified as part of a chain
+Address.eval_limit(10_000).batch(100). each { … } #batch specified as part of a chain
 ```
 
 ### Consistent Reads
