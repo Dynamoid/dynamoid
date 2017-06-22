@@ -223,9 +223,29 @@ describe Dynamoid::Persistence do
     end
   end
 
-  it 'dumps datetime attributes' do
-    @user = User.create(:name => 'Josh')
-    expect(@user.send(:dump)[:name]).to eq 'Josh'
+  context 'when dumps datetime attribute' do
+    it 'loads time in local time zone if config.application_timezone == :local', application_timezone: :local do
+      time = Time.now
+      user = User.create(last_logged_in_at: time)
+      user = User.find(user.id)
+      expect(user.last_logged_in_at).to be_a(DateTime)
+      # we can't compare objects directly because lose precision of milliseconds in conversions
+      expect(user.last_logged_in_at.to_s).to eq time.to_datetime.to_s
+    end
+
+    it 'loads time in specified time zone if config.application_timezone == time zone name', application_timezone: 'Hawaii' do
+      time = '2017-06-20 08:00:00 +0300'.to_time
+      user = User.create(last_logged_in_at: time)
+      user = User.find(user.id)
+      expect(user.last_logged_in_at).to eq '2017-06-19 19:00:00 -1000'.to_datetime # Hawaii UTC-10
+    end
+
+    it 'loads time in UTC if config.application_timezone = :utc', application_timezone: :utc do
+      time = '2017-06-20 08:00:00 +0300'.to_time
+      user = User.create(last_logged_in_at: time)
+      user = User.find(user.id)
+      expect(user.last_logged_in_at).to eq '2017-06-20 05:00:00 +0000'.to_datetime
+    end
   end
 
   it 'dumps date attributes' do
