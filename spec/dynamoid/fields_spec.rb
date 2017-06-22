@@ -154,6 +154,7 @@ describe Dynamoid::Fields do
 
         field :name, :string, :default => 'x'
         field :uid, :integer, :default => lambda { 42 }
+        field :config, :serialized, default: {}
 
         def self.name
           'Document'
@@ -176,6 +177,15 @@ describe Dynamoid::Fields do
       doc.save!
       expect(doc.reload.name).to eq('x')
       expect(doc.uid).to eq(42)
+    end
+
+    it 'does not use default value if nil value assigns' do
+      doc = doc_class.new(name: nil)
+      expect(doc.name).to eq nil
+    end
+
+    it 'returns default value for serializable field' do
+      expect(doc.config).to eq({})
     end
   end
 

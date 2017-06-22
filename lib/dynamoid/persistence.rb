@@ -69,7 +69,15 @@ module Dynamoid
         incoming = (incoming || {}).symbolize_keys
         Hash.new.tap do |hash|
           self.attributes.each do |attribute, options|
-            hash[attribute] = undump_field(incoming[attribute], options)
+            if incoming.has_key?(attribute)
+              hash[attribute] = undump_field(incoming[attribute], options)
+            elsif options.has_key?(:default)
+              default_value = options[:default]
+              value = default_value.respond_to?(:call) ? default_value.call : default_value.dup
+              hash[attribute] = value
+            else
+              hash[attribute] = nil
+            end
           end
           incoming.each {|attribute, value| hash[attribute] = value unless hash.has_key? attribute }
         end
@@ -92,10 +100,6 @@ module Dynamoid
             value
           end
         else
-          if value.nil? && (default_value = options[:default])
-            value = default_value.respond_to?(:call) ? default_value.call : default_value.dup
-          end
-
           unless value.nil?
             case options[:type]
               when :string
