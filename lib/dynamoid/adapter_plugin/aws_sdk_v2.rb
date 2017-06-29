@@ -230,9 +230,9 @@ module Dynamoid
         end
         resp = client.create_table(client_opts)
         options[:sync] = true if !options.has_key?(:sync) && ls_indexes.present? || gs_indexes.present?
-        until_past_table_status(table_name) if options[:sync] &&
+        until_past_table_status(table_name, :creating) if options[:sync] &&
             (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-            status != TABLE_STATUSES[:creating]
+            status == TABLE_STATUSES[:creating]
         # Response to original create_table, which, if options[:sync]
         #   may have an outdated table_description.table_status of "CREATING"
         resp
@@ -295,7 +295,7 @@ module Dynamoid
         resp = client.delete_table(table_name: table_name)
         until_past_table_status(table_name, :deleting) if options[:sync] &&
             (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-            status != TABLE_STATUSES[:deleting]
+            status == TABLE_STATUSES[:deleting]
         table_cache.delete(table_name)
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         Dynamoid.logger.error "Table #{table_name} cannot be deleted as it is in use"
