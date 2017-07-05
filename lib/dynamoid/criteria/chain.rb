@@ -188,13 +188,8 @@ module Dynamoid #:nodoc:
         opts.merge(query_opts).merge(consistent_opts)
       end
 
-      def query_keys
-        query.keys.collect{|k| k.to_s.split('.').first}
-      end
-
-      # [hash_key] or [hash_key, range_key] is specified in query keys.
       def key_present?
-        query_keys == [source.hash_key.to_s] || (query_keys.to_set == [source.hash_key.to_s, source.range_key.to_s].to_set)
+        query.keys.map(&:to_sym).include?(source.hash_key.to_sym)
       end
 
       def start_key

@@ -20,9 +20,16 @@ describe Dynamoid::Criteria::Chain do
       chain.all
     end
 
+    it 'Queries when query contains ID' do
+      chain = Dynamoid::Criteria::Chain.new(Address)
+      chain.query = { :id => 'test', city: 'Bucharest' }
+      expect(chain).to receive(:records_via_query)
+      chain.all
+    end
+
     it 'Scans when query includes keys that are neither a hash nor a range' do
       chain = Dynamoid::Criteria::Chain.new(Address)
-      chain.query = { :id => 'test', :city => 'Bucharest' }
+      chain.query = { :city => 'Bucharest' }
       expect(chain).to receive(:records_via_scan)
       chain.all
     end
