@@ -83,10 +83,10 @@ describe Dynamoid::Criteria do
     Tweet.where(:tweet_id => 'xx', :group => 'two').all
   end
 
-  it 'raises exception when consistent_read is used with scan' do
+  it 'does not raise exception when consistent_read is used with scan' do
     expect do
       User.where(:password => 'password').consistent.first
-    end.to raise_error(Dynamoid::Errors::InvalidQuery)
+    end.not_to raise_error(Dynamoid::Errors::InvalidQuery)
   end
 
 
