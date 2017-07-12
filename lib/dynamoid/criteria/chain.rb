@@ -153,7 +153,7 @@ module Dynamoid #:nodoc:
         end
 
         Enumerator.new do |yielder|
-          Dynamoid.adapter.scan(source.table_name, query, scan_opts).each do |hash|
+          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |hash|
             yielder.yield source.from_database(hash)
           end
         end
@@ -219,7 +219,10 @@ module Dynamoid #:nodoc:
           end
         end
 
-        (query.keys - [source.hash_key, source.range_key]).each do |key|
+        (query.keys.map(&:to_sym) - [source.hash_key.to_sym, source.range_key.try(:to_sym)])
+          .reject { |k, _| k.to_s =~ /^#{source.range_key}\./ }
+          .each do |key|
+
           if key.to_s.include?('.')
             opts.update(field_hash(key))
           else
@@ -249,6 +252,18 @@ module Dynamoid #:nodoc:
         opts[:next_token] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
         opts
+      end
+
+      def scan_query
+        {}.tap do |opts|
+          query.keys.map(&:to_sym).each do |key|
+            if key.to_s.include?('.')
+              opts.update(field_hash(key))
+            else
+              opts[key] = {eq: query[key]}
+            end
+          end
+        end
       end
 
       def scan_opts

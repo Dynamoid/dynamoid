@@ -231,6 +231,101 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ScanFilter.html?shortFooter=true
+  describe 'Scan conditions ' do
+    let(:model) {
+      Class.new do
+        include Dynamoid::Document
+        table name: :customer
+        field :age, :integer
+        field :job_title, :string
+      end
+    }
+
+    it 'supports eq' do
+      customer1 = model.create(age: 10)
+      customer2 = model.create(age: 30)
+
+      expect(model.where(age: '10').all).to contain_exactly(customer1)
+    end
+
+    it 'supports lt' do
+      customer1 = model.create(age: 5)
+      customer2 = model.create(age: 9)
+      customer3 = model.create(age: 12)
+
+      expect(model.where('age.lt' => 10).all).to contain_exactly(customer1, customer2)
+    end
+
+    it 'supports gt' do
+      customer1 = model.create(age: 11)
+      customer2 = model.create(age: 12)
+      customer3 = model.create(age: 9)
+
+      expect(model.where('age.gt' => 10).all).to contain_exactly(customer1, customer2)
+    end
+
+    it 'supports lte' do
+      customer1 = model.create(age: 5)
+      customer2 = model.create(age: 9)
+      customer3 = model.create(age: 12)
+
+      expect(model.where('age.lte' => 9).all).to contain_exactly(customer1, customer2)
+    end
+
+    it 'supports gte' do
+      customer1 = model.create(age: 11)
+      customer2 = model.create(age: 12)
+      customer3 = model.create(age: 9)
+
+      expect(model.where('age.gte' => 11).all).to contain_exactly(customer1, customer2)
+    end
+
+    it 'supports begins_with' do
+      customer1 = model.create(job_title: 'Environmental Air Quality Consultant')
+      customer2 = model.create(job_title: 'Environmental Project Manager')
+      customer3 = model.create(job_title: 'Creative Consultant')
+
+      expect(model.where('job_title.begins_with' => 'Environmental').all)
+        .to contain_exactly(customer1, customer2)
+    end
+
+    it 'supports between' do
+      customer1 = model.create(age: 10)
+      customer2 = model.create(age: 20)
+      customer3 = model.create(age: 30)
+      customer4 = model.create(age: 40)
+
+      expect(model.where('age.between' => [19, 31]).all).to contain_exactly(customer2, customer3)
+    end
+
+    it 'supports in' do
+      customer1 = model.create(age: 10)
+      customer2 = model.create(age: 20)
+      customer3 = model.create(age: 30)
+
+      expect(model.where('age.in' => [10, 20]).all).to contain_exactly(customer1, customer2)
+    end
+
+    it 'supports contains' do
+      customer1 = model.create(job_title: 'Environmental Air Quality Consultant')
+      customer2 = model.create(job_title: 'Environmental Project Manager')
+      customer3 = model.create(job_title: 'Creative Consultant')
+
+      expect(model.where('job_title.contains' => 'Consul').all)
+        .to contain_exactly(customer1, customer3)
+    end
+
+    it 'supports not_contains' do
+      customer1 = model.create(job_title: 'Environmental Air Quality Consultant')
+      customer2 = model.create(job_title: 'Environmental Project Manager')
+      customer3 = model.create(job_title: 'Creative Consultant')
+
+      expect(model.where('job_title.not_contains' => 'Consul').all)
+        .to contain_exactly(customer2)
+    end
+  end
+
   describe 'User' do
     let(:chain) { described_class.new(User) }
 

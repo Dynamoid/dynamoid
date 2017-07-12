@@ -355,21 +355,21 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     it 'performs scan on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
 
-      expect(Dynamoid.adapter.scan(test_table1, :name => 'Josh').to_a).to eq [{ :id=> '1', :name=>"Josh" }]
+      expect(Dynamoid.adapter.scan(test_table1, name: {eq: 'Josh'}).to_a).to eq [{ :id=> '1', :name=>"Josh" }]
     end
 
     it 'performs scan on a table and returns items if there are multiple items but only one match' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Justin'})
 
-      expect(Dynamoid.adapter.scan(test_table1, :name => 'Josh').to_a).to eq [{ :id=> '1', :name=>"Josh" }]
+      expect(Dynamoid.adapter.scan(test_table1, name: {eq: 'Josh'}).to_a).to eq [{ :id=> '1', :name=>"Josh" }]
     end
 
     it 'performs scan on a table and returns multiple items if there are multiple matches' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Josh'})
 
-      expect(Dynamoid.adapter.scan(test_table1, :name => 'Josh')).to include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
+      expect(Dynamoid.adapter.scan(test_table1, name: {eq: 'Josh'})).to include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
     end
 
     it 'performs scan on a table and returns all items if no criteria are specified' do

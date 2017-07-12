@@ -524,14 +524,16 @@ module Dynamoid
 
         request = { table_name: table_name }
         request[:limit] = batch || limit if batch || limit
-        request[:scan_filter] = scan_hash.reduce({}) do |memo, kvp|
-          memo[kvp[0].to_s] = {
-            attribute_value_list: [kvp[1]],
-            # TODO: Provide support for all comparison operators
-            comparison_operator: EQ
-          }
-          memo
-        end if scan_hash.present?
+
+        if scan_hash.present?
+          request[:scan_filter] = scan_hash.reduce({}) do |memo, (attr, cond)|
+            # Flatten as BETWEEN operator specifies array of two elements
+            memo.merge(attr.to_s => {
+              comparison_operator: FIELD_MAP[cond.keys[0]],
+              attribute_value_list: [cond.values[0].freeze].flatten
+            })
+          end
+        end
 
         Enumerator.new do |y|
           # Batch loop, pulls multiple requests until done using the start_key
