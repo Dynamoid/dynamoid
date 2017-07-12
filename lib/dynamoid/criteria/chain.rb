@@ -162,8 +162,6 @@ module Dynamoid #:nodoc:
       def range_hash(key)
         val = query[key]
 
-        return { :range_value => query[key] } if query[key].is_a?(Range)
-
         case key.to_s.split('.').last
         when 'gt'
           { :range_greater_than => val }
@@ -180,11 +178,55 @@ module Dynamoid #:nodoc:
         end
       end
 
+      def field_hash(key)
+        val = query[key]
+        attr, operation = key.to_s.split('.')
+
+        hash = case operation
+        when 'gt'
+          { gt: val }
+        when 'lt'
+          { lt: val }
+        when 'gte'
+          { gte: val }
+        when 'lte'
+          { lte: val }
+        when 'between'
+          { between: val }
+        when 'begins_with'
+          { begins_with: val }
+        when 'in'
+          { in: val }
+        when 'contains'
+          { contains: val }
+        when 'not_contains'
+          { not_contains: val }
+        end
+
+        return { attr.to_sym => hash }
+      end
+
       def range_query
         opts = { :hash_value => query[source.hash_key] }
-        query.keys.select { |k| k.to_s.include?('.') }.each do |key|
-          opts.merge!(range_hash(key))
+
+        if source.range_key
+          if query[source.range_key].present?
+            opts.update(:range_eq => query[source.range_key])
+          end
+
+          query.keys.select { |k| k.to_s =~ /^#{source.range_key}\./ }.each do |key|
+            opts.merge!(range_hash(key))
+          end
         end
+
+        (query.keys - [source.hash_key, source.range_key]).each do |key|
+          if key.to_s.include?('.')
+            opts.update(field_hash(key))
+          else
+            opts[key] = {eq: query[key]}
+          end
+        end
+
         opts.merge(query_opts).merge(consistent_opts)
       end
 
