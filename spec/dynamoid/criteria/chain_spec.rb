@@ -326,6 +326,179 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  describe 'type casting in `where` clause' do
+    it 'casts datetime' do
+      model = Class.new do
+        include Dynamoid::Document
+        table name: :customers
+
+        field :activated_at, :datetime
+      end
+
+      customer1 = model.create(activated_at: Time.now)
+      customer2 = model.create(activated_at: Time.now - 1.hour)
+      customer3 = model.create(activated_at: Time.now - 2.hour)
+
+      expect(
+        model.where('activated_at.gt' => Time.now - 1.5.hours).all
+      ).to contain_exactly(customer1, customer2)
+    end
+
+    it 'casts date' do
+      model = Class.new do
+        include Dynamoid::Document
+        table name: :customers
+
+        field :registered_on, :date
+      end
+
+      customer1 = model.create(registered_on: Date.today)
+      customer2 = model.create(registered_on: Date.today - 2.day)
+      customer3 = model.create(registered_on: Date.today - 4.days)
+
+      expect(
+        model.where('registered_on.gt' => Date.today - 3.days).all
+      ).to contain_exactly(customer1, customer2)
+    end
+
+    it 'casts array elements' do
+      model = Class.new do
+        include Dynamoid::Document
+        table name: :customers
+
+        field :birthday, :date
+      end
+
+      customer1 = model.create(birthday: '1978-08-21'.to_date)
+      customer2 = model.create(birthday: '1984-05-13'.to_date)
+      customer3 = model.create(birthday: '1991-11-28'.to_date)
+
+      expect(
+        model.where('birthday.between' => ['1980-01-01'.to_date, '1990-01-01'.to_date]).all
+      ).to contain_exactly(customer2)
+    end
+
+    context 'Query' do
+      it 'casts partition key `equal` condition' do
+        model = Class.new do
+          include Dynamoid::Document
+          table name: :customers, key: :registered_on
+
+          field :registered_on, :date
+        end
+
+        customer1 = model.create(registered_on: Date.today)
+        customer2 = model.create(registered_on: Date.today - 2.day)
+
+        expect(
+          model.where(registered_on: Date.today).all
+        ).to contain_exactly(customer1)
+      end
+
+      it 'casts sort key `equal` condition' do
+        model = Class.new do
+          include Dynamoid::Document
+          table name: :customers, key: :first_name
+
+          field :first_name
+          range :registered_on, :date
+        end
+
+        customer1 = model.create(first_name: 'Alice', registered_on: Date.today)
+        customer2 = model.create(first_name: 'Alice', registered_on: Date.today - 2.day)
+
+        expect(
+          model.where(first_name: 'Alice', registered_on: Date.today).all
+        ).to contain_exactly(customer1)
+      end
+
+      it 'casts sort key `range` condition' do
+        model = Class.new do
+          include Dynamoid::Document
+          table name: :customers, key: :first_name
+
+          field :first_name
+          range :registered_on, :date
+        end
+
+        customer1 = model.create(first_name: 'Alice', registered_on: Date.today)
+        customer2 = model.create(first_name: 'Alice', registered_on: Date.today - 2.day)
+        customer3 = model.create(first_name: 'Alice', registered_on: Date.today - 4.days)
+
+        expect(
+          model.where(first_name: 'Alice', 'registered_on.gt' => Date.today - 3.days).all
+        ).to contain_exactly(customer1, customer2)
+      end
+
+      it 'casts non-key field `equal` condition' do
+        model = Class.new do
+          include Dynamoid::Document
+          table name: :customers, key: :first_name
+
+          field :first_name
+          range :last_name
+          field :registered_on, :date # <==== not range key
+        end
+
+        customer1 = model.create(first_name: 'Alice', last_name: 'Cooper', registered_on: Date.today)
+        customer2 = model.create(first_name: 'Alice', last_name: 'Morgan', registered_on: Date.today - 2.day)
+
+        expect(
+          model.where(first_name: 'Alice', registered_on: Date.today).all
+        ).to contain_exactly(customer1)
+      end
+
+      it 'casts non-key field `range` condition' do
+        model = Class.new do
+          include Dynamoid::Document
+          table name: :customers, key: :first_name
+
+          field :first_name
+          range :last_name
+          field :registered_on, :date # <==== not range key
+        end
+
+        customer1 = model.create(first_name: 'Alice', last_name: 'Cooper', registered_on: Date.today)
+        customer2 = model.create(first_name: 'Alice', last_name: 'Morgan', registered_on: Date.today - 2.day)
+        customer3 = model.create(first_name: 'Alice', last_name: 'Smit',   registered_on: Date.today - 4.days)
+
+        expect(
+          model.where(first_name: 'Alice', 'registered_on.gt' => Date.today - 3.days).all
+        ).to contain_exactly(customer1, customer2)
+      end
+    end
+
+    context 'Scan' do
+      it 'casts field for `equal` condition' do
+        model = Class.new do
+          include Dynamoid::Document
+          table name: :customers
+
+          field :birthday, :date
+        end
+
+        customer1 = model.create(birthday: '1978-08-21'.to_date)
+        customer2 = model.create(birthday: '1984-05-13'.to_date)
+
+        expect(model.where(birthday: '1978-08-21').all).to contain_exactly(customer1)
+      end
+
+      it 'casts field for `range` condition' do
+        model = Class.new do
+          include Dynamoid::Document
+          table name: :customers
+
+          field :birthday, :date
+        end
+
+        customer1 = model.create(birthday: '1978-08-21'.to_date)
+        customer2 = model.create(birthday: '1984-05-13'.to_date)
+
+        expect(model.where('birthday.gt' => '1980-01-01').all).to contain_exactly(customer2)
+      end
+    end
+  end
+
   describe 'User' do
     let(:chain) { described_class.new(User) }
 
@@ -373,7 +546,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(:post_id => 'x', :posted_at => time)
       post2 = Post.create(:post_id => 'x', :posted_at => (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => "x", "posted_at.gt" => (time + ts_epsilon).to_f }
+      query = { :post_id => "x", "posted_at.gt" => (time + ts_epsilon) }
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first
@@ -390,7 +563,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(:post_id => 'x', :posted_at => time)
       post2 = Post.create(:post_id => 'x', :posted_at => (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => "x", "posted_at.lt" => (time + 1.hour - ts_epsilon).to_f }
+      query = { :post_id => "x", "posted_at.lt" => (time + 1.hour - ts_epsilon) }
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first
@@ -407,7 +580,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(:post_id => 'x', :posted_at => time)
       post2 = Post.create(:post_id => 'x', :posted_at => (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => "x", "posted_at.between" => [(time - ts_epsilon).to_f, (time + ts_epsilon).to_f]}
+      query = { :post_id => "x", "posted_at.between" => [time - ts_epsilon, time + ts_epsilon]}
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first

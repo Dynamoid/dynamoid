@@ -195,7 +195,7 @@ module Dynamoid
           type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
         else
           case type
-            when :integer, :number, :datetime
+            when :integer, :number, :datetime, :date
               :number
             when :string, :serialized
               :string

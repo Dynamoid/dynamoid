@@ -41,7 +41,7 @@ describe Dynamoid::Criteria do
     end
 
     it 'returns empty attributes for where' do
-      expect(Magazine.where(:name => 'Josh').all).to eq []
+      expect(Magazine.where(title: 'Josh').all).to eq []
     end
 
     it 'returns empty attributes for all' do
