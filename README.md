@@ -355,6 +355,28 @@ Address.all(batch_size: 100).each { |address| address.do_some_work; sleep(0.01) 
 Address.eval_limit(10_000).batch(100). each { … } #batch specified as part of a chain
 ```
 
+You are able to optimize query with condition for sort key. Following
+operators are available: `gt`, `lt`, `gte`, `lte`, `begins_with`, `between` as well as equality:
+
+```ruby
+Address.where(latitude: 10212)
+Address.where('latitude.gt': 10212)
+Address.where('latitude.lt': 10212)
+Address.where('latitude.gte': 10212)
+Address.where('latitude.lte': 10212)
+Address.where('city.begins_with': 'Lon')
+Address.where('latitude.between': [10212, 20000])
+```
+
+You are able filter result on the DynamoDB side and specify conditions for non-key fields.
+There ara avalable additional operators: `in`, `contains`, `not_contains`:
+
+```ruby
+Address.where('city.in': ['London', 'Edenburg', 'Birmingham'])
+Address.where('city.contains': [on])
+Address.where('city.not_contains': [ing])
+```
+
 ### Consistent Reads
 
 Querying supports consistent reading. By default, DynamoDB reads are eventually consistent: if you do a write and then a read immediately afterwards, the results of the previous write may not be reflected. If you need to do a consistent read (that is, you need to read the results of a write immediately) you can do so, but keep in mind that consistent reads are twice as expensive as regular reads for DynamoDB.

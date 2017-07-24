@@ -122,16 +122,14 @@ module Dynamoid
                 if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
                   value
                 else
-                  timestamp_in_utc = value
-                  time_zone = case Dynamoid::Config.application_timezone
-                               when :utc
-                                 'UTC'
-                               when :local
-                                 Time.now.utc_offset
-                               when String
-                                 Dynamoid::Config.application_timezone
-                             end
-                  ActiveSupport::TimeZone[time_zone].at(timestamp_in_utc).to_datetime
+                  case Dynamoid::Config.application_timezone
+                    when :utc
+                      ActiveSupport::TimeZone['UTC'].at(value).to_datetime
+                    when :local
+                      Time.at(value).to_datetime
+                    when String
+                      ActiveSupport::TimeZone[Dynamoid::Config.application_timezone].at(value).to_datetime
+                  end
                 end
               when :date
                 if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)

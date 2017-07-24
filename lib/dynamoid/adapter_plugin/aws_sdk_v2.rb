@@ -13,6 +13,21 @@ module Dynamoid
           range_between:      'BETWEEN',
           range_eq:           'EQ'
       }
+
+      # Don't implement NULL and NOT_NULL because it doesn't make seanse -
+      # we declare schema in models
+      FIELD_MAP = {
+          eq:           'EQ',
+          gt:           'GT',
+          lt:           'LT',
+          gte:          'GE',
+          lte:          'LE',
+          begins_with:  'BEGINS_WITH',
+          between:      'BETWEEN',
+          in:           'IN',
+          contains:     'CONTAINS',
+          not_contains: 'NOT_CONTAINS'
+      }
       HASH_KEY  = "HASH".freeze
       RANGE_KEY = "RANGE".freeze
       STRING_TYPE  = "S".freeze
@@ -419,8 +434,8 @@ module Dynamoid
       # @todo Provide support for various other options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#query-instance_method
       def query(table_name, opts = {})
         table = describe_table(table_name)
-        hk    = (opts[:hash_key].present? ? opts[:hash_key] : table.hash_key).to_s
-        rng   = (opts[:range_key].present? ? opts[:range_key] : table.range_key).to_s
+        hk    = (opts[:hash_key].present? ? opts.delete(:hash_key) : table.hash_key).to_s
+        rng   = (opts[:range_key].present? ? opts.delete(:range_key) : table.range_key).to_s
         q     = opts.slice(
                   :consistent_read,
                   :scan_index_forward,
@@ -464,8 +479,19 @@ module Dynamoid
           }
         end
 
+        query_filter = {}
+        opts.reject {|k,_| k.in? RANGE_MAP.keys}.each do |attr, hash|
+          query_filter[attr] = {
+            comparison_operator: FIELD_MAP[hash.keys[0]],
+            attribute_value_list: [
+              hash.values[0].freeze
+            ].flatten # Flatten as BETWEEN operator specifies array of two elements
+          }
+        end
+
         q[:table_name]     = table_name
         q[:key_conditions] = key_conditions
+        q[:query_filter]   = query_filter
 
         Enumerator.new { |y|
           loop do
@@ -498,14 +524,16 @@ module Dynamoid
 
         request = { table_name: table_name }
         request[:limit] = batch || limit if batch || limit
-        request[:scan_filter] = scan_hash.reduce({}) do |memo, kvp|
-          memo[kvp[0].to_s] = {
-            attribute_value_list: [kvp[1]],
-            # TODO: Provide support for all comparison operators
-            comparison_operator: EQ
-          }
-          memo
-        end if scan_hash.present?
+
+        if scan_hash.present?
+          request[:scan_filter] = scan_hash.reduce({}) do |memo, (attr, cond)|
+            # Flatten as BETWEEN operator specifies array of two elements
+            memo.merge(attr.to_s => {
+              comparison_operator: FIELD_MAP[cond.keys[0]],
+              attribute_value_list: [cond.values[0].freeze].flatten
+            })
+          end
+        end
 
         Enumerator.new do |y|
           # Batch loop, pulls multiple requests until done using the start_key
