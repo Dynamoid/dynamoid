@@ -258,6 +258,12 @@ end
 
 To see more usage and examples of ActiveModel validations, check out the [ActiveModel validation documentation](http://api.rubyonrails.org/classes/ActiveModel/Validations.html).
 
+If you want to bypass model validation, pass `validate: false` to `save` call:
+
+```ruby
+model.save(validate: false)
+```
+
 ### Callbacks
 
 Dynamoid also employs ActiveModel callbacks. Right now, callbacks are defined on ```save```, ```update```, ```destroy```, which allows you to do ```before_``` or ```after_``` any of those.

@@ -45,4 +45,16 @@ describe Dynamoid::Validations do
     doc = doc_class.create!(:name => 'test')
     expect(doc.errors).to be_empty
   end
+
+  it 'does not validate when saves if `validate` option is false' do
+    model = Class.new do
+      include Dynamoid::Document
+      table name: :documents
+
+      field :name
+      validates :name, presence: true
+    end
+
+    expect(model.new.save(validate: false)).to be_persisted
+  end
 end
