@@ -148,10 +148,6 @@ module Dynamoid #:nodoc:
           Dynamoid.logger.warn "You can index this query by adding this to #{source.to_s.downcase}.rb: index [#{query.keys.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
         end
 
-        if @consistent_read
-          raise Dynamoid::Errors::InvalidQuery, 'Consistent read is not supported by SCAN operation'
-        end
-
         Enumerator.new do |yielder|
           Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |hash|
             yielder.yield source.from_database(hash)
@@ -271,6 +267,7 @@ module Dynamoid #:nodoc:
         opts[:limit] = @eval_limit if @eval_limit
         opts[:next_token] = start_key if @start
         opts[:batch_size] = @batch_size if @batch_size
+        opts[:consistent_read] = true if @consistent_read
         opts
       end
     end

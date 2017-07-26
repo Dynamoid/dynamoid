@@ -521,9 +521,11 @@ module Dynamoid
       def scan(table_name, scan_hash, select_opts = {})
         limit = select_opts.delete(:limit)
         batch = select_opts.delete(:batch_size)
+        consistent_read = select_opts.delete(:consistent_read)
 
         request = { table_name: table_name }
         request[:limit] = batch || limit if batch || limit
+        request[:consistent_read] = true if consistent_read
 
         if scan_hash.present?
           request[:scan_filter] = scan_hash.reduce({}) do |memo, (attr, cond)|
