@@ -149,11 +149,10 @@ describe Dynamoid::Fields do
     end
   end
 
-  it "gives a warning when setting a single value larger than the maximum item size" do
-    expect(Dynamoid.logger).to receive(:warn) do |input|
-      expect(input).to include "city field has a length of 66000"
-    end
-    Address.new city: ("Ten chars " * 6_600)
+  it "raises an exception when items size exceeds 400kb" do
+    expect {
+      Address.create(city: "Ten chars " * 500_000)
+    }.to raise_error(Aws::DynamoDB::Errors::ValidationException, 'Item size has exceeded the maximum allowed size')
   end
 
   context '.remove_attribute' do
