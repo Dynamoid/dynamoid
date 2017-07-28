@@ -630,6 +630,7 @@ describe Dynamoid::Persistence do
       end
 
       it 'is findable as a string' do
+        pending 'casting to declared type is not supported yet'
         expect(doc_class.where(price: '5.0').first).to eq subject
       end
     end
@@ -656,6 +657,7 @@ describe Dynamoid::Persistence do
       end
 
       it 'is findable as a string' do
+        pending 'casting to declared type is not supported yet'
         expect(doc_class.where(price: '5.0').first).to eq subject
       end
 
@@ -685,6 +687,7 @@ describe Dynamoid::Persistence do
       end
 
       it 'is findable with number semantics' do
+        pending 'casting to declared type is not supported yet'
         # With the primary key, we're forcing a Query rather than a Scan because of https://github.com/Dynamoid/Dynamoid/issues/6
         primary_key = subject.id
         expect(doc_class.where(id: primary_key).where('price.gt' => 4).first).to_not be_nil

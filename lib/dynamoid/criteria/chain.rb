@@ -145,7 +145,7 @@ module Dynamoid #:nodoc:
       def records_via_scan
         if Dynamoid::Config.warn_on_scan
           Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
-          Dynamoid.logger.warn "You can index this query by adding this to #{source.to_s.downcase}.rb: index [#{query.keys.sort.collect{|attr| ":#{attr}"}.join(', ')}]"
+          Dynamoid.logger.warn "You can index this query by adding this to #{source.to_s.downcase}.rb: index [#{query.keys.sort.collect{|name| ":#{name}"}.join(', ')}]"
         end
 
         Enumerator.new do |yielder|
@@ -156,9 +156,10 @@ module Dynamoid #:nodoc:
       end
 
       def range_hash(key)
-        val = query[key]
+        name, operation = key.to_s.split('.')
+        val = type_cast_condition_parameter(name, query[key])
 
-        case key.to_s.split('.').last
+        case operation
         when 'gt'
           { :range_greater_than => val }
         when 'lt'
@@ -175,8 +176,8 @@ module Dynamoid #:nodoc:
       end
 
       def field_hash(key)
-        val = query[key]
-        attr, operation = key.to_s.split('.')
+        name, operation = key.to_s.split('.')
+        val = type_cast_condition_parameter(name, query[key])
 
         hash = case operation
         when 'gt'
@@ -199,15 +200,16 @@ module Dynamoid #:nodoc:
           { not_contains: val }
         end
 
-        return { attr.to_sym => hash }
+        return { name.to_sym => hash }
       end
 
       def range_query
-        opts = { :hash_value => query[source.hash_key] }
+        opts = { :hash_value => type_cast_condition_parameter(source.hash_key, query[source.hash_key]) }
 
         if source.range_key
           if query[source.range_key].present?
-            opts.update(:range_eq => query[source.range_key])
+            value = type_cast_condition_parameter(source.range_key, query[source.range_key])
+            opts.update(:range_eq => value)
           end
 
           query.keys.select { |k| k.to_s =~ /^#{source.range_key}\./ }.each do |key|
@@ -222,11 +224,24 @@ module Dynamoid #:nodoc:
           if key.to_s.include?('.')
             opts.update(field_hash(key))
           else
-            opts[key] = {eq: query[key]}
+            value = type_cast_condition_parameter(key, query[key])
+            opts[key] = {eq: value}
           end
         end
 
         opts.merge(query_opts).merge(consistent_opts)
+      end
+
+      def type_cast_condition_parameter(key, value)
+        if !value.respond_to?(:to_ary)
+          source.dump_field(value, source.attributes[key.to_sym])
+        else
+          value.to_ary.map { |el| source.dump_field(el, source.attributes[key.to_sym]) }
+        end
+      end
+
+      def query_keys
+        query.keys.collect{|k| k.to_s.split('.').first}
       end
 
       def key_present?
@@ -256,7 +271,8 @@ module Dynamoid #:nodoc:
             if key.to_s.include?('.')
               opts.update(field_hash(key))
             else
-              opts[key] = {eq: query[key]}
+              value = type_cast_condition_parameter(key, query[key])
+              opts[key] = {eq: value}
             end
           end
         end
