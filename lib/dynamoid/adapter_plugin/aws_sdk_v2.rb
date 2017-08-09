@@ -494,9 +494,16 @@ module Dynamoid
         q[:query_filter]   = query_filter
 
         Enumerator.new { |y|
+          eval_count = 0
           loop do
             results = client.query(q)
             results.items.each { |row| y << result_item_to_hash(row) }
+
+            # If limit is set then keep track and stop requesting once
+            # completed. This is eval_limit so we compare to scanned_count
+            # rather than resulting data
+            eval_count += results.scanned_count
+            break if q[:limit] && eval_count >= q[:limit]
 
             if(lk = results.last_evaluated_key)
               q[:exclusive_start_key] = lk
@@ -539,12 +546,20 @@ module Dynamoid
 
         Enumerator.new do |y|
           # Batch loop, pulls multiple requests until done using the start_key
+          # by paging in by batch size rather than limit size
+          eval_count = 0
           loop do
             results = client.scan(request)
-
             results.data[:items].each { |row| y << result_item_to_hash(row) }
 
-            if((lk = results[:last_evaluated_key]) && batch)
+            # If limit is set then keep track and stop requesting once
+            # completed. This is eval_limit so we compare to scanned_count
+            # rather than resulting data
+            eval_count += results.scanned_count
+            break if limit && eval_count >= limit
+
+            # Keep pulling if we haven't finished paging in all data
+            if(lk = results[:last_evaluated_key])
               request[:exclusive_start_key] = lk
             else
               break
