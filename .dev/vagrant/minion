@@ -1,0 +1,9 @@
+# Masterless Minion Configuration File
+master: localhost
+id: development
+file_client: local
+
+# Where your salt state exists
+file_roots:
+  base:
+    - /vagrant/.dev/vagrant/salt

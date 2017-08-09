@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
       "LICENSE.txt",
       "README.md"
   ]
-  spec.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(bin|test|spec|features)/}) }
+  spec.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(bin|test|spec|features|.dev|Vagrantfile)/}) }
   spec.homepage = "http://github.com/Dynamoid/Dynamoid"
   spec.licenses = ["MIT"]
   spec.bindir = "exe"
