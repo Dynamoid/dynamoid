@@ -10,7 +10,8 @@ module Dynamoid #:nodoc:
       :number,
       :integer,
       :string,
-      :datetime
+      :datetime,
+      :serialized,
     ]
 
     # Initialize the attributes we know the class has, in addition to our magic attributes: id, created_at, and updated_at.

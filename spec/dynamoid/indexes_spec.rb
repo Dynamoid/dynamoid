@@ -229,6 +229,7 @@ describe Dynamoid::Indexes do
           field :secondary_hash_field
           field :secondary_range_field
           field :array_field, :array
+          field :serialized_field, :serialized
         end
       end
 
