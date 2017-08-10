@@ -53,6 +53,10 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_lte => 3.0).to_a).to eq [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
 
+    it 'performs query on a table and returns items based on returns correct limit' do
+      expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_greater_than => 0.0, :limit => 1).count).to eq(1)
+    end
+
     it 'performs query on a table with a range and selects all items' do
       200.times { |i| Dynamoid.adapter.put_item(test_table3, {:id => "1", :range => i.to_f, :data => "A"*1024*16}) }
       # 64 of these items will exceed the 1MB result limit thus query won't return all results on first loop
@@ -377,6 +381,33 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Josh'})
 
       expect(Dynamoid.adapter.scan(test_table1, {})).to include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
+    end
+
+    it 'performs scan on a table and returns correct limit' do
+      Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
+      Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Josh'})
+      Dynamoid.adapter.put_item(test_table1, {:id => '3', :name => 'Josh'})
+      Dynamoid.adapter.put_item(test_table1, {:id => '4', :name => 'Josh'})
+
+      expect(Dynamoid.adapter.scan(test_table1, {}, {limit: 1}).count).to eq(1)
+    end
+
+    it 'performs scan on a table and returns correct batch' do
+      Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
+      Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Josh'})
+      Dynamoid.adapter.put_item(test_table1, {:id => '3', :name => 'Josh'})
+      Dynamoid.adapter.put_item(test_table1, {:id => '4', :name => 'Josh'})
+
+      expect(Dynamoid.adapter.scan(test_table1, {}, {batch_size: 1}).count).to eq(4)
+    end
+
+    it 'performs scan on a table and returns correct limit and batch' do
+      Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
+      Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Josh'})
+      Dynamoid.adapter.put_item(test_table1, {:id => '3', :name => 'Josh'})
+      Dynamoid.adapter.put_item(test_table1, {:id => '4', :name => 'Josh'})
+
+      expect(Dynamoid.adapter.scan(test_table1, {}, {limit: 1, batch_size: 1}).count).to eq(1)
     end
 
     # Truncate
