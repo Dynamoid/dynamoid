@@ -125,12 +125,12 @@ module Dynamoid
       # @todo: Provide support for passing options to underlying batch_get_item http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_get_item-instance_method
       def batch_get_item(table_ids, options = {})
         request_items = Hash.new{|h, k| h[k] = []}
-        return request_items if table_ids.all?{|k, v| v.empty?}
+        return request_items if table_ids.all?{|k, v| v.blank?}
 
         ret = Hash.new([].freeze) # Default for tables where no rows are returned
 
         table_ids.each do |t, ids|
-          next if ids.empty?
+          next if ids.blank?
           tbl = describe_table(t)
           hk  = tbl.hash_key.to_s
           rng = tbl.range_key.to_s
