@@ -456,6 +456,10 @@ module Dynamoid
             hk  => token[:hash_key_element],
             rng => token[:range_key_element]
           }
+          # For secondary indices the start key must contain the indices composite key
+          # but also the table's composite keys
+          q[:exclusive_start_key][table.hash_key] = token[:table_hash_key_element] if token[:table_hash_key_element]
+          q[:exclusive_start_key][table.range_key] = token[:table_range_key_element] if token[:table_range_key_element]
         end
 
         key_conditions = {

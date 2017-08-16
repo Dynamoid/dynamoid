@@ -6,8 +6,9 @@ module Dynamoid #:nodoc:
     # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
     class Chain
       # TODO: Should we transform any other types of query values?
-      TYPES_TO_DUMP_FOR_QUERY = [:string, :integer, :boolean]
+      TYPES_TO_DUMP_FOR_QUERY = [:string, :integer, :boolean, :serialized]
       attr_accessor :query, :source, :values, :consistent_read
+      attr_reader :hash_key, :range_key, :index_name
       include Enumerable
       # Create a new criteria chain.
       #
@@ -204,23 +205,28 @@ module Dynamoid #:nodoc:
       end
 
       def range_query
-        opts = { :hash_value => type_cast_condition_parameter(source.hash_key, query[source.hash_key]) }
+        opts = {}
 
-        if source.range_key
-          if query[source.range_key].present?
-            value = type_cast_condition_parameter(source.range_key, query[source.range_key])
+        # Add hash key
+        opts[:hash_key] = @hash_key
+        opts[:hash_value] = type_cast_condition_parameter(@hash_key, query[@hash_key])
+
+        # Add range key
+        if @range_key
+          opts[:range_key] = @range_key
+          if query[@range_key].present?
+            value = type_cast_condition_parameter(@range_key, query[@range_key])
             opts.update(:range_eq => value)
           end
 
-          query.keys.select { |k| k.to_s =~ /^#{source.range_key}\./ }.each do |key|
+          query.keys.select { |k| k.to_s =~ /^#{@range_key}\./ }.each do |key|
             opts.merge!(range_hash(key))
           end
         end
 
-        (query.keys.map(&:to_sym) - [source.hash_key.to_sym, source.range_key.try(:to_sym)])
-          .reject { |k, _| k.to_s =~ /^#{source.range_key}\./ }
+        (query.keys.map(&:to_sym) - [@hash_key.to_sym, @range_key.try(:to_sym)])
+          .reject { |k, _| k.to_s =~ /^#{@range_key}\./ }
           .each do |key|
-
           if key.to_s.include?('.')
             opts.update(field_hash(key))
           else
@@ -240,24 +246,69 @@ module Dynamoid #:nodoc:
         end
       end
 
-      def query_keys
-        query.keys.collect{|k| k.to_s.split('.').first}
-      end
-
       def key_present?
-        query.keys.map(&:to_sym).include?(source.hash_key.to_sym)
+        query_keys = query.keys.collect { |k| k.to_s.split('.').first }
+
+        # See if querying based on table hash key
+        if query_keys.include?(source.hash_key.to_s)
+          @hash_key = source.hash_key
+
+          # Use table's default range key
+          if query_keys.include?(source.range_key.to_s)
+            @range_key = source.range_key
+            return true
+          end
+
+          # See if can use any local secondary index range key
+          # Chooses the first LSI found that can be utilized for the query
+          source.local_secondary_indexes.each do |_, lsi|
+            next unless query_keys.include?(lsi.range_key.to_s)
+            @range_key = lsi.range_key
+            @index_name = lsi.name
+          end
+
+          return true
+        end
+
+        # See if can use any global secondary index
+        # Chooses the first GSI found that can be utilized for the query
+        source.global_secondary_indexes.each do |_, gsi|
+          next unless query_keys.include?(gsi.hash_key.to_s)
+          @hash_key = gsi.hash_key
+          @range_key = gsi.range_key
+          @index_name = gsi.name
+          return true
+        end
+
+        # Could not utilize any indices so we'll have to scan
+        false
       end
 
+      # Start key needs to be set up based on the index utilized
+      # If using a secondary index then we must include the index's composite key
+      # as well as the tables composite key.
       def start_key
-        key = { :hash_key_element => @start.hash_key }
-        if range_key = @start.class.range_key
-          key.merge!({:range_key_element => @start.send(range_key) })
+        hash_key = @hash_key || source.hash_key
+        range_key = @range_key || source.range_key
+
+        key = {}
+        key[:hash_key_element] = type_cast_condition_parameter(hash_key, @start.send(hash_key))
+        key[:range_key_element] = type_cast_condition_parameter(range_key, @start.send(range_key)) if range_key
+
+        # Add table composite keys if differ from secondary index used composite key
+        if hash_key != source.hash_key
+          key[:table_hash_key_element] = type_cast_condition_parameter(source.hash_key, @start.hash_key)
         end
+        if source.range_key && range_key != source.range_key
+          key[:table_range_key_element] = type_cast_condition_parameter(source.range_key, @start.range_value)
+        end
+
         key
       end
 
       def query_opts
         opts = {}
+        opts[:index_name] = @index_name if @index_name
         opts[:select] = 'ALL_ATTRIBUTES'
         opts[:limit] = @eval_limit if @eval_limit
         opts[:next_token] = start_key if @start

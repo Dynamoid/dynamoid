@@ -55,7 +55,12 @@ describe Dynamoid::Criteria::Chain do
       customer1 = model.create(name: 'Bob', age: 10)
       customer2 = model.create(name: 'Bob', age: 30)
 
-      expect(model.where(name: 'Bob', age: '10').all).to contain_exactly(customer1)
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:records_via_query).and_call_original
+      expect(chain.where(name: 'Bob', age: '10').all).to contain_exactly(customer1)
+      expect(chain.hash_key).to eq(:name)
+      expect(chain.range_key).to eq(:age)
+      expect(chain.index_name).to be_nil
     end
 
     it 'supports lt' do
@@ -130,7 +135,12 @@ describe Dynamoid::Criteria::Chain do
       customer1 = model.create(name: 'a', last_name: 'a', age: 10)
       customer2 = model.create(name: 'a', last_name: 'b', age: 30)
 
-      expect(model.where(name: 'a', age: '10').all).to contain_exactly(customer1)
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:records_via_query).and_call_original
+      expect(chain.where(name: 'a', age: '10').all).to contain_exactly(customer1)
+      expect(chain.hash_key).to eq(:name)
+      expect(chain.range_key).to be_nil
+      expect(chain.index_name).to be_nil
     end
 
     it 'supports lt' do
@@ -246,7 +256,12 @@ describe Dynamoid::Criteria::Chain do
       customer1 = model.create(age: 10)
       customer2 = model.create(age: 30)
 
-      expect(model.where(age: '10').all).to contain_exactly(customer1)
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:records_via_scan).and_call_original
+      expect(chain.where(age: '10').all).to contain_exactly(customer1)
+      expect(chain.hash_key).to be_nil
+      expect(chain.range_key).to be_nil
+      expect(chain.index_name).to be_nil
     end
 
     it 'supports lt' do
@@ -323,6 +338,178 @@ describe Dynamoid::Criteria::Chain do
 
       expect(model.where('job_title.not_contains' => 'Consul').all)
         .to contain_exactly(customer2)
+    end
+  end
+
+  describe 'local secondary indexes used for `where` clauses' do
+    let(:model) {
+      Class.new do
+        include Dynamoid::Document
+        table name: :customer, key: :name
+        range :range, :integer
+        field :range2, :integer
+        field :range3, :integer
+
+        local_secondary_index range_key: :range2, name: :range2index
+        local_secondary_index range_key: :range3, name: :range3index
+      end
+    }
+
+    before(:each) do
+      @customer1 = model.create(name: 'Bob', range: 1, range2: 11, range3: 111)
+      @customer2 = model.create(name: 'Bob', range: 2, range2: 22, range3: 222)
+      @customer3 = model.create(name: 'Bob', range: 3, range2: 33, range3: 333)
+    end
+
+    it 'supports query on local secondary index but always defaults to table range key' do
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:records_via_query).and_call_original
+      expect(chain.where(:name => 'Bob', 'range.lt' => 3, 'range2.gt' => 15).count).to eq(1)
+      expect(chain.hash_key).to eq(:name)
+      expect(chain.range_key).to eq(:range)
+      expect(chain.index_name).to be_nil
+    end
+
+    it 'supports query on local secondary index' do
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:records_via_query).and_call_original
+      expect(chain.where(:name => 'Bob', 'range2.gt' => 15).count).to eq(2)
+      expect(chain.hash_key).to eq(:name)
+      expect(chain.range_key).to eq(:range2)
+      expect(chain.index_name).to eq(:range2index)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:records_via_query).and_call_original
+      expect(chain.where(:name => 'Bob', 'range3.lt' => 200).count).to eq(1)
+      expect(chain.hash_key).to eq(:name)
+      expect(chain.range_key).to eq(:range3)
+      expect(chain.index_name).to eq(:range3index)
+    end
+
+    it 'supports query on local secondary index with start' do
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:records_via_query).and_call_original
+      expect(chain.where(:name => 'Bob', 'range2.gt' => 15).count).to eq(2)
+      expect(chain.hash_key).to eq(:name)
+      expect(chain.range_key).to eq(:range2)
+      expect(chain.index_name).to eq(:range2index)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:records_via_query).and_call_original
+      expect(chain.where(:name => 'Bob', 'range2.gt' => 15).start(@customer2).all).to contain_exactly(@customer3)
+      expect(chain.hash_key).to eq(:name)
+      expect(chain.range_key).to eq(:range2)
+      expect(chain.index_name).to eq(:range2index)
+    end
+  end
+
+  describe 'global secondary indexes used for `where` clauses' do
+    context 'with full composite key for table' do
+      let(:model) {
+        Class.new do
+          include Dynamoid::Document
+          table name: :customer, key: :name
+          range :customerid, :integer
+          field :city
+          field :email
+          field :age, :integer
+          field :gender
+
+          global_secondary_index hash_key: :city, range_key: :age, name: :cityage, projected_attributes: :all
+          global_secondary_index hash_key: :email, range_key: :age, name: :emailage, projected_attributes: :all
+        end
+      }
+
+      before(:each) do
+        @customer1 = model.create(name: 'Bob', city: 'San Francisco', email: 'bob@test.com', age: 10, gender: 'male',
+                                  customerid: 1)
+        @customer2 = model.create(name: 'Jeff', city: 'San Francisco', email: 'jeff@test.com', age: 15, gender: 'male',
+                                  customerid: 2)
+        @customer3 = model.create(name: 'Mark', city: 'San Francisco', email: 'mark@test.com', age: 20, gender: 'male',
+                                  customerid: 3)
+        @customer4 = model.create(name: 'Greg', city: 'New York', email: 'greg@test.com', age: 25, gender: 'male',
+                                  customerid: 4)
+      end
+
+      it 'supports query on global secondary index but always defaults to table hash key' do
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_query).and_call_original
+        expect(chain.where(:name => 'Bob').count).to eq(1)
+        expect(chain.hash_key).to eq(:name)
+        expect(chain.range_key).to be_nil
+        expect(chain.index_name).to be_nil
+      end
+
+      it 'supports query on global secondary index' do
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_query).and_call_original
+        expect(chain.where(:city => 'San Francisco').count).to eq(3)
+        expect(chain.hash_key).to eq(:city)
+        expect(chain.range_key).to eq(:age)
+        expect(chain.index_name).to eq(:cityage)
+
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_query).and_call_original
+        expect(chain.where(:city => 'San Francisco', 'age.gt' => 12).count).to eq(2)
+        expect(chain.hash_key).to eq(:city)
+        expect(chain.range_key).to eq(:age)
+        expect(chain.index_name).to eq(:cityage)
+
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_query).and_call_original
+        expect(chain.where(:email => 'greg@test.com').count).to eq(1)
+        expect(chain.hash_key).to eq(:email)
+        expect(chain.range_key).to eq(:age)
+        expect(chain.index_name).to eq(:emailage)
+
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_query).and_call_original
+        expect(chain.where(:email => 'greg@test.com', 'age.gt' => 12).count).to eq(1)
+        expect(chain.hash_key).to eq(:email)
+        expect(chain.range_key).to eq(:age)
+        expect(chain.index_name).to eq(:emailage)
+      end
+
+      it 'supports scan when no global secondary index available' do
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_scan).and_call_original
+        expect(chain.where(:gender => 'male').count).to eq(4)
+        expect(chain.hash_key).to be_nil
+        expect(chain.range_key).to be_nil
+        expect(chain.index_name).to be_nil
+      end
+
+      it 'supports query on global secondary index with start' do
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_query).and_call_original
+        expect(chain.where(:city => 'San Francisco').count).to eq(3)
+        expect(chain.hash_key).to eq(:city)
+        expect(chain.range_key).to eq(:age)
+        expect(chain.index_name).to eq(:cityage)
+
+        # Now query with start at customer2 and we should only see customer3
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_query).and_call_original
+        expect(chain.where(:city => 'San Francisco').start(@customer2).all).to contain_exactly(@customer3)
+      end
+    end
+
+    it 'supports query on global secondary index with correct start key without table range key' do
+      model = Class.new do
+        include Dynamoid::Document
+        table name: :customer, key: :name
+        field :city
+        field :age, :integer
+
+        global_secondary_index hash_key: :city, range_key: :age, name: :cityage, projected_attributes: :all
+      end
+
+      customer1 = model.create(name: 'Bob', city: 'San Francisco', age: 10)
+      customer2 = model.create(name: 'Jeff', city: 'San Francisco', age: 15)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:records_via_query).and_call_original
+      expect(chain.where(:city => 'San Francisco').start(customer1).all).to contain_exactly(customer2)
     end
   end
 
