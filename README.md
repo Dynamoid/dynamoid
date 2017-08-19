@@ -70,11 +70,7 @@ Then you need to initialize Dynamoid config to get it going. Put code similar to
 
 ```ruby
   Dynamoid.configure do |config|
-    config.adapter = 'aws_sdk_v2' # This adapter establishes a connection to the DynamoDB servers using Amazon's own AWS gem.
     config.namespace = "dynamoid_app_development" # To namespace tables created by Dynamoid from other tables you might have. Set to nil to avoid namespacing.
-    config.warn_on_scan = true # Output a warning to the logger when you perform a scan rather than a query on a table.
-    config.read_capacity = 5 # Read capacity for your tables
-    config.write_capacity = 5 # Write capacity for your tables
     config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
   end
 
@@ -435,6 +431,32 @@ RANGE_MAP = {
 ```
 
 Most range searches, like `eq`, need a single value, and searches like `between`, need an array with two values.
+
+## Configuration
+
+There are listed all the configuration options:
+
+* `adapter` - usefull only for the gem developers to switch to a new adapter. Default and the only available value is `aws_sdk_v2`
+* `namespace` - prefix for table names, default is `dynamoid_#{application_name}_#{environment}` for Rails application and `dynamoid` otherwise
+* `logger` - by default it's a `Rails.logger` in Rails application and `stdout` otherwise. You can disable logging by setting `nil` or `false` values. Set `true` value to use defaults
+* `access_key` - DynamoDb custom credentials for AWS, override global AWS credentials if they present
+* `secret_key` - DynamoDb custom credentials for AWS, override global AWS credentials if they present
+* `region` - DynamoDb custom credentials for AWS, override global AWS credentials if they present
+* `batch_size` - when you try to load multiple items at once with `batch_get_item` call Dynamoid loads them not with one api call but piece by piece. Default is 100 items
+* `read_capacity` - is used at table or indices creation. Default is 100 (units)
+* `write_capacity` - is used at table or indices creation. Default is 20 (units)
+* `warn_on_scan` - log warnings when scan table. Default is `true`
+* `endpoint` - if provided, it communicates with the DynamoDB listening at the endpoint. This is useful for testing with [Amazon Local DB]
+* `identity_map` - ensures that each object gets loaded only once by keeping every loaded object in a map. Looks up objects using the map when referring to them. Isn't thread safe. Default is `false`.
+  `Use Dynamoid::Middleware::IdentityMap` to clear identity map for each HTTP request
+* `timestamps` - by default Dynamoid sets `created_at` and `updated_at` fields for model at creation and updating. You can disable this behavior by setting `false` value
+* `sync_retry_max_times` - when Dynamoid creates or deletes table synchronously it checks for completion specified times. Default is 60 (times). It's a bit over 2 minutes by default
+* `sync_retry_wait_seconds` - time to wait between retries. Default is 2 (seconds)
+* `convert_big_decimal` - if `true` then Dynamoid converts numbers stored in `Hash` in `raw` field to float. Default is `false`
+* `models_dir` - `dynamoid:create_tables` rake task loads DynamoDb models from this directory. Default is `app/models`. In Rails application you should set `./app/models` value
+* `application_timezone` - Dynamoid converts all `datetime` fields to specified time zone when loads data from the storage.
+  Acceptable values - `utc`, `local` (to use system time zone) and time zone name e.g. `Eastern Time (US & Canada)`. Default is `local`
+
 
 ## Concurrency
 

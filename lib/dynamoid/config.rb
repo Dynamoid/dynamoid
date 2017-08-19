@@ -21,8 +21,6 @@ module Dynamoid
     option :write_capacity, :default => 20
     option :warn_on_scan, :default => true
     option :endpoint, :default => nil
-    option :use_ssl, :default => true
-    option :port, :default => '443'
     option :identity_map, :default => false
     option :timestamps, :default => true
     option :sync_retry_max_times, :default => 60 # a bit over 2 minutes
