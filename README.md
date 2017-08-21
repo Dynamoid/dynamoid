@@ -370,8 +370,8 @@ Address.where('city.begins_with': 'Lon')
 Address.where('latitude.between': [10212, 20000])
 ```
 
-You are able filter result on the DynamoDB side and specify conditions for non-key fields.
-There ara avalable additional operators: `in`, `contains`, `not_contains`:
+You are able to filter results on the DynamoDB side and specify conditions for non-key fields.
+Following operators are available: `in`, `contains`, `not_contains`:
 
 ```ruby
 Address.where('city.in': ['London', 'Edenburg', 'Birmingham'])
@@ -401,7 +401,12 @@ It also supports .gte and .lte. Turning those into symbols and allowing a Rails 
 
 ### Global Secondary Indexes
 
-The query I use is as follows, but I really do not know a lot about Dynamoid, and got this working by reading through other Amazon Dynamo code bases and the documentation form Amazon.
+There are two ways to query Global Secondary Indexes (GSI).
+
+#### Explicit
+
+The first way explicitly uses your GSI and utilizes the `find_all_by_secondary_index` method which will lookup a valid
+GSI to use based on the inputs, you MUST provide the correct keys to match the GSI you want:
 
 ```ruby
 find_all_by_secondary_index(
@@ -416,7 +421,8 @@ find_all_by_secondary_index(
     :scan_index_forward => false # or true
 )
 ```
-where the range modifier is one of Dynamoid::Finders::RANGE_MAP.keys, where the RANGE_MAP is:
+
+Where the range modifier is one of `Dynamoid::Finders::RANGE_MAP.keys`, where the `RANGE_MAP` is:
 
 ```ruby
 RANGE_MAP = {
@@ -431,6 +437,27 @@ RANGE_MAP = {
 ```
 
 Most range searches, like `eq`, need a single value, and searches like `between`, need an array with two values.
+
+#### Implicit
+
+The second way implicitly uses your GSI through the `where` clauses and deduces the index based on the query fields
+provided. Another added benefit is that it is built into query chaining so you can use all the methods used in normal
+querying. The explicit way from above would be rewritten as follows:
+
+```ruby
+where(dynamo_primary_key_column_name => dynamo_primary_key_value,
+      "#{range_column}.#{range_modifier}" => range_value)
+  .scan_index_forward(false)
+```
+
+The only caveat with this method is that because it is also used for general querying, it WILL NOT use a GSI unless it
+explicitly has defined `projected_attributes: :all` on the GSI in your model. This is because GSIs that do not have all
+attributes projected will only contain the index keys and therefore will not return objects with fully resolved field
+values. It currently opts to provide the complete results rather than partial results unless you've explicitly looked up
+the data.
+
+*Future TODO could involve implementing `select` in chaining as well as resolving the fields with a second query against
+the table since a query against GSI then a query on base table is still likely faster than scan on the base table*
 
 ## Configuration
 

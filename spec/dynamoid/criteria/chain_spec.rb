@@ -404,6 +404,30 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe 'global secondary indexes used for `where` clauses' do
+    it 'does not use global secondary index if does not project all attributes' do
+      model = Class.new do
+        include Dynamoid::Document
+        table name: :customer, key: :name
+        range :customerid, :integer
+        field :city
+        field :age, :integer
+        field :gender
+
+        global_secondary_index hash_key: :city, range_key: :age, name: :cityage
+      end
+
+      customer1 = model.create(name: 'Bob', city: 'San Francisco', age: 10, gender: 'male', customerid: 1)
+      customer2 = model.create(name: 'Jeff', city: 'San Francisco', age: 15, gender: 'male', customerid: 2)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:records_via_scan).and_call_original
+      expect(chain.where(:city => 'San Francisco').count).to eq(2)
+      # Does not use GSI since not projecting all attributes
+      expect(chain.hash_key).to be_nil
+      expect(chain.range_key).to be_nil
+      expect(chain.index_name).to be_nil
+    end
+
     context 'with full composite key for table' do
       let(:model) {
         Class.new do

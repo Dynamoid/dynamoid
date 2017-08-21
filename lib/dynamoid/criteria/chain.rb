@@ -272,8 +272,10 @@ module Dynamoid #:nodoc:
 
         # See if can use any global secondary index
         # Chooses the first GSI found that can be utilized for the query
+        # But only do so if projects ALL attributes otherwise we won't
+        # get back full data
         source.global_secondary_indexes.each do |_, gsi|
-          next unless query_keys.include?(gsi.hash_key.to_s)
+          next unless query_keys.include?(gsi.hash_key.to_s) && gsi.projected_attributes == :all
           @hash_key = gsi.hash_key
           @range_key = gsi.range_key
           @index_name = gsi.name
