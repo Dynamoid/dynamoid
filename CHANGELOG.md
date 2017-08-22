@@ -77,7 +77,7 @@
 * Remove support for Dynamoid's (pseudo)indexes, now that DynamoDB offers
   local and global indexes.
 * Rename :float field type to :number.
-* Rename Chain#limit to Chain#eval_limit.
+* Rename Chain#limit to Chain#record_limit.
 
 Housekeeping:
 

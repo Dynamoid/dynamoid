@@ -439,16 +439,19 @@ module Dynamoid
         q     = opts.slice(
                   :consistent_read,
                   :scan_index_forward,
-                  :limit,
                   :select,
                   :index_name
                 )
 
         opts.delete(:consistent_read)
         opts.delete(:scan_index_forward)
-        opts.delete(:limit)
         opts.delete(:select)
         opts.delete(:index_name)
+
+        # Limit
+        record_limit = opts.delete(:record_limit)
+        q[:limit] = record_limit if record_limit
+
 
         opts.delete(:next_token).tap do |token|
           break unless token
@@ -498,16 +501,13 @@ module Dynamoid
         q[:query_filter]   = query_filter
 
         Enumerator.new { |y|
-          eval_count = 0
+          record_count = 0
           loop do
             results = client.query(q)
             results.items.each { |row| y << result_item_to_hash(row) }
 
-            # If limit is set then keep track and stop requesting once
-            # completed. This is eval_limit so we compare to scanned_count
-            # rather than resulting data
-            eval_count += results.scanned_count
-            break if q[:limit] && eval_count >= q[:limit]
+            record_count += results.items.size
+            break if record_limit && record_count >= record_limit
 
             if(lk = results.last_evaluated_key)
               q[:exclusive_start_key] = lk
@@ -530,12 +530,12 @@ module Dynamoid
       #
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#scan-instance_method
       def scan(table_name, scan_hash, select_opts = {})
-        limit = select_opts.delete(:limit)
+        record_limit = select_opts.delete(:record_limit)
         batch = select_opts.delete(:batch_size)
         consistent_read = select_opts.delete(:consistent_read)
 
         request = { table_name: table_name }
-        request[:limit] = batch || limit if batch || limit
+        request[:limit] = batch || record_limit if batch || record_limit
         request[:consistent_read] = true if consistent_read
 
         if scan_hash.present?
@@ -551,16 +551,13 @@ module Dynamoid
         Enumerator.new do |y|
           # Batch loop, pulls multiple requests until done using the start_key
           # by paging in by batch size rather than limit size
-          eval_count = 0
+          record_count = 0
           loop do
             results = client.scan(request)
             results.data[:items].each { |row| y << result_item_to_hash(row) }
 
-            # If limit is set then keep track and stop requesting once
-            # completed. This is eval_limit so we compare to scanned_count
-            # rather than resulting data
-            eval_count += results.scanned_count
-            break if limit && eval_count >= limit
+            record_count += results.items.size
+            break if record_limit && record_count >= record_limit
 
             # Keep pulling if we haven't finished paging in all data
             if(lk = results[:last_evaluated_key])
