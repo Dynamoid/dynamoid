@@ -42,6 +42,65 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  describe 'Limits' do
+    shared_examples 'correct handling chain limits' do |request_type|
+      let(:model) {
+        Class.new do
+          include Dynamoid::Document
+          table name: :customer, key: :id
+          range :age, :integer
+          field :name
+        end
+      }
+
+      before(:each) do
+        @request_type = request_type
+        (1..10).each do |i|
+          model.create(id: '1', name: 'Josh', age: i)
+          model.create(id: '1', name: 'Pascal', age: i + 100)
+        end
+      end
+
+      def request_params
+        return { id: '1' } if @request_type == :query
+        {}
+      end
+
+      it 'supports record_limit' do
+        expect(model.where(request_params.merge({ name: 'Josh' })).record_limit(1).count).to eq(1)
+        expect(model.where(request_params.merge({ name: 'Josh' })).record_limit(3).count).to eq(3)
+      end
+
+      it 'supports scan_limit' do
+        expect(model.where(request_params.merge({ name: 'Pascal' })).scan_limit(1).count).to eq(0)
+        expect(model.where(request_params.merge({ name: 'Pascal' })).scan_limit(11).count).to eq(1)
+      end
+
+      it 'supports batch' do
+        expect(model.where(request_params.merge({ name: 'Josh' })).batch(1).count).to eq(10)
+        expect(model.where(request_params.merge({ name: 'Josh' })).batch(3).count).to eq(10)
+      end
+
+      it 'supports combined limits' do
+        # Scanning through 13 means it'll see 10 Josh objects and then
+        # 3 Pascal objects to which it'll return 2 since the record_limit will
+        # restrict it
+        expect(model.where(request_params.merge({ name: 'Pascal' }))
+                    .record_limit(2)
+                    .scan_limit(13)
+                    .batch(1).count).to eq(2)
+      end
+    end
+
+    describe 'Query' do
+      it_behaves_like 'correct handling chain limits', :query
+    end
+
+    describe 'Scan' do
+      it_behaves_like 'correct handling chain limits', :scan
+    end
+  end
+
   describe 'Query with keys conditions' do
     let(:model) {
       Class.new do

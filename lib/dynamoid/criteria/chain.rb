@@ -90,6 +90,15 @@ module Dynamoid #:nodoc:
         self
       end
 
+      # The scan limit which is the limit of records that DynamoDB will
+      # internally query or scan. This is different from the record limit
+      # as with filtering DynamoDB may look at N scanned records but return 0
+      # records if none pass the filter.
+      def scan_limit(limit)
+        @scan_limit = limit
+        self
+      end
+
       def batch(batch_size)
         @batch_size = batch_size
         self
@@ -315,6 +324,7 @@ module Dynamoid #:nodoc:
         opts[:index_name] = @index_name if @index_name
         opts[:select] = 'ALL_ATTRIBUTES'
         opts[:record_limit] = @record_limit if @record_limit
+        opts[:scan_limit] = @scan_limit if @scan_limit
         opts[:next_token] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
         opts
@@ -336,6 +346,7 @@ module Dynamoid #:nodoc:
       def scan_opts
         opts = {}
         opts[:record_limit] = @record_limit if @record_limit
+        opts[:scan_limit] = @scan_limit if @scan_limit
         opts[:next_token] = start_key if @start
         opts[:batch_size] = @batch_size if @batch_size
         opts[:consistent_read] = true if @consistent_read
