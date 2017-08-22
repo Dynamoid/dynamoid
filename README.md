@@ -354,7 +354,7 @@ For large queries that return many rows, Dynamoid can use AWS' support for reque
 ```ruby
 # Do some maintenance on the entire table without flooding DynamoDB
 Address.all(batch_size: 100).each { |address| address.do_some_work; sleep(0.01) }
-Address.record_limit(10_000).batch(100). each { … } # Batch specified as part of a chain
+Address.record_limit(10_000).batch(100).each { … } # Batch specified as part of a chain
 ```
 
 #### Sort Conditions and Filters
