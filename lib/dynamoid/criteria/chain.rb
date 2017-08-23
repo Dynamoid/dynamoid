@@ -83,8 +83,10 @@ module Dynamoid #:nodoc:
         end
       end
 
-      def eval_limit(limit)
-        @eval_limit = limit
+      # The record limit is the limit of evaluated records returned by the
+      # query or scan.
+      def record_limit(limit)
+        @record_limit = limit
         self
       end
 
@@ -312,7 +314,7 @@ module Dynamoid #:nodoc:
         opts = {}
         opts[:index_name] = @index_name if @index_name
         opts[:select] = 'ALL_ATTRIBUTES'
-        opts[:limit] = @eval_limit if @eval_limit
+        opts[:record_limit] = @record_limit if @record_limit
         opts[:next_token] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
         opts
@@ -333,7 +335,7 @@ module Dynamoid #:nodoc:
 
       def scan_opts
         opts = {}
-        opts[:limit] = @eval_limit if @eval_limit
+        opts[:record_limit] = @record_limit if @record_limit
         opts[:next_token] = start_key if @start
         opts[:batch_size] = @batch_size if @batch_size
         opts[:consistent_read] = true if @consistent_read

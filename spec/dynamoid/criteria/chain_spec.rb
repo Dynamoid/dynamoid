@@ -736,7 +736,8 @@ describe Dynamoid::Criteria::Chain do
 
     it 'limits evaluated records' do
       chain.query = {}
-      expect(chain.eval_limit(1).count).to eq 1
+      expect(chain.record_limit(1).count).to eq 1
+      expect(chain.record_limit(2).count).to eq 2
     end
 
     it 'finds tweets with a start' do

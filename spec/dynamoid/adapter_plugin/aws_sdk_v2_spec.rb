@@ -54,7 +54,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     end
 
     it 'performs query on a table and returns items based on returns correct limit' do
-      expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_greater_than => 0.0, :limit => 1).count).to eq(1)
+      expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_greater_than => 0.0, :record_limit => 1).count).to eq(1)
     end
 
     it 'performs query on a table with a range and selects all items' do
@@ -389,7 +389,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       Dynamoid.adapter.put_item(test_table1, {:id => '3', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table1, {:id => '4', :name => 'Josh'})
 
-      expect(Dynamoid.adapter.scan(test_table1, {}, {limit: 1}).count).to eq(1)
+      expect(Dynamoid.adapter.scan(test_table1, {}, {record_limit: 1}).count).to eq(1)
     end
 
     it 'performs scan on a table and returns correct batch' do
@@ -407,7 +407,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       Dynamoid.adapter.put_item(test_table1, {:id => '3', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table1, {:id => '4', :name => 'Josh'})
 
-      expect(Dynamoid.adapter.scan(test_table1, {}, {limit: 1, batch_size: 1}).count).to eq(1)
+      expect(Dynamoid.adapter.scan(test_table1, {}, {record_limit: 1, batch_size: 1}).count).to eq(1)
     end
 
     # Truncate

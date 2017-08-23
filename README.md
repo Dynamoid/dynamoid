@@ -346,19 +346,21 @@ But keep in mind Dynamoid -- and document-based storage systems in general -- ar
 You can also limit the number of evaluated records, or select a record from which to start, to support pagination:
 
 ```ruby
-Address.eval_limit(5).start(address) # Only 5 addresses.
+Address.record_limit(5).start(address) # Only 5 addresses.
 ```
 
 For large queries that return many rows, Dynamoid can use AWS' support for requesting documents in batches:
 
 ```ruby
-#Do some maintenance on the entire table without flooding DynamoDB
+# Do some maintenance on the entire table without flooding DynamoDB
 Address.all(batch_size: 100).each { |address| address.do_some_work; sleep(0.01) }
-Address.eval_limit(10_000).batch(100). each { … } #batch specified as part of a chain
+Address.record_limit(10_000).batch(100).each { … } # Batch specified as part of a chain
 ```
 
-You are able to optimize query with condition for sort key. Following
-operators are available: `gt`, `lt`, `gte`, `lte`, `begins_with`, `between` as well as equality:
+#### Sort Conditions and Filters
+
+You are able to optimize query with condition for sort key. Following operators are available: `gt`, `lt`, `gte`, `lte`,
+ `begins_with`, `between` as well as equality:
 
 ```ruby
 Address.where(latitude: 10212)
