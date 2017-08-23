@@ -13,6 +13,8 @@ module Dynamoid
     attr_accessor :new_record
     alias :new_record? :new_record
 
+    UNIX_EPOCH_DATE = Date.new(1970, 1, 1)
+
     module ClassMethods
 
       def table_name
@@ -135,7 +137,7 @@ module Dynamoid
                 if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
                   value.to_date
                 else
-                  Date.new(1970, 1, 1) + value.to_i
+                  UNIX_EPOCH_DATE + value.to_i
                 end
               when :boolean
                 # persisted as 't', but because undump is called during initialize it can come in as true
@@ -177,7 +179,7 @@ module Dynamoid
             when :datetime
               !value.nil? ? value.to_time.to_f : nil
             when :date
-              !value.nil? ? (value.to_date - Date.new(1970, 1, 1)).to_i : nil
+              !value.nil? ? (value.to_date - UNIX_EPOCH_DATE).to_i : nil
             when :serialized
               options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
             when :raw
