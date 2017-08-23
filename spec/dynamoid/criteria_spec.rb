@@ -58,7 +58,7 @@ describe Dynamoid::Criteria do
 
   it 'returns N records' do
     5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }
-    expect(User.eval_limit(2).all.size).to eq(2)
+    expect(User.record_limit(2).all.size).to eq(2)
   end
 
   # TODO This test is broken using the AWS SDK adapter.

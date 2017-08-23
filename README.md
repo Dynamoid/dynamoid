@@ -343,22 +343,46 @@ u.addresses.where(:city => 'Chicago').all
 
 But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.
 
-You can also limit the number of evaluated records, or select a record from which to start, to support pagination:
+#### Limits
+
+There are three types of limits that you can query with:
+
+1. `record_limit` - The number of evaluated records that are returned by the query.
+2. `scan_limit` - The number of scanned records that DynamoDB will look at before returning.
+3. `batch_size` - The number of records requested to DynamoDB per underlying request, good for large queries!
+
+Using these in various combinations results in the underlying requests to be made in the smallest size possible and
+the query returns once `record_limit` or `scan_limit` is satisfied. It will attempt to batch whenever possible.
+
+You can thus limit the number of evaluated records, or select a record from which to start, to support pagination:
 
 ```ruby
-Address.eval_limit(5).start(address) # Only 5 addresses.
+Address.record_limit(5).start(address) # Only 5 addresses starting at `address`
+```
+
+If you are potentially running over a large data set and this is especially true when using certain filters, you may
+want to consider limiting the number of scanned records (the number of records DynamoDB infrastructure looks through
+when evaluating data to return):
+
+```ruby
+Address.scan_limit(5).start(address) # Only scan at most 5 records and return what's found starting from `address`
 ```
 
 For large queries that return many rows, Dynamoid can use AWS' support for requesting documents in batches:
 
 ```ruby
-#Do some maintenance on the entire table without flooding DynamoDB
+# Do some maintenance on the entire table without flooding DynamoDB
 Address.all(batch_size: 100).each { |address| address.do_some_work; sleep(0.01) }
-Address.eval_limit(10_000).batch(100). each { … } #batch specified as part of a chain
+Address.record_limit(10_000).batch(100). each { … } # Batch specified as part of a chain
 ```
 
-You are able to optimize query with condition for sort key. Following
-operators are available: `gt`, `lt`, `gte`, `lte`, `begins_with`, `between` as well as equality:
+The implication of batches is that the underlying requests are done in the batch sizes to make the request and responses
+more manageable.
+
+#### Sort Conditions and Filters
+
+You are able to optimize query with condition for sort key. Following operators are available: `gt`, `lt`, `gte`, `lte`,
+ `begins_with`, `between` as well as equality:
 
 ```ruby
 Address.where(latitude: 10212)

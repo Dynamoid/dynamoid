@@ -6,11 +6,11 @@ module Dynamoid
   # Allows classes to be queried by where, all, first, and each and return criteria chains.
   module Criteria
     extend ActiveSupport::Concern
-    
+
     module ClassMethods
-      
-      [:where, :all, :first, :last, :each, :eval_limit, :start, :scan_index_forward].each do |meth|
-        # Return a criteria chain in response to a method that will begin or end a chain. For more information, 
+
+      [:where, :all, :first, :last, :each, :record_limit, :scan_limit, :batch, :start, :scan_index_forward].each do |meth|
+        # Return a criteria chain in response to a method that will begin or end a chain. For more information,
         # see Dynamoid::Criteria::Chain.
         #
         # @since 0.2.0
@@ -25,5 +25,5 @@ module Dynamoid
       end
     end
   end
-  
+
 end
