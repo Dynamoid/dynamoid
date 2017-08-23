@@ -21,6 +21,155 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
   end
 
   #
+  # Test limit controls in querys and scans
+  #
+  # Since query and scans have different interface, then including this shared example
+  # requires some inputs. The internal aspects will configure request parameters and
+  # the Dynamoid adapter call correctly.
+  #
+  # @param [Symbol] request_type the name of the request, either :query or :scan
+  #
+  shared_examples 'correctly handling limits' do |request_type|
+    before(:each) do
+      @request_type = request_type
+    end
+
+    def request_params
+      return {:hash_value => '1'} if @request_type == :query
+      {}
+    end
+
+    def dynamo_request(table_name, scan_hash = {}, select_opts = {})
+      return Dynamoid.adapter.query(table_name, scan_hash.merge(select_opts)) if @request_type == :query
+      Dynamoid.adapter.scan(table_name, scan_hash, select_opts)
+    end
+
+    context 'multiple name entities' do
+      before(:each) do
+        (1..4).each do |i|
+          Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Josh', :range => i.to_f})
+          Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Pascal', :range => (i + 4).to_f})
+        end
+      end
+
+      it 'returns correct records' do
+        expect(dynamo_request(test_table3, request_params, {}).count).to eq(8)
+      end
+
+      it 'returns correct record limit' do
+        expect(dynamo_request(test_table3, request_params, {record_limit: 1}).count).to eq(1)
+        expect(dynamo_request(test_table3, request_params, {record_limit: 3}).count).to eq(3)
+      end
+
+      it 'returns correct batch' do
+        pending 'Query does not support batching yet' if request_type == :query
+        # Receives 8 times for each item and 1 more for empty page
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(9).times.and_call_original
+        expect(dynamo_request(test_table3, request_params, {batch_size: 1}).count).to eq(8)
+      end
+
+      it 'returns correct batch and paginates in batches' do
+        pending 'Query does not support batching yet' if request_type == :query
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(3).times.and_call_original
+        expect(dynamo_request(test_table3, request_params, {batch_size: 3}).count).to eq(8)
+      end
+
+      it 'returns correct record limit and batch' do
+        pending 'Query does not support batching yet' if request_type == :query
+        expect(dynamo_request(test_table3, request_params, {record_limit: 1, batch_size: 1}).count).to eq(1)
+      end
+
+      it 'returns correct record limit with filter' do
+        expect(dynamo_request(test_table3, request_params.merge({:name => {:eq => 'Josh'}}), {record_limit: 1}).count)
+          .to eq(1)
+      end
+
+      it 'obeys correct scan limit with filter' do
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(1).times.and_call_original
+        expect(dynamo_request(test_table3, request_params.merge({:name => {:eq => 'Josh'}}), {scan_limit: 2}).count)
+          .to eq(2)
+      end
+
+      it 'obeys correct scan limit over record limit with filter' do
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(1).times.and_call_original
+        expect(dynamo_request(test_table3, request_params.merge({:name => {:eq => 'Josh'}}), {
+          scan_limit: 2,
+          record_limit: 10, # Won't be able to return more than 2 due to scan limit
+        }).count).to eq(2)
+      end
+
+      it 'obeys correct scan limit with filter with some return' do
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(1).times.and_call_original
+        expect(dynamo_request(test_table3, request_params.merge({:name => {:eq => 'Pascal'}}), {
+          scan_limit: 5,
+        }).count).to eq(1)
+      end
+
+      it 'obeys correct scan limit with filter and batching for some return' do
+        pending 'Query does not support batching yet' if request_type == :query
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(5).times.and_call_original
+        # We should paginate through 5 responses each of size 1 (batch) and
+        # only scan through 5 records at most which with our given filter
+        # should return 1 result since first 4 are Josh and last is Pascal.
+        expect(dynamo_request(test_table3, request_params.merge({:name => {:eq => 'Pascal'}}), {
+          batch_size: 1,
+          scan_limit: 5,
+          record_limit: 3,
+        }).count).to eq(1)
+      end
+
+      it 'obeys correct record limit with filter, batching, and scan limit' do
+        pending 'Query does not support batching yet' if request_type == :query
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(6).times.and_call_original
+        # We should paginate through 6 responses each of size 1 (batch) and
+        # only scan through 6 records at most which with our given filter
+        # should return 2 results, and hit record limit before scan limit.
+        expect(dynamo_request(test_table3, request_params.merge({:name => {:eq => 'Pascal'}}), {
+          batch_size: 1,
+          scan_limit: 10,
+          record_limit: 2,
+        }).count).to eq(2)
+      end
+    end
+
+    #
+    # Tests that even with large records we are paginating to pull more data
+    # even if we hit response data size limits
+    #
+    context 'large records still returns as much data' do
+      before(:each) do
+        # 64 of these items will exceed the 1MB result record_limit thus query won't return all results on first loop
+        # We use :age since :range won't work for filtering in queries
+        200.times do |i|
+          Dynamoid.adapter.put_item(test_table3, {
+            :id => '1',
+            :range => i.to_f,
+            :age => i.to_f,
+            :data => 'A'*1024*16,
+          })
+        end
+      end
+
+      it 'returns correct record limit with filtering' do
+        expect(dynamo_request(test_table3, request_params.merge({ :age => {:gte => 133.0} }), {
+          record_limit: 100,
+        }).count).to eq(67)
+      end
+
+      it 'returns correct with batching' do
+        pending 'Query does not support batching yet' if request_type == :query
+        # Since we hit the data size limit 3 times, so we must make 4 requests
+        # which is limitation of DynamoDB and therefore batch limit is
+        # restricted by this limitation as well!
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(4).times.and_call_original
+        expect(dynamo_request(test_table3, request_params, {
+          batch_size: 100,
+        }).count).to eq(200)
+      end
+    end
+  end
+
+  #
   # Tests adapter against ranged tables
   #
   shared_examples 'range queries' do
@@ -355,6 +504,10 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
 
     it_behaves_like 'range queries'
 
+    describe 'query' do
+      include_examples 'correctly handling limits', :query
+    end
+
     # Scan
     it 'performs scan on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
@@ -408,6 +561,10 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       Dynamoid.adapter.put_item(test_table1, {:id => '4', :name => 'Josh'})
 
       expect(Dynamoid.adapter.scan(test_table1, {}, {record_limit: 1, batch_size: 1}).count).to eq(1)
+    end
+
+    describe 'scans' do
+      it_behaves_like 'correctly handling limits', :scan
     end
 
     # Truncate
