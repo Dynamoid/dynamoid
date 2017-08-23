@@ -248,9 +248,13 @@ describe Dynamoid::Persistence do
     end
   end
 
-  it 'dumps date attributes' do
-    @user = Address.create(:registered_on => '2017-06-18'.to_date)
-    expect(@user.send(:dump)[:registered_on]).to eq '2017-06-18'.to_time.to_i
+  it 'dumps date attributes', :wip do
+    address = Address.create(:registered_on => '2017-06-18'.to_date)
+    expect(Address.find(address.id).registered_on).to eq '2017-06-18'.to_date
+
+    # check internal format - days since 1970-01-01
+    expect(Address.find(address.id).send(:dump)[:registered_on])
+      .to eq ('2017-06-18'.to_date - Date.new(1970, 1, 1)).to_i
   end
 
   it 'dumps integer attributes' do
