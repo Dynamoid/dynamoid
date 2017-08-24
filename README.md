@@ -377,7 +377,7 @@ Address.record_limit(10_000).batch(100). each { … } # Batch specified as part 
 ```
 
 The implication of batches is that the underlying requests are done in the batch sizes to make the request and responses
-more manageable.
+more manageable. Note that this batching is for `Query` and `Scans` and not `BatchGetItem` commands.
 
 #### Sort Conditions and Filters
 
