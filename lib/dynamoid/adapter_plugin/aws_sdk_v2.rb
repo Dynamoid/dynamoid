@@ -506,12 +506,14 @@ module Dynamoid
           record_count = 0
           scan_count = 0
           loop do
-            # Adjust the limit down if the remaining record or scan limit are
+            # Adjust the limit down if the remaining record and/or scan limit are
             # lower to obey limits. We can assume the difference won't be
-            # negative due to break statements below.
+            # negative due to break statements below but choose smaller limit
+            # which is why we have 2 separate if statements.
             if q[:limit] && record_limit && record_limit - record_count < q[:limit]
               q[:limit] = record_limit - record_count
-            elsif q[:limit] && scan_limit && scan_limit - scan_count < q[:limit]
+            end
+            if q[:limit] && scan_limit && scan_limit - scan_count < q[:limit]
               q[:limit] = scan_limit - scan_count
             end
 
@@ -569,12 +571,14 @@ module Dynamoid
           record_count = 0
           scan_count = 0
           loop do
-            # Adjust the limit down if the remaining record or scan limit are
+            # Adjust the limit down if the remaining record and/or scan limit are
             # lower to obey limits. We can assume the difference won't be
-            # negative due to break statements below.
+            # negative due to break statements below but choose smaller limit
+            # which is why we have 2 separate if statements.
             if request[:limit] && record_limit && record_limit - record_count < request[:limit]
               request[:limit] = record_limit - record_count
-            elsif request[:limit] && scan_limit && scan_limit - scan_count < request[:limit]
+            end
+            if request[:limit] && scan_limit && scan_limit - scan_count < request[:limit]
               request[:limit] = scan_limit - scan_count
             end
 

@@ -212,6 +212,27 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
         }).count).to eq(100)
       end
     end
+
+    it 'correctly limits edge case of record and scan counts approaching limits' do
+      (1..4).each do |i|
+        Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Josh', :range => i.to_f})
+      end
+      Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Pascal', :range => 5.0})
+      (6..10).each do |i|
+        Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Josh', :range => i.to_f})
+      end
+
+      expect(Dynamoid.adapter.client).to receive(request_type).exactly(2).times.and_call_original
+      # In faulty code, the record limit would adjust limit to 2 thus on second page
+      # we would get the 5th Josh (range value 6.0) whereas correct implementation would
+      # adjust limit to 1 since can only scan 1 more record therefore would see Pascal
+      # and not go to next valid record.
+      expect(dynamo_request(test_table3, request_params.merge({:name => {:eq => 'Josh'}}), {
+        batch_size: 4,
+        scan_limit: 5,    # Scan limit would adjust requested limit to 1
+        record_limit: 6,  # Record limit would adjust requested limit to 2
+      }).count).to eq(4)
+    end
   end
 
   #
