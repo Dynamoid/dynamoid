@@ -248,7 +248,7 @@ describe Dynamoid::Persistence do
     end
   end
 
-  it 'dumps date attributes', :wip do
+  it 'dumps date attributes' do
     address = Address.create(:registered_on => '2017-06-18'.to_date)
     expect(Address.find(address.id).registered_on).to eq '2017-06-18'.to_date
 

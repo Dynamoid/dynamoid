@@ -780,6 +780,27 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+
+  context 'single table inheritance' do
+    describe 'where' do
+      it 'honors STI' do
+        Vehicle.create(description: 'Description')
+        car = Car.create(description: 'Description')
+
+        expect(Car.where(description: 'Description').all).to eq [car]
+      end
+    end
+
+    describe 'all' do
+      it 'honors STI' do
+        Vehicle.create(description: 'Description')
+        car = Car.create
+
+        expect(Car.all).to eq [car]
+      end
+    end
+  end
+
   describe 'User' do
     let(:chain) { described_class.new(User) }
 
