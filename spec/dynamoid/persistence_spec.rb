@@ -542,6 +542,7 @@ describe Dynamoid::Persistence do
   end
 
   context 'single table inheritance' do
+    let(:vehicle) { Vehicle.create }
     let(:car) { Car.create(power_locks: false) }
     let(:sub) { NuclearSubmarine.create(torpedoes: 5) }
 
@@ -558,6 +559,13 @@ describe Dynamoid::Persistence do
         expect(v).to include(c)
         expect(v).to include(s)
       }
+    end
+
+    it 'does not load parent item when quering the child table' do
+      vehicle && car
+
+      expect(Car.all).to contain_exactly(car)
+      expect(Car.all).not_to include(vehicle)
     end
   end
 

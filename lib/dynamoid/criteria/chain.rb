@@ -21,7 +21,7 @@ module Dynamoid #:nodoc:
 
         # Honor STI and :type field if it presents
         if @source.attributes.key?(:type)
-          @query[:type] = @source.name
+          @query[:'type.in'] = @source.deep_subclasses.map(&:name) << @source.name
         end
       end
 
