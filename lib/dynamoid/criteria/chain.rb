@@ -56,9 +56,11 @@ module Dynamoid #:nodoc:
       end
 
       # Returns the last fetched record matched the criteria
+      # Enumerable doesn't implement it, only `first`
+      # So we have to implement it themselves
       #
       def last
-        all.last
+        all.to_a.last
       end
 
       # Destroys all the records matching the criteria.
@@ -133,12 +135,11 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def records
-        results = if key_present?
+        if key_present?
           records_via_query
         else
           records_via_scan
         end
-        @batch_size ? results : Array(results)
       end
 
       def records_via_query

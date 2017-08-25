@@ -411,6 +411,17 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  describe 'Lazy loading' do
+    describe '.all' do
+      it 'does load result lazily' do
+        Vehicle.create
+
+        expect(Dynamoid.adapter.client).to receive(:scan).exactly(0).times.and_call_original
+        Vehicle.record_limit(1).all
+      end
+    end
+  end
+
   describe 'local secondary indexes used for `where` clauses' do
     let(:model) {
       Class.new do
