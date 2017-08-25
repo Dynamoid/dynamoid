@@ -123,10 +123,6 @@ module Dynamoid #:nodoc:
         records.each(&block)
       end
 
-      def consistent_opts
-        { :consistent_read => consistent_read }
-      end
-
       private
 
       # The actual records referenced by the association.
@@ -214,6 +210,10 @@ module Dynamoid #:nodoc:
         end
 
         return { name.to_sym => hash }
+      end
+
+      def consistent_opts
+        { :consistent_read => consistent_read }
       end
 
       def range_query
