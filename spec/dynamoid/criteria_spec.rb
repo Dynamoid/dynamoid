@@ -13,20 +13,20 @@ describe Dynamoid::Criteria do
   end
 
   it 'finds all using where' do
-    expect(User.where(:name => 'Josh').all).to eq [user1]
+    expect(User.where(:name => 'Josh').all.to_a).to eq [user1]
   end
 
   context "transforms booleans" do
     it 'accepts native' do
-      expect(User.where(:admin => 't').all).to eq [user1]
+      expect(User.where(:admin => 't').all.to_a).to eq [user1]
     end
 
     it 'accepts string' do
-      expect(User.where(:admin => 'true').all).to eq [user1]
+      expect(User.where(:admin => 'true').all.to_a).to eq [user1]
     end
 
     it 'accepts boolean' do
-      expect(User.where(:admin => true).all).to eq [user1]
+      expect(User.where(:admin => true).all.to_a).to eq [user1]
     end
   end
 
@@ -41,11 +41,11 @@ describe Dynamoid::Criteria do
     end
 
     it 'returns empty attributes for where' do
-      expect(Magazine.where(title: 'Josh').all).to eq []
+      expect(Magazine.where(title: 'Josh').all.to_a).to eq []
     end
 
     it 'returns empty attributes for all' do
-      expect(Magazine.all).to eq []
+      expect(Magazine.all.to_a).to eq []
     end
   end
 
@@ -58,7 +58,7 @@ describe Dynamoid::Criteria do
 
   it 'returns N records' do
     5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }
-    expect(User.record_limit(2).all.size).to eq(2)
+    expect(User.record_limit(2).all.count).to eq(2)
   end
 
   # TODO This test is broken using the AWS SDK adapter.

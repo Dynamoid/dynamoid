@@ -141,7 +141,7 @@ describe Dynamoid::Associations::Association do
     magazine.subscriptions.destroy_all
 
     expect(magazine.subscriptions).to be_blank
-    expect(Subscription.all).to be_empty
+    expect(Subscription.all.to_a).to be_empty
   end
 
   it 'deletes all objects and removes them from the association' do
@@ -152,7 +152,7 @@ describe Dynamoid::Associations::Association do
     magazine.subscriptions.delete_all
 
     expect(magazine.subscriptions).to be_blank
-    expect(Subscription.all).to be_empty
+    expect(Subscription.all.to_a).to be_empty
   end
 
   it 'delegates class to the association object' do

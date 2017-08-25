@@ -830,7 +830,7 @@ describe Dynamoid::Criteria::Chain do
 
     it 'finds one specific tweet' do
       chain.query = { :tweet_id => "xx", :group => "two" }
-      expect(chain.all).to eq [tweet3]
+      expect(chain.all.to_a).to eq [tweet3]
     end
 
     it 'finds posts with "where" method with "gt" query' do
@@ -887,17 +887,17 @@ describe Dynamoid::Criteria::Chain do
     describe 'destroy' do
       it 'destroys tweet with a range simple range query' do
         chain.query = { :tweet_id => "x" }
-        expect(chain.all.size).to eq 2
+        expect(chain.all.count).to eq 2
         chain.destroy_all
-        expect(chain.consistent.all.size).to eq 0
+        expect(chain.consistent.all.count).to eq 0
       end
 
       it 'deletes one specific tweet with range' do
         chain = Dynamoid::Criteria::Chain.new(Tweet)
         chain.query = { :tweet_id => "xx", :group => "two" }
-        expect(chain.all.size).to eq 1
+        expect(chain.all.count).to eq 1
         chain.destroy_all
-        expect(chain.consistent.all.size).to eq 0
+        expect(chain.consistent.all.count).to eq 0
       end
     end
 

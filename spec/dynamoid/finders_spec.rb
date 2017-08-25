@@ -58,7 +58,7 @@ describe Dynamoid::Finders do
     it 'finds using method_missing for multiple attributes' do
       user = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
 
-      array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com')
+      array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com').to_a
 
       expect(array).to eq [user]
     end
@@ -67,7 +67,7 @@ describe Dynamoid::Finders do
       user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
       user2 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
 
-      array = User.find_all_by_name('Josh')
+      array = User.find_all_by_name('Josh').to_a
 
       expect(array.size).to eq 2
       expect(array).to include user1
@@ -78,7 +78,7 @@ describe Dynamoid::Finders do
       user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
       user2 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
 
-      array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com')
+      array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com').to_a
 
       expect(array.size).to eq 2
       expect(array).to include user1
@@ -89,7 +89,7 @@ describe Dynamoid::Finders do
       user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
       user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
 
-      array = User.find_all_by_name_and_email('Gaga','josh@joshsymonds.com')
+      array = User.find_all_by_name_and_email('Gaga','josh@joshsymonds.com').to_a
 
       expect(array).to be_empty
     end
@@ -98,7 +98,7 @@ describe Dynamoid::Finders do
       user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
       user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
 
-      array = User.find_all_by_name('Gaga')
+      array = User.find_all_by_name('Gaga').to_a
 
       expect(array).to be_empty
     end
@@ -106,7 +106,7 @@ describe Dynamoid::Finders do
     it 'should find on a query that is not indexed' do
       user = User.create(:password => 'Test')
 
-      array = User.find_all_by_password('Test')
+      array = User.find_all_by_password('Test').to_a
 
       expect(array).to eq [user]
     end
@@ -114,14 +114,14 @@ describe Dynamoid::Finders do
     it 'should find on a query on multiple attributes that are not indexed' do
       user = User.create(:password => 'Test', :name => 'Josh')
 
-      array = User.find_all_by_password_and_name('Test', 'Josh')
+      array = User.find_all_by_password_and_name('Test', 'Josh').to_a
 
       expect(array).to eq [user]
     end
 
     it 'should return an empty array when fields exist but nothing is found' do
       User.create_table
-      array = User.find_all_by_password('Test')
+      array = User.find_all_by_password('Test').to_a
 
       expect(array).to be_empty
     end
