@@ -62,20 +62,17 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       end
 
       it 'returns correct batch' do
-        pending 'Query does not support batching yet' if request_type == :query
         # Receives 8 times for each item and 1 more for empty page
         expect(Dynamoid.adapter.client).to receive(request_type).exactly(9).times.and_call_original
         expect(dynamo_request(test_table3, request_params, {batch_size: 1}).count).to eq(8)
       end
 
       it 'returns correct batch and paginates in batches' do
-        pending 'Query does not support batching yet' if request_type == :query
         expect(Dynamoid.adapter.client).to receive(request_type).exactly(3).times.and_call_original
         expect(dynamo_request(test_table3, request_params, {batch_size: 3}).count).to eq(8)
       end
 
       it 'returns correct record limit and batch' do
-        pending 'Query does not support batching yet' if request_type == :query
         expect(dynamo_request(test_table3, request_params, {record_limit: 1, batch_size: 1}).count).to eq(1)
       end
 
@@ -105,8 +102,15 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
         }).count).to eq(1)
       end
 
+      it 'obeys correct scan limit and batch size with filter with some return' do
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(2).times.and_call_original
+        expect(dynamo_request(test_table3, request_params.merge({:name => {:eq => 'Josh'}}), {
+          scan_limit: 3,
+          batch_size: 2, # This would force batching of size 2 for potential of 4 results!
+        }).count).to eq(3)
+      end
+
       it 'obeys correct scan limit with filter and batching for some return' do
-        pending 'Query does not support batching yet' if request_type == :query
         expect(Dynamoid.adapter.client).to receive(request_type).exactly(5).times.and_call_original
         # We should paginate through 5 responses each of size 1 (batch) and
         # only scan through 5 records at most which with our given filter
@@ -119,7 +123,6 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       end
 
       it 'obeys correct record limit with filter, batching, and scan limit' do
-        pending 'Query does not support batching yet' if request_type == :query
         expect(Dynamoid.adapter.client).to receive(request_type).exactly(6).times.and_call_original
         # We should paginate through 6 responses each of size 1 (batch) and
         # only scan through 6 records at most which with our given filter
@@ -150,6 +153,30 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
         end
       end
 
+      it 'returns correct for limits and scan limit' do
+        expect(dynamo_request(test_table3, request_params, {
+          scan_limit: 100,
+        }).count).to eq(100)
+      end
+
+      it 'returns correct for scan limit with filtering' do
+        # Not sure why there is difference but :query will do 1 page and see 100 records and filter out 10
+        # while :scan will do 2 pages and see 64 records on first page similar to the 1MB return limit
+        # and then look at 36 records and find 10 on the second page.
+        pages = request_type == :query ? 1 : 2
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(pages).times.and_call_original
+        expect(dynamo_request(test_table3, request_params.merge({ :age => {:gte => 90.0} }), {
+          scan_limit: 100,
+        }).count).to eq(10)
+      end
+
+      it 'returns correct for record limit' do
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(2).times.and_call_original
+        expect(dynamo_request(test_table3, request_params.merge({ :age => {:gte => 5.0} }), {
+          record_limit: 100,
+        }).count).to eq(100)
+      end
+
       it 'returns correct record limit with filtering' do
         expect(dynamo_request(test_table3, request_params.merge({ :age => {:gte => 133.0} }), {
           record_limit: 100,
@@ -157,7 +184,6 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       end
 
       it 'returns correct with batching' do
-        pending 'Query does not support batching yet' if request_type == :query
         # Since we hit the data size limit 3 times, so we must make 4 requests
         # which is limitation of DynamoDB and therefore batch limit is
         # restricted by this limitation as well!
@@ -166,6 +192,46 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
           batch_size: 100,
         }).count).to eq(200)
       end
+
+      it 'returns correct with batching and record limit beyond data size limit' do
+        # Since we hit limit once, we need to make sure the second request only
+        # requests for as many as we have left for our record limit.
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(2).times.and_call_original
+        expect(dynamo_request(test_table3, request_params, {
+          record_limit: 83,
+          batch_size: 100,
+        }).count).to eq(83)
+      end
+
+      it 'returns correct with batching and record limit' do
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(11).times.and_call_original
+        # Since we do age >= 5.0 we lose the first 5 results so we make 11 paginated requests
+        expect(dynamo_request(test_table3, request_params.merge({ :age => {:gte => 5.0} }), {
+          record_limit: 100,
+          batch_size: 10,
+        }).count).to eq(100)
+      end
+    end
+
+    it 'correctly limits edge case of record and scan counts approaching limits' do
+      (1..4).each do |i|
+        Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Josh', :range => i.to_f})
+      end
+      Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Pascal', :range => 5.0})
+      (6..10).each do |i|
+        Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Josh', :range => i.to_f})
+      end
+
+      expect(Dynamoid.adapter.client).to receive(request_type).exactly(2).times.and_call_original
+      # In faulty code, the record limit would adjust limit to 2 thus on second page
+      # we would get the 5th Josh (range value 6.0) whereas correct implementation would
+      # adjust limit to 1 since can only scan 1 more record therefore would see Pascal
+      # and not go to next valid record.
+      expect(dynamo_request(test_table3, request_params.merge({:name => {:eq => 'Josh'}}), {
+        batch_size: 4,
+        scan_limit: 5,    # Scan limit would adjust requested limit to 1
+        record_limit: 6,  # Record limit would adjust requested limit to 2
+      }).count).to eq(4)
     end
   end
 
