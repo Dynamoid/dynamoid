@@ -567,6 +567,13 @@ describe Dynamoid::Persistence do
       expect(Car.all).to contain_exactly(car)
       expect(Car.all).not_to include(vehicle)
     end
+
+    it 'does not load items of sibling class' do
+      car && sub
+
+      expect(Car.all).to contain_exactly(car)
+      expect(Car.all).not_to include(sub)
+    end
   end
 
   describe ':raw datatype persistence' do
