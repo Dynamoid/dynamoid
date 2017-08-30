@@ -56,8 +56,8 @@ module Dynamoid #:nodoc:
       end
 
       # Returns the last fetched record matched the criteria
-      # Enumerable doesn't implement it, only `first`
-      # So we have to implement it themselves
+      # Enumerable doesn't implement `last`, only `first`
+      # So we have to implement it ourselves
       #
       def last
         all.to_a.last
