@@ -81,14 +81,25 @@ describe Dynamoid::Criteria::Chain do
         expect(model.where(request_params.merge({ name: 'Josh' })).batch(3).count).to eq(10)
       end
 
-      it 'supports combined limits' do
+      it 'supports combined limits with batch size 1' do
         # Scanning through 13 means it'll see 10 Josh objects and then
-        # 3 Pascal objects to which it'll return 2 since the record_limit will
-        # restrict it
+        # 3 Pascal objects but it'll hit record_limit first with 2 objects
+        # so we'd only see 12 requests due to batching.
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(12).times.and_call_original
         expect(model.where(request_params.merge({ name: 'Pascal' }))
                     .record_limit(2)
                     .scan_limit(13)
                     .batch(1).count).to eq(2)
+      end
+
+      it 'supports combined limits with batch size other than 1' do
+        # Querying in batches of 3 so we'd see:
+        # 3 Josh, 3 Josh, 3 Josh, 1 Josh + 2 Pascal, 3 Pascal, 3 Pascal, 2 Pascal
+        # So total of 7 requests
+        expect(Dynamoid.adapter.client).to receive(request_type).exactly(7).times.and_call_original
+        expect(model.where(request_params.merge({ name: 'Pascal' }))
+                    .record_limit(10)
+                    .batch(3).count).to eq(10)
       end
     end
 

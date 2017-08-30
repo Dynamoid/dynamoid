@@ -325,6 +325,7 @@ module Dynamoid #:nodoc:
         opts[:select] = 'ALL_ATTRIBUTES'
         opts[:record_limit] = @record_limit if @record_limit
         opts[:scan_limit] = @scan_limit if @scan_limit
+        opts[:batch_size] = @batch_size if @batch_size
         opts[:next_token] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
         opts
@@ -347,8 +348,8 @@ module Dynamoid #:nodoc:
         opts = {}
         opts[:record_limit] = @record_limit if @record_limit
         opts[:scan_limit] = @scan_limit if @scan_limit
-        opts[:next_token] = start_key if @start
         opts[:batch_size] = @batch_size if @batch_size
+        opts[:next_token] = start_key if @start
         opts[:consistent_read] = true if @consistent_read
         opts
       end
