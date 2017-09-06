@@ -1,5 +1,36 @@
 # HEAD
 
+# 1.3.4
+
+Improving
+
+* Added `Chain#last` method (@andrykonchin)
+* Added `date` field type (@andrykonchin)
+* Added `application_timezone` config option (@andrykonchin)
+* Allow consistent reading for Scan request (@andrykonchin)
+* Use Query instead of Scan if there are no conditions for sort (range) key in where clause (@andrykonchin)
+* Support condition operators for non-key fields for Query request (@andrykonchin)
+* Support condition operators for Scan request (@andrykonchin)
+* Support additional operators `in`, `contains`, `not_contains` (@andrykonchin)
+* Support type casting in `where` clause (@andrykonchin)
+* Rename `Chain#eval_limit` to `#record_limit` (@richardhsu)
+* Add `Chain#scan_limit` (@richardhsu)
+* Support batch loading for Query requests (@richardhsu)
+* Support querying Global/Local Secondary Indices in `where` clause (@richardhsu)
+* Only query on GSI if projects all attributes in `where` clause (@richardhsu)
+
+Fixes
+
+* Fix incorrect applying of default field value (#36 and #117, @andrykonchin)
+* Fix sync table creation/deletion (#160, @mirokuxy)
+* Allow to override document timestamps (@andrykonchin)
+* Fix storing empty array as nil (#8, @andrykonchin)
+* Fix `limit` handling for Query requests (#85, @richardhsu)
+* Fix `limit` handling for Scan requests (#85, @richardhsu)
+* Fix paginating for Query requests (@richardhsu)
+* Fix paginating for Scan requests (@richardhsu)
+* Fix `batch_get_item` method call for integer partition key (@mudasirraza)
+
 # 1.3.3
 
 * Allow configuration of the Dynamoid models directory, as not everyone keeps non AR models in app/models
