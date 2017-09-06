@@ -1,5 +1,9 @@
 # Dynamoid
 
+You are viewing the README for the unreleased version 2 of Dynamoid.
+  
+For version 1.3.x use the [1-3-stable branch](https://github.com/Dynamoid/Dynamoid/blob/1-3-stable/README.md).
+
 Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It
 provides similar functionality to ActiveRecord and improves on
 Amazon's existing
