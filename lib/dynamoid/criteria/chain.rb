@@ -18,6 +18,11 @@ module Dynamoid #:nodoc:
         @source = source
         @consistent_read = false
         @scan_index_forward = true
+
+        # Honor STI and :type field if it presents
+        if @source.attributes.key?(:type)
+          @query[:'type.in'] = @source.deep_subclasses.map(&:name) << @source.name
+        end
       end
 
       # The workhorse method of the criteria chain. Each key in the passed in hash will become another criteria that the

@@ -248,7 +248,7 @@ describe Dynamoid::Persistence do
     end
   end
 
-  it 'dumps date attributes', :wip do
+  it 'dumps date attributes' do
     address = Address.create(:registered_on => '2017-06-18'.to_date)
     expect(Address.find(address.id).registered_on).to eq '2017-06-18'.to_date
 
@@ -542,6 +542,7 @@ describe Dynamoid::Persistence do
   end
 
   context 'single table inheritance' do
+    let(:vehicle) { Vehicle.create }
     let(:car) { Car.create(power_locks: false) }
     let(:sub) { NuclearSubmarine.create(torpedoes: 5) }
 
@@ -558,6 +559,20 @@ describe Dynamoid::Persistence do
         expect(v).to include(c)
         expect(v).to include(s)
       }
+    end
+
+    it 'does not load parent item when quering the child table' do
+      vehicle && car
+
+      expect(Car.all).to contain_exactly(car)
+      expect(Car.all).not_to include(vehicle)
+    end
+
+    it 'does not load items of sibling class' do
+      car && sub
+
+      expect(Car.all).to contain_exactly(car)
+      expect(Car.all).not_to include(sub)
     end
   end
 

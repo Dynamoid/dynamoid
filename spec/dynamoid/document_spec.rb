@@ -214,4 +214,14 @@ describe Dynamoid::Document do
       expect(Tweet.count).to eq 2
     end
   end
+
+  describe '.deep_subclasses' do
+    it 'returns direct children' do
+      expect(Car.deep_subclasses).to eq [Cadillac]
+    end
+
+    it 'returns grandchildren too' do
+      expect(Vehicle.deep_subclasses).to include(Cadillac)
+    end
+  end
 end

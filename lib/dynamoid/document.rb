@@ -110,6 +110,10 @@ module Dynamoid #:nodoc:
           else !! find(id_or_conditions)
         end
       end
+
+      def deep_subclasses
+        subclasses + subclasses.map(&:deep_subclasses).flatten
+      end
     end
 
     # Initialize a new object.
