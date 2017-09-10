@@ -69,3 +69,6 @@ Gemfile.lock
 
 # For vagrant
 .vagrant
+
+# For Appraisals
+gemfiles/*.gemfile.lock

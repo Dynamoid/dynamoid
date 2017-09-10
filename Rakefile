@@ -18,30 +18,6 @@ RSpec::Core::RakeTask.new(:spec) do |spec|
   spec.pattern = FileList["spec/**/*_spec.rb"]
 end
 
-RSpec::Core::RakeTask.new(:rcov) do |spec|
-  spec.pattern = "spec/**/*_spec.rb"
-  spec.rcov = true
-end
-
-desc "Start DynamoDBLocal, run tests, clean up"
-task :unattended_spec do |t|
-
-  if system("bin/start_dynamodblocal")
-    puts "DynamoDBLocal started; proceeding with specs."
-  else
-    raise "Unable to start DynamoDBLocal.  Cannot run unattended specs."
-  end
-
-  #Cleanup
-  at_exit do
-    unless system("bin/stop_dynamodblocal")
-      $stderr.puts "Unable to cleanly stop DynamoDBLocal."
-    end
-  end
-
-  Rake::Task["spec"].invoke
-end
-
 require "yard"
 YARD::Rake::YardocTask.new do |t|
   t.files   = ["lib/**/*.rb", "README", "LICENSE"]   # optional

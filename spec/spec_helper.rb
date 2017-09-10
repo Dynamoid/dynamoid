@@ -46,18 +46,6 @@ RSpec.configure do |config|
   config.alias_it_should_behave_like_to :configured_with, "configured with"
 
   config.before(:each) do
-    while !DynamoDBLocal.ensure_is_running!
-      puts "Sleeping to allow DynamoDB to finish booting"
-      sleep 1 # wait 5 seconds after restarting dynamodblocal
-    end
-    DynamoDBLocal.delete_all_specified_tables!
-  end
-
-  config.after(:each) do
-    while !DynamoDBLocal.ensure_is_running!
-      puts "Sleeping to allow DynamoDB to finish booting"
-      sleep 1 # wait 5 seconds after restarting dynamodblocal
-    end
     DynamoDBLocal.delete_all_specified_tables!
   end
 
