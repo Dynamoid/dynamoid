@@ -158,7 +158,7 @@ To use a custom type for a field, suppose you have a `Money` type.
 
     def self.dynamoid_load(serialized_str)
       # parse serialized representation and return a Money instance
-      Money.new(...)
+      Money.new(1.23)
     end
   end
 
@@ -180,7 +180,7 @@ add a level of indirection for serializing.)  Example:
 
   class MoneyAdapter
     def self.dynamoid_load(money_serialized_str)
-      Money.new(...)
+      Money.new(1.23)
     end
 
     def self.dynamoid_dump(money_obj)
@@ -213,7 +213,7 @@ The only supported associations (so far) are ```has_many```, ```has_one```, ```h
 class User
   include Dynamoid::Document
 
-  ...
+  # ...
 
   has_many :addresses
   has_many :students, :class => User
@@ -227,7 +227,7 @@ end
 class Address
   include Dynamoid::Document
 
-  ...
+  # ...
 
   belongs_to :user # Automatically links up with the user model
 
@@ -244,7 +244,7 @@ Dynamoid bakes in ActiveModel validations, just like ActiveRecord does.
 class User
   include Dynamoid::Document
 
-  ...
+  # ...
 
   validates_presence_of :name
   validates_format_of :email, :with => /@/
@@ -267,7 +267,7 @@ Dynamoid also employs ActiveModel callbacks. Right now, callbacks are defined on
 class User
   include Dynamoid::Document
 
-  ...
+  # ...
 
   before_save :set_default_password
   after_create :notify_friends
@@ -385,21 +385,21 @@ You are able to optimize query with condition for sort key. Following operators 
 
 ```ruby
 Address.where(latitude: 10212)
-Address.where('latitude.gt': 10212)
-Address.where('latitude.lt': 10212)
-Address.where('latitude.gte': 10212)
-Address.where('latitude.lte': 10212)
-Address.where('city.begins_with': 'Lon')
-Address.where('latitude.between': [10212, 20000])
+Address.where('latitude.gt' => 10212)
+Address.where('latitude.lt' => 10212)
+Address.where('latitude.gte' => 10212)
+Address.where('latitude.lte' => 10212)
+Address.where('city.begins_with' => 'Lon')
+Address.where('latitude.between' => [10212, 20000])
 ```
 
 You are able to filter results on the DynamoDB side and specify conditions for non-key fields.
 Following operators are available: `in`, `contains`, `not_contains`:
 
 ```ruby
-Address.where('city.in': ['London', 'Edenburg', 'Birmingham'])
-Address.where('city.contains': [on])
-Address.where('city.not_contains': [ing])
+Address.where('city.in' => ['London', 'Edenburg', 'Birmingham'])
+Address.where('city.contains' => [on])
+Address.where('city.not_contains' => [ing])
 ```
 
 ### Consistent Reads
@@ -514,11 +514,11 @@ Dynamoid supports basic, ActiveRecord-like optimistic locking on save operations
 
 ```ruby
 class MyTable
-  ...
+  # ...
 
   field :lock_version, :integer
 
-  ...
+  # ...
 end
 ```
 
