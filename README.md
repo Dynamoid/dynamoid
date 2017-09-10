@@ -484,7 +484,7 @@ the table since a query against GSI then a query on base table is still likely f
 
 ## Configuration
 
-There are listed all the configuration options:
+Listed below are all configuration options.
 
 * `adapter` - usefull only for the gem developers to switch to a new adapter. Default and the only available value is `aws_sdk_v2`
 * `namespace` - prefix for table names, default is `dynamoid_#{application_name}_#{environment}` for Rails application and `dynamoid` otherwise
