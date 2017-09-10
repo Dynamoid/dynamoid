@@ -1,3 +1,7 @@
+sudo: required
+
+services:
+  - docker
 language: ruby
 rvm:
   - ruby-2.0.0-p648
@@ -11,21 +15,23 @@ gemfile:
   - gemfiles/rails_4_1.gemfile
   - gemfiles/rails_4_2.gemfile
   - gemfiles/rails_5_0.gemfile
+  - gemfiles/rails_5_1.gemfile
 matrix:
   exclude:
     - rvm: ruby-2.0.0-p648
       gemfile: gemfiles/rails_5_0.gemfile
+    - rvm: ruby-2.0.0-p648
+      gemfile: gemfiles/rails_5_1.gemfile
     - rvm: ruby-2.1.10
       gemfile: gemfiles/rails_5_0.gemfile
+    - rvm: ruby-2.1.10
+      gemfile: gemfiles/rails_5_1.gemfile
     - rvm: ruby-2.4.1
       gemfile: gemfiles/rails_4_0.gemfile
     - rvm: ruby-2.4.1
       gemfile: gemfiles/rails_4_1.gemfile
 before_install: gem install bundler -v 1.15.4
-install:
-  - wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.zip --quiet -O spec/dynamodb_temp.zip
-  - unzip -qq spec/dynamodb_temp.zip -d spec/DynamoDBLocal-latest
-  - rm spec/dynamodb_temp.zip
 script:
+  - docker-compose up
   - bundle install
   - bundle exec rake unattended_spec

@@ -1,0 +1,7 @@
+version: '2'
+
+services:
+  dynamodb:
+    image: deangiberson/aws-dynamodb-local
+    ports:
+      - 8000:8000
