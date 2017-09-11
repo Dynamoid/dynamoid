@@ -798,7 +798,7 @@ describe Dynamoid::Criteria::Chain do
         Vehicle.create(description: 'Description')
         car = Car.create(description: 'Description')
 
-        expect(Car.where(description: 'Description').all).to eq [car]
+        expect(Car.where(description: 'Description').all.to_a).to eq [car]
       end
     end
 
@@ -807,7 +807,7 @@ describe Dynamoid::Criteria::Chain do
         Vehicle.create(description: 'Description')
         car = Car.create
 
-        expect(Car.all).to eq [car]
+        expect(Car.all.to_a).to eq [car]
       end
     end
   end
