@@ -9,7 +9,7 @@ require "rspec/retry"
 require "dynamoid"
 require "pry"
 require "aws-sdk-resources"
-require "byebug"
+require "byebug" if ENV["DEBUG"]
 
 require "dynamodb_local"
 
