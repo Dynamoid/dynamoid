@@ -14,6 +14,20 @@ DynamoDB is not like other document-based databases you might know, and is very 
 
 But if you want a fast, scalable, simple, easy-to-use database (and a Gem that supports it) then look no further!
 
+
+| Project                 |  Dynamoid         |
+|------------------------ | ----------------- |
+| gem name                |  dynamoid         |
+| license                 |  MIT              |
+| download rank           |  [![Total Downloads](https://img.shields.io/gem/rt/Dynamoid.svg)](https://rubygems.org/gems/dynamoid) |
+| version                 |  [![Gem Version](https://badge.fury.io/rb/dynamoid.png)](http://badge.fury.io/rb/dynamoid) |
+| dependencies            |  [![Dependency Status](https://gemnasium.com/badges/github.com/Dynamoid/Dynamoid.svg)](https://gemnasium.com/github.com/Dynamoid/Dynamoid) |
+| code quality            |  [![Code Climate](https://codeclimate.com/github/Dynamoid/Dynamoid.png)](https://codeclimate.com/github/Dynamoid/Dynamoid) |
+| continuous integration  |  [![Build Status](https://secure.travis-ci.org/Dynamoid/Dynamoid.png?branch=master)](https://travis-ci.org/Dynamoid/Dynamoid) |
+| test coverage           |  [![Coverage Status](https://coveralls.io/repos/github/Dynamoid/Dynamoid/badge.svg?branch=master)](https://coveralls.io/github/Dynamoid/Dynamoid?branch=master) |
+| homepage                |  [https://github.com/Dynamoid/Dynamoid](https://github.com/Dynamoid/Dynamoid) |
+| documentation           |  [http://rdoc.info/github/Dynamoid/Dynamoid/frames](http://rdoc.info/github/Dynamoid/Dynamoid/frames) |
+
 ## Installation
 
 Installing Dynamoid is pretty simple. First include the Gem in your Gemfile:
@@ -631,9 +645,6 @@ gem install rubygems-update
 gem install bundler
 bundle install
 ```
-
-[![Build Status](https://travis-ci.org/Dynamoid/Dynamoid.svg)](https://travis-ci.org/Dynamoid/Dynamoid)
-[![Coverage Status](https://coveralls.io/repos/Dynamoid/Dynamoid/badge.svg?branch=master&service=github)](https://coveralls.io/github/Dynamoid/Dynamoid?branch=master)
 
 ## Copyright
 
