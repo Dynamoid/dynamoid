@@ -41,7 +41,16 @@ describe Dynamoid::Persistence do
         table :name => :addresses
         field :city
 
-        before_destroy {|i| false }
+        before_destroy {|i|
+          # Halting the callback chain in active record changed with Rails >= 5.0.0.beta1
+          # We now have to throw :abort to halt the callback chain
+          # See: https://github.com/rails/rails/commit/bb78af73ab7e86fd9662e8810e346b082a1ae193
+          if ActiveModel::VERSION::MAJOR < 5
+            false
+          else
+            throw :abort
+          end
+        }
       end
     end
 

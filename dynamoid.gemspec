@@ -56,6 +56,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "appraisal", "~> 2.1"
   spec.add_development_dependency "wwtd", "~> 1.3"
+  spec.add_development_dependency "byebug", "~> 1.3"
   spec.add_development_dependency(%q<yard>, [">= 0"])
   spec.add_development_dependency "coveralls", "~> 0.8"
   spec.add_development_dependency(%q<rspec-retry>, [">= 0"])
