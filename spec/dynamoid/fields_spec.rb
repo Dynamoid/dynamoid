@@ -20,6 +20,26 @@ describe Dynamoid::Fields do
     expect{address.id}.to_not raise_error
   end
 
+  it 'allows range key serializers' do
+    date_serializer = Class.new do
+      def self.dump(v)
+        v && v.strftime('%m/%d/%Y')
+      end
+
+      def self.load(v)
+        v && DateTime.strptime(v, '%m/%d/%Y')
+      end
+    end
+
+    expect do
+      model = Class.new do
+        include Dynamoid::Document
+        table name: :special
+        range :special_date, :serialized, serializer: date_serializer
+      end
+    end.to_not raise_error
+  end
+
   it 'automatically declares and fills in created_at and updated_at' do
     address.save
 

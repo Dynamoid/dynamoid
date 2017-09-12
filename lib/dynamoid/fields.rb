@@ -67,8 +67,8 @@ module Dynamoid #:nodoc:
         end
       end
 
-      def range(name, type = :string)
-        field(name, type)
+      def range(name, type = :string, options = {})
+        field(name, type, options)
         self.range_key = name
       end
 
