@@ -75,7 +75,13 @@ module Dynamoid
               hash[attribute] = undump_field(incoming[attribute], options)
             elsif options.has_key?(:default)
               default_value = options[:default]
-              value = default_value.respond_to?(:call) ? default_value.call : default_value.dup
+              value = if default_value.respond_to?(:call)
+                        default_value.call
+                      elsif default_value.duplicable?
+                        default_value.dup
+                      else
+                        default_value
+                      end
               hash[attribute] = value
             else
               hash[attribute] = nil
