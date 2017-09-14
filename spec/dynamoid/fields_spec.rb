@@ -215,33 +215,46 @@ describe Dynamoid::Fields do
         end
       end
     end
-    let(:doc) { doc_class.new }
 
-    it 'should return default per instance' do
+    it 'returns default value specified as object' do
+      expect(doc_class.new.name).to eq('x')
+    end
+
+    it 'returns default value specified as lambla/block (callable object)' do
+      expect(doc_class.new.uid).to eq(42)
+    end
+
+    it 'returns default value as is for serializable field' do
+      expect(doc_class.new.config).to eq({})
+    end
+
+    it 'supports `false` as default value' do
+      expect(doc_class.new.hidden).to eq(false)
+    end
+
+    it 'can modify default value independently for every instance' do
+      doc = doc_class.new
       doc.name << 'y'
       expect(doc_class.new.name).to eq('x')
     end
 
-    it 'returns default value' do
-      expect(doc.name).to eq('x')
-      expect(doc.uid).to eq(42)
+    it 'returns default value specified as object even if value cannot be duplicated' do
+      expect(doc_class.new.version).to eq(1)
     end
 
     it 'should save default values' do
-      doc.save!
-      expect(doc.reload.name).to eq('x')
+      doc = doc_class.create!
+      doc = doc_class.find(doc.id)
+      expect(doc.name).to eq('x')
       expect(doc.uid).to eq(42)
+      expect(doc.config).to eq({})
       expect(doc.version).to eq(1)
       expect(doc.hidden).to be false
     end
 
-    it 'does not use default value if nil value assigns' do
+    it 'does not use default value if nil value assigns explicitly' do
       doc = doc_class.new(name: nil)
       expect(doc.name).to eq nil
-    end
-
-    it 'returns default value for serializable field' do
-      expect(doc.config).to eq({})
     end
   end
 
