@@ -74,9 +74,7 @@ module Dynamoid
             if incoming.has_key?(attribute)
               hash[attribute] = undump_field(incoming[attribute], options)
             elsif options.has_key?(:default)
-              default_value = options[:default]
-              value = default_value.respond_to?(:call) ? default_value.call : default_value.dup
-              hash[attribute] = value
+              hash[attribute] = undump_default_value(options[:default])
             else
               hash[attribute] = nil
             end
@@ -227,6 +225,20 @@ module Dynamoid
           undump_hash(val)
         when Array
           val.map { |v| undump_hash_value(v) }
+        else
+          val
+        end
+      end
+
+      # Evaluates the default value given, this is used by undump
+      # when determining the value of the default given for a field options.
+      #
+      # @param [Object] :value the attribute's default value
+      def undump_default_value(val)
+        if val.respond_to?(:call)
+          val.call
+        elsif val.duplicable?
+          val.dup
         else
           val
         end

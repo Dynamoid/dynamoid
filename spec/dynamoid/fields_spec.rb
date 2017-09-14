@@ -207,6 +207,8 @@ describe Dynamoid::Fields do
         field :name, :string, :default => 'x'
         field :uid, :integer, :default => lambda { 42 }
         field :config, :serialized, default: {}
+        field :version, :integer, :default => 1
+        field :hidden, :boolean, :default => false
 
         def self.name
           'Document'
@@ -225,10 +227,12 @@ describe Dynamoid::Fields do
       expect(doc.uid).to eq(42)
     end
 
-    it 'should save default value' do
+    it 'should save default values' do
       doc.save!
       expect(doc.reload.name).to eq('x')
       expect(doc.uid).to eq(42)
+      expect(doc.version).to eq(1)
+      expect(doc.hidden).to be false
     end
 
     it 'does not use default value if nil value assigns' do
