@@ -229,6 +229,20 @@ module Dynamoid
           val
         end
       end
+
+      # Evaluates the default value given, this is used by undump
+      # when determining the value of the default given for a field options.
+      #
+      # @param [Object] :value the attribute's default value
+      def undump_default_value(val)
+        if val.respond_to?(:call)
+          val.call
+        elsif val.duplicable?
+          val.dup
+        else
+          val
+        end
+      end
     end
 
     # Set updated_at and any passed in field to current DateTime. Useful for things like last_login_at, etc.
@@ -385,20 +399,6 @@ module Dynamoid
             raise Dynamoid::Errors::StaleObjectError.new(self, 'persist')
           end
         end
-      end
-    end
-
-    # Evaluates the default value given, this is used by undump
-    # when determining the value of the default given for a field options.
-    #
-    # @param [Object] :value the attribute's default value
-    def undump_default_value(value)
-      if value.respond_to?(:call)
-        value.call
-      elsif value.duplicable?
-        value.dup
-      else
-        value
       end
     end
   end
