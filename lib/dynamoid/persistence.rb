@@ -74,7 +74,7 @@ module Dynamoid
             if incoming.has_key?(attribute)
               hash[attribute] = undump_field(incoming[attribute], options)
             elsif options.has_key?(:default)
-              hash[attribute] = undump_default_value(options[:default])
+              hash[attribute] = evaluate_default_value(options[:default])
             else
               hash[attribute] = nil
             end
@@ -234,7 +234,7 @@ module Dynamoid
       # when determining the value of the default given for a field options.
       #
       # @param [Object] :value the attribute's default value
-      def undump_default_value(val)
+      def evaluate_default_value(val)
         if val.respond_to?(:call)
           val.call
         elsif val.duplicable?
