@@ -220,7 +220,7 @@ describe Dynamoid::Fields do
       expect(doc_class.new.name).to eq('x')
     end
 
-    it 'returns default value specified as lambla/block (callable object)' do
+    it 'returns default value specified as lamda/block (callable object)' do
       expect(doc_class.new.uid).to eq(42)
     end
 
