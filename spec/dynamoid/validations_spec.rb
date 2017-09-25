@@ -85,4 +85,16 @@ describe Dynamoid::Validations do
 
     expect(klass.new(name: nil).save).to eq(false)
   end
+
+  describe 'save!' do
+    it 'returns self' do
+      klass = Class.new do
+        include Dynamoid::Document
+        table name: :documents
+      end
+
+      model = klass.new
+      expect(model.save!).to eq(model)
+    end
+  end
 end
