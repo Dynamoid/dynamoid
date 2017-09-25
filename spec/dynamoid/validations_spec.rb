@@ -47,7 +47,7 @@ describe Dynamoid::Validations do
   end
 
   it 'does not validate when saves if `validate` option is false' do
-    model = Class.new do
+    klass = Class.new do
       include Dynamoid::Document
       table name: :documents
 
@@ -55,6 +55,34 @@ describe Dynamoid::Validations do
       validates :name, presence: true
     end
 
-    expect(model.new.save(validate: false)).to be_persisted
+    model = klass.new
+    model.save(validate: false)
+    expect(model).to be_persisted
+  end
+
+  it 'returns true if model is valid' do
+    klass = Class.new do
+      include Dynamoid::Document
+      table name: :documents
+
+      field :name
+      validates :name, presence: true
+    end
+
+    expect(klass.new(name: 'some-name').save).to eq(true)
+  end
+
+  it 'returns false if model is invalid' do
+    klass = Class.new do
+      include Dynamoid::Document
+      table name: :documents
+
+      field :name
+      validates :name, presence: true
+
+      def self.name; 'Document'; end
+    end
+
+    expect(klass.new(name: nil).save).to eq(false)
   end
 end
