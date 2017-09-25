@@ -16,8 +16,8 @@ describe Dynamoid::Finders do
     expect(found.new_record).to be_falsey
   end
 
-  it 'returns nil when nothing is found' do
-    expect(Address.find('1234')).to be_nil
+  it 'raises error when nothing is found' do
+    expect { expect(Address.find('1234')) }.to raise_error(Dynamoid::Errors::RecordNotFound)
   end
 
   it 'finds multiple ids' do
@@ -34,12 +34,12 @@ describe Dynamoid::Finders do
     expect(Address.find(address.id)).to eq address
   end
 
-  it 'returns nil if non-array id is passed in and no result found' do
-    expect(Address.find("not existing id")).to be_nil
+  it 'raises error if non-array id is passed in and no result found' do
+    expect { Address.find("not existing id") }.to raise_error(Dynamoid::Errors::RecordNotFound)
   end
 
-  it 'returns empty array if array of ids is passed in and no result found' do
-    expect(Address.find(["not existing id"])).to eq []
+  it 'raises error if array of ids is passed in and no result found' do
+    expect { Address.find(["not existing id"]) }.to raise_error(Dynamoid::Errors::RecordNotFound)
   end
 
   # TODO: ATM, adapter sets consistent read to be true for all query. Provide option for setting consistent_read option

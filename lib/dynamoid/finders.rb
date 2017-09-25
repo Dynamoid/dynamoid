@@ -36,9 +36,12 @@ module Dynamoid
         ids = Array(ids.flatten.uniq)
         if ids.count == 1
           result = self.find_by_id(ids.first, options)
+          raise Errors::RecordNotFound if result.nil?
           expects_array ? Array(result) : result
         else
-          find_all(ids)
+          result = find_all(ids)
+          raise Errors::RecordNotFound if result.size != ids.size
+          result
         end
       end
 
