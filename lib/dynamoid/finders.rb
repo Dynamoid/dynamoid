@@ -36,11 +36,18 @@ module Dynamoid
         ids = Array(ids.flatten.uniq)
         if ids.count == 1
           result = self.find_by_id(ids.first, options)
-          raise Errors::RecordNotFound if result.nil?
+          if result.nil?
+            message = "Couldn't find #{self.name} with '#{self.hash_key}'=#{ids[0]}"
+            raise Errors::RecordNotFound.new(message)
+          end
           expects_array ? Array(result) : result
         else
           result = find_all(ids)
-          raise Errors::RecordNotFound if result.size != ids.size
+          if result.size != ids.size
+            message = "Couldn't find all #{self.name.pluralize} with '#{self.hash_key}': (#{ids.join(', ')}) "
+            message << "(found #{result.size} results, but was looking for #{ids.size})"
+            raise Errors::RecordNotFound.new(message)
+          end
           result
         end
       end
