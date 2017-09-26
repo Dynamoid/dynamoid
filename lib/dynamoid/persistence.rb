@@ -275,8 +275,6 @@ module Dynamoid
       else
         persist
       end
-
-      self
     end
 
     #

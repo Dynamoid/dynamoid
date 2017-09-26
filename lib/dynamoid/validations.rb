@@ -31,6 +31,7 @@ module Dynamoid
     def save!
       raise Dynamoid::Errors::DocumentNotValid.new(self) unless valid?
       save(:validate => false)
+      self
     end
 
     module ClassMethods
