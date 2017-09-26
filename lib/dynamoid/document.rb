@@ -107,7 +107,7 @@ module Dynamoid #:nodoc:
       def exists?(id_or_conditions = {})
         case id_or_conditions
           when Hash then where(id_or_conditions).first.present?
-          else !! find(id_or_conditions)
+          else !! find_by_id(id_or_conditions)
         end
       end
 

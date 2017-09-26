@@ -16,14 +16,24 @@ describe Dynamoid::Finders do
     expect(found.new_record).to be_falsey
   end
 
-  it 'returns nil when nothing is found' do
-    expect(Address.find('1234')).to be_nil
+  it 'raises error when nothing is found' do
+    expect { Address.find('1234') }.to raise_error(
+      Dynamoid::Errors::RecordNotFound, "Couldn't find Address with 'id'=1234")
   end
 
   it 'finds multiple ids' do
     address2 = Address.create(:city => 'Illinois')
 
     expect(Set.new(Address.find(address.id, address2.id))).to eq Set.new([address, address2])
+  end
+
+  it 'raises error when passed several ids and some models were not found' do
+    a1 = Address.create
+    a2 = Address.create
+    expect { Address.find(a1.id, a2.id, 'fake-id') }.to raise_error(
+      Dynamoid::Errors::RecordNotFound,
+      "Couldn't find all Addresses with 'id': (#{a1.id}, #{a2.id}, fake-id) " +
+      "(found 2 results, but was looking for 3)")
   end
 
   it 'returns array if passed in array' do
@@ -34,12 +44,15 @@ describe Dynamoid::Finders do
     expect(Address.find(address.id)).to eq address
   end
 
-  it 'returns nil if non-array id is passed in and no result found' do
-    expect(Address.find("not existing id")).to be_nil
+  it 'raises error if non-array id is passed in and no result found' do
+    expect { Address.find("not-existing-id") }.to raise_error(
+      Dynamoid::Errors::RecordNotFound,
+      "Couldn't find Address with 'id'=not-existing-id")
   end
 
-  it 'returns empty array if array of ids is passed in and no result found' do
-    expect(Address.find(["not existing id"])).to eq []
+  it 'raises error if array of ids is passed in and no result found' do
+    expect { Address.find(["not-existing-id"]) }.to raise_error(
+      Dynamoid::Errors::RecordNotFound, "Couldn't find Address with 'id'=not-existing-id")
   end
 
   # TODO: ATM, adapter sets consistent read to be true for all query. Provide option for setting consistent_read option

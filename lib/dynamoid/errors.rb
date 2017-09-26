@@ -61,6 +61,9 @@ module Dynamoid
       end
     end
 
+    class RecordNotFound < Error
+    end
+
     class DocumentNotValid < Error
       attr_reader :document
 
