@@ -87,7 +87,11 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def create!(attrs = {})
-        build(attrs).tap(&:save!)
+        if attrs.is_a?(Array)
+          attrs.map { |attr| create!(attr) }
+        else
+          build(attrs).tap(&:save!)
+        end
       end
 
       # Initialize a new object.
