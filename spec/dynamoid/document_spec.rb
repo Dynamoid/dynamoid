@@ -86,6 +86,14 @@ describe Dynamoid::Document do
     expect(address.id).to_not be_nil
   end
 
+  it 'creates multiple documents' do
+    addresses = Address.create([{city: 'Chicago'}, {city: 'New York'}])
+
+    expect(addresses.size).to eq 2
+    expect(addresses.all?(&:persisted?)).to be true
+    expect(addresses[0].city).to eq 'Chicago'
+    expect(addresses[1].city).to eq 'New York'
+  end
   it 'knows if a document exists or not' do
     address = Address.create(:city => 'Chicago')
     expect(Address.exists?(address.id)).to be_truthy
