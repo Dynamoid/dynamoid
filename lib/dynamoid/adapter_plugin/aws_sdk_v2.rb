@@ -45,14 +45,13 @@ module Dynamoid
         #   because Amazon, damnit.
         resp.send(lookup).table_status
       }
-      attr_reader :table_cache
 
       # Establish the connection to DynamoDB.
-      #
+
       # @return [Aws::DynamoDB::Client] the DynamoDB connection
       def connect!
-        @client = Aws::DynamoDB::Client.new(connection_config)
-        @table_cache = {}
+        table_cache
+        client
       end
 
       def connection_config
@@ -75,10 +74,18 @@ module Dynamoid
       end
 
       # Return the client object.
+      # Will establish DynamoDB connection when necessary.
       #
       # @since 1.0.0
       def client
-        @client
+        @client ||= Aws::DynamoDB::Client.new(connection_config)
+      end
+
+      # Return table cache.
+      #
+      # @since 1.3.5
+      def table_cache
+        @table_cache ||= {}
       end
 
       # Puts or deletes multiple items in one or more tables
