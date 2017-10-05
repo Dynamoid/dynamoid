@@ -339,6 +339,12 @@ address.city = 'Chicago'
 address.save
 ```
 
+To create multiple documents at once:
+
+```ruby
+User.create([{name: 'Josh'}, {name: 'Nick'}])
+```
+
 There is an efficient and low-level way to create multiple documents
 (without validation and callbacks running):
 
