@@ -339,6 +339,13 @@ address.city = 'Chicago'
 address.save
 ```
 
+There is an efficient and low-level way to create multiple documents
+(without validation and callbacks running):
+
+```ruby
+users = User.import([{name: 'Josh'}, {name: 'Nick'}])
+```
+
 ### Querying
 
 Querying can be done in one of three ways:
