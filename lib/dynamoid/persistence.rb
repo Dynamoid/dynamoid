@@ -205,6 +205,21 @@ module Dynamoid
         end
       end
 
+      def import(objects)
+        documents = objects.map { |attrs|
+          self.build(attrs).tap { |item|
+            item.hash_key = SecureRandom.uuid if item.hash_key.blank?
+          }
+        }
+
+        documents.each_slice(25) do |docs|
+          Dynamoid.adapter.batch_write_item(self.table_name, docs.map(&:dump))
+        end
+
+        documents.each { |d| d.new_record = false }
+        documents
+      end
+
       private
 
       def undump_hash(hash)
@@ -370,7 +385,7 @@ module Dynamoid
     # @since 0.2.0
     def persist(conditions = nil)
       run_callbacks(:save) do
-        self.hash_key = SecureRandom.uuid if self.hash_key.nil? || self.hash_key.blank?
+        self.hash_key = SecureRandom.uuid if self.hash_key.blank?
 
         # Add an exists check to prevent overwriting existing records with new ones
         if(new_record?)
