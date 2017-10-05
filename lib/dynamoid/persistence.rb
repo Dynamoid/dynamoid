@@ -387,7 +387,7 @@ module Dynamoid
     # @since 0.2.0
     def persist(conditions = nil)
       run_callbacks(:save) do
-        self.hash_key = SecureRandom.uuid if self.hash_key.nil? || self.hash_key.blank?
+        self.hash_key = SecureRandom.uuid if self.hash_key.blank?
 
         # Add an exists check to prevent overwriting existing records with new ones
         if(new_record?)
