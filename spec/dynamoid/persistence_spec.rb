@@ -722,4 +722,60 @@ describe Dynamoid::Persistence do
       end
     end
   end
+
+  describe '.import' do
+    before do
+      Address.create_table
+    end
+
+    it 'creates multiple documents' do
+      expect {
+        Address.import([{city: 'Chicago'}, {city: 'New York'}])
+      }.to change { Address.count }.by(2)
+    end
+
+    it 'returns created documents' do
+      addresses = Address.import([{city: 'Chicago'}, {city: 'New York'}])
+      expect(addresses[0].city).to eq('Chicago')
+      expect(addresses[1].city).to eq('New York')
+    end
+
+    it 'does not validate documents' do
+      klass = Class.new do
+        include Dynamoid::Document
+        field :city
+        validates :city, presence: true
+
+        def self.name; 'Address'; end
+      end
+
+      addresses = klass.import([{city: nil}, {city: 'Chicago'}])
+      expect(addresses[0].persisted?).to be true
+      expect(addresses[1].persisted?).to be true
+    end
+
+    it 'does not run callbacks' do
+      klass = Class.new do
+        include Dynamoid::Document
+        field :city
+        validates :city, presence: true
+
+        def self.name; 'Address'; end
+
+        before_save { raise "before save callback called" }
+      end
+
+      expect { klass.import([{city: 'Chicago'}]) }.not_to raise_error
+    end
+
+    it 'makes batch operation' do
+      expect(Dynamoid.adapter.client).to receive(:batch_write_item).exactly(1).times.and_call_original
+      Address.import([{city: 'Chicago'}, {city: 'New York'}])
+    end
+
+    it 'makes multiple batch operations if the limit (25 items) exceeded' do
+      expect(Dynamoid.adapter.client).to receive(:batch_write_item).exactly(2).times.and_call_original
+      Address.import(Array.new(26, {city: 'Chicago'}))
+    end
+  end
 end

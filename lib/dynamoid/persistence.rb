@@ -205,6 +205,21 @@ module Dynamoid
         end
       end
 
+      def import(objects)
+        documents = objects.map { |attrs|
+          self.build(attrs).tap { |item|
+            item.hash_key = SecureRandom.uuid if item.hash_key.blank?
+          }
+        }
+
+        documents.each_slice(25) do |docs|
+          Dynamoid.adapter.batch_write_item(self.table_name, docs.map(&:dump))
+        end
+
+        documents.each { |d| d.new_record = false }
+        documents
+      end
+
       private
 
       def undump_hash(hash)
