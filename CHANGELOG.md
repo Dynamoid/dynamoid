@@ -1,5 +1,9 @@
 # HEAD
 
+Improving
+
+* Added `Document.import` method (@andrykonchin)
+
 # 1.3.4
 
 Improving
