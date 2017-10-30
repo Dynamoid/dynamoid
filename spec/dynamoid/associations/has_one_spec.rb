@@ -70,6 +70,42 @@ describe Dynamoid::Associations::HasOne do
     end
   end
 
+  context "set to nil" do
+    it 'can be set to nil' do
+      magazine = Magazine.create!
+
+      expect { magazine.sponsor = nil }.not_to raise_error
+      expect(magazine.sponsor).to eq nil
+
+      magazine.save!
+      expect(Magazine.find(magazine.title).sponsor).to eq nil
+    end
+
+    it "overrides previous saved value" do
+      sponsor = Sponsor.create!
+      magazine = Magazine.create!(sponsor: sponsor)
+
+      expect {
+        magazine.sponsor = nil
+        magazine.save!
+      }.to change {
+        Magazine.find(magazine.title).sponsor.target
+      }.from(sponsor).to(nil)
+    end
+
+    it "updates association on the other side" do
+      sponsor = Sponsor.create!
+      magazine = Magazine.create!(sponsor: sponsor)
+
+      expect {
+        magazine.sponsor = nil
+        magazine.save!
+      }.to change {
+        Sponsor.find(sponsor.id).magazine.target
+      }.from(magazine).to(nil)
+    end
+  end
+
   describe "#delete" do
     it "clears association on this side" do
       magazine = Magazine.create

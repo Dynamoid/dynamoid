@@ -101,6 +101,42 @@ describe Dynamoid::Associations::BelongsTo do
     end
   end
 
+  context "set to nil" do
+    it 'can be set to nil' do
+      subscription = Subscription.new
+
+      expect { subscription.magazine = nil }.not_to raise_error
+      expect(subscription.magazine).to eq nil
+
+      subscription.save!
+      expect(Subscription.find(subscription.id).magazine).to eq nil
+    end
+
+    it "overrides previous saved value" do
+      magazine = Magazine.create!
+      subscription = Subscription.create!(magazine: magazine)
+
+      expect {
+        subscription.magazine = nil
+        subscription.save!
+      }.to change {
+        Subscription.find(subscription.id).magazine.target
+      }.from(magazine).to(nil)
+    end
+
+    it "updates association on the other side" do
+      magazine = Magazine.create!
+      subscription = Subscription.create!(magazine: magazine)
+
+      expect {
+        subscription.magazine = nil
+        subscription.save!
+      }.to change {
+        Magazine.find(magazine.title).subscriptions.to_a
+      }.from([subscription]).to([])
+    end
+  end
+
   describe "#delete" do
     it "clears association on this side" do
       subscription = Subscription.create
