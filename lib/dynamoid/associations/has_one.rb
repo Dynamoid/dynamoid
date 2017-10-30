@@ -31,7 +31,8 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def disassociate_target(object)
-        source.update_attribute(source_attribute, nil)
+        ids = object.send(target_attribute) || Set.new
+        object.update_attribute(target_attribute, ids - Array(source.hash_key))
       end
     end
   end

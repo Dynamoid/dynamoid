@@ -63,4 +63,40 @@ describe Dynamoid::Associations::HasMany do
     expect(magazine.camel_cases.count).to eq 2
   end
 
+  describe "#delete" do
+    it "clears association on this side" do
+      magazine = Magazine.create
+      subscription = magazine.subscriptions.create
+
+      expect {
+        magazine.subscriptions.delete(subscription)
+      }.to change { magazine.subscriptions.target }.from([subscription]).to([])
+    end
+
+    it "persists changes on this side" do
+      magazine = Magazine.create
+      subscription = magazine.subscriptions.create
+
+      expect {
+        magazine.subscriptions.delete(subscription)
+      }.to change { Magazine.find(magazine.title).subscriptions.target }.from([subscription]).to([])
+    end
+
+    context "belongs to" do
+      let(:magazine) { Magazine.create }
+      let!(:subscription) { magazine.subscriptions.create }
+
+      it "clears association on that side" do
+        expect {
+          magazine.subscriptions.delete(subscription)
+        }.to change { magazine.subscriptions.target }.from([subscription]).to([])
+      end
+
+      it "persists changes on that side" do
+        expect {
+          magazine.subscriptions.delete(subscription)
+        }.to change { Magazine.find(magazine.title).subscriptions.target }.from([subscription]).to([])
+      end
+    end
+  end
 end

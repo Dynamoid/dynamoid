@@ -69,4 +69,41 @@ describe Dynamoid::Associations::HasOne do
       end
     end
   end
+
+  describe "#delete" do
+    it "clears association on this side" do
+      magazine = Magazine.create
+      sponsor = magazine.sponsor.create
+
+      expect {
+        magazine.sponsor.delete
+      }.to change { magazine.sponsor.target }.from(sponsor).to(nil)
+    end
+
+    it "persists changes on this side" do
+      magazine = Magazine.create
+      sponsor = magazine.sponsor.create
+
+      expect {
+        magazine.sponsor.delete
+      }.to change { Magazine.find(magazine.title).sponsor.target }.from(sponsor).to(nil)
+    end
+
+    context "belongs to" do
+      let(:magazine) { Magazine.create }
+      let!(:sponsor) { magazine.sponsor.create }
+
+      it "clears association on that side" do
+        expect {
+          magazine.sponsor.delete
+        }.to change { sponsor.magazine.target }.from(magazine).to(nil)
+      end
+
+      it "persists changes on that side" do
+        expect {
+          magazine.sponsor.delete
+        }.to change { Sponsor.find(sponsor.id).magazine.target }.from(magazine).to(nil)
+      end
+    end
+  end
 end

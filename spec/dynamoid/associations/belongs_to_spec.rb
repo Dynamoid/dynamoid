@@ -4,9 +4,8 @@ require 'active_support/core_ext/object'
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe Dynamoid::Associations::BelongsTo do
-  let(:subscription) {Subscription.create}
-
   context 'has many' do
+    let(:subscription) {Subscription.create}
     let(:camel_case) {CamelCase.create}
     let(:magazine) {subscription.magazine.create}
     let(:user) {magazine.owner.create}
@@ -38,6 +37,7 @@ describe Dynamoid::Associations::BelongsTo do
   end
 
   context 'has one' do
+    let(:subscription) {Subscription.create}
     let(:sponsor) {Sponsor.create}
     let(:magazine) {sponsor.magazine.create}
     let(:user) {subscription.customer.create}
@@ -97,6 +97,60 @@ describe Dynamoid::Associations::BelongsTo do
 
         sponsor.magazine = magazine
         expect(magazine.sponsor.target.object_id).to_not eq(sponsor.object_id)
+      end
+    end
+  end
+
+  describe "#delete" do
+    it "clears association on this side" do
+      subscription = Subscription.create
+      magazine = subscription.magazine.create
+
+      expect {
+        subscription.magazine.delete
+      }.to change { subscription.magazine.target }.from(magazine).to(nil)
+    end
+
+    it "persists changes on this side" do
+      subscription = Subscription.create
+      magazine = subscription.magazine.create
+
+      expect {
+        subscription.magazine.delete
+      }.to change { Subscription.find(subscription.id).magazine.target }.from(magazine).to(nil)
+    end
+
+    context "has many" do
+      let(:subscription) { Subscription.create }
+      let!(:magazine) { subscription.magazine.create }
+
+      it "clears association on that side" do
+        expect {
+          subscription.magazine.delete
+        }.to change { magazine.subscriptions.target }.from([subscription]).to([])
+      end
+
+      it "persists changes on that side" do
+        expect {
+          subscription.magazine.delete
+        }.to change { Magazine.find(magazine.title).subscriptions.target }.from([subscription]).to([])
+      end
+    end
+
+    context "has one" do
+      let(:sponsor) { Sponsor.create }
+      let!(:magazine) { sponsor.magazine.create }
+
+      it "clears association on that side" do
+        expect {
+          sponsor.magazine.delete
+        }.to change { magazine.sponsor.target }.from(sponsor).to(nil)
+      end
+
+      it "persists changes on that side" do
+        expect {
+          sponsor.magazine.delete
+        }.to change { Magazine.find(magazine.title).sponsor.target }.from(sponsor).to(nil)
       end
     end
   end

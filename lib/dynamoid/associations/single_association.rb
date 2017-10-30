@@ -16,8 +16,8 @@ module Dynamoid #:nodoc:
       end
 
       def delete
-        source.update_attribute(source_attribute, nil)
         self.send(:disassociate_target, target) if target && target_association
+        source.update_attribute(source_attribute, nil)
         target
       end
 
