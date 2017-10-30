@@ -49,4 +49,24 @@ describe Dynamoid::Associations::HasOne do
     subscription = user.monthly.create
     expect(subscription.customer).to eq user
   end
+
+  describe "{association}=" do
+    context "belongs to" do
+      it "stores the same object on this side" do
+        magazine = Magazine.create!
+        sponsor = Sponsor.create!
+
+        magazine.sponsor = sponsor
+        expect(magazine.sponsor.target.object_id).to eq(sponsor.object_id)
+      end
+
+      it "does not store the same object on that side" do
+        magazine = Magazine.create!
+        sponsor = Sponsor.create!
+
+        magazine.sponsor = sponsor
+        expect(sponsor.magazine.target.object_id).not_to eq(magazine.object_id)
+      end
+    end
+  end
 end

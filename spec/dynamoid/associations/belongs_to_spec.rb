@@ -62,4 +62,42 @@ describe Dynamoid::Associations::BelongsTo do
       expect(user.monthly).to eq subscription
     end
   end
+
+  describe "{association}=" do
+    context "has many" do
+      it "stores the same object on this side" do
+        subscription = Subscription.create
+        magazine = Magazine.create
+
+        subscription.magazine = magazine
+        expect(subscription.magazine.target.object_id).to eq(magazine.object_id)
+      end
+
+      it "does not store the same object on that side" do
+        subscription = Subscription.create
+        magazine = Magazine.create
+
+        subscription.magazine = magazine
+        expect(magazine.subscriptions.target[0].object_id).to_not eq(subscription.object_id)
+      end
+    end
+
+    context "has one" do
+      it "stores the same object on this side" do
+        sponsor = Sponsor.create
+        magazine = Magazine.create
+
+        sponsor.magazine = magazine
+        expect(sponsor.magazine.target.object_id).to eq(magazine.object_id)
+      end
+
+      it "does not store the same object on that side" do
+        sponsor = Sponsor.create
+        magazine = Magazine.create
+
+        sponsor.magazine = magazine
+        expect(magazine.sponsor.target.object_id).to_not eq(sponsor.object_id)
+      end
+    end
+  end
 end
