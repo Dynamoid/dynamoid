@@ -3,4 +3,4 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in dynamoid.gemspec
 gemspec
 
-gem "byebug", platform: "ruby"
+gem "pry-byebug", platforms: :ruby
