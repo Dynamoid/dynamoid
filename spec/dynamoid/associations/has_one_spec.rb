@@ -50,9 +50,9 @@ describe Dynamoid::Associations::HasOne do
     expect(subscription.customer).to eq user
   end
 
-  describe "{association}=" do
-    context "belongs to" do
-      it "stores the same object on this side" do
+  describe '{association}=' do
+    context 'belongs to' do
+      it 'stores the same object on this side' do
         magazine = Magazine.create!
         sponsor = Sponsor.create!
 
@@ -60,7 +60,7 @@ describe Dynamoid::Associations::HasOne do
         expect(magazine.sponsor.target.object_id).to eq(sponsor.object_id)
       end
 
-      it "does not store the same object on that side" do
+      it 'does not store the same object on that side' do
         magazine = Magazine.create!
         sponsor = Sponsor.create!
 
@@ -70,7 +70,7 @@ describe Dynamoid::Associations::HasOne do
     end
   end
 
-  context "set to nil" do
+  context 'set to nil' do
     it 'can be set to nil' do
       magazine = Magazine.create!
 
@@ -81,7 +81,7 @@ describe Dynamoid::Associations::HasOne do
       expect(Magazine.find(magazine.title).sponsor).to eq nil
     end
 
-    it "overrides previous saved value" do
+    it 'overrides previous saved value' do
       sponsor = Sponsor.create!
       magazine = Magazine.create!(sponsor: sponsor)
 
@@ -93,7 +93,7 @@ describe Dynamoid::Associations::HasOne do
       }.from(sponsor).to(nil)
     end
 
-    it "updates association on the other side" do
+    it 'updates association on the other side' do
       sponsor = Sponsor.create!
       magazine = Magazine.create!(sponsor: sponsor)
 
@@ -106,8 +106,8 @@ describe Dynamoid::Associations::HasOne do
     end
   end
 
-  describe "#delete" do
-    it "clears association on this side" do
+  describe '#delete' do
+    it 'clears association on this side' do
       magazine = Magazine.create
       sponsor = magazine.sponsor.create
 
@@ -116,7 +116,7 @@ describe Dynamoid::Associations::HasOne do
       }.to change { magazine.sponsor.target }.from(sponsor).to(nil)
     end
 
-    it "persists changes on this side" do
+    it 'persists changes on this side' do
       magazine = Magazine.create
       sponsor = magazine.sponsor.create
 
@@ -125,17 +125,17 @@ describe Dynamoid::Associations::HasOne do
       }.to change { Magazine.find(magazine.title).sponsor.target }.from(sponsor).to(nil)
     end
 
-    context "belongs to" do
+    context 'belongs to' do
       let(:magazine) { Magazine.create }
       let!(:sponsor) { magazine.sponsor.create }
 
-      it "clears association on that side" do
+      it 'clears association on that side' do
         expect {
           magazine.sponsor.delete
         }.to change { sponsor.magazine.target }.from(magazine).to(nil)
       end
 
-      it "persists changes on that side" do
+      it 'persists changes on that side' do
         expect {
           magazine.sponsor.delete
         }.to change { Sponsor.find(sponsor.id).magazine.target }.from(magazine).to(nil)

@@ -42,8 +42,8 @@ describe Dynamoid::Associations::HasAndBelongsToMany do
     expect(user.subscriptions.size).to eq 0
   end
 
-  describe "#delete" do
-    it "clears association on this side" do
+  describe '#delete' do
+    it 'clears association on this side' do
       subscription = Subscription.create
       user = subscription.users.create
 
@@ -52,7 +52,7 @@ describe Dynamoid::Associations::HasAndBelongsToMany do
       }.to change { subscription.users.target }.from([user]).to([])
     end
 
-    it "persists changes on this side" do
+    it 'persists changes on this side' do
       subscription = Subscription.create
       user = subscription.users.create
 
@@ -61,17 +61,17 @@ describe Dynamoid::Associations::HasAndBelongsToMany do
       }.to change { Subscription.find(subscription.id).users.target }.from([user]).to([])
     end
 
-    context "has and belongs to many" do
+    context 'has and belongs to many' do
       let(:subscription) { Subscription.create }
       let!(:user) { subscription.users.create }
 
-      it "clears association on that side" do
+      it 'clears association on that side' do
         expect {
           subscription.users.delete(user)
         }.to change { subscription.users.target }.from([user]).to([])
       end
 
-      it "persists changes on that side" do
+      it 'persists changes on that side' do
         expect {
           subscription.users.delete(user)
         }.to change { Subscription.find(subscription.id).users.target }.from([user]).to([])
