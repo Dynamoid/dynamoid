@@ -30,9 +30,9 @@ describe Dynamoid::Associations::BelongsTo do
 
     it 'behaves like the object it is trying to be' do
       expect(magazine.subscriptions).to include subscription
-      subscription.magazine.update_attribute(:title, 'Test Title')
+      subscription.magazine.update_attribute(:size, 101)
 
-      expect(Magazine.first.title).to eq 'Test Title'
+      expect(Magazine.first.size).to eq 101
     end
   end
 
