@@ -50,7 +50,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency(%q<activesupport>, [">= 4"])
   spec.add_runtime_dependency(%q<aws-sdk-resources>, ["~> 2"])
   spec.add_runtime_dependency(%q<concurrent-ruby>, [">= 1.0"])
-  spec.add_development_dependency "pry", "~> 0.10"
+  spec.add_development_dependency "pry"
   spec.add_development_dependency "bundler", "~> 1.14"
   spec.add_development_dependency "rake", "~> 12.0"
   spec.add_development_dependency "rspec", "~> 3.0"
@@ -58,5 +58,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "wwtd", "~> 1.3"
   spec.add_development_dependency(%q<yard>, [">= 0"])
   spec.add_development_dependency "coveralls", "~> 0.8"
-  spec.add_development_dependency(%q<rspec-retry>, [">= 0"])
 end

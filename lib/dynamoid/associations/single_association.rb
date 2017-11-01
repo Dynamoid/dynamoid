@@ -9,14 +9,18 @@ module Dynamoid #:nodoc:
 
       def setter(object)
         delete
+
+        return if object.nil?
+
         source.update_attribute(source_attribute, Set[object.hash_key])
+        self.target = object
         self.send(:associate_target, object) if target_association
         object
       end
 
       def delete
-        source.update_attribute(source_attribute, nil)
         self.send(:disassociate_target, target) if target && target_association
+        source.update_attribute(source_attribute, nil)
         target
       end
 
@@ -69,6 +73,11 @@ module Dynamoid #:nodoc:
       def find_target
         return if source_ids.empty?
         target_class.find(source_ids.first)
+      end
+
+      def target=(object)
+        @target = object
+        @loaded = true
       end
     end
   end

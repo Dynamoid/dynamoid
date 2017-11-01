@@ -3,6 +3,7 @@ class Magazine
   table :key => :title
   
   field :title
+  field :size, :number
   
   has_many :subscriptions
   has_many :camel_cases
