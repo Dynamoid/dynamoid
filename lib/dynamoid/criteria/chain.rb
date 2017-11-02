@@ -267,7 +267,7 @@ module Dynamoid #:nodoc:
         query_keys = query.keys.collect { |k| k.to_s.split('.').first }
 
         # See if querying based on table hash key
-        if query_keys.include?(source.hash_key.to_s)
+        if query.keys.map(&:to_s).include?(source.hash_key.to_s)
           @hash_key = source.hash_key
 
           # Use table's default range key
