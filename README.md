@@ -1,7 +1,7 @@
 # Dynamoid
 
 You are viewing the README for the unreleased version 2 of Dynamoid.
-  
+
 For version 1.3.x use the [1-3-stable branch](https://github.com/Dynamoid/Dynamoid/blob/1-3-stable/README.md).
 
 Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It
@@ -514,7 +514,7 @@ the table since a query against GSI then a query on base table is still likely f
 
 Listed below are all configuration options.
 
-* `adapter` - usefull only for the gem developers to switch to a new adapter. Default and the only available value is `aws_sdk_v2`
+* `adapter` - useful only for the gem developers to switch to a new adapter. Default and the only available value is `aws_sdk_v3`
 * `namespace` - prefix for table names, default is `dynamoid_#{application_name}_#{environment}` for Rails application and `dynamoid` otherwise
 * `logger` - by default it's a `Rails.logger` in Rails application and `stdout` otherwise. You can disable logging by setting `nil` or `false` values. Set `true` value to use defaults
 * `access_key` - DynamoDb custom credentials for AWS, override global AWS credentials if they present

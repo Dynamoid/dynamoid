@@ -3,6 +3,7 @@
 Improving
 
 * Added `Document.import` method (@andrykonchin)
+* Upgraded to AWS SDKv3 for Ruby
 
 # 1.3.4
 
