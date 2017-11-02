@@ -40,6 +40,13 @@ describe Dynamoid::Criteria::Chain do
       expect(chain).to receive(:records_via_scan)
       chain.all
     end
+
+    it 'Scans when there is only not-equal operator for hash key' do
+      chain = Dynamoid::Criteria::Chain.new(Address)
+      chain.query = { :'id.in' => ['test'] }
+      expect(chain).to receive(:records_via_scan)
+      chain.all
+    end
   end
 
   describe 'Limits' do
