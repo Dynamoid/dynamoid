@@ -821,6 +821,57 @@ describe Dynamoid::Criteria::Chain do
 
   describe '#destroy_all' do
     context "when some conditions specified" do
+      it "deletes only proper items" do
+        klass = Class.new do
+          include Dynamoid::Document
+          table name: :documents
+          field :title
+        end
+
+        document1 = klass.create!(title: 'Doc #1')
+        klass.create!(title: 'Doc #2')
+        document3 = klass.create!(title: 'Doc #3')
+
+        chain = Dynamoid::Criteria::Chain.new(klass)
+        chain.query = {title: 'Doc #2'}
+
+        expect { chain.destroy_all }.to change { klass.count }.by(-1)
+        expect(klass.all).to contain_exactly(document1, document3)
+      end
+
+      it "loads items with Query if can" do
+        klass = Class.new do
+          include Dynamoid::Document
+          table name: :documents
+          range :title
+        end
+
+        document = klass.create!(title: 'Doc #1')
+
+        chain = Dynamoid::Criteria::Chain.new(klass)
+        chain.query = {id: document.id}
+
+        expect(Dynamoid.adapter.client).to receive(:query).and_call_original
+        expect { chain.destroy_all }.to change { klass.count }.by(-1)
+      end
+
+      it "loads items with Scan if cannot use Query" do
+        klass = Class.new do
+          include Dynamoid::Document
+          table name: :documents
+          range :title
+          field :author
+        end
+
+        klass.create!(title: "The Cuckoo's Calling", author: 'J. K. Rowling')
+
+        chain = Dynamoid::Criteria::Chain.new(klass)
+        chain.query = {author: 'J. K. Rowling'}
+
+        expect(Dynamoid.adapter.client).to receive(:scan).and_call_original
+        expect { chain.destroy_all }.to change { klass.count }.by(-1)
+      end
+
       context "Query (partition key specified)" do
         it "works well with composite primary key" do
           klass = Class.new do
@@ -891,6 +942,18 @@ describe Dynamoid::Criteria::Chain do
     end
 
     context "there are no conditions" do
+      it "deletes all the items" do
+        klass = Class.new do
+          include Dynamoid::Document
+          table name: :documents
+          field :title
+        end
+
+        3.times { klass.create! }
+        chain = Dynamoid::Criteria::Chain.new(klass)
+        expect { chain.destroy_all }.to change { klass.count }.from(3).to(0)
+      end
+
       context "Scan" do
         it "works well with composite primary key" do
           klass = Class.new do
