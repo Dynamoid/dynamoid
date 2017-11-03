@@ -1087,23 +1087,6 @@ describe Dynamoid::Criteria::Chain do
       expect(stored_record.attributes[:updated_at]).to be_within(ts_epsilon).of(post1.attributes[:updated_at])
     end
 
-    describe 'destroy' do
-      it 'destroys tweet with a range simple range query' do
-        chain.query = { :tweet_id => "x" }
-        expect(chain.all.count).to eq 2
-        chain.destroy_all
-        expect(chain.consistent.all.count).to eq 0
-      end
-
-      it 'deletes one specific tweet with range' do
-        chain = Dynamoid::Criteria::Chain.new(Tweet)
-        chain.query = { :tweet_id => "xx", :group => "two" }
-        expect(chain.all.count).to eq 1
-        chain.destroy_all
-        expect(chain.consistent.all.count).to eq 0
-      end
-    end
-
     describe 'batch queries' do
       it 'returns all results' do
         expect(chain.batch(2).all.count).to eq tweets.size
