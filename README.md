@@ -452,6 +452,31 @@ It also supports .gte and .lte. Turning those into symbols and allowing a Rails 
 
 ### Global Secondary Indexes
 
+You can define index with `global_secondary_index`:
+
+```ruby
+class User
+  include Dynamoid::Document
+
+  field :name
+  field :age, :number
+
+  global_secondary_index hash_key: :age
+end
+```
+
+There are following options:
+* `hash_key` - is used as hash key of an index,
+* `range_key` - is used as range key of an index,
+* `projected_attributes` - list of fields to store in an index or has a predefiled value `:keys_only`, `:all`; `:keys_only` is a default,
+* `name` - an index will be created with this name when a table is created; by default name is generated and contains table name and keys names,
+* `read_capacity` - is used when table creates and used as an index capacity; by default equals `Dynamoid::Config.read_capacity`,
+* `write_capacity` - is used when table creates and used as an index capacity; by default equals `Dynamoid::Config.write_capacity`
+
+The only mandatory option is `name`.
+
+To use index in `Document.where` implicitly you need to project all the fields with option `projected_attributes: :all`.
+
 There are two ways to query Global Secondary Indexes (GSI).
 
 #### Explicit
