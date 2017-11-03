@@ -70,7 +70,7 @@ module Dynamoid #:nodoc:
 
       # Destroys all the records matching the criteria.
       #
-      def destroy_all
+      def delete_all
         ids = []
         ranges = []
 
@@ -90,6 +90,7 @@ module Dynamoid #:nodoc:
           Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
         end
       end
+      alias_method :destroy_all, :delete_all
 
       # The record limit is the limit of evaluated records returned by the
       # query or scan.

@@ -819,7 +819,7 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
-  describe '#destroy_all' do
+  describe '#delete_all' do
     it "deletes in batch" do
       klass = Class.new do
         include Dynamoid::Document
@@ -830,7 +830,7 @@ describe Dynamoid::Criteria::Chain do
       chain = Dynamoid::Criteria::Chain.new(klass)
 
       expect(Dynamoid.adapter.client).to receive(:batch_write_item).and_call_original
-      chain.destroy_all
+      chain.delete_all
     end
 
     context "when some conditions specified" do
@@ -848,7 +848,7 @@ describe Dynamoid::Criteria::Chain do
         chain = Dynamoid::Criteria::Chain.new(klass)
         chain.query = {title: 'Doc #2'}
 
-        expect { chain.destroy_all }.to change { klass.count }.by(-1)
+        expect { chain.delete_all }.to change { klass.count }.by(-1)
         expect(klass.all).to contain_exactly(document1, document3)
       end
 
@@ -865,7 +865,7 @@ describe Dynamoid::Criteria::Chain do
         chain.query = {id: document.id}
 
         expect(Dynamoid.adapter.client).to receive(:query).and_call_original
-        expect { chain.destroy_all }.to change { klass.count }.by(-1)
+        expect { chain.delete_all }.to change { klass.count }.by(-1)
       end
 
       it "loads items with Scan if cannot use Query" do
@@ -882,7 +882,7 @@ describe Dynamoid::Criteria::Chain do
         chain.query = {author: 'J. K. Rowling'}
 
         expect(Dynamoid.adapter.client).to receive(:scan).and_call_original
-        expect { chain.destroy_all }.to change { klass.count }.by(-1)
+        expect { chain.delete_all }.to change { klass.count }.by(-1)
       end
 
       context "Query (partition key specified)" do
@@ -899,7 +899,7 @@ describe Dynamoid::Criteria::Chain do
           chain = Dynamoid::Criteria::Chain.new(klass)
           chain.query = {id: document.id}
 
-          expect { chain.destroy_all }.to change { klass.count }.by(-1)
+          expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
 
         it "works well when there is partition key only" do
@@ -915,7 +915,7 @@ describe Dynamoid::Criteria::Chain do
           chain = Dynamoid::Criteria::Chain.new(klass)
           chain.query = {id: document.id}
 
-          expect { chain.destroy_all }.to change { klass.count }.by(-1)
+          expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
       end
 
@@ -933,7 +933,7 @@ describe Dynamoid::Criteria::Chain do
           chain = Dynamoid::Criteria::Chain.new(klass)
           chain.query = {title: 'Doc #1'}
 
-          expect { chain.destroy_all }.to change { klass.count }.by(-1)
+          expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
 
         it "works well when there is partition key only" do
@@ -949,7 +949,7 @@ describe Dynamoid::Criteria::Chain do
           chain = Dynamoid::Criteria::Chain.new(klass)
           chain.query = {title: 'Doc #1'}
 
-          expect { chain.destroy_all }.to change { klass.count }.by(-1)
+          expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
       end
     end
@@ -964,7 +964,7 @@ describe Dynamoid::Criteria::Chain do
 
         3.times { klass.create! }
         chain = Dynamoid::Criteria::Chain.new(klass)
-        expect { chain.destroy_all }.to change { klass.count }.from(3).to(0)
+        expect { chain.delete_all }.to change { klass.count }.from(3).to(0)
       end
 
       context "Scan" do
@@ -977,7 +977,7 @@ describe Dynamoid::Criteria::Chain do
 
           klass.create!(title: 'Doc #1')
           chain = Dynamoid::Criteria::Chain.new(klass)
-          expect { chain.destroy_all }.to change { klass.count }.by(-1)
+          expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
 
         it "works well when there is partition key only" do
@@ -988,7 +988,7 @@ describe Dynamoid::Criteria::Chain do
 
           klass.create!
           chain = Dynamoid::Criteria::Chain.new(klass)
-          expect { chain.destroy_all }.to change { klass.count }.by(-1)
+          expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
       end
     end
