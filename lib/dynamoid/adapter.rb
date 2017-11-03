@@ -108,7 +108,9 @@ module Dynamoid
           ids = range_key ? [[ids, range_key]] : ids
         end
 
-        batch_delete_item(table => ids)
+        ids.each_slice(25) do |ary|
+          batch_delete_item(table => ary)
+        end
       else
         delete_item(table, ids, options)
       end

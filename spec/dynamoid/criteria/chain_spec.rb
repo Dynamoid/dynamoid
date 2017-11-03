@@ -820,6 +820,19 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe '#destroy_all' do
+    it "deletes in batch" do
+      klass = Class.new do
+        include Dynamoid::Document
+        table name: :documents
+      end
+      klass.create!
+
+      chain = Dynamoid::Criteria::Chain.new(klass)
+
+      expect(Dynamoid.adapter.client).to receive(:batch_write_item).and_call_original
+      chain.destroy_all
+    end
+
     context "when some conditions specified" do
       it "deletes only proper items" do
         klass = Class.new do
