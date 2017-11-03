@@ -11,6 +11,7 @@ require "aws-sdk-resources"
 require "byebug" if ENV["DEBUG"]
 
 require "dynamodb_local"
+require "new_class_helper"
 
 ENV["ACCESS_KEY"] ||= "abcd"
 ENV["SECRET_KEY"] ||= "1234"
@@ -44,6 +45,8 @@ RSpec.configure do |config|
   config.order = :random
   config.raise_errors_for_deprecations!
   config.alias_it_should_behave_like_to :configured_with, "configured with"
+
+  config.include NewClassHelper
 
   config.before(:each) do
     DynamoDBLocal.delete_all_specified_tables!

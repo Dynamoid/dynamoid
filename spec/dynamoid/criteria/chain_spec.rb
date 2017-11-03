@@ -821,10 +821,7 @@ describe Dynamoid::Criteria::Chain do
 
   describe '#delete_all' do
     it "deletes in batch" do
-      klass = Class.new do
-        include Dynamoid::Document
-        table name: :documents
-      end
+      klass = new_class
       klass.create!
 
       chain = Dynamoid::Criteria::Chain.new(klass)
@@ -835,9 +832,7 @@ describe Dynamoid::Criteria::Chain do
 
     context "when some conditions specified" do
       it "deletes only proper items" do
-        klass = Class.new do
-          include Dynamoid::Document
-          table name: :documents
+        klass = new_class do
           field :title
         end
 
@@ -853,9 +848,7 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it "loads items with Query if can" do
-        klass = Class.new do
-          include Dynamoid::Document
-          table name: :documents
+        klass = new_class do
           range :title
         end
 
@@ -869,9 +862,7 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it "loads items with Scan if cannot use Query" do
-        klass = Class.new do
-          include Dynamoid::Document
-          table name: :documents
+        klass = new_class do
           range :title
           field :author
         end
@@ -887,9 +878,7 @@ describe Dynamoid::Criteria::Chain do
 
       context "Query (partition key specified)" do
         it "works well with composite primary key" do
-          klass = Class.new do
-            include Dynamoid::Document
-            table name: :documents
+          klass = new_class do
             range :title
           end
 
@@ -903,9 +892,7 @@ describe Dynamoid::Criteria::Chain do
         end
 
         it "works well when there is partition key only" do
-          klass = Class.new do
-            include Dynamoid::Document
-            table name: :documents
+          klass = new_class do
             field :title
           end
 
@@ -921,9 +908,7 @@ describe Dynamoid::Criteria::Chain do
 
       context "Scan (partition key is not specified)" do
         it "works well with composite primary key" do
-          klass = Class.new do
-            include Dynamoid::Document
-            table name: :documents
+          klass = new_class do
             range :title
           end
 
@@ -937,9 +922,7 @@ describe Dynamoid::Criteria::Chain do
         end
 
         it "works well when there is partition key only" do
-          klass = Class.new do
-            include Dynamoid::Document
-            table name: :documents
+          klass = new_class do
             field :title
           end
 
@@ -956,9 +939,7 @@ describe Dynamoid::Criteria::Chain do
 
     context "there are no conditions" do
       it "deletes all the items" do
-        klass = Class.new do
-          include Dynamoid::Document
-          table name: :documents
+        klass = new_class do
           field :title
         end
 
@@ -969,9 +950,7 @@ describe Dynamoid::Criteria::Chain do
 
       context "Scan" do
         it "works well with composite primary key" do
-          klass = Class.new do
-            include Dynamoid::Document
-            table name: :documents
+          klass = new_class do
             range :title
           end
 
@@ -981,10 +960,7 @@ describe Dynamoid::Criteria::Chain do
         end
 
         it "works well when there is partition key only" do
-          klass = Class.new do
-            include Dynamoid::Document
-            table name: :documents
-          end
+          klass = new_class
 
           klass.create!
           chain = Dynamoid::Criteria::Chain.new(klass)
