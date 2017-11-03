@@ -1,8 +1,8 @@
 module Dynamoid
   module AdapterPlugin
 
-    # The AwsSdkV2 adapter provides support for the aws-sdk version 2 for ruby.
-    class AwsSdkV2
+    # The AwsSdkV3 adapter provides support for the aws-sdk version 3 for Ruby.
+    class AwsSdkV3
       EQ = "EQ".freeze
       RANGE_MAP = {
           range_greater_than: 'GT',
@@ -113,7 +113,7 @@ module Dynamoid
       # Get many items at once from DynamoDB. More efficient than getting each item individually.
       #
       # @example Retrieve IDs 1 and 2 from the table testtable
-      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item({'table1' => ['1', '2']})
+      #   Dynamoid::AdapterPlugin::AwsSdkV3.batch_get_item({'table1' => ['1', '2']})
       #
       # @param [Hash] table_ids the hash of tables and IDs to retrieve
       # @param [Hash] options to be passed to underlying BatchGet call
@@ -170,7 +170,7 @@ module Dynamoid
       # @example Delete IDs 1 and 2 from the table testtable
       #   Dynamoid::AdapterPlugin::AwsSdk.batch_delete_item('table1' => ['1', '2'])
       #or
-      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
+      #   Dynamoid::AdapterPlugin::AwsSdkV3.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
       #
       # @param [Hash] options the hash of tables and IDs to delete
       #
@@ -977,7 +977,7 @@ module Dynamoid
         end
 
         #
-        # Returns an AttributeUpdates hash suitable for passing to the V2 Client API
+        # Returns an AttributeUpdates hash suitable for passing to the V3 Client API
         #
         def to_h
           ret = {}

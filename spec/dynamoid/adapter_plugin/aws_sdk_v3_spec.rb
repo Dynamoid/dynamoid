@@ -1,7 +1,7 @@
-require 'dynamoid/adapter_plugin/aws_sdk_v2'
+require 'dynamoid/adapter_plugin/aws_sdk_v3'
 require File.expand_path(File.dirname(__FILE__) + '../../../spec_helper')
 
-describe Dynamoid::AdapterPlugin::AwsSdkV2 do
+describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   #
   # These let() definitions create tables "dynamoid_tests_TestTable<N>" and return the
   # name of the table.
@@ -352,7 +352,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
         lsi = data.table.local_secondary_indexes.first
 
         # test
-        expect(Dynamoid::AdapterPlugin::AwsSdkV2::PARSE_TABLE_STATUS.call(resp)).to eq(Dynamoid::AdapterPlugin::AwsSdkV2::TABLE_STATUSES[:active])
+        expect(Dynamoid::AdapterPlugin::AwsSdkV3::PARSE_TABLE_STATUS.call(resp)).to eq(Dynamoid::AdapterPlugin::AwsSdkV3::TABLE_STATUSES[:active])
         expect(lsi.index_name).to eql "dynamoid_tests_table_lsi_index_id_range2"
         expect(lsi.key_schema.map(&:to_hash)).to eql [
           {:attribute_name=>"id", :key_type=>"HASH"},
@@ -382,7 +382,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
         gsi = data.table.global_secondary_indexes.first
 
         # test
-        expect(Dynamoid::AdapterPlugin::AwsSdkV2::PARSE_TABLE_STATUS.call(resp)).to eq(Dynamoid::AdapterPlugin::AwsSdkV2::TABLE_STATUSES[:active])
+        expect(Dynamoid::AdapterPlugin::AwsSdkV3::PARSE_TABLE_STATUS.call(resp)).to eq(Dynamoid::AdapterPlugin::AwsSdkV3::TABLE_STATUSES[:active])
         expect(gsi.index_name).to eql "dynamoid_tests_table_gsi_index_hash2_range2"
         expect(gsi.key_schema.map(&:to_hash)).to eql [
           {:attribute_name=>"hash2", :key_type=>"HASH"},
