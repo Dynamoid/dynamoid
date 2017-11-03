@@ -450,6 +450,16 @@ User.where("created_at.lt" => DateTime.now - 1.day).all
 
 It also supports .gte and .lte. Turning those into symbols and allowing a Rails SQL-style string syntax is in the works. You can only have one range argument per query, because of DynamoDB's inherent limitations, so use it sensibly!
 
+### Deleting
+
+In order to delete some items `delete_all` method should be used.
+Any callback wont be called. Items delete in efficient way in batch.
+
+```ruby
+Address.where(city: "London").delete_all
+
+```
+
 ### Global Secondary Indexes
 
 You can define index with `global_secondary_index`:
