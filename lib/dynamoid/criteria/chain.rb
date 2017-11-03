@@ -82,7 +82,7 @@ module Dynamoid #:nodoc:
 
           Dynamoid.adapter.delete(source.table_name, ids,{:range_key => ranges})
         else
-          Dynamoid.adapter.scan(source.table_name, query, scan_opts).collect do |hash|
+          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
