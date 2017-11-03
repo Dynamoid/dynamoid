@@ -821,6 +821,40 @@ describe Dynamoid::Criteria::Chain do
 
   describe '#destroy_all' do
     context "when some conditions specified" do
+      context "Query (partition key specified)" do
+        it "works well with composite primary key" do
+          klass = Class.new do
+            include Dynamoid::Document
+            table name: :documents
+            range :title
+          end
+
+          document = klass.create!(title: 'Doc #1')
+          klass.create!(title: 'Doc #2')
+
+          chain = Dynamoid::Criteria::Chain.new(klass)
+          chain.query = {id: document.id}
+
+          expect { chain.destroy_all }.to change { klass.count }.by(-1)
+        end
+
+        it "works well when there is partition key only" do
+          klass = Class.new do
+            include Dynamoid::Document
+            table name: :documents
+            field :title
+          end
+
+          document = klass.create!
+          klass.create!
+
+          chain = Dynamoid::Criteria::Chain.new(klass)
+          chain.query = {id: document.id}
+
+          expect { chain.destroy_all }.to change { klass.count }.by(-1)
+        end
+      end
+
       context "Scan (partition key is not specified)" do
         it "works well with composite primary key" do
           klass = Class.new do

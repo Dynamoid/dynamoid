@@ -77,10 +77,10 @@ module Dynamoid #:nodoc:
         if key_present?
           Dynamoid.adapter.query(source.table_name, range_query).collect do |hash|
             ids << hash[source.hash_key.to_sym]
-            ranges << hash[source.range_key.to_sym]
+            ranges << hash[source.range_key.to_sym] if source.range_key
           end
 
-          Dynamoid.adapter.delete(source.table_name, ids,{:range_key => ranges})
+          Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
         else
           Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).collect do |hash|
             ids << hash[source.hash_key.to_sym]
