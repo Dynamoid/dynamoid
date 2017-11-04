@@ -820,7 +820,7 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe '#delete_all' do
-    it "deletes in batch" do
+    it 'deletes in batch' do
       klass = new_class
       klass.create!
 
@@ -830,8 +830,8 @@ describe Dynamoid::Criteria::Chain do
       chain.delete_all
     end
 
-    context "when some conditions specified" do
-      it "deletes only proper items" do
+    context 'when some conditions specified' do
+      it 'deletes only proper items' do
         klass = new_class do
           field :title
         end
@@ -847,7 +847,7 @@ describe Dynamoid::Criteria::Chain do
         expect(klass.all).to contain_exactly(document1, document3)
       end
 
-      it "loads items with Query if can" do
+      it 'loads items with Query if can' do
         klass = new_class do
           range :title
         end
@@ -861,7 +861,7 @@ describe Dynamoid::Criteria::Chain do
         expect { chain.delete_all }.to change { klass.count }.by(-1)
       end
 
-      it "loads items with Scan if cannot use Query" do
+      it 'loads items with Scan if cannot use Query' do
         klass = new_class do
           range :title
           field :author
@@ -876,8 +876,8 @@ describe Dynamoid::Criteria::Chain do
         expect { chain.delete_all }.to change { klass.count }.by(-1)
       end
 
-      context "Query (partition key specified)" do
-        it "works well with composite primary key" do
+      context 'Query (partition key specified)' do
+        it 'works well with composite primary key' do
           klass = new_class do
             range :title
           end
@@ -891,7 +891,7 @@ describe Dynamoid::Criteria::Chain do
           expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
 
-        it "works well when there is partition key only" do
+        it 'works well when there is partition key only' do
           klass = new_class do
             field :title
           end
@@ -906,8 +906,8 @@ describe Dynamoid::Criteria::Chain do
         end
       end
 
-      context "Scan (partition key is not specified)" do
-        it "works well with composite primary key" do
+      context 'Scan (partition key is not specified)' do
+        it 'works well with composite primary key' do
           klass = new_class do
             range :title
           end
@@ -921,7 +921,7 @@ describe Dynamoid::Criteria::Chain do
           expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
 
-        it "works well when there is partition key only" do
+        it 'works well when there is partition key only' do
           klass = new_class do
             field :title
           end
@@ -937,8 +937,8 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context "there are no conditions" do
-      it "deletes all the items" do
+    context 'there are no conditions' do
+      it 'deletes all the items' do
         klass = new_class do
           field :title
         end
@@ -948,8 +948,8 @@ describe Dynamoid::Criteria::Chain do
         expect { chain.delete_all }.to change { klass.count }.from(3).to(0)
       end
 
-      context "Scan" do
-        it "works well with composite primary key" do
+      context 'Scan' do
+        it 'works well with composite primary key' do
           klass = new_class do
             range :title
           end
@@ -959,7 +959,7 @@ describe Dynamoid::Criteria::Chain do
           expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
 
-        it "works well when there is partition key only" do
+        it 'works well when there is partition key only' do
           klass = new_class
 
           klass.create!
@@ -988,9 +988,9 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe 'Tweet' do
-    let!(:tweet1) { Tweet.create(:tweet_id => "x", :group => "one") }
-    let!(:tweet2) { Tweet.create(:tweet_id => "x", :group => "two") }
-    let!(:tweet3) { Tweet.create(:tweet_id => "xx", :group => "two") }
+    let!(:tweet1) { Tweet.create(:tweet_id => 'x', :group => 'one') }
+    let!(:tweet2) { Tweet.create(:tweet_id => 'x', :group => 'two') }
+    let!(:tweet3) { Tweet.create(:tweet_id => 'xx', :group => 'two') }
     let(:tweets) { [tweet1, tweet2, tweet3] }
     let(:chain) { Dynamoid::Criteria::Chain.new(Tweet) }
 
@@ -1001,14 +1001,14 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'finds tweets with a start' do
-      chain.query = { :tweet_id => "x" }
+      chain.query = { :tweet_id => 'x' }
       chain.start(tweet1)
       expect(chain.count).to eq 1
       expect(chain.first).to eq tweet2
     end
 
     it 'finds one specific tweet' do
-      chain.query = { :tweet_id => "xx", :group => "two" }
+      chain.query = { :tweet_id => 'xx', :group => 'two' }
       expect(chain.all.to_a).to eq [tweet3]
     end
 
@@ -1018,7 +1018,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(:post_id => 'x', :posted_at => time)
       post2 = Post.create(:post_id => 'x', :posted_at => (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => "x", "posted_at.gt" => (time + ts_epsilon) }
+      query = { :post_id => 'x', 'posted_at.gt' => (time + ts_epsilon) }
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first
@@ -1035,7 +1035,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(:post_id => 'x', :posted_at => time)
       post2 = Post.create(:post_id => 'x', :posted_at => (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => "x", "posted_at.lt" => (time + 1.hour - ts_epsilon) }
+      query = { :post_id => 'x', 'posted_at.lt' => (time + 1.hour - ts_epsilon) }
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first
@@ -1052,7 +1052,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(:post_id => 'x', :posted_at => time)
       post2 = Post.create(:post_id => 'x', :posted_at => (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => "x", "posted_at.between" => [time - ts_epsilon, time + ts_epsilon]}
+      query = { :post_id => 'x', 'posted_at.between' => [time - ts_epsilon, time + ts_epsilon]}
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first

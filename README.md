@@ -457,7 +457,6 @@ Any callback wont be called. Items delete in efficient way in batch.
 
 ```ruby
 Address.where(city: "London").delete_all
-
 ```
 
 ### Global Secondary Indexes
