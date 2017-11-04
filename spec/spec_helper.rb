@@ -11,7 +11,6 @@ require "aws-sdk-resources"
 require "byebug" if ENV["DEBUG"]
 
 require "dynamodb_local"
-require "new_class_helper"
 
 ENV["ACCESS_KEY"] ||= "abcd"
 ENV["SECRET_KEY"] ||= "1234"
