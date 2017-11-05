@@ -108,9 +108,7 @@ module Dynamoid
           ids = range_key ? [[ids, range_key]] : ids
         end
 
-        ids.each_slice(25) do |ary|
-          batch_delete_item(table => ary)
-        end
+        batch_delete_item(table => ids)
       else
         delete_item(table, ids, options)
       end
@@ -122,7 +120,7 @@ module Dynamoid
     # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
     #
     # @since 0.2.0
-    def scan(table, query, opts = {})
+    def scan(table, query = {}, opts = {})
       benchmark('Scan', table, query) {adapter.scan(table, query, opts)}
     end
 

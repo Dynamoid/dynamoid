@@ -45,6 +45,8 @@ module Dynamoid
         #   because Amazon, damnit.
         resp.send(lookup).table_status
       }
+      BATCH_WRITE_ITEM_REQUESTS_LIMIT = 25
+
       attr_reader :table_cache
 
       # Establish the connection to DynamoDB.
@@ -169,30 +171,41 @@ module Dynamoid
       #
       # @example Delete IDs 1 and 2 from the table testtable
       #   Dynamoid::AdapterPlugin::AwsSdk.batch_delete_item('table1' => ['1', '2'])
-      #or
+      # or
       #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
       #
       # @param [Hash] options the hash of tables and IDs to delete
       #
-      # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
+      # See:
+      # * http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
+      # * http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
+      #
+      # TODO handle rejections because of internal processing failures
       def batch_delete_item(options)
-        request_items = {}
+        requests = []
 
         options.each_pair do |table_name, ids|
           table = describe_table(table_name)
-          request_items[table_name] = ids.map { |id|
-            {delete_request: {key: key_stanza(table, *id)}}
-          }
+
+          ids.each_slice(BATCH_WRITE_ITEM_REQUESTS_LIMIT) do |sliced_ids|
+            delete_requests = sliced_ids.map { |id|
+              {delete_request: {key: key_stanza(table, *id)}}
+            }
+
+            requests << {table_name => delete_requests}
+          end
         end
 
         begin
-          client.batch_write_item(
-            {
-              request_items: request_items,
-              return_consumed_capacity: "TOTAL",
-              return_item_collection_metrics: "SIZE"
-            }
-          )
+          requests.map do |request_items|
+            client.batch_write_item(
+              {
+                request_items: request_items,
+                return_consumed_capacity: "TOTAL",
+                return_item_collection_metrics: "SIZE"
+              }
+            )
+          end
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
           raise Dynamoid::Errors::ConditionalCheckFailedException, e
         end
@@ -568,7 +581,7 @@ module Dynamoid
       # @since 1.0.0
       #
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#scan-instance_method
-      def scan(table_name, scan_hash, select_opts = {})
+      def scan(table_name, scan_hash = {}, select_opts = {})
         request = { table_name: table_name }
         request[:consistent_read] = true if select_opts.delete(:consistent_read)
 

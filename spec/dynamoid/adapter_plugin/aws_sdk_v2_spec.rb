@@ -545,6 +545,38 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(results[test_table3]).to be_blank
     end
 
+    it 'performs BatchDeleteItem with more than 25 items' do
+      (25 + 1).times do |i|
+        Dynamoid.adapter.put_item(test_table1, id: i.to_s)
+      end
+
+      expect(Dynamoid.adapter.client).to receive(:batch_write_item)
+        .exactly(2).times.and_call_original
+      Dynamoid.adapter.batch_delete_item(test_table1 => (0 .. 25).map(&:to_s))
+
+      results = Dynamoid.adapter.scan(test_table1)
+      expect(results.to_a.size).to eq 0
+    end
+
+    it 'performs BatchDeleteItem with more than 25 items and different tables' do
+      13.times do |i|
+        Dynamoid.adapter.put_item(test_table1, id: i.to_s)
+        Dynamoid.adapter.put_item(test_table2, id: i.to_s)
+      end
+
+      expect(Dynamoid.adapter.client).to receive(:batch_write_item)
+        .exactly(2).times.and_call_original
+      Dynamoid.adapter.batch_delete_item(
+        test_table1 => (0 .. 12).map(&:to_s),
+        test_table2 => (0 .. 12).map(&:to_s))
+
+      results = Dynamoid.adapter.scan(test_table1)
+      expect(results.to_a.size).to eq 0
+
+      results = Dynamoid.adapter.scan(test_table2)
+      expect(results.to_a.size).to eq 0
+    end
+
     # ListTables
     it 'performs ListTables' do
       #Force creation of the tables
