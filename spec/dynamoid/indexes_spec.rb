@@ -124,7 +124,7 @@ describe Dynamoid::Indexes do
         Class.new do
           include Dynamoid::Document
           table :name => :mytable, :key => :some_hash_field
-          range :some_range_field #@WHAT
+          range :some_range_field # @WHAT
 
           local_secondary_index(:range_key => :secondary_range_field)
         end

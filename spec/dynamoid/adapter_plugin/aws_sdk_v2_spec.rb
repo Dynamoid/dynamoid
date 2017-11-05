@@ -577,7 +577,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
 
     # ListTables
     it 'performs ListTables' do
-      #Force creation of the tables
+      # Force creation of the tables
       test_table1; test_table2; test_table3; test_table4
 
       expect(Dynamoid.adapter.list_tables).to include test_table1

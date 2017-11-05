@@ -23,7 +23,7 @@ module Dynamoid #:nodoc:
       field :created_at, :datetime
       field :updated_at, :datetime
 
-      field :id #Default primary key
+      field :id # Default primary key
     end
 
     module ClassMethods
@@ -73,7 +73,7 @@ module Dynamoid #:nodoc:
       end
 
       def table(options)
-        #a default 'id' column is created when Dynamoid::Document is included
+        # a default 'id' column is created when Dynamoid::Document is included
         unless(attributes.has_key? hash_key)
           remove_field :id
           field(hash_key)

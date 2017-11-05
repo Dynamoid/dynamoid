@@ -290,7 +290,7 @@ describe Dynamoid::Fields do
     end
 
     it "has only the base and derived fields on a sub-class" do
-      #Only NuclearSubmarines have torpedoes
+      # Only NuclearSubmarines have torpedoes
       expect(Car.attributes).to_not have_key(:torpedoes)
     end
   end

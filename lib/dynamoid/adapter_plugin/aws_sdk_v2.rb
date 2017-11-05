@@ -89,7 +89,7 @@ module Dynamoid
       # @param [Array]  items to be processed
       # @param [Hash]   additional options
       #
-      #See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
+      # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
       def batch_write_item table_name, objects, options = {}
         request_items = []
         options ||= {}
@@ -713,7 +713,7 @@ module Dynamoid
         end
       end
 
-      #Converts from symbol to the API string for the given data type
+      # Converts from symbol to the API string for the given data type
       # E.g. :number -> 'N'
       def api_type(type)
         case(type)

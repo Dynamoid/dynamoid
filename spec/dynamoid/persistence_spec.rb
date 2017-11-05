@@ -423,7 +423,7 @@ describe Dynamoid::Persistence do
 
     it 'raises when undumping a column with an unknown field type' do
       expect do
-        clazz.new(:deliverable => true) #undump is called here
+        clazz.new(:deliverable => true) # undump is called here
       end.to raise_error(ArgumentError)
     end
 

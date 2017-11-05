@@ -397,7 +397,7 @@ module Dynamoid
         if(self.class.attributes[:lock_version])
           conditions ||= {}
           self.lock_version = (lock_version || 0) + 1
-          #Uses the original lock_version value from ActiveModel::Dirty in case user changed lock_version manually
+          # Uses the original lock_version value from ActiveModel::Dirty in case user changed lock_version manually
           (conditions[:if] ||= {})[:lock_version] = changes[:lock_version][0] if(changes[:lock_version][0])
         end
 

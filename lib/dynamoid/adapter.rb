@@ -99,10 +99,10 @@ module Dynamoid
     # @param [Array] range_key of the record to delete, can also be a string of just one range_key
     #
     def delete(table, ids, options = {})
-      range_key = options[:range_key] #array of range keys that matches the ids passed in
+      range_key = options[:range_key] # array of range keys that matches the ids passed in
       if ids.respond_to?(:each)
         if range_key.respond_to?(:each)
-          #turn ids into array of arrays each element being hash_key, range_key
+          # turn ids into array of arrays each element being hash_key, range_key
           ids = ids.each_with_index.map{|id, i| [id, range_key[i]]}
         else
           ids = range_key ? [[ids, range_key]] : ids
