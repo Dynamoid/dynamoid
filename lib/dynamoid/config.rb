@@ -11,22 +11,22 @@ module Dynamoid
     include ActiveModel::Observing if defined?(ActiveModel::Observing)
 
     # All the default options.
-    option :adapter, :default => 'aws_sdk_v2'
-    option :namespace, :default => defined?(Rails) ? "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" : 'dynamoid'
-    option :access_key, :default => nil
-    option :secret_key, :default => nil
-    option :region, :default => nil
-    option :batch_size, :default => 100
-    option :read_capacity, :default => 100
-    option :write_capacity, :default => 20
-    option :warn_on_scan, :default => true
-    option :endpoint, :default => nil
-    option :identity_map, :default => false
-    option :timestamps, :default => true
-    option :sync_retry_max_times, :default => 60 # a bit over 2 minutes
-    option :sync_retry_wait_seconds, :default => 2
-    option :convert_big_decimal, :default => false
-    option :models_dir, :default => 'app/models' # perhaps you keep your dynamoid models in a different directory?
+    option :adapter, default: 'aws_sdk_v2'
+    option :namespace, default: defined?(Rails) ? "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" : 'dynamoid'
+    option :access_key, default: nil
+    option :secret_key, default: nil
+    option :region, default: nil
+    option :batch_size, default: 100
+    option :read_capacity, default: 100
+    option :write_capacity, default: 20
+    option :warn_on_scan, default: true
+    option :endpoint, default: nil
+    option :identity_map, default: false
+    option :timestamps, default: true
+    option :sync_retry_max_times, default: 60 # a bit over 2 minutes
+    option :sync_retry_wait_seconds, default: 2
+    option :convert_big_decimal, default: false
+    option :models_dir, default: 'app/models' # perhaps you keep your dynamoid models in a different directory?
     option :application_timezone, default: :local # available values - :utc, :local, time zone names
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.

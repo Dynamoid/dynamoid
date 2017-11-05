@@ -177,17 +177,17 @@ module Dynamoid #:nodoc:
 
         case operation
         when 'gt'
-          { :range_greater_than => val }
+          { range_greater_than: val }
         when 'lt'
-          { :range_less_than  => val }
+          { range_less_than: val }
         when 'gte'
-          { :range_gte  => val }
+          { range_gte: val }
         when 'lte'
-          { :range_lte => val }
+          { range_lte: val }
         when 'between'
-          { :range_between => val }
+          { range_between: val }
         when 'begins_with'
-          { :range_begins_with => val }
+          { range_begins_with: val }
         end
       end
 
@@ -220,7 +220,7 @@ module Dynamoid #:nodoc:
       end
 
       def consistent_opts
-        { :consistent_read => consistent_read }
+        { consistent_read: consistent_read }
       end
 
       def range_query
@@ -235,7 +235,7 @@ module Dynamoid #:nodoc:
           opts[:range_key] = @range_key
           if query[@range_key].present?
             value = type_cast_condition_parameter(@range_key, query[@range_key])
-            opts.update(:range_eq => value)
+            opts.update(range_eq: value)
           end
 
           query.keys.select { |k| k.to_s =~ /^#{@range_key}\./ }.each do |key|

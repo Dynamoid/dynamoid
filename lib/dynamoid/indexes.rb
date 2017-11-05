@@ -39,8 +39,8 @@ module Dynamoid
         end
 
         index_opts = {
-            :read_capacity => Dynamoid::Config.read_capacity,
-            :write_capacity => Dynamoid::Config.write_capacity
+            read_capacity: Dynamoid::Config.read_capacity,
+            write_capacity: Dynamoid::Config.write_capacity
         }.merge(options)
 
         index_opts[:dynamoid_class] = self
@@ -83,9 +83,9 @@ module Dynamoid
         end
 
         index_opts = options.merge({
-          :dynamoid_class => self,
-          :type => :local_secondary,
-          :hash_key => primary_hash_key
+          dynamoid_class: self,
+          type: :local_secondary,
+          hash_key: primary_hash_key
         })
 
         index = Dynamoid::Indexes::Index.new(index_opts)

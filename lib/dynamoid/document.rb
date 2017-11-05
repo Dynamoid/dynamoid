@@ -179,7 +179,7 @@ module Dynamoid #:nodoc:
     # @since 0.2.0
     def reload
       range_key_value = range_value ? dumped_range_value : nil
-      self.attributes = self.class.find(hash_key, :range_key => range_key_value, :consistent_read => true).attributes
+      self.attributes = self.class.find(hash_key, range_key: range_key_value, consistent_read: true).attributes
       @associations.values.each(&:reset)
       self
     end

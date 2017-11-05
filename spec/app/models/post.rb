@@ -9,7 +9,7 @@ class Post
   field :length
   field :name
 
-  local_secondary_index :range_key => :name
-  global_secondary_index :hash_key => :name, :range_key => :posted_at
-  global_secondary_index :hash_key => :length
+  local_secondary_index range_key: :name
+  global_secondary_index hash_key: :name, range_key: :posted_at
+  global_secondary_index hash_key: :length
 end

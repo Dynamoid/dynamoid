@@ -234,8 +234,8 @@ module Dynamoid
         gs_indexes = options[:global_secondary_indexes]
 
         key_schema = {
-          :hash_key_schema => { key => (options[:hash_key_type] || :string) },
-          :range_key_schema => options[:range_key]
+          hash_key_schema: { key => (options[:hash_key_type] || :string) },
+          range_key_schema: options[:range_key]
         }
         attribute_definitions = build_all_attribute_definitions(
           key_schema,
@@ -794,10 +794,10 @@ module Dynamoid
         key_schema = aws_key_schema(index.hash_key_schema, index.range_key_schema)
 
         hash = {
-          :index_name => index.name,
-          :key_schema => key_schema,
-          :projection => {
-            :projection_type => index.projection_type.to_s.upcase
+          index_name: index.name,
+          key_schema: key_schema,
+          projection: {
+            projection_type: index.projection_type.to_s.upcase
           }
         }
 
@@ -809,8 +809,8 @@ module Dynamoid
         # Only global secondary indexes have a separate throughput.
         if index.type == :global_secondary
           hash[:provisioned_throughput] = {
-            :read_capacity_units => index.read_capacity,
-            :write_capacity_units => index.write_capacity
+            read_capacity_units: index.read_capacity,
+            write_capacity_units: index.write_capacity
           }
         end
         hash
@@ -910,8 +910,8 @@ module Dynamoid
         aws_type = api_type(dynamoid_type)
 
         {
-          :attribute_name => name.to_s,
-          :attribute_type => aws_type
+          attribute_name: name.to_s,
+          attribute_type: aws_type
         }
       end
 

@@ -5,7 +5,7 @@ module Dynamoid #:nodoc:
     module SingleAssociation
       include Association
 
-      delegate :class, :to => :target
+      delegate :class, to: :target
 
       def setter(object)
         delete

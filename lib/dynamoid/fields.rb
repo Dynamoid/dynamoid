@@ -50,7 +50,7 @@ module Dynamoid #:nodoc:
           Dynamoid.logger.warn("Field type :float, which you declared for '#{name}', is deprecated in favor of :number.")
           type = :number
         end
-        self.attributes = attributes.merge(name => {:type => type}.merge(options))
+        self.attributes = attributes.merge(name => {type: type}.merge(options))
 
         generated_methods.module_eval do
           define_method(named) { read_attribute(named) }

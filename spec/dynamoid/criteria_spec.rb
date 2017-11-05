@@ -1,11 +1,11 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Criteria do
-  let!(:user1) {User.create(:name => 'Josh', :email => 'josh@joshsymonds.com', admin: true)}
-  let!(:user2) {User.create(:name => 'Justin', :email => 'justin@joshsymonds.com', admin: false)}
+  let!(:user1) {User.create(name: 'Josh', email: 'josh@joshsymonds.com', admin: true)}
+  let!(:user2) {User.create(name: 'Justin', email: 'justin@joshsymonds.com', admin: false)}
 
   it 'finds first using where' do
-    expect(User.where(:name => 'Josh').first).to eq user1
+    expect(User.where(name: 'Josh').first).to eq user1
   end
 
   it 'finds last using where' do
@@ -13,20 +13,20 @@ describe Dynamoid::Criteria do
   end
 
   it 'finds all using where' do
-    expect(User.where(:name => 'Josh').all.to_a).to eq [user1]
+    expect(User.where(name: 'Josh').all.to_a).to eq [user1]
   end
 
   context 'transforms booleans' do
     it 'accepts native' do
-      expect(User.where(:admin => 't').all.to_a).to eq [user1]
+      expect(User.where(admin: 't').all.to_a).to eq [user1]
     end
 
     it 'accepts string' do
-      expect(User.where(:admin => 'true').all.to_a).to eq [user1]
+      expect(User.where(admin: 'true').all.to_a).to eq [user1]
     end
 
     it 'accepts boolean' do
-      expect(User.where(:admin => true).all.to_a).to eq [user1]
+      expect(User.where(admin: true).all.to_a).to eq [user1]
     end
   end
 
@@ -57,7 +57,7 @@ describe Dynamoid::Criteria do
   end
 
   it 'returns N records' do
-    5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }
+    5.times { |i| User.create(name: 'Josh', email: 'josh_#{i}@joshsymonds.com') }
     expect(User.record_limit(2).all.count).to eq(2)
   end
 
@@ -74,18 +74,18 @@ describe Dynamoid::Criteria do
   it 'send consistent option to adapter' do
     pending 'This test is broken as we are overriding the consistent_read option to true inside the adapter'
     expect(Dynamoid::Adapter).to receive(:get_item) { |table_name, key, options| options[:consistent_read] == true }
-    User.where(:name => 'x').consistent.first
+    User.where(name: 'x').consistent.first
 
     expect(Dynamoid::Adapter).to receive(:query) { |table_name, options| options[:consistent_read] == true }.returns([])
-    Tweet.where(:tweet_id => 'xx', :group => 'two').consistent.all
+    Tweet.where(tweet_id: 'xx', group: 'two').consistent.all
 
     expect(Dynamoid::Adapter).to receive(:query) { |table_name, options| options[:consistent_read] == false }.returns([])
-    Tweet.where(:tweet_id => 'xx', :group => 'two').all
+    Tweet.where(tweet_id: 'xx', group: 'two').all
   end
 
   it 'does not raise exception when consistent_read is used with scan' do
     expect do
-      User.where(:password => 'password').consistent.first
+      User.where(password: 'password').consistent.first
     end.not_to raise_error(Dynamoid::Errors::InvalidQuery)
   end
 

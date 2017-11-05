@@ -41,14 +41,14 @@ module Dynamoid
           range_key_hash = nil
         end
         options = {
-          :id => self.hash_key,
-          :table_name => self.table_name,
-          :write_capacity => self.write_capacity,
-          :read_capacity => self.read_capacity,
-          :range_key => range_key_hash,
-          :hash_key_type => dynamo_type(attributes[self.hash_key][:type]),
-          :local_secondary_indexes => self.local_secondary_indexes.values,
-          :global_secondary_indexes => self.global_secondary_indexes.values
+          id: self.hash_key,
+          table_name: self.table_name,
+          write_capacity: self.write_capacity,
+          read_capacity: self.read_capacity,
+          range_key: range_key_hash,
+          hash_key_type: dynamo_type(attributes[self.hash_key][:type]),
+          local_secondary_indexes: self.local_secondary_indexes.values,
+          global_secondary_indexes: self.global_secondary_indexes.values
         }.merge(options)
 
         Dynamoid.adapter.create_table(options[:table_name], options[:id], options)
@@ -283,7 +283,7 @@ module Dynamoid
       self.class.create_table
 
       if new_record?
-        conditions = { :unless_exists => [self.class.hash_key]}
+        conditions = { unless_exists: [self.class.hash_key]}
         conditions[:unless_exists] << range_key if(range_key)
 
         run_callbacks(:create) { persist(conditions) }
@@ -299,10 +299,10 @@ module Dynamoid
     #
     def update!(conditions = {}, &block)
       run_callbacks(:update) do
-        options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
+        options = range_key ? {range_key: dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
 
         begin
-          new_attrs = Dynamoid.adapter.update_item(self.class.table_name, self.hash_key, options.merge(:conditions => conditions)) do |t|
+          new_attrs = Dynamoid.adapter.update_item(self.class.table_name, self.hash_key, options.merge(conditions: conditions)) do |t|
             if(self.class.attributes[:lock_version])
               t.add(lock_version: 1)
             end
@@ -341,11 +341,11 @@ module Dynamoid
     #
     # @since 0.2.0
     def delete
-      options = range_key ? {:range_key => dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
+      options = range_key ? {range_key: dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
 
       # Add an optimistic locking check if the lock_version column exists
       if(self.class.attributes[:lock_version])
-        conditions = {:if => {}}
+        conditions = {if: {}}
         conditions[:if][:lock_version] =
           if changes[:lock_version].nil?
             self.lock_version

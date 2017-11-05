@@ -95,7 +95,7 @@ describe Dynamoid::Fields do
 
     it 'should update all attributes' do
       expect(address).to receive(:save).once.and_return(true)
-      address.update_attributes(:city => 'Chicago')
+      address.update_attributes(city: 'Chicago')
       expect(address[:city]).to eq 'Chicago'
       expect(address.id).to eq original_id
     end
@@ -204,11 +204,11 @@ describe Dynamoid::Fields do
       Class.new do
         include Dynamoid::Document
 
-        field :name, :string, :default => 'x'
-        field :uid, :integer, :default => lambda { 42 }
+        field :name, :string, default: 'x'
+        field :uid, :integer, default: lambda { 42 }
         field :config, :serialized, default: {}
-        field :version, :integer, :default => 1
-        field :hidden, :boolean, :default => false
+        field :version, :integer, default: 1
+        field :hidden, :boolean, default: false
 
         def self.name
           'Document'

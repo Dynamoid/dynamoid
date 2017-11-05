@@ -89,7 +89,7 @@ module Dynamoid
       # @since 0.2.0
       def association(type, name, options = {})
         field "#{name}_ids".to_sym, :set
-        self.associations[name] = options.merge(:type => type)
+        self.associations[name] = options.merge(type: type)
         define_method(name) do
           @associations[:"#{name}_ids"] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
         end

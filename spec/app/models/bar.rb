@@ -12,5 +12,5 @@ class Bar
 
   validates_presence_of :name, :visited_at
 
-  global_secondary_index :hash_key => :name, :range_key => :visited_at
+  global_secondary_index hash_key: :name, range_key: :visited_at
 end
