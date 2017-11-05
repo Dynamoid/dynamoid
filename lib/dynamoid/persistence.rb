@@ -21,7 +21,7 @@ module Dynamoid
         table_base_name = options[:name] || base_class.name.split('::').last
           .downcase.pluralize
 
-        @table_name ||= [Dynamoid::Config.namespace.to_s,table_base_name].reject(&:empty?).join("_")
+        @table_name ||= [Dynamoid::Config.namespace.to_s, table_base_name].reject(&:empty?).join("_")
       end
 
       # Creates a table.

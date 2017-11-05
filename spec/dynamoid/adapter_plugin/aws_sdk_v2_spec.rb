@@ -245,11 +245,11 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     end
 
     it 'performs query on a table with a range and selects items in a range' do
-      expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_between => [0.0,3.0]).to_a).to eq [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
+      expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_between => [0.0, 3.0]).to_a).to eq [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
 
     it 'performs query on a table with a range and selects items in a range with :select option' do
-      expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_between => [0.0,3.0], :select =>  'ALL_ATTRIBUTES').to_a).to eq [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
+      expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_between => [0.0, 3.0], :select =>  'ALL_ATTRIBUTES').to_a).to eq [{:id => '1', :range => BigDecimal.new(1)}, {:id => '1', :range => BigDecimal.new(3)}]
     end
 
     it 'performs query on a table with a range and selects items greater than' do
@@ -472,7 +472,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Josh', :range => 1.0})
       Dynamoid.adapter.put_item(test_table3, {:id => '2', :name => 'Justin', :range => 2.0})
 
-      results = Dynamoid.adapter.batch_get_item(test_table3 => [['1', 1.0],['2', 2.0]])
+      results = Dynamoid.adapter.batch_get_item(test_table3 => [['1', 1.0], ['2', 2.0]])
       expect(results.size).to eq 1
 
       expect(results[test_table3]).to include({:name => 'Josh', :id => '1', :range => 1.0})
@@ -536,8 +536,8 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       Dynamoid.adapter.put_item(test_table3, {:id => '1', :name => 'Josh', :range => 1.0})
       Dynamoid.adapter.put_item(test_table3, {:id => '2', :name => 'Justin', :range => 2.0})
 
-      Dynamoid.adapter.batch_delete_item(test_table3 => [['1', 1.0],['2', 2.0]])
-      results = Dynamoid.adapter.batch_get_item(test_table3 => [['1', 1.0],['2', 2.0]])
+      Dynamoid.adapter.batch_delete_item(test_table3 => [['1', 1.0], ['2', 2.0]])
+      results = Dynamoid.adapter.batch_get_item(test_table3 => [['1', 1.0], ['2', 2.0]])
 
       expect(results.size).to eq 1
       expect(results[test_table3]).to be_blank

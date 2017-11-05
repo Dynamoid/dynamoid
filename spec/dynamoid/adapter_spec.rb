@@ -96,6 +96,6 @@ describe Dynamoid::Adapter do
 
   it 'deletes through the adapter for many IDs and a range key' do
     expect(subject).to receive(:batch_delete_item).with({test_table => [['1', 2.0], ['2', 2.0]]}).and_return(nil)
-    subject.delete(test_table, many_ids, :range_key => [2.0,2.0])
+    subject.delete(test_table, many_ids, :range_key => [2.0, 2.0])
   end
 end

@@ -141,7 +141,7 @@ module Dynamoid
             request_items = Hash.new{|h, k| h[k] = []}
 
             keys = if rng.present?
-              Array(ids).map do |h,r|
+              Array(ids).map do |h, r|
                 { hk => h, rng => r }
               end
             else
@@ -513,7 +513,7 @@ module Dynamoid
         end
 
         query_filter = {}
-        opts.reject {|k,_| k.in? RANGE_MAP.keys}.each do |attr, hash|
+        opts.reject {|k, _| k.in? RANGE_MAP.keys}.each do |attr, hash|
           query_filter[attr] = {
             comparison_operator: FIELD_MAP[hash.keys[0]],
             attribute_value_list: [
@@ -738,13 +738,13 @@ module Dynamoid
       # @return an Expected stanza for the given conditions hash
       #
       def expected_stanza(conditions = nil)
-        expected = Hash.new { |h,k| h[k] = {} }
+        expected = Hash.new { |h, k| h[k] = {} }
         return expected unless conditions
 
         conditions.delete(:unless_exists).try(:each) do |col|
           expected[col.to_s][:exists] = false
         end
-        conditions.delete(:if).try(:each) do |col,val|
+        conditions.delete(:if).try(:each) do |col, val|
           expected[col.to_s][:value] = val
         end
 
@@ -765,7 +765,7 @@ module Dynamoid
       #
       def result_item_to_hash(item)
         {}.tap do |r|
-          item.each { |k,v| r[k.to_sym] = v }
+          item.each { |k, v| r[k.to_sym] = v }
         end
       end
 
@@ -936,7 +936,7 @@ module Dynamoid
         def range_type
           range_type ||= schema[:attribute_definitions].find { |d|
             d[:attribute_name] == range_key
-          }.try(:fetch,:attribute_type, nil)
+          }.try(:fetch, :attribute_type, nil)
         end
 
         def hash_key
@@ -1005,19 +1005,19 @@ module Dynamoid
         def to_h
           ret = {}
 
-          @additions.each do |k,v|
+          @additions.each do |k, v|
             ret[k.to_s] = {
               action: ADD,
               value: v
             }
           end
-          @deletions.each do |k,v|
+          @deletions.each do |k, v|
             ret[k.to_s] = {
               action: DELETE,
               value: v
             }
           end
-          @updates.each do |k,v|
+          @updates.each do |k, v|
             ret[k.to_s] = {
               action: PUT,
               value: v

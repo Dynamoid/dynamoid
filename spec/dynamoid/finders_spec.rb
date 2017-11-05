@@ -102,7 +102,7 @@ describe Dynamoid::Finders do
       user1 = User.create(:name => 'Josh', :email => 'josh@joshsymonds.com')
       user2 = User.create(:name => 'Justin', :email => 'justin@joshsymonds.com')
 
-      array = User.find_all_by_name_and_email('Gaga','josh@joshsymonds.com').to_a
+      array = User.find_all_by_name_and_email('Gaga', 'josh@joshsymonds.com').to_a
 
       expect(array).to be_empty
     end
