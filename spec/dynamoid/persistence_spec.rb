@@ -59,7 +59,7 @@ describe Dynamoid::Persistence do
         @user = User.create(:name => 'Josh')
         @user.destroy
 
-        expect(Dynamoid.adapter.read("dynamoid_tests_users", @user.id)).to be_nil
+        expect(Dynamoid.adapter.read('dynamoid_tests_users', @user.id)).to be_nil
       end
 
       it 'returns false when destroy fails (due to callback)' do
@@ -86,7 +86,7 @@ describe Dynamoid::Persistence do
   it 'assigns itself an id on save' do
     address.save
 
-    expect(Dynamoid.adapter.read("dynamoid_tests_addresses", address.id)[:id]).to eq address.id
+    expect(Dynamoid.adapter.read('dynamoid_tests_addresses', address.id)[:id]).to eq address.id
   end
 
   it 'prevents concurrent writes to tables with a lock_version' do
@@ -105,7 +105,7 @@ describe Dynamoid::Persistence do
     address.id = 'test123'
     address.save
 
-    expect(Dynamoid.adapter.read("dynamoid_tests_addresses", 'test123')).to_not be_empty
+    expect(Dynamoid.adapter.read('dynamoid_tests_addresses', 'test123')).to_not be_empty
   end
 
   it 'has a table name' do
@@ -123,7 +123,7 @@ describe Dynamoid::Persistence do
     before do
       reload_address
       Dynamoid.configure do |config|
-        config.namespace = ""
+        config.namespace = ''
       end
     end
 
@@ -174,7 +174,7 @@ describe Dynamoid::Persistence do
     @user = User.create(:name => 'Josh')
     @user.destroy
 
-    expect(Dynamoid.adapter.read("dynamoid_tests_users", @user.id)).to be_nil
+    expect(Dynamoid.adapter.read('dynamoid_tests_users', @user.id)).to be_nil
   end
 
   it 'keeps string attributes as strings' do
@@ -206,7 +206,7 @@ describe Dynamoid::Persistence do
     expect(@addr.send(:dump)[:config]).to eq config
   end
 
-  context "transforms booleans" do
+  context 'transforms booleans' do
     it 'handles true' do
       deliverable = true
       @addr = Address.new(:deliverable => deliverable)
@@ -283,7 +283,7 @@ describe Dynamoid::Persistence do
   end
 
   it 'dumps and undump a serialized field' do
-    address.options = (hash = {:x => [1, 2], "foobar" => 3.14})
+    address.options = (hash = {:x => [1, 2], 'foobar' => 3.14})
     expect(Address.undump(address.send(:dump))[:options]).to eq hash
   end
 
@@ -321,7 +321,7 @@ describe Dynamoid::Persistence do
   end
 
   it 'saves empty set as nil' do
-    tweet = Tweet.create(group: "one", tags: [])
+    tweet = Tweet.create(group: 'one', tags: [])
     expect(Tweet.find_by_tweet_id(tweet.tweet_id).tags).to eq nil
   end
 
@@ -387,7 +387,7 @@ describe Dynamoid::Persistence do
   end
 
   it 'works with a HashWithIndifferentAccess' do
-    hash = ActiveSupport::HashWithIndifferentAccess.new("city" => "Atlanta")
+    hash = ActiveSupport::HashWithIndifferentAccess.new('city' => 'Atlanta')
 
     expect{Address.create(hash)}.to_not raise_error
   end
@@ -505,10 +505,10 @@ describe Dynamoid::Persistence do
     it 'prevents concurrent saves to tables with a lock_version' do
       address.save!
       a2 = Address.find(address.id)
-      a2.update! { |a| a.set(:city => "Chicago") }
+      a2.update! { |a| a.set(:city => 'Chicago') }
 
       expect do
-        address.city = "Seattle"
+        address.city = 'Seattle'
         address.save!
       end.to raise_error(Dynamoid::Errors::StaleObjectError)
     end
@@ -518,7 +518,7 @@ describe Dynamoid::Persistence do
   context 'delete' do
     it 'deletes model with datetime range key' do
       expect do
-        msg = Message.create!(:message_id => 1, :time => DateTime.now, :text => "Hell yeah")
+        msg = Message.create!(:message_id => 1, :time => DateTime.now, :text => 'Hell yeah')
         msg.destroy
       end.to_not raise_error
     end
@@ -762,7 +762,7 @@ describe Dynamoid::Persistence do
 
         def self.name; 'Address'; end
 
-        before_save { raise "before save callback called" }
+        before_save { raise 'before save callback called' }
       end
 
       expect { klass.import([{city: 'Chicago'}]) }.not_to raise_error

@@ -169,9 +169,9 @@ describe Dynamoid::Fields do
     end
   end
 
-  it "raises an exception when items size exceeds 400kb" do
+  it 'raises an exception when items size exceeds 400kb' do
     expect {
-      Address.create(city: "Ten chars " * 500_000)
+      Address.create(city: 'Ten chars ' * 500_000)
     }.to raise_error(Aws::DynamoDB::Errors::ValidationException, 'Item size has exceeded the maximum allowed size')
   end
 
@@ -285,11 +285,11 @@ describe Dynamoid::Fields do
   end
 
   context 'single table inheritance' do
-    it "has only base class fields on the base class" do
+    it 'has only base class fields on the base class' do
       expect(Vehicle.attributes.keys.to_set).to eq Set.new([:type, :description, :created_at, :updated_at, :id])
     end
 
-    it "has only the base and derived fields on a sub-class" do
+    it 'has only the base and derived fields on a sub-class' do
       # Only NuclearSubmarines have torpedoes
       expect(Car.attributes).to_not have_key(:torpedoes)
     end

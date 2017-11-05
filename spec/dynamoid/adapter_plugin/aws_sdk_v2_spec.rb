@@ -240,8 +240,8 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
   #
   shared_examples 'range queries' do
     before do
-      Dynamoid.adapter.put_item(test_table3, {:id => "1", :range => 1.0})
-      Dynamoid.adapter.put_item(test_table3, {:id => "1", :range => 3.0})
+      Dynamoid.adapter.put_item(test_table3, {:id => '1', :range => 1.0})
+      Dynamoid.adapter.put_item(test_table3, {:id => '1', :range => 3.0})
     end
 
     it 'performs query on a table with a range and selects items in a range' do
@@ -273,7 +273,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     end
 
     it 'performs query on a table with a range and selects all items' do
-      200.times { |i| Dynamoid.adapter.put_item(test_table3, {:id => "1", :range => i.to_f, :data => "A"*1024*16}) }
+      200.times { |i| Dynamoid.adapter.put_item(test_table3, {:id => '1', :range => i.to_f, :data => 'A'*1024*16}) }
       # 64 of these items will exceed the 1MB result limit thus query won't return all results on first loop
       expect(Dynamoid.adapter.query(test_table3, :hash_value => '1', :range_gte => 0.0).count).to eq(200)
     end
@@ -284,12 +284,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
   #
   shared_examples 'correct ordering' do
     before(:each) do
-      Dynamoid.adapter.put_item(test_table4, {:id => "1", :order => 1, :range => 1.0})
-      Dynamoid.adapter.put_item(test_table4, {:id => "1", :order => 2, :range => 2.0})
-      Dynamoid.adapter.put_item(test_table4, {:id => "1", :order => 3, :range => 3.0})
-      Dynamoid.adapter.put_item(test_table4, {:id => "1", :order => 4, :range => 4.0})
-      Dynamoid.adapter.put_item(test_table4, {:id => "1", :order => 5, :range => 5.0})
-      Dynamoid.adapter.put_item(test_table4, {:id => "1", :order => 6, :range => 6.0})
+      Dynamoid.adapter.put_item(test_table4, {:id => '1', :order => 1, :range => 1.0})
+      Dynamoid.adapter.put_item(test_table4, {:id => '1', :order => 2, :range => 2.0})
+      Dynamoid.adapter.put_item(test_table4, {:id => '1', :order => 3, :range => 3.0})
+      Dynamoid.adapter.put_item(test_table4, {:id => '1', :order => 4, :range => 4.0})
+      Dynamoid.adapter.put_item(test_table4, {:id => '1', :order => 5, :range => 5.0})
+      Dynamoid.adapter.put_item(test_table4, {:id => '1', :order => 6, :range => 6.0})
     end
 
     it 'performs query on a table with a range and selects items less than that is in the correct order, scan_index_forward true' do
@@ -352,12 +352,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
 
         # test
         expect(Dynamoid::AdapterPlugin::AwsSdkV2::PARSE_TABLE_STATUS.call(resp)).to eq(Dynamoid::AdapterPlugin::AwsSdkV2::TABLE_STATUSES[:active])
-        expect(lsi.index_name).to eql "dynamoid_tests_table_lsi_index_id_range2"
+        expect(lsi.index_name).to eql 'dynamoid_tests_table_lsi_index_id_range2'
         expect(lsi.key_schema.map(&:to_hash)).to eql [
-          {:attribute_name=>"id", :key_type=>"HASH"},
-          {:attribute_name=>"range2", :key_type=>"RANGE"}
+          {:attribute_name=>'id', :key_type=>'HASH'},
+          {:attribute_name=>'range2', :key_type=>'RANGE'}
         ]
-        expect(lsi.projection.to_hash).to eql ({:projection_type=>"KEYS_ONLY"})
+        expect(lsi.projection.to_hash).to eql ({:projection_type=>'KEYS_ONLY'})
       end
 
       it 'creates table with global_secondary_index' do
@@ -382,12 +382,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
 
         # test
         expect(Dynamoid::AdapterPlugin::AwsSdkV2::PARSE_TABLE_STATUS.call(resp)).to eq(Dynamoid::AdapterPlugin::AwsSdkV2::TABLE_STATUSES[:active])
-        expect(gsi.index_name).to eql "dynamoid_tests_table_gsi_index_hash2_range2"
+        expect(gsi.index_name).to eql 'dynamoid_tests_table_gsi_index_hash2_range2'
         expect(gsi.key_schema.map(&:to_hash)).to eql [
-          {:attribute_name=>"hash2", :key_type=>"HASH"},
-          {:attribute_name=>"range2", :key_type=>"RANGE"}
+          {:attribute_name=>'hash2', :key_type=>'HASH'},
+          {:attribute_name=>'range2', :key_type=>'RANGE'}
         ]
-        expect(gsi.projection.to_hash).to eql ({:projection_type=>"KEYS_ONLY"})
+        expect(gsi.projection.to_hash).to eql ({:projection_type=>'KEYS_ONLY'})
         expect(gsi.provisioned_throughput.write_capacity_units).to eql 10
         expect(gsi.provisioned_throughput.read_capacity_units).to eql 20
       end
@@ -396,11 +396,11 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
 
   context 'with a preexisting table' do
     # GetItem, PutItem and DeleteItem
-    it "performs GetItem for an item that does not exist" do
+    it 'performs GetItem for an item that does not exist' do
       expect(Dynamoid.adapter.get_item(test_table1, '1')).to be_nil
     end
 
-    it "performs GetItem for an item that does exist" do
+    it 'performs GetItem for an item that does exist' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
 
       expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq({:name => 'Josh', :id => '1'})
@@ -434,12 +434,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
 
     # BatchGetItem
     it 'passes options to underlying BatchGet call' do
-      pending "at the moment passing the options to underlying batch get is not supported"
+      pending 'at the moment passing the options to underlying batch get is not supported'
       expect_any_instance_of(Aws::DynamoDB::Client).to receive(:batch_get_item).with(:request_items => {test_table1 => {:keys => [{'id' => '1'}, {'id' => '2'}], :consistent_read => true}}).and_call_original
       described_class.batch_get_item({test_table1 => ['1', '2']}, :consistent_read => true)
     end
 
-    it "performs BatchGetItem with singular keys" do
+    it 'performs BatchGetItem with singular keys' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table2, {:id => '1', :name => 'Justin'})
 
@@ -449,7 +449,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(results[test_table2]).to include({:name => 'Justin', :id => '1'})
     end
 
-    it "performs BatchGetItem with multiple keys" do
+    it 'performs BatchGetItem with multiple keys' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Justin'})
 
@@ -496,7 +496,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     end
 
     # BatchDeleteItem
-    it "performs BatchDeleteItem with singular keys" do
+    it 'performs BatchDeleteItem with singular keys' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table2, {:id => '1', :name => 'Justin'})
 
@@ -509,7 +509,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(results[test_table2]).to be_blank
     end
 
-    it "performs BatchDeleteItem with multiple keys" do
+    it 'performs BatchDeleteItem with multiple keys' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Justin'})
 
@@ -588,14 +588,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     it 'performs query on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
 
-      expect(Dynamoid.adapter.query(test_table1, :hash_value => '1').first).to eq({ :id=> '1', :name=>"Josh" })
+      expect(Dynamoid.adapter.query(test_table1, :hash_value => '1').first).to eq({ :id=> '1', :name=>'Josh' })
     end
 
     it 'performs query on a table and returns items if there are multiple items' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Justin'})
 
-      expect(Dynamoid.adapter.query(test_table1, :hash_value => '1').first).to eq({ :id=> '1', :name=>"Josh" })
+      expect(Dynamoid.adapter.query(test_table1, :hash_value => '1').first).to eq({ :id=> '1', :name=>'Josh' })
     end
 
     it_behaves_like 'range queries'
@@ -608,28 +608,28 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     it 'performs scan on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
 
-      expect(Dynamoid.adapter.scan(test_table1, name: {eq: 'Josh'}).to_a).to eq [{ :id=> '1', :name=>"Josh" }]
+      expect(Dynamoid.adapter.scan(test_table1, name: {eq: 'Josh'}).to_a).to eq [{ :id=> '1', :name=>'Josh' }]
     end
 
     it 'performs scan on a table and returns items if there are multiple items but only one match' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Justin'})
 
-      expect(Dynamoid.adapter.scan(test_table1, name: {eq: 'Josh'}).to_a).to eq [{ :id=> '1', :name=>"Josh" }]
+      expect(Dynamoid.adapter.scan(test_table1, name: {eq: 'Josh'}).to_a).to eq [{ :id=> '1', :name=>'Josh' }]
     end
 
     it 'performs scan on a table and returns multiple items if there are multiple matches' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Josh'})
 
-      expect(Dynamoid.adapter.scan(test_table1, name: {eq: 'Josh'})).to include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
+      expect(Dynamoid.adapter.scan(test_table1, name: {eq: 'Josh'})).to include({:name=>'Josh', :id=>'2'}, {:name=>'Josh', :id=>'1'})
     end
 
     it 'performs scan on a table and returns all items if no criteria are specified' do
       Dynamoid.adapter.put_item(test_table1, {:id => '1', :name => 'Josh'})
       Dynamoid.adapter.put_item(test_table1, {:id => '2', :name => 'Josh'})
 
-      expect(Dynamoid.adapter.scan(test_table1, {})).to include({:name=>"Josh", :id=>"2"}, {:name=>"Josh", :id=>"1"})
+      expect(Dynamoid.adapter.scan(test_table1, {})).to include({:name=>'Josh', :id=>'2'}, {:name=>'Josh', :id=>'1'})
     end
 
     it 'performs scan on a table and returns correct limit' do

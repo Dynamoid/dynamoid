@@ -82,7 +82,7 @@ module Dynamoid #:nodoc:
 
       def remove_field(field)
         field = field.to_sym
-        attributes.delete(field) or raise "No such field"
+        attributes.delete(field) or raise 'No such field'
 
         generated_methods.module_eval do
           remove_method field

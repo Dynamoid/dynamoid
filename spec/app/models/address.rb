@@ -11,6 +11,6 @@ class Address
   field :lock_version, :integer # Provides Optimistic Locking
 
   def zip_code=(zip_code)
-    self.city = "Chicago"
+    self.city = 'Chicago'
   end
 end

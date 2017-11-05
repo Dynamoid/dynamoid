@@ -27,7 +27,7 @@ module Dynamoid
       attr_reader :record
 
       def initialize(record)
-        super("Failed to destroy item")
+        super('Failed to destroy item')
         @record = record
       end
     end

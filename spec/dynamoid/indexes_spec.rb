@@ -62,7 +62,7 @@ describe Dynamoid::Indexes do
 
           it 'adds the index to the global_secondary_indexes hash' do
             test_class = doc_class_with_gsi
-            index_key = "secondary_hash_field"
+            index_key = 'secondary_hash_field'
             expect(test_class.global_secondary_indexes.keys).to eql [index_key]
             expect(test_class.global_secondary_indexes[index_key]).to eq(@dummy_index)
           end
@@ -91,7 +91,7 @@ describe Dynamoid::Indexes do
 
           it 'adds the index to the global_secondary_indexes hash' do
             test_class = doc_class_with_gsi
-            index_key = "secondary_hash_field_secondary_range_field"
+            index_key = 'secondary_hash_field_secondary_range_field'
             expect(test_class.global_secondary_indexes[index_key]).to eq(@dummy_index)
           end
         end
@@ -142,7 +142,7 @@ describe Dynamoid::Indexes do
       end
       it 'adds the index to the local_secondary_indexes hash' do
         test_class = doc_class_with_lsi
-        index_key = "some_hash_field_secondary_range_field"
+        index_key = 'some_hash_field_secondary_range_field'
         expect(test_class.local_secondary_indexes.keys).to eql [index_key]
         expect(test_class.local_secondary_indexes[index_key]).to eq(@dummy_index)
       end
@@ -183,19 +183,19 @@ describe Dynamoid::Indexes do
     context 'when hash specified' do
       it 'generates an index key of the form <hash> if only hash is specified' do
         index_key = doc_class.index_key(:some_hash_field)
-        expect(index_key).to eq("some_hash_field")
+        expect(index_key).to eq('some_hash_field')
       end
     end
 
     context 'when hash and range specified' do
       it 'generates an index key of the form <hash>_<range>' do
         index_key = doc_class.index_key(:some_hash_field, :some_range_field)
-        expect(index_key).to eq("some_hash_field_some_range_field")
+        expect(index_key).to eq('some_hash_field_some_range_field')
       end
 
       it 'generates an index key of the form <hash> when range is nil' do
         index_key = doc_class.index_key(:some_hash_field, nil)
-        expect(index_key).to eq("some_hash_field")
+        expect(index_key).to eq('some_hash_field')
       end
     end
   end

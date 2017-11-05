@@ -21,7 +21,7 @@ module Dynamoid
         table_base_name = options[:name] || base_class.name.split('::').last
           .downcase.pluralize
 
-        @table_name ||= [Dynamoid::Config.namespace.to_s, table_base_name].reject(&:empty?).join("_")
+        @table_name ||= [Dynamoid::Config.namespace.to_s, table_base_name].reject(&:empty?).join('_')
       end
 
       # Creates a table.
@@ -144,7 +144,7 @@ module Dynamoid
                 elsif value == 'f' || value == false
                   false
                 else
-                  raise ArgumentError, "Boolean column neither true nor false"
+                  raise ArgumentError, 'Boolean column neither true nor false'
                 end
               else
                 raise ArgumentError, "Unknown type #{options[:type]}"

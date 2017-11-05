@@ -1,6 +1,6 @@
 # encoding: utf-8
-require "uri"
-require "dynamoid/config/options"
+require 'uri'
+require 'dynamoid/config/options'
 
 module Dynamoid
 
@@ -12,7 +12,7 @@ module Dynamoid
 
     # All the default options.
     option :adapter, :default => 'aws_sdk_v2'
-    option :namespace, :default => defined?(Rails) ? "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" : "dynamoid"
+    option :namespace, :default => defined?(Rails) ? "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" : 'dynamoid'
     option :access_key, :default => nil
     option :secret_key, :default => nil
     option :region, :default => nil
@@ -26,7 +26,7 @@ module Dynamoid
     option :sync_retry_max_times, :default => 60 # a bit over 2 minutes
     option :sync_retry_wait_seconds, :default => 2
     option :convert_big_decimal, :default => false
-    option :models_dir, :default => "app/models" # perhaps you keep your dynamoid models in a different directory?
+    option :models_dir, :default => 'app/models' # perhaps you keep your dynamoid models in a different directory?
     option :application_timezone, default: :local # available values - :utc, :local, time zone names
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.

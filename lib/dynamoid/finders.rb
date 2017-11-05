@@ -148,9 +148,9 @@ module Dynamoid
 
         if range_key_field
           range_key_field = range_key_field.to_s
-          range_key_op = "eq"
-          if range_key_field.include?(".")
-            range_key_field, range_key_op = range_key_field.split(".", 2)
+          range_key_op = 'eq'
+          if range_key_field.include?('.')
+            range_key_field, range_key_op = range_key_field.split('.', 2)
           end
           range_op_mapped = RANGE_MAP.fetch(range_key_op)
         end

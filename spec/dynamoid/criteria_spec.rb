@@ -16,7 +16,7 @@ describe Dynamoid::Criteria do
     expect(User.where(:name => 'Josh').all.to_a).to eq [user1]
   end
 
-  context "transforms booleans" do
+  context 'transforms booleans' do
     it 'accepts native' do
       expect(User.where(:admin => 't').all.to_a).to eq [user1]
     end
@@ -72,7 +72,7 @@ describe Dynamoid::Criteria do
   #end
 
   it 'send consistent option to adapter' do
-    pending "This test is broken as we are overriding the consistent_read option to true inside the adapter"
+    pending 'This test is broken as we are overriding the consistent_read option to true inside the adapter'
     expect(Dynamoid::Adapter).to receive(:get_item) { |table_name, key, options| options[:consistent_read] == true }
     User.where(:name => 'x').consistent.first
 

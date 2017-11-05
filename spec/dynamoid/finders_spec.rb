@@ -33,7 +33,7 @@ describe Dynamoid::Finders do
     expect { Address.find(a1.id, a2.id, 'fake-id') }.to raise_error(
       Dynamoid::Errors::RecordNotFound,
       "Couldn't find all Addresses with 'id': (#{a1.id}, #{a2.id}, fake-id) " +
-      "(found 2 results, but was looking for 3)")
+      '(found 2 results, but was looking for 3)')
   end
 
   it 'returns array if passed in array' do
@@ -45,13 +45,13 @@ describe Dynamoid::Finders do
   end
 
   it 'raises error if non-array id is passed in and no result found' do
-    expect { Address.find("not-existing-id") }.to raise_error(
+    expect { Address.find('not-existing-id') }.to raise_error(
       Dynamoid::Errors::RecordNotFound,
       "Couldn't find Address with 'id'=not-existing-id")
   end
 
   it 'raises error if array of ids is passed in and no result found' do
-    expect { Address.find(["not-existing-id"]) }.to raise_error(
+    expect { Address.find(['not-existing-id']) }.to raise_error(
       Dynamoid::Errors::RecordNotFound, "Couldn't find Address with 'id'=not-existing-id")
   end
 
@@ -162,7 +162,7 @@ describe Dynamoid::Finders do
     end
 
     it 'passes options to the adapter' do
-      pending "This test is broken as we are overriding the consistent_read option to true inside the adapter"
+      pending 'This test is broken as we are overriding the consistent_read option to true inside the adapter'
       user_ids = [%w(1 red), %w(1 green)]
       Dynamoid.adapter.expects(:read).with(anything, user_ids, :consistent_read => true)
       User.find_all(user_ids, :consistent_read => true)
@@ -185,31 +185,31 @@ describe Dynamoid::Finders do
     context 'local secondary index' do
       it 'queries the local secondary index' do
         time = DateTime.now
-        p1 = Post.create(:name => "p1", :post_id => 1, :posted_at => time)
-        p2 = Post.create(:name => "p2", :post_id => 1, :posted_at => time + 1.day)
-        p3 = Post.create(:name => "p3", :post_id => 2, :posted_at => time)
+        p1 = Post.create(:name => 'p1', :post_id => 1, :posted_at => time)
+        p2 = Post.create(:name => 'p2', :post_id => 1, :posted_at => time + 1.day)
+        p3 = Post.create(:name => 'p3', :post_id => 2, :posted_at => time)
 
         posts = Post.find_all_by_secondary_index(
           {:post_id => p1.post_id},
-          :range => {:name => "p1"}
+          :range => {:name => 'p1'}
         )
         post = posts.first
 
         expect(posts.count).to eql 1
-        expect(post.name).to eql "p1"
-        expect(post.post_id).to eql "1"
+        expect(post.name).to eql 'p1'
+        expect(post.post_id).to eql '1'
       end
     end
 
     context 'global secondary index' do
       it 'can sort' do
         time = DateTime.now
-        first_visit = Bar.create(:name => "Drank", :visited_at => (time - 1.day).to_i)
-        Bar.create(:name => "Drank", :visited_at => time.to_i)
-        last_visit = Bar.create(:name => "Drank", :visited_at => (time + 1.day).to_i)
+        first_visit = Bar.create(:name => 'Drank', :visited_at => (time - 1.day).to_i)
+        Bar.create(:name => 'Drank', :visited_at => time.to_i)
+        last_visit = Bar.create(:name => 'Drank', :visited_at => (time + 1.day).to_i)
 
         bars = Bar.find_all_by_secondary_index(
-            {:name => "Drank"}, :range => {"visited_at.lte" => (time + 10.days).to_i}
+            {:name => 'Drank'}, :range => {'visited_at.lte' => (time + 10.days).to_i}
         )
         first_bar = bars.first
         last_bar = bars.last
@@ -221,12 +221,12 @@ describe Dynamoid::Finders do
       end
       it 'honors :scan_index_forward => false' do
         time = DateTime.now
-        first_visit = Bar.create(:name => "Drank", :visited_at => time - 1.day)
-        Bar.create(:name => "Drank", :visited_at => time)
-        last_visit = Bar.create(:name => "Drank", :visited_at => time + 1.day)
-        different_bar = Bar.create(:name => "Junk", :visited_at => time + 7.days)
+        first_visit = Bar.create(:name => 'Drank', :visited_at => time - 1.day)
+        Bar.create(:name => 'Drank', :visited_at => time)
+        last_visit = Bar.create(:name => 'Drank', :visited_at => time + 1.day)
+        different_bar = Bar.create(:name => 'Junk', :visited_at => time + 7.days)
         bars = Bar.find_all_by_secondary_index(
-            {:name => "Drank"}, :range => {"visited_at.lte" => (time + 10.days).to_i},
+            {:name => 'Drank'}, :range => {'visited_at.lte' => (time + 10.days).to_i},
             :scan_index_forward => false
         )
         first_bar = bars.first
@@ -239,25 +239,25 @@ describe Dynamoid::Finders do
       end
       it 'queries gsi with hash key' do
         time = DateTime.now
-        p1 = Post.create(:post_id => 1, :posted_at => time, :length => "10")
-        p2 = Post.create(:post_id => 2, :posted_at => time, :length => "30")
-        p3 = Post.create(:post_id => 3, :posted_at => time, :length => "10")
+        p1 = Post.create(:post_id => 1, :posted_at => time, :length => '10')
+        p2 = Post.create(:post_id => 2, :posted_at => time, :length => '30')
+        p3 = Post.create(:post_id => 3, :posted_at => time, :length => '10')
 
-        posts = Post.find_all_by_secondary_index(:length => "10")
-        expect(posts.map(&:post_id).sort).to eql ["1", "3"]
+        posts = Post.find_all_by_secondary_index(:length => '10')
+        expect(posts.map(&:post_id).sort).to eql ['1', '3']
       end
 
       it 'queries gsi with hash and range key' do
         time = DateTime.now
-        p1 = Post.create(:post_id => 1, :posted_at => time, :name => "post1")
-        p2 = Post.create(:post_id => 2, :posted_at => time + 1.day, :name => "post1")
-        p3 = Post.create(:post_id => 3, :posted_at => time, :name => "post3")
+        p1 = Post.create(:post_id => 1, :posted_at => time, :name => 'post1')
+        p2 = Post.create(:post_id => 2, :posted_at => time + 1.day, :name => 'post1')
+        p3 = Post.create(:post_id => 3, :posted_at => time, :name => 'post3')
 
         posts = Post.find_all_by_secondary_index(
-          {:name => "post1"},
+          {:name => 'post1'},
           :range =>  {:posted_at => time_to_f(time)}
         )
-        expect(posts.map(&:post_id).sort).to eql ["1"]
+        expect(posts.map(&:post_id).sort).to eql ['1']
       end
     end
 
@@ -265,63 +265,63 @@ describe Dynamoid::Finders do
       describe 'string comparisons' do
         it 'filters based on begins_with operator' do
           time = DateTime.now
-          Post.create(:post_id => 1, :posted_at => time, :name => "fb_post")
-          Post.create(:post_id => 1, :posted_at => time + 1.day, :name => "blog_post")
+          Post.create(:post_id => 1, :posted_at => time, :name => 'fb_post')
+          Post.create(:post_id => 1, :posted_at => time + 1.day, :name => 'blog_post')
 
           posts = Post.find_all_by_secondary_index(
-            {:post_id => "1"}, :range => {"name.begins_with" => "blog_"}
+            {:post_id => '1'}, :range => {'name.begins_with' => 'blog_'}
           )
-          expect(posts.map(&:name)).to eql ["blog_post"]
+          expect(posts.map(&:name)).to eql ['blog_post']
         end
       end
 
       describe 'numeric comparisons' do
         before(:each) do
           @time = DateTime.now
-          p1 = Post.create(:post_id => 1, :posted_at => @time, :name => "post")
-          p2 = Post.create(:post_id => 2, :posted_at => @time + 1.day, :name => "post")
-          p3 = Post.create(:post_id => 3, :posted_at => @time + 2.days, :name => "post")
+          p1 = Post.create(:post_id => 1, :posted_at => @time, :name => 'post')
+          p2 = Post.create(:post_id => 2, :posted_at => @time + 1.day, :name => 'post')
+          p3 = Post.create(:post_id => 3, :posted_at => @time + 2.days, :name => 'post')
         end
 
         it 'filters based on gt (greater than)' do
           posts = Post.find_all_by_secondary_index(
-            {:name => "post"},
-            :range => {"posted_at.gt" => time_to_f(@time + 1.day)}
+            {:name => 'post'},
+            :range => {'posted_at.gt' => time_to_f(@time + 1.day)}
           )
-          expect(posts.map(&:post_id).sort).to eql ["3"]
+          expect(posts.map(&:post_id).sort).to eql ['3']
         end
 
         it 'filters based on lt (less than)' do
           posts = Post.find_all_by_secondary_index(
-            {:name => "post"},
-            :range => {"posted_at.lt" => time_to_f(@time + 1.day)}
+            {:name => 'post'},
+            :range => {'posted_at.lt' => time_to_f(@time + 1.day)}
           )
-          expect(posts.map(&:post_id).sort).to eql ["1"]
+          expect(posts.map(&:post_id).sort).to eql ['1']
         end
 
         it 'filters based on gte (greater than or equal to)' do
           posts = Post.find_all_by_secondary_index(
-            {:name => "post"},
-            :range => {"posted_at.gte" => time_to_f(@time + 1.day)}
+            {:name => 'post'},
+            :range => {'posted_at.gte' => time_to_f(@time + 1.day)}
           )
-          expect(posts.map(&:post_id).sort).to eql ["2", "3"]
+          expect(posts.map(&:post_id).sort).to eql ['2', '3']
         end
 
         it 'filters based on lte (less than or equal to)' do
           posts = Post.find_all_by_secondary_index(
-            {:name => "post"},
-            :range => {"posted_at.lte" => time_to_f(@time + 1.day)}
+            {:name => 'post'},
+            :range => {'posted_at.lte' => time_to_f(@time + 1.day)}
           )
-          expect(posts.map(&:post_id).sort).to eql ["1", "2"]
+          expect(posts.map(&:post_id).sort).to eql ['1', '2']
         end
 
         it 'filters based on between operator' do
           between = [time_to_f(@time - 1.day), time_to_f(@time + 1.5.day)]
           posts = Post.find_all_by_secondary_index(
-            {:name => "post"},
-            :range => {"posted_at.between" => between}
+            {:name => 'post'},
+            :range => {'posted_at.between' => between}
           )
-          expect(posts.map(&:post_id).sort).to eql ["1", "2"]
+          expect(posts.map(&:post_id).sort).to eql ['1', '2']
         end
       end
     end

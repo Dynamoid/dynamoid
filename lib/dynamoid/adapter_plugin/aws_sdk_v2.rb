@@ -3,7 +3,7 @@ module Dynamoid
 
     # The AwsSdkV2 adapter provides support for the aws-sdk version 2 for ruby.
     class AwsSdkV2
-      EQ = "EQ".freeze
+      EQ = 'EQ'.freeze
       RANGE_MAP = {
           range_greater_than: 'GT',
           range_less_than:    'LT',
@@ -28,16 +28,16 @@ module Dynamoid
           contains:     'CONTAINS',
           not_contains: 'NOT_CONTAINS'
       }
-      HASH_KEY  = "HASH".freeze
-      RANGE_KEY = "RANGE".freeze
-      STRING_TYPE  = "S".freeze
-      NUM_TYPE     = "N".freeze
-      BINARY_TYPE  = "B".freeze
+      HASH_KEY  = 'HASH'.freeze
+      RANGE_KEY = 'RANGE'.freeze
+      STRING_TYPE  = 'S'.freeze
+      NUM_TYPE     = 'N'.freeze
+      BINARY_TYPE  = 'B'.freeze
       TABLE_STATUSES = {
-          creating: "CREATING",
-          updating: "UPDATING",
-          deleting: "DELETING",
-          active: "ACTIVE"
+          creating: 'CREATING',
+          updating: 'UPDATING',
+          deleting: 'DELETING',
+          active: 'ACTIVE'
       }.freeze
       PARSE_TABLE_STATUS = ->(resp, lookup = :table) {
         # lookup is table for describe_table API
@@ -94,7 +94,7 @@ module Dynamoid
         request_items = []
         options ||= {}
         objects.each do |o|
-          request_items << { "put_request" => { item: o } }
+          request_items << { 'put_request' => { item: o } }
         end
 
         begin
@@ -103,8 +103,8 @@ module Dynamoid
               request_items: {
                 table_name => request_items,
               },
-              return_consumed_capacity: "TOTAL",
-              return_item_collection_metrics: "SIZE"
+              return_consumed_capacity: 'TOTAL',
+              return_item_collection_metrics: 'SIZE'
             }.merge!(options)
           )
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
@@ -201,8 +201,8 @@ module Dynamoid
             client.batch_write_item(
               {
                 request_items: request_items,
-                return_consumed_capacity: "TOTAL",
-                return_item_collection_metrics: "SIZE"
+                return_consumed_capacity: 'TOTAL',
+                return_item_collection_metrics: 'SIZE'
               }
             )
           end
@@ -391,7 +391,7 @@ module Dynamoid
             key: key_stanza(table, key, range_key),
             attribute_updates: iu.to_h,
             expected: expected_stanza(conditions),
-            return_values: "ALL_NEW"
+            return_values: 'ALL_NEW'
           )
           result_item_to_hash(result[:attributes])
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
@@ -1027,9 +1027,9 @@ module Dynamoid
           ret
         end
 
-        ADD    = "ADD".freeze
-        DELETE = "DELETE".freeze
-        PUT    = "PUT".freeze
+        ADD    = 'ADD'.freeze
+        DELETE = 'DELETE'.freeze
+        PUT    = 'PUT'.freeze
       end
     end
   end

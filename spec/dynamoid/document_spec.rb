@@ -66,7 +66,7 @@ describe Dynamoid::Document do
       field :city
       def city=(value); self[:city] = value.downcase; end
     end
-    expect(klass.new(:city => "Chicago").city).to eq "chicago"
+    expect(klass.new(:city => 'Chicago').city).to eq 'chicago'
   end
 
   it 'ignores unknown fields (does not raise error)' do
@@ -75,8 +75,8 @@ describe Dynamoid::Document do
       field :city
     end
 
-    model = klass.new(:unknown_field => "test", :city => "Chicago")
-    expect(model.city).to eql "Chicago"
+    model = klass.new(:unknown_field => 'test', :city => 'Chicago')
+    expect(model.city).to eql 'Chicago'
   end
 
   it 'creates a new document' do
@@ -112,9 +112,9 @@ describe Dynamoid::Document do
   it 'knows if a document exists or not' do
     address = Address.create(:city => 'Chicago')
     expect(Address.exists?(address.id)).to be_truthy
-    expect(Address.exists?("does-not-exist")).to be_falsey
+    expect(Address.exists?('does-not-exist')).to be_falsey
     expect(Address.exists?(:city => address.city)).to be_truthy
-    expect(Address.exists?(:city => "does-not-exist")).to be_falsey
+    expect(Address.exists?(:city => 'does-not-exist')).to be_falsey
   end
 
   it 'gets errors courtesy of ActiveModel' do
@@ -219,11 +219,11 @@ describe Dynamoid::Document do
   end
 
   context 'single table inheritance' do
-    it "should have a type" do
-      expect(Vehicle.new.type).to eq "Vehicle"
+    it 'should have a type' do
+      expect(Vehicle.new.type).to eq 'Vehicle'
     end
 
-    it "reports the same table name for both base and derived classes" do
+    it 'reports the same table name for both base and derived classes' do
       expect(Vehicle.table_name).to eq Car.table_name
       expect(Vehicle.table_name).to eq NuclearSubmarine.table_name
     end
