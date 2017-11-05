@@ -22,7 +22,7 @@ describe Dynamoid::Dirty do
       tweet.reload
       expect(tweet).to_not be_changed
     end
-    
+
     it 'is empty after an update' do
       tweet = Tweet.create!(:tweet_id => "1", :group => 'abc')
       tweet.update! do |t|

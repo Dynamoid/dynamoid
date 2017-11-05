@@ -8,7 +8,7 @@ module Dynamoid #:nodoc:
 
       private
 
-      # Find the target association, always a :belongs_to association. Uses either options[:inverse_of] or the source class name 
+      # Find the target association, always a :belongs_to association. Uses either options[:inverse_of] or the source class name
       # and default parsing to return the most likely name for the target association.
       #
       # @since 0.2.0
@@ -21,19 +21,19 @@ module Dynamoid #:nodoc:
 
       # Associate a source object to this association.
       #
-      # @since 0.2.0                  
+      # @since 0.2.0
       def associate_target(object)
         object.update_attribute(target_attribute, Set[source.hash_key])
       end
-      
+
       # Disassociate a source object from this association.
       #
-      # @since 0.2.0      
+      # @since 0.2.0
       def disassociate_target(object)
         object.update_attribute(target_attribute, nil)
       end
-      
+
     end
   end
-  
+
 end

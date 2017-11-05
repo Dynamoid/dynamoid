@@ -1,6 +1,6 @@
 # encoding: utf-8
 module Dynamoid
-  
+
   # Provide ActiveModel validations to Dynamoid documents.
   module Validations
     extend ActiveSupport::Concern

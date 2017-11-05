@@ -16,16 +16,16 @@ module Dynamoid
   #   * has_one
   module Associations
     extend ActiveSupport::Concern
-    
+
     # Create the association tracking attribute and initialize it to an empty hash.
     included do
       class_attribute :associations, instance_accessor: false
-      
+
       self.associations = {}
     end
 
     module ClassMethods
-      
+
       # create a has_many association for this document.
       #
       # @param [Symbol] name the name of the association
@@ -38,7 +38,7 @@ module Dynamoid
       def has_many(name, options = {})
         association(:has_many, name, options)
       end
-      
+
       # create a has_one association for this document.
       #
       # @param [Symbol] name the name of the association
@@ -51,7 +51,7 @@ module Dynamoid
       def has_one(name, options = {})
         association(:has_one, name, options)
       end
-      
+
       # create a belongs_to association for this document.
       #
       # @param [Symbol] name the name of the association
@@ -64,7 +64,7 @@ module Dynamoid
       def belongs_to(name, options = {})
         association(:belongs_to, name, options)
       end
-      
+
       # create a has_and_belongs_to_many association for this document.
       #
       # @param [Symbol] name the name of the association
@@ -77,7 +77,7 @@ module Dynamoid
       def has_and_belongs_to_many(name, options = {})
         association(:has_and_belongs_to_many, name, options)
       end
-      
+
       private
 
       # create getters and setters for an association.
@@ -86,7 +86,7 @@ module Dynamoid
       # @param [Symbol] name the name of the association
       # @param [Hash] options options to pass to the association constructor; see above for all valid options
       #
-      # @since 0.2.0      
+      # @since 0.2.0
       def association(type, name, options = {})
         field "#{name}_ids".to_sym, :set
         self.associations[name] = options.merge(:type => type)
@@ -102,5 +102,5 @@ module Dynamoid
 
 
   end
-  
+
 end
