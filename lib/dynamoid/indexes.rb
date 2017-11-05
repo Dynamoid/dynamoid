@@ -209,53 +209,53 @@ module Dynamoid
 
       private
 
-        def validate_projected_attributes
-          unless (@projected_attributes.is_a?(Array) ||
-                  PROJECTION_TYPES.include?(@projected_attributes))
-            errors.add(:projected_attributes, 'Invalid projected attributes specified.')
-          end
+      def validate_projected_attributes
+        unless (@projected_attributes.is_a?(Array) ||
+                PROJECTION_TYPES.include?(@projected_attributes))
+          errors.add(:projected_attributes, 'Invalid projected attributes specified.')
         end
+      end
 
-        def validate_index_type
-          unless (@type.present? &&
-            [:local_secondary, :global_secondary].include?(@type))
-              errors.add(:type, 'Invalid index :type specified')
-          end
+      def validate_index_type
+        unless (@type.present? &&
+          [:local_secondary, :global_secondary].include?(@type))
+            errors.add(:type, 'Invalid index :type specified')
         end
+      end
 
-        def validate_range_key
-          if @range_key.present?
-            range_field_attributes = @dynamoid_class.attributes[@range_key]
-            if range_field_attributes.present?
-              range_key_type = range_field_attributes[:type]
-              if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(range_key_type)
-                @range_key_schema = {
-                  @range_key => @dynamoid_class.dynamo_type(range_key_type)
-                }
-              else
-                errors.add(:range_key, 'Index :range_key is not a valid key type')
-              end
-            else
-              errors.add(:range_key, "No such field #{@range_key} defined on table")
-            end
-          end
-        end
-
-        def validate_hash_key
-          hash_field_attributes = @dynamoid_class.attributes[@hash_key]
-          if hash_field_attributes.present?
-            hash_field_type = hash_field_attributes[:type]
-            if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(hash_field_type)
-              @hash_key_schema = {
-                @hash_key => @dynamoid_class.dynamo_type(hash_field_type)
+      def validate_range_key
+        if @range_key.present?
+          range_field_attributes = @dynamoid_class.attributes[@range_key]
+          if range_field_attributes.present?
+            range_key_type = range_field_attributes[:type]
+            if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(range_key_type)
+              @range_key_schema = {
+                @range_key => @dynamoid_class.dynamo_type(range_key_type)
               }
             else
-              errors.add(:hash_key, 'Index :hash_key is not a valid key type')
+              errors.add(:range_key, 'Index :range_key is not a valid key type')
             end
           else
-            errors.add(:hash_key, "No such field #{@hash_key} defined on table")
+            errors.add(:range_key, "No such field #{@range_key} defined on table")
           end
         end
+      end
+
+      def validate_hash_key
+        hash_field_attributes = @dynamoid_class.attributes[@hash_key]
+        if hash_field_attributes.present?
+          hash_field_type = hash_field_attributes[:type]
+          if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(hash_field_type)
+            @hash_key_schema = {
+              @hash_key => @dynamoid_class.dynamo_type(hash_field_type)
+            }
+          else
+            errors.add(:hash_key, 'Index :hash_key is not a valid key type')
+          end
+        else
+          errors.add(:hash_key, "No such field #{@hash_key} defined on table")
+        end
+      end
     end
   end
 end
