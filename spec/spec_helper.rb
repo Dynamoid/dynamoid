@@ -15,10 +15,9 @@ require 'dynamodb_local'
 ENV['ACCESS_KEY'] ||= 'abcd'
 ENV['SECRET_KEY'] ||= '1234'
 
-Aws.config.update({
-          region: 'us-west-2',
-          credentials: Aws::Credentials.new(ENV['ACCESS_KEY'], ENV['SECRET_KEY'])
-          })
+Aws.config.update(
+  region: 'us-west-2',
+  credentials: Aws::Credentials.new(ENV['ACCESS_KEY'], ENV['SECRET_KEY']))
 
 Dynamoid.configure do |config|
   config.endpoint = 'http://127.0.0.1:8000'

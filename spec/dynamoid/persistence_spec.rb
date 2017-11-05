@@ -775,7 +775,7 @@ describe Dynamoid::Persistence do
 
     it 'makes multiple batch operations if the limit (25 items) exceeded' do
       expect(Dynamoid.adapter.client).to receive(:batch_write_item).exactly(2).times.and_call_original
-      Address.import(Array.new(26, {city: 'Chicago'}))
+      Address.import(Array.new(26, city: 'Chicago'))
     end
   end
 end

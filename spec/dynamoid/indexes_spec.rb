@@ -33,10 +33,9 @@ describe Dynamoid::Indexes do
 
       it 'with a range key, also adds the index to the global_secondary_indexes hash' do
         index_key = doc_class.index_key(:some_hash_field, :some_range_field)
-        doc_class.global_secondary_index({
+        doc_class.global_secondary_index(
           hash_key: :some_hash_field,
-          range_key: :some_range_field
-        })
+          range_key: :some_range_field)
 
         expected_index = doc_class.global_secondary_indexes[index_key]
         expect(expected_index).to eq(@dummy_index)
@@ -70,10 +69,9 @@ describe Dynamoid::Indexes do
 
         context 'with a hash and range index' do
           let(:doc_class_with_gsi) do
-            doc_class.global_secondary_index({
+            doc_class.global_secondary_index(
               hash_key: :secondary_hash_field,
-              range_key: :secondary_range_field
-            })
+              range_key: :secondary_range_field)
           end
 
           it 'creates the index with the correct options' do

@@ -199,12 +199,9 @@ module Dynamoid
         begin
           requests.map do |request_items|
             client.batch_write_item(
-              {
-                request_items: request_items,
-                return_consumed_capacity: 'TOTAL',
-                return_item_collection_metrics: 'SIZE'
-              }
-            )
+              request_items: request_items,
+              return_consumed_capacity: 'TOTAL',
+              return_item_collection_metrics: 'SIZE')
           end
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
           raise Dynamoid::Errors::ConditionalCheckFailedException, e
@@ -685,7 +682,7 @@ module Dynamoid
           check = {again: true}
           while check[:again]
             sleep Dynamoid::Config.sync_retry_wait_seconds
-            resp = client.describe_table({ table_name: table_name })
+            resp = client.describe_table(table_name: table_name)
             check = check_table_status?(counter, resp, status)
             Dynamoid.logger.info "Checked table status for #{table_name} (check #{check.inspect})"
             counter += 1

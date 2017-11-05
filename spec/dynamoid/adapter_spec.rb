@@ -56,7 +56,7 @@ describe Dynamoid::Adapter do
 
   it 'writes through the adapter' do
     expect(subject).to receive(:put_item).with(test_table, {id: single_id}, nil).and_return(true)
-    subject.write(test_table, {id: single_id})
+    subject.write(test_table, id: single_id)
   end
 
   it 'reads through the adapter for one ID' do
@@ -75,7 +75,7 @@ describe Dynamoid::Adapter do
   end
 
   it 'deletes through the adapter for many IDs' do
-    expect(subject).to receive(:batch_delete_item).with({test_table => many_ids}).and_return(nil)
+    expect(subject).to receive(:batch_delete_item).with(test_table => many_ids).and_return(nil)
     subject.delete(test_table, many_ids)
   end
 
@@ -95,7 +95,7 @@ describe Dynamoid::Adapter do
   end
 
   it 'deletes through the adapter for many IDs and a range key' do
-    expect(subject).to receive(:batch_delete_item).with({test_table => [['1', 2.0], ['2', 2.0]]}).and_return(nil)
+    expect(subject).to receive(:batch_delete_item).with(test_table => [['1', 2.0], ['2', 2.0]]).and_return(nil)
     subject.delete(test_table, many_ids, range_key: [2.0, 2.0])
   end
 end

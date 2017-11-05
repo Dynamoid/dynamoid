@@ -6,16 +6,16 @@ describe Dynamoid::Document do
     address = Address.new
 
     expect(address.new_record).to be_truthy
-    expect(address.attributes).to eq({id: nil,
-                                      created_at: nil,
-                                      updated_at: nil,
-                                      city: nil,
-                                      options: nil,
-                                      deliverable: nil,
-                                      latitude: nil,
-                                      config: nil,
-                                      registered_on: nil,
-                                      lock_version: nil})
+    expect(address.attributes).to eq(id: nil,
+                                     created_at: nil,
+                                     updated_at: nil,
+                                     city: nil,
+                                     options: nil,
+                                     deliverable: nil,
+                                     latitude: nil,
+                                     config: nil,
+                                     registered_on: nil,
+                                     lock_version: nil)
   end
 
   it 'responds to will_change! methods for all fields' do
@@ -31,16 +31,16 @@ describe Dynamoid::Document do
 
     expect(address.new_record).to be_truthy
 
-    expect(address.attributes).to eq({id: nil,
-                                      created_at: nil,
-                                      updated_at: nil,
-                                      city: 'Chicago',
-                                      options: nil,
-                                      deliverable: nil,
-                                      latitude: nil,
-                                      config: nil,
-                                      registered_on: nil,
-                                      lock_version: nil})
+    expect(address.attributes).to eq(id: nil,
+                                     created_at: nil,
+                                     updated_at: nil,
+                                     city: 'Chicago',
+                                     options: nil,
+                                     deliverable: nil,
+                                     latitude: nil,
+                                     config: nil,
+                                     registered_on: nil,
+                                     lock_version: nil)
   end
 
   it 'initializes a new document with a virtual attribute' do
@@ -48,16 +48,16 @@ describe Dynamoid::Document do
 
     expect(address.new_record).to be_truthy
 
-    expect(address.attributes).to eq({id: nil,
-                                      created_at: nil,
-                                      updated_at: nil,
-                                      city: 'Chicago',
-                                      options: nil,
-                                      deliverable: nil,
-                                      latitude: nil,
-                                      config: nil,
-                                      registered_on: nil,
-                                      lock_version: nil})
+    expect(address.attributes).to eq(id: nil,
+                                     created_at: nil,
+                                     updated_at: nil,
+                                     city: 'Chicago',
+                                     options: nil,
+                                     deliverable: nil,
+                                     latitude: nil,
+                                     config: nil,
+                                     registered_on: nil,
+                                     lock_version: nil)
   end
 
   it 'allows interception of write_attribute on load' do
@@ -126,7 +126,7 @@ describe Dynamoid::Document do
 
   context '.reload' do
     let(:address){ Address.create }
-    let(:message){ Message.create({text: 'Nice, supporting datetime range!', time: Time.now.to_datetime}) }
+    let(:message){ Message.create(text: 'Nice, supporting datetime range!', time: Time.now.to_datetime) }
     let(:tweet){ tweet = Tweet.create(tweet_id: 'x', group: 'abc') }
 
     it 'reflects persisted changes' do
@@ -135,7 +135,7 @@ describe Dynamoid::Document do
     end
 
     it 'uses a :consistent_read' do
-      expect(Tweet).to receive(:find).with(tweet.hash_key, {range_key: tweet.range_value, consistent_read: true}).and_return(tweet)
+      expect(Tweet).to receive(:find).with(tweet.hash_key, range_key: tweet.range_value, consistent_read: true).and_return(tweet)
       tweet.reload
     end
 
@@ -191,7 +191,7 @@ describe Dynamoid::Document do
     end
 
     it 'hashes documents with the keys to the same value' do
-      expect({document => 1}).to have_key(same)
+      expect(document => 1).to have_key(same)
     end
   end
 

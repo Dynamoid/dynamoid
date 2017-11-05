@@ -156,16 +156,16 @@ describe Dynamoid::Fields do
     end
 
     it 'returns all attributes' do
-      expect(Address.attributes).to eq({id: {type: :string},
-                                        created_at: {type: :datetime},
-                                        updated_at: {type: :datetime},
-                                        city: {type: :string},
-                                        options: {type: :serialized},
-                                        deliverable: {type: :boolean},
-                                        latitude: {type: :number},
-                                        config: {type: :raw},
-                                        registered_on: {type: :date},
-                                        lock_version: {type: :integer}})
+      expect(Address.attributes).to eq(id: {type: :string},
+                                       created_at: {type: :datetime},
+                                       updated_at: {type: :datetime},
+                                       city: {type: :string},
+                                       options: {type: :serialized},
+                                       deliverable: {type: :boolean},
+                                       latitude: {type: :number},
+                                       config: {type: :raw},
+                                       registered_on: {type: :date},
+                                       lock_version: {type: :integer})
     end
   end
 

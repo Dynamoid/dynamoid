@@ -74,18 +74,18 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'supports record_limit' do
-        expect(model.where(request_params.merge({ name: 'Josh' })).record_limit(1).count).to eq(1)
-        expect(model.where(request_params.merge({ name: 'Josh' })).record_limit(3).count).to eq(3)
+        expect(model.where(request_params.merge(name: 'Josh')).record_limit(1).count).to eq(1)
+        expect(model.where(request_params.merge(name: 'Josh')).record_limit(3).count).to eq(3)
       end
 
       it 'supports scan_limit' do
-        expect(model.where(request_params.merge({ name: 'Pascal' })).scan_limit(1).count).to eq(0)
-        expect(model.where(request_params.merge({ name: 'Pascal' })).scan_limit(11).count).to eq(1)
+        expect(model.where(request_params.merge(name: 'Pascal')).scan_limit(1).count).to eq(0)
+        expect(model.where(request_params.merge(name: 'Pascal')).scan_limit(11).count).to eq(1)
       end
 
       it 'supports batch' do
-        expect(model.where(request_params.merge({ name: 'Josh' })).batch(1).count).to eq(10)
-        expect(model.where(request_params.merge({ name: 'Josh' })).batch(3).count).to eq(10)
+        expect(model.where(request_params.merge(name: 'Josh')).batch(1).count).to eq(10)
+        expect(model.where(request_params.merge(name: 'Josh')).batch(3).count).to eq(10)
       end
 
       it 'supports combined limits with batch size 1' do
@@ -93,7 +93,7 @@ describe Dynamoid::Criteria::Chain do
         # 3 Pascal objects but it'll hit record_limit first with 2 objects
         # so we'd only see 12 requests due to batching.
         expect(Dynamoid.adapter.client).to receive(request_type).exactly(12).times.and_call_original
-        expect(model.where(request_params.merge({ name: 'Pascal' }))
+        expect(model.where(request_params.merge(name: 'Pascal'))
                     .record_limit(2)
                     .scan_limit(13)
                     .batch(1).count).to eq(2)
@@ -104,7 +104,7 @@ describe Dynamoid::Criteria::Chain do
         # 3 Josh, 3 Josh, 3 Josh, 1 Josh + 2 Pascal, 3 Pascal, 3 Pascal, 2 Pascal
         # So total of 7 requests
         expect(Dynamoid.adapter.client).to receive(request_type).exactly(7).times.and_call_original
-        expect(model.where(request_params.merge({ name: 'Pascal' }))
+        expect(model.where(request_params.merge(name: 'Pascal'))
                     .record_limit(10)
                     .batch(3).count).to eq(10)
       end

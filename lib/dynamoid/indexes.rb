@@ -82,11 +82,10 @@ module Dynamoid
             ' must use a different :range_key than the primary key')
         end
 
-        index_opts = options.merge({
+        index_opts = options.merge(
           dynamoid_class: self,
           type: :local_secondary,
-          hash_key: primary_hash_key
-        })
+          hash_key: primary_hash_key)
 
         index = Dynamoid::Indexes::Index.new(index_opts)
         key = index_key(primary_hash_key, index_range_key)
