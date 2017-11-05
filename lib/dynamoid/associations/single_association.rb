@@ -32,7 +32,6 @@ module Dynamoid #:nodoc:
         setter(target_class.create(attributes))
       end
 
-
       # Is this object equal to the association's target?
       #
       # @return [Boolean] true/false

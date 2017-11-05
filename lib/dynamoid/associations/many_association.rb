@@ -57,7 +57,6 @@ module Dynamoid #:nodoc:
         object
       end
 
-
       # Add an object or array of objects to an association. This preserves the current records in the association (if any)
       # and adds the object to the target association if it is detected to exist.
       #

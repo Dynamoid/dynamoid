@@ -100,7 +100,6 @@ module Dynamoid
       end
     end
 
-
   end
 
 end

@@ -880,7 +880,6 @@ module Dynamoid
         attribute_definitions
       end
 
-
       # Builds an attribute definitions based on hash key and range key
       # @params [Hash] hash_key_schema - eg: {:id => :string}
       # @params [Hash] range_key_schema - eg: {:created_at => :datetime}

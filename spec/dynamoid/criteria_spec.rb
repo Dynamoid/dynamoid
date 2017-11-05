@@ -89,7 +89,6 @@ describe Dynamoid::Criteria do
     end.not_to raise_error(Dynamoid::Errors::InvalidQuery)
   end
 
-
   context 'when scans and warn_on_scan config option is true' do
     before do
       @warn_on_scan = Dynamoid::Config.warn_on_scan

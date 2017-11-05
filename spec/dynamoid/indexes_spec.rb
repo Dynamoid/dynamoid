@@ -215,7 +215,6 @@ describe Dynamoid::Indexes do
     end
   end
 
-
   # Index nested class.
   describe 'Index' do
     describe '#initialize' do
@@ -298,7 +297,6 @@ describe Dynamoid::Indexes do
         end
       end
 
-
       context 'correct parameters' do
         context 'with only required params' do
           let(:defaults_index) do
@@ -367,7 +365,6 @@ describe Dynamoid::Indexes do
 
       end
     end
-
 
     describe '#projection_type' do
       let(:doc_class) do

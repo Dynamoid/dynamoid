@@ -313,7 +313,6 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     end
   end
 
-
   context 'without a preexisting table' do
     # CreateTable and DeleteTable
     it 'performs CreateTable and DeleteTable' do
@@ -394,7 +393,6 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       end
     end
   end
-
 
   context 'with a preexisting table' do
     # GetItem, PutItem and DeleteItem

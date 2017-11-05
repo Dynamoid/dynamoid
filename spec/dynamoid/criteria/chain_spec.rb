@@ -798,7 +798,6 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
-
   context 'single table inheritance' do
     describe 'where' do
       it 'honors STI' do

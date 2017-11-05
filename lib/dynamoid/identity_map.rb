@@ -80,7 +80,6 @@ module Dynamoid
       super
     end
 
-
     def identity_map_key
       key = hash_key.to_s
       if self.class.range_key

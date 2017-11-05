@@ -170,7 +170,6 @@ describe Dynamoid::Finders do
 
   end
 
-
   describe '.find_all_by_secondary_index' do
     def time_to_f(time)
       time.to_time.to_f

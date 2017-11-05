@@ -52,7 +52,6 @@ module Dynamoid
         self
       end
 
-
       # Defines a local secondary index on a table. Will use the same primary
       # hash key as the table.
       #
@@ -95,12 +94,10 @@ module Dynamoid
         self
       end
 
-
       def find_index(hash, range=nil)
         index = self.indexes[index_key(hash, range)]
         index
       end
-
 
       # Returns true iff the provided hash[,range] key combo is a local
       # secondary index.
@@ -113,7 +110,6 @@ module Dynamoid
         self.local_secondary_indexes[index_key(hash, range)].present?
       end
 
-
       # Returns true iff the provided hash[,range] key combo is a global
       # secondary index.
       #
@@ -124,7 +120,6 @@ module Dynamoid
       def is_global_secondary_index?(hash, range=nil)
         self.global_secondary_indexes[index_key(hash, range)].present?
       end
-
 
       # Generates a convenient lookup key name for a hash/range index.
       # Should normally not be used directly.
@@ -140,7 +135,6 @@ module Dynamoid
         name
       end
 
-
       # Generates a default index name.
       #
       # @param [Symbol] hash hash key name.
@@ -149,7 +143,6 @@ module Dynamoid
       def index_name(hash, range=nil)
         "#{self.table_name}_index_#{self.index_key(hash, range)}"
       end
-
 
       # Convenience method to return all indexes on the table.
       #
@@ -166,7 +159,6 @@ module Dynamoid
       end
     end
 
-
     # Represents the attributes of a DynamoDB index.
     class Index
       include ActiveModel::Validations
@@ -178,14 +170,12 @@ module Dynamoid
           :hash_key_schema, :range_key_schema, :projected_attributes,
           :read_capacity, :write_capacity
 
-
       validate do
         validate_index_type
         validate_hash_key
         validate_range_key
         validate_projected_attributes
       end
-
 
       def initialize(attrs={})
         unless attrs[:dynamoid_class].present?
@@ -205,7 +195,6 @@ module Dynamoid
         raise Dynamoid::Errors::InvalidIndex.new(self) unless self.valid?
       end
 
-
       # Convenience method to determine the projection type for an index.
       # Projection types are: :keys_only, :all, :include.
       #
@@ -217,7 +206,6 @@ module Dynamoid
           @projected_attributes
         end
       end
-
 
       private
 
