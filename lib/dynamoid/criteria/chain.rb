@@ -70,25 +70,27 @@ module Dynamoid #:nodoc:
 
       # Destroys all the records matching the criteria.
       #
-      def destroy_all
+      def delete_all
         ids = []
+        ranges = []
 
         if key_present?
-          ranges = []
           Dynamoid.adapter.query(source.table_name, range_query).collect do |hash|
             ids << hash[source.hash_key.to_sym]
-            ranges << hash[source.range_key.to_sym]
+            ranges << hash[source.range_key.to_sym] if source.range_key
           end
 
-          Dynamoid.adapter.delete(source.table_name, ids,{:range_key => ranges})
+          Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
         else
-          Dynamoid.adapter.scan(source.table_name, query, scan_opts).collect do |hash|
+          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).collect do |hash|
             ids << hash[source.hash_key.to_sym]
+            ranges << hash[source.range_key.to_sym] if source.range_key
           end
 
-          Dynamoid.adapter.delete(source.table_name, ids)
+          Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
         end
       end
+      alias_method :destroy_all, :delete_all
 
       # The record limit is the limit of evaluated records returned by the
       # query or scan.

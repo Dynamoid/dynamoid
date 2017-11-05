@@ -45,6 +45,8 @@ RSpec.configure do |config|
   config.raise_errors_for_deprecations!
   config.alias_it_should_behave_like_to :configured_with, "configured with"
 
+  config.include NewClassHelper
+
   config.before(:each) do
     DynamoDBLocal.delete_all_specified_tables!
   end

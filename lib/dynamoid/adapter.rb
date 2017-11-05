@@ -120,7 +120,7 @@ module Dynamoid
     # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
     #
     # @since 0.2.0
-    def scan(table, query, opts = {})
+    def scan(table, query = {}, opts = {})
       benchmark('Scan', table, query) {adapter.scan(table, query, opts)}
     end
 
