@@ -94,8 +94,29 @@ describe Dynamoid::Adapter do
     subject.delete(test_table, single_id, range_key: 2.0)
   end
 
+  {
+    1 => [:id],
+    2 => [:id],
+    3 => [:id, {range_key: {range: :number}}],
+    4 => [:id, {range_key: {range: :number}}]
+  }.each do |n, args|
+    name = "dynamoid_tests_TestTable#{n}"
+    let(:"test_table#{n}") do
+      Dynamoid.adapter.create_table(name, *args)
+      name
+    end
+  end
+
   it 'deletes through the adapter for many IDs and a range key' do
-    expect(subject).to receive(:batch_delete_item).with(test_table => [['1', 2.0], ['2', 2.0]]).and_return(nil)
-    subject.delete(test_table, many_ids, range_key: [2.0, 2.0])
+    Dynamoid.adapter.put_item(test_table3, id: '1', range: 1.0)
+    Dynamoid.adapter.put_item(test_table3, id: '2', range: 1.0)
+    Dynamoid.adapter.put_item(test_table3, id: '2', range: 2.0)
+
+    expect(subject).to receive(:batch_delete_item).and_call_original
+    expect {
+      subject.delete(test_table3, ['1', '2'], range_key: 1.0)
+    }.to change {
+      Dynamoid.adapter.scan(test_table3).to_a.size
+    }.from(3).to(1)
   end
 end

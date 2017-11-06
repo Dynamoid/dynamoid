@@ -105,7 +105,7 @@ module Dynamoid
           # turn ids into array of arrays each element being hash_key, range_key
           ids = ids.each_with_index.map{|id, i| [id, range_key[i]]}
         else
-          ids = range_key ? [[ids, range_key]] : ids
+          ids = range_key ? ids.map { |id| [id, range_key] } : ids
         end
 
         batch_delete_item(table => ids)
