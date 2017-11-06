@@ -212,9 +212,7 @@ module Dynamoid
           }
         }
 
-        documents.each_slice(25) do |docs|
-          Dynamoid.adapter.batch_write_item(self.table_name, docs.map(&:dump))
-        end
+        Dynamoid.adapter.batch_write_item(self.table_name, documents.map(&:dump))
 
         documents.each { |d| d.new_record = false }
         documents
