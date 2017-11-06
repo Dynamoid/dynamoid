@@ -10,13 +10,13 @@ describe Dynamoid::Persistence do
       end
 
       it 'creates a table' do
-        Address.create_table(:table_name => Address.table_name)
+        Address.create_table(table_name: Address.table_name)
 
         expect(Dynamoid.adapter.list_tables).to include 'dynamoid_tests_addresses'
       end
 
       it 'checks if a table already exists' do
-        Address.create_table(:table_name => Address.table_name)
+        Address.create_table(table_name: Address.table_name)
 
         expect(Address.table_exists?(Address.table_name)).to be_truthy
         expect(Address.table_exists?('crazytable')).to be_falsey
@@ -38,7 +38,7 @@ describe Dynamoid::Persistence do
     let(:klass) do
       Class.new do
         include Dynamoid::Document
-        table :name => :addresses
+        table name: :addresses
         field :city
 
         before_destroy {|i|
@@ -56,10 +56,10 @@ describe Dynamoid::Persistence do
 
     describe 'destroy' do
       it 'deletes an item completely' do
-        @user = User.create(:name => 'Josh')
+        @user = User.create(name: 'Josh')
         @user.destroy
 
-        expect(Dynamoid.adapter.read("dynamoid_tests_users", @user.id)).to be_nil
+        expect(Dynamoid.adapter.read('dynamoid_tests_users', @user.id)).to be_nil
       end
 
       it 'returns false when destroy fails (due to callback)' do
@@ -86,7 +86,7 @@ describe Dynamoid::Persistence do
   it 'assigns itself an id on save' do
     address.save
 
-    expect(Dynamoid.adapter.read("dynamoid_tests_addresses", address.id)[:id]).to eq address.id
+    expect(Dynamoid.adapter.read('dynamoid_tests_addresses', address.id)[:id]).to eq address.id
   end
 
   it 'prevents concurrent writes to tables with a lock_version' do
@@ -105,7 +105,7 @@ describe Dynamoid::Persistence do
     address.id = 'test123'
     address.save
 
-    expect(Dynamoid.adapter.read("dynamoid_tests_addresses", 'test123')).to_not be_empty
+    expect(Dynamoid.adapter.read('dynamoid_tests_addresses', 'test123')).to_not be_empty
   end
 
   it 'has a table name' do
@@ -123,7 +123,7 @@ describe Dynamoid::Persistence do
     before do
       reload_address
       Dynamoid.configure do |config|
-        config.namespace = ""
+        config.namespace = ''
       end
     end
 
@@ -171,63 +171,63 @@ describe Dynamoid::Persistence do
   end
 
   it 'deletes an item completely' do
-    @user = User.create(:name => 'Josh')
+    @user = User.create(name: 'Josh')
     @user.destroy
 
-    expect(Dynamoid.adapter.read("dynamoid_tests_users", @user.id)).to be_nil
+    expect(Dynamoid.adapter.read('dynamoid_tests_users', @user.id)).to be_nil
   end
 
   it 'keeps string attributes as strings' do
-    @user = User.new(:name => 'Josh')
+    @user = User.new(name: 'Josh')
     expect(@user.send(:dump)[:name]).to eq 'Josh'
   end
 
   it 'keeps raw Hash attributes as a Hash' do
-    config = {:acres => 5, :trees => {:cyprus => 30, :poplar => 10, :joshua => 1}, :horses => ['Lucky', 'Dummy'], :lake => 1, :tennis_court => 1}
-    @addr = Address.new(:config => config)
+    config = {acres: 5, trees: {cyprus: 30, poplar: 10, joshua: 1}, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1}
+    @addr = Address.new(config: config)
     expect(@addr.send(:dump)[:config]).to eq config
   end
 
   it 'keeps raw Array attributes as an Array' do
     config = ['windows', 'roof', 'doors']
-    @addr = Address.new(:config => config)
+    @addr = Address.new(config: config)
     expect(@addr.send(:dump)[:config]).to eq config
   end
 
   it 'keeps raw String attributes as a String' do
     config = 'Configy'
-    @addr = Address.new(:config => config)
+    @addr = Address.new(config: config)
     expect(@addr.send(:dump)[:config]).to eq config
   end
 
   it 'keeps raw Number attributes as a Number' do
     config = 100
-    @addr = Address.new(:config => config)
+    @addr = Address.new(config: config)
     expect(@addr.send(:dump)[:config]).to eq config
   end
 
-  context "transforms booleans" do
+  context 'transforms booleans' do
     it 'handles true' do
       deliverable = true
-      @addr = Address.new(:deliverable => deliverable)
+      @addr = Address.new(deliverable: deliverable)
       expect(@addr.send(:dump)[:deliverable]).to eq 't'
     end
 
     it 'handles false' do
       deliverable = false
-      @addr = Address.new(:deliverable => deliverable)
+      @addr = Address.new(deliverable: deliverable)
       expect(@addr.send(:dump)[:deliverable]).to eq 'f'
     end
 
     it 'handles t' do
       deliverable = 't'
-      @addr = Address.new(:deliverable => deliverable)
+      @addr = Address.new(deliverable: deliverable)
       expect(@addr.send(:dump)[:deliverable]).to eq 't'
     end
 
     it 'handles f' do
       deliverable = 'f'
-      @addr = Address.new(:deliverable => deliverable)
+      @addr = Address.new(deliverable: deliverable)
       expect(@addr.send(:dump)[:deliverable]).to eq 'f'
     end
   end
@@ -258,7 +258,7 @@ describe Dynamoid::Persistence do
   end
 
   it 'dumps date attributes' do
-    address = Address.create(:registered_on => '2017-06-18'.to_date)
+    address = Address.create(registered_on: '2017-06-18'.to_date)
     expect(Address.find(address.id).registered_on).to eq '2017-06-18'.to_date
 
     # check internal format - days since 1970-01-01
@@ -267,12 +267,12 @@ describe Dynamoid::Persistence do
   end
 
   it 'dumps integer attributes' do
-    @subscription = Subscription.create(:length => 10)
+    @subscription = Subscription.create(length: 10)
     expect(@subscription.send(:dump)[:length]).to eq 10
   end
 
   it 'dumps set attributes' do
-    @subscription = Subscription.create(:length => 10)
+    @subscription = Subscription.create(length: 10)
     @magazine = @subscription.magazine.create
 
     expect(@subscription.send(:dump)[:magazine_ids]).to eq Set[@magazine.hash_key]
@@ -283,7 +283,7 @@ describe Dynamoid::Persistence do
   end
 
   it 'dumps and undump a serialized field' do
-    address.options = (hash = {:x => [1, 2], "foobar" => 3.14})
+    address.options = (hash = {:x => [1, 2], 'foobar' => 3.14})
     expect(Address.undump(address.send(:dump))[:options]).to eq hash
   end
 
@@ -321,7 +321,7 @@ describe Dynamoid::Persistence do
   end
 
   it 'saves empty set as nil' do
-    tweet = Tweet.create(group: "one", tags: [])
+    tweet = Tweet.create(group: 'one', tags: [])
     expect(Tweet.find_by_tweet_id(tweet.tweet_id).tags).to eq nil
   end
 
@@ -362,7 +362,7 @@ describe Dynamoid::Persistence do
 
   it 'loads attributes from a hash' do
     @time = DateTime.now
-    @hash = {:name => 'Josh', :created_at => @time.to_f}
+    @hash = {name: 'Josh', created_at: @time.to_f}
 
     expect(User.undump(@hash)[:name]).to eq 'Josh'
     User.undump(@hash)[:created_at].to_f == @time.to_f
@@ -387,15 +387,15 @@ describe Dynamoid::Persistence do
   end
 
   it 'works with a HashWithIndifferentAccess' do
-    hash = ActiveSupport::HashWithIndifferentAccess.new("city" => "Atlanta")
+    hash = ActiveSupport::HashWithIndifferentAccess.new('city' => 'Atlanta')
 
     expect{Address.create(hash)}.to_not raise_error
   end
 
   context 'create' do
     {
-      Tweet   => ['with range',    { :tweet_id => 1, :group => 'abc' }],
-      Message => ['without range', { :message_id => 1, :text => 'foo', :time => DateTime.now }]
+      Tweet   => ['with range',    { tweet_id: 1, group: 'abc' }],
+      Message => ['without range', { message_id: 1, text: 'foo', time: DateTime.now }]
     }.each_pair do |clazz, fields|
       it "checks for existence of an existing object #{fields[0]}" do
         t1 = clazz.new(fields[1])
@@ -413,7 +413,7 @@ describe Dynamoid::Persistence do
     let(:clazz) do
       Class.new do
         include Dynamoid::Document
-        table :name => :addresses
+        table name: :addresses
 
         field :city
         field :options, :serialized
@@ -423,7 +423,7 @@ describe Dynamoid::Persistence do
 
     it 'raises when undumping a column with an unknown field type' do
       expect do
-        clazz.new(:deliverable => true) #undump is called here
+        clazz.new(deliverable: true) # undump is called here
       end.to raise_error(ArgumentError)
     end
 
@@ -440,7 +440,7 @@ describe Dynamoid::Persistence do
     it 'creates table if it does not exist' do
       klass = Class.new do
         include Dynamoid::Document
-        table :name => :foo_bars
+        table name: :foo_bars
       end
 
       expect { klass.create }.not_to raise_error(Aws::DynamoDB::Errors::ResourceNotFoundException)
@@ -451,29 +451,29 @@ describe Dynamoid::Persistence do
   context 'update' do
 
     before :each do
-      @tweet = Tweet.create(:tweet_id => 1, :group => 'abc', :count => 5, :tags => Set.new(['db', 'sql']), :user_name => 'john')
+      @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(['db', 'sql']), user_name: 'john')
     end
 
     it 'runs before_update callbacks when doing #update' do
       expect_any_instance_of(CamelCase).to receive(:doing_before_update).once.and_return(true)
 
-      CamelCase.create(:color => 'blue').update do |t|
-        t.set(:color => 'red')
+      CamelCase.create(color: 'blue').update do |t|
+        t.set(color: 'red')
       end
     end
 
     it 'runs after_update callbacks when doing #update' do
       expect_any_instance_of(CamelCase).to receive(:doing_after_update).once.and_return(true)
 
-      CamelCase.create(:color => 'blue').update do |t|
-        t.set(:color => 'red')
+      CamelCase.create(color: 'blue').update do |t|
+        t.set(color: 'red')
       end
     end
 
     it 'support add/delete operation on a field' do
       @tweet.update do |t|
-        t.add(:count => 3)
-        t.delete(:tags => Set.new(['db']))
+        t.add(count: 3)
+        t.delete(tags: Set.new(['db']))
       end
 
       expect(@tweet.count).to eq(8)
@@ -481,23 +481,23 @@ describe Dynamoid::Persistence do
     end
 
     it 'checks the conditions on update' do
-      result = @tweet.update(:if => { :count => 5 }) do |t|
-        t.add(:count => 3)
+      result = @tweet.update(if: { count: 5 }) do |t|
+        t.add(count: 3)
       end
       expect(result).to be_truthy
 
       expect(@tweet.count).to eq(8)
 
-      result = @tweet.update(:if => { :count => 5 }) do |t|
-        t.add(:count => 3)
+      result = @tweet.update(if: { count: 5 }) do |t|
+        t.add(count: 3)
       end
       expect(result).to be_falsey
 
       expect(@tweet.count).to eq(8)
 
       expect do
-        @tweet.update!(:if => { :count => 5 }) do |t|
-          t.add(:count => 3)
+        @tweet.update!(if: { count: 5 }) do |t|
+          t.add(count: 3)
         end
       end.to raise_error(Dynamoid::Errors::StaleObjectError)
     end
@@ -505,10 +505,10 @@ describe Dynamoid::Persistence do
     it 'prevents concurrent saves to tables with a lock_version' do
       address.save!
       a2 = Address.find(address.id)
-      a2.update! { |a| a.set(:city => "Chicago") }
+      a2.update! { |a| a.set(city: 'Chicago') }
 
       expect do
-        address.city = "Seattle"
+        address.city = 'Seattle'
         address.save!
       end.to raise_error(Dynamoid::Errors::StaleObjectError)
     end
@@ -518,7 +518,7 @@ describe Dynamoid::Persistence do
   context 'delete' do
     it 'deletes model with datetime range key' do
       expect do
-        msg = Message.create!(:message_id => 1, :time => DateTime.now, :text => "Hell yeah")
+        msg = Message.create!(message_id: 1, time: DateTime.now, text: 'Hell yeah')
         msg.destroy
       end.to_not raise_error
     end
@@ -589,7 +589,7 @@ describe Dynamoid::Persistence do
     subject { Address.new() }
 
     it 'it persists raw Hash and reads the same back' do
-      config = {:acres => 5, :trees => {:cyprus => 30, :poplar => 10, :joshua => 1}, :horses => ['Lucky', 'Dummy'], :lake => 1, :tennis_court => 1}
+      config = {acres: 5, trees: {cyprus: 30, poplar: 10, joshua: 1}, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1}
       subject.config = config
       subject.save!
       subject.reload
@@ -762,7 +762,7 @@ describe Dynamoid::Persistence do
 
         def self.name; 'Address'; end
 
-        before_save { raise "before save callback called" }
+        before_save { raise 'before save callback called' }
       end
 
       expect { klass.import([{city: 'Chicago'}]) }.not_to raise_error
@@ -775,7 +775,7 @@ describe Dynamoid::Persistence do
 
     it 'makes multiple batch operations if the limit (25 items) exceeded' do
       expect(Dynamoid.adapter.client).to receive(:batch_write_item).exactly(2).times.and_call_original
-      Address.import(Array.new(26, {city: 'Chicago'}))
+      Address.import(Array.new(26, city: 'Chicago'))
     end
   end
 end

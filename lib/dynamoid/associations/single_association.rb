@@ -5,7 +5,7 @@ module Dynamoid #:nodoc:
     module SingleAssociation
       include Association
 
-      delegate :class, :to => :target
+      delegate :class, to: :target
 
       def setter(object)
         delete
@@ -31,7 +31,6 @@ module Dynamoid #:nodoc:
       def create(attributes = {})
         setter(target_class.create(attributes))
       end
-
 
       # Is this object equal to the association's target?
       #

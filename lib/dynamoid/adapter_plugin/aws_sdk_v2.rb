@@ -3,7 +3,7 @@ module Dynamoid
 
     # The AwsSdkV2 adapter provides support for the aws-sdk version 2 for ruby.
     class AwsSdkV2
-      EQ = "EQ".freeze
+      EQ = 'EQ'.freeze
       RANGE_MAP = {
           range_greater_than: 'GT',
           range_less_than:    'LT',
@@ -28,16 +28,16 @@ module Dynamoid
           contains:     'CONTAINS',
           not_contains: 'NOT_CONTAINS'
       }
-      HASH_KEY  = "HASH".freeze
-      RANGE_KEY = "RANGE".freeze
-      STRING_TYPE  = "S".freeze
-      NUM_TYPE     = "N".freeze
-      BINARY_TYPE  = "B".freeze
+      HASH_KEY  = 'HASH'.freeze
+      RANGE_KEY = 'RANGE'.freeze
+      STRING_TYPE  = 'S'.freeze
+      NUM_TYPE     = 'N'.freeze
+      BINARY_TYPE  = 'B'.freeze
       TABLE_STATUSES = {
-          creating: "CREATING",
-          updating: "UPDATING",
-          deleting: "DELETING",
-          active: "ACTIVE"
+          creating: 'CREATING',
+          updating: 'UPDATING',
+          deleting: 'DELETING',
+          active: 'ACTIVE'
       }.freeze
       PARSE_TABLE_STATUS = ->(resp, lookup = :table) {
         # lookup is table for describe_table API
@@ -89,12 +89,12 @@ module Dynamoid
       # @param [Array]  items to be processed
       # @param [Hash]   additional options
       #
-      #See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
+      # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
       def batch_write_item table_name, objects, options = {}
         request_items = []
         options ||= {}
         objects.each do |o|
-          request_items << { "put_request" => { item: o } }
+          request_items << { 'put_request' => { item: o } }
         end
 
         begin
@@ -103,8 +103,8 @@ module Dynamoid
               request_items: {
                 table_name => request_items,
               },
-              return_consumed_capacity: "TOTAL",
-              return_item_collection_metrics: "SIZE"
+              return_consumed_capacity: 'TOTAL',
+              return_item_collection_metrics: 'SIZE'
             }.merge!(options)
           )
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
@@ -141,7 +141,7 @@ module Dynamoid
             request_items = Hash.new{|h, k| h[k] = []}
 
             keys = if rng.present?
-              Array(ids).map do |h,r|
+              Array(ids).map do |h, r|
                 { hk => h, rng => r }
               end
             else
@@ -199,12 +199,9 @@ module Dynamoid
         begin
           requests.map do |request_items|
             client.batch_write_item(
-              {
-                request_items: request_items,
-                return_consumed_capacity: "TOTAL",
-                return_item_collection_metrics: "SIZE"
-              }
-            )
+              request_items: request_items,
+              return_consumed_capacity: 'TOTAL',
+              return_item_collection_metrics: 'SIZE')
           end
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
           raise Dynamoid::Errors::ConditionalCheckFailedException, e
@@ -234,8 +231,8 @@ module Dynamoid
         gs_indexes = options[:global_secondary_indexes]
 
         key_schema = {
-          :hash_key_schema => { key => (options[:hash_key_type] || :string) },
-          :range_key_schema => options[:range_key]
+          hash_key_schema: { key => (options[:hash_key_type] || :string) },
+          range_key_schema: options[:range_key]
         }
         attribute_definitions = build_all_attribute_definitions(
           key_schema,
@@ -391,7 +388,7 @@ module Dynamoid
             key: key_stanza(table, key, range_key),
             attribute_updates: iu.to_h,
             expected: expected_stanza(conditions),
-            return_values: "ALL_NEW"
+            return_values: 'ALL_NEW'
           )
           result_item_to_hash(result[:attributes])
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
@@ -513,7 +510,7 @@ module Dynamoid
         end
 
         query_filter = {}
-        opts.reject {|k,_| k.in? RANGE_MAP.keys}.each do |attr, hash|
+        opts.reject {|k, _| k.in? RANGE_MAP.keys}.each do |attr, hash|
           query_filter[attr] = {
             comparison_operator: FIELD_MAP[hash.keys[0]],
             attribute_value_list: [
@@ -685,7 +682,7 @@ module Dynamoid
           check = {again: true}
           while check[:again]
             sleep Dynamoid::Config.sync_retry_wait_seconds
-            resp = client.describe_table({ table_name: table_name })
+            resp = client.describe_table(table_name: table_name)
             check = check_table_status?(counter, resp, status)
             Dynamoid.logger.info "Checked table status for #{table_name} (check #{check.inspect})"
             counter += 1
@@ -713,7 +710,7 @@ module Dynamoid
         end
       end
 
-      #Converts from symbol to the API string for the given data type
+      # Converts from symbol to the API string for the given data type
       # E.g. :number -> 'N'
       def api_type(type)
         case(type)
@@ -738,13 +735,13 @@ module Dynamoid
       # @return an Expected stanza for the given conditions hash
       #
       def expected_stanza(conditions = nil)
-        expected = Hash.new { |h,k| h[k] = {} }
+        expected = Hash.new { |h, k| h[k] = {} }
         return expected unless conditions
 
         conditions.delete(:unless_exists).try(:each) do |col|
           expected[col.to_s][:exists] = false
         end
-        conditions.delete(:if).try(:each) do |col,val|
+        conditions.delete(:if).try(:each) do |col, val|
           expected[col.to_s][:value] = val
         end
 
@@ -765,7 +762,7 @@ module Dynamoid
       #
       def result_item_to_hash(item)
         {}.tap do |r|
-          item.each { |k,v| r[k.to_sym] = v }
+          item.each { |k, v| r[k.to_sym] = v }
         end
       end
 
@@ -794,10 +791,10 @@ module Dynamoid
         key_schema = aws_key_schema(index.hash_key_schema, index.range_key_schema)
 
         hash = {
-          :index_name => index.name,
-          :key_schema => key_schema,
-          :projection => {
-            :projection_type => index.projection_type.to_s.upcase
+          index_name: index.name,
+          key_schema: key_schema,
+          projection: {
+            projection_type: index.projection_type.to_s.upcase
           }
         }
 
@@ -809,8 +806,8 @@ module Dynamoid
         # Only global secondary indexes have a separate throughput.
         if index.type == :global_secondary
           hash[:provisioned_throughput] = {
-            :read_capacity_units => index.read_capacity,
-            :write_capacity_units => index.write_capacity
+            read_capacity_units: index.read_capacity,
+            write_capacity_units: index.write_capacity
           }
         end
         hash
@@ -880,7 +877,6 @@ module Dynamoid
         attribute_definitions
       end
 
-
       # Builds an attribute definitions based on hash key and range key
       # @params [Hash] hash_key_schema - eg: {:id => :string}
       # @params [Hash] range_key_schema - eg: {:created_at => :datetime}
@@ -911,8 +907,8 @@ module Dynamoid
         aws_type = api_type(dynamoid_type)
 
         {
-          :attribute_name => name.to_s,
-          :attribute_type => aws_type
+          attribute_name: name.to_s,
+          attribute_type: aws_type
         }
       end
 
@@ -937,7 +933,7 @@ module Dynamoid
         def range_type
           range_type ||= schema[:attribute_definitions].find { |d|
             d[:attribute_name] == range_key
-          }.try(:fetch,:attribute_type, nil)
+          }.try(:fetch, :attribute_type, nil)
         end
 
         def hash_key
@@ -1006,19 +1002,19 @@ module Dynamoid
         def to_h
           ret = {}
 
-          @additions.each do |k,v|
+          @additions.each do |k, v|
             ret[k.to_s] = {
               action: ADD,
               value: v
             }
           end
-          @deletions.each do |k,v|
+          @deletions.each do |k, v|
             ret[k.to_s] = {
               action: DELETE,
               value: v
             }
           end
-          @updates.each do |k,v|
+          @updates.each do |k, v|
             ret[k.to_s] = {
               action: PUT,
               value: v
@@ -1028,9 +1024,9 @@ module Dynamoid
           ret
         end
 
-        ADD    = "ADD".freeze
-        DELETE = "DELETE".freeze
-        PUT    = "PUT".freeze
+        ADD    = 'ADD'.freeze
+        DELETE = 'DELETE'.freeze
+        PUT    = 'PUT'.freeze
       end
     end
   end

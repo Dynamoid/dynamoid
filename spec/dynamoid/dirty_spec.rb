@@ -9,30 +9,30 @@ describe Dynamoid::Dirty do
     end
 
     it 'is not empty' do
-      tweet = Tweet.new(:tweet_id => "1", :group => 'abc')
+      tweet = Tweet.new(tweet_id: '1', group: 'abc')
       expect(tweet).to be_changed
       expect(tweet.group_was).to be_nil
     end
 
     it 'is empty when loaded from database' do
-      Tweet.create!(:tweet_id => "1", :group => 'abc')
-      tweet = Tweet.where(:tweet_id => "1", :group => 'abc').first
+      Tweet.create!(tweet_id: '1', group: 'abc')
+      tweet = Tweet.where(tweet_id: '1', group: 'abc').first
       expect(tweet).to_not be_changed
       tweet.group = 'abc'
       tweet.reload
       expect(tweet).to_not be_changed
     end
-    
+
     it 'is empty after an update' do
-      tweet = Tweet.create!(:tweet_id => "1", :group => 'abc')
+      tweet = Tweet.create!(tweet_id: '1', group: 'abc')
       tweet.update! do |t|
-        t.set(msg: "foo")
+        t.set(msg: 'foo')
       end
       expect(tweet).to_not be_changed
     end
 
     it 'tracks changes after saves' do
-      tweet = Tweet.new(:tweet_id => "1", :group => 'abc')
+      tweet = Tweet.new(tweet_id: '1', group: 'abc')
       tweet.save!
       expect(tweet).to_not be_changed
 
@@ -47,7 +47,7 @@ describe Dynamoid::Dirty do
     end
 
     it 'clears changes on save' do
-      tweet = Tweet.new(:tweet_id => "1", :group => 'abc')
+      tweet = Tweet.new(tweet_id: '1', group: 'abc')
       tweet.group = 'xyz'
       expect(tweet.group_changed?).to be_truthy
       tweet.save!

@@ -15,7 +15,7 @@ module Dynamoid
 
     def update!(*)
       ret = super
-      clear_changes #update! completely reloads all fields on the class, so any extant changes are wiped out
+      clear_changes # update! completely reloads all fields on the class, so any extant changes are wiped out
       ret
     end
 
@@ -26,7 +26,7 @@ module Dynamoid
     def clear_changes
       previous = changes
       (block_given? ? yield : true).tap do |result|
-        unless result == false #failed validation; nil is OK.
+        unless result == false # failed validation; nil is OK.
           @previously_changed = previous
           changed_attributes.clear
         end

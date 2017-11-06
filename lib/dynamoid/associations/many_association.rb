@@ -14,7 +14,7 @@ module Dynamoid #:nodoc:
 
       include Enumerable
       # Delegate methods to the records the association represents.
-      delegate :first, :last, :empty?, :size, :class, :to => :records
+      delegate :first, :last, :empty?, :size, :class, to: :records
 
       # The records associated to the source.
       #
@@ -56,7 +56,6 @@ module Dynamoid #:nodoc:
         Array(object).each {|o| self.send(:disassociate_target, o)} if target_association
         object
       end
-
 
       # Add an object or array of objects to an association. This preserves the current records in the association (if any)
       # and adds the object to the target association if it is detected to exist.

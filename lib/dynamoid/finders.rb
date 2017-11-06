@@ -90,7 +90,7 @@ module Dynamoid
       # @param [String/Number] range_key of the object to find
       #
       def find_by_composite_key(hash_key, range_key, options = {})
-        find_by_id(hash_key, options.merge({:range_key => range_key}))
+        find_by_id(hash_key, options.merge(range_key: range_key))
       end
 
       # Find all objects by hash and range keys.
@@ -115,7 +115,7 @@ module Dynamoid
       # @return [Array] an array of all matching items
       #
       def find_all_by_composite_key(hash_key, options = {})
-        Dynamoid.adapter.query(self.table_name, options.merge({hash_value: hash_key})).collect do |item|
+        Dynamoid.adapter.query(self.table_name, options.merge(hash_value: hash_key)).collect do |item|
           from_database(item)
         end
       end
@@ -148,9 +148,9 @@ module Dynamoid
 
         if range_key_field
           range_key_field = range_key_field.to_s
-          range_key_op = "eq"
-          if range_key_field.include?(".")
-            range_key_field, range_key_op = range_key_field.split(".", 2)
+          range_key_op = 'eq'
+          if range_key_field.include?('.')
+            range_key_field, range_key_op = range_key_field.split('.', 2)
           end
           range_op_mapped = RANGE_MAP.fetch(range_key_op)
         end
@@ -161,9 +161,9 @@ module Dynamoid
 
         # query
         opts = {
-          :hash_key => hash_key_field.to_s,
-          :hash_value => hash_key_value,
-          :index_name => index.name,
+          hash_key: hash_key_field.to_s,
+          hash_value: hash_key_value,
+          index_name: index.name,
         }
         if range_key_field
           opts[:range_key] = range_key_field

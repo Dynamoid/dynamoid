@@ -39,8 +39,8 @@ module Dynamoid
         end
 
         index_opts = {
-            :read_capacity => Dynamoid::Config.read_capacity,
-            :write_capacity => Dynamoid::Config.write_capacity
+            read_capacity: Dynamoid::Config.read_capacity,
+            write_capacity: Dynamoid::Config.write_capacity
         }.merge(options)
 
         index_opts[:dynamoid_class] = self
@@ -51,7 +51,6 @@ module Dynamoid
         self.global_secondary_indexes[gsi_key] = index
         self
       end
-
 
       # Defines a local secondary index on a table. Will use the same primary
       # hash key as the table.
@@ -83,11 +82,10 @@ module Dynamoid
             ' must use a different :range_key than the primary key')
         end
 
-        index_opts = options.merge({
-          :dynamoid_class => self,
-          :type => :local_secondary,
-          :hash_key => primary_hash_key
-        })
+        index_opts = options.merge(
+          dynamoid_class: self,
+          type: :local_secondary,
+          hash_key: primary_hash_key)
 
         index = Dynamoid::Indexes::Index.new(index_opts)
         key = index_key(primary_hash_key, index_range_key)
@@ -95,12 +93,10 @@ module Dynamoid
         self
       end
 
-
       def find_index(hash, range=nil)
         index = self.indexes[index_key(hash, range)]
         index
       end
-
 
       # Returns true iff the provided hash[,range] key combo is a local
       # secondary index.
@@ -113,7 +109,6 @@ module Dynamoid
         self.local_secondary_indexes[index_key(hash, range)].present?
       end
 
-
       # Returns true iff the provided hash[,range] key combo is a global
       # secondary index.
       #
@@ -124,7 +119,6 @@ module Dynamoid
       def is_global_secondary_index?(hash, range=nil)
         self.global_secondary_indexes[index_key(hash, range)].present?
       end
-
 
       # Generates a convenient lookup key name for a hash/range index.
       # Should normally not be used directly.
@@ -140,7 +134,6 @@ module Dynamoid
         name
       end
 
-
       # Generates a default index name.
       #
       # @param [Symbol] hash hash key name.
@@ -149,7 +142,6 @@ module Dynamoid
       def index_name(hash, range=nil)
         "#{self.table_name}_index_#{self.index_key(hash, range)}"
       end
-
 
       # Convenience method to return all indexes on the table.
       #
@@ -166,7 +158,6 @@ module Dynamoid
       end
     end
 
-
     # Represents the attributes of a DynamoDB index.
     class Index
       include ActiveModel::Validations
@@ -178,14 +169,12 @@ module Dynamoid
           :hash_key_schema, :range_key_schema, :projected_attributes,
           :read_capacity, :write_capacity
 
-
       validate do
         validate_index_type
         validate_hash_key
         validate_range_key
         validate_projected_attributes
       end
-
 
       def initialize(attrs={})
         unless attrs[:dynamoid_class].present?
@@ -205,7 +194,6 @@ module Dynamoid
         raise Dynamoid::Errors::InvalidIndex.new(self) unless self.valid?
       end
 
-
       # Convenience method to determine the projection type for an index.
       # Projection types are: :keys_only, :all, :include.
       #
@@ -218,56 +206,55 @@ module Dynamoid
         end
       end
 
-
       private
 
-        def validate_projected_attributes
-          unless (@projected_attributes.is_a?(Array) ||
-                  PROJECTION_TYPES.include?(@projected_attributes))
-            errors.add(:projected_attributes, 'Invalid projected attributes specified.')
-          end
+      def validate_projected_attributes
+        unless (@projected_attributes.is_a?(Array) ||
+                PROJECTION_TYPES.include?(@projected_attributes))
+          errors.add(:projected_attributes, 'Invalid projected attributes specified.')
         end
+      end
 
-        def validate_index_type
-          unless (@type.present? &&
-            [:local_secondary, :global_secondary].include?(@type))
-              errors.add(:type, 'Invalid index :type specified')
-          end
+      def validate_index_type
+        unless (@type.present? &&
+          [:local_secondary, :global_secondary].include?(@type))
+            errors.add(:type, 'Invalid index :type specified')
         end
+      end
 
-        def validate_range_key
-          if @range_key.present?
-            range_field_attributes = @dynamoid_class.attributes[@range_key]
-            if range_field_attributes.present?
-              range_key_type = range_field_attributes[:type]
-              if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(range_key_type)
-                @range_key_schema = {
-                  @range_key => @dynamoid_class.dynamo_type(range_key_type)
-                }
-              else
-                errors.add(:range_key, 'Index :range_key is not a valid key type')
-              end
-            else
-              errors.add(:range_key, "No such field #{@range_key} defined on table")
-            end
-          end
-        end
-
-        def validate_hash_key
-          hash_field_attributes = @dynamoid_class.attributes[@hash_key]
-          if hash_field_attributes.present?
-            hash_field_type = hash_field_attributes[:type]
-            if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(hash_field_type)
-              @hash_key_schema = {
-                @hash_key => @dynamoid_class.dynamo_type(hash_field_type)
+      def validate_range_key
+        if @range_key.present?
+          range_field_attributes = @dynamoid_class.attributes[@range_key]
+          if range_field_attributes.present?
+            range_key_type = range_field_attributes[:type]
+            if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(range_key_type)
+              @range_key_schema = {
+                @range_key => @dynamoid_class.dynamo_type(range_key_type)
               }
             else
-              errors.add(:hash_key, 'Index :hash_key is not a valid key type')
+              errors.add(:range_key, 'Index :range_key is not a valid key type')
             end
           else
-            errors.add(:hash_key, "No such field #{@hash_key} defined on table")
+            errors.add(:range_key, "No such field #{@range_key} defined on table")
           end
         end
+      end
+
+      def validate_hash_key
+        hash_field_attributes = @dynamoid_class.attributes[@hash_key]
+        if hash_field_attributes.present?
+          hash_field_type = hash_field_attributes[:type]
+          if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(hash_field_type)
+            @hash_key_schema = {
+              @hash_key => @dynamoid_class.dynamo_type(hash_field_type)
+            }
+          else
+            errors.add(:hash_key, 'Index :hash_key is not a valid key type')
+          end
+        else
+          errors.add(:hash_key, "No such field #{@hash_key} defined on table")
+        end
+      end
     end
   end
 end

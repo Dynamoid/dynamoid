@@ -23,7 +23,7 @@ module Dynamoid #:nodoc:
       field :created_at, :datetime
       field :updated_at, :datetime
 
-      field :id #Default primary key
+      field :id # Default primary key
     end
 
     module ClassMethods
@@ -50,7 +50,7 @@ module Dynamoid #:nodoc:
           Dynamoid.logger.warn("Field type :float, which you declared for '#{name}', is deprecated in favor of :number.")
           type = :number
         end
-        self.attributes = attributes.merge(name => {:type => type}.merge(options))
+        self.attributes = attributes.merge(name => {type: type}.merge(options))
 
         generated_methods.module_eval do
           define_method(named) { read_attribute(named) }
@@ -73,7 +73,7 @@ module Dynamoid #:nodoc:
       end
 
       def table(options)
-        #a default 'id' column is created when Dynamoid::Document is included
+        # a default 'id' column is created when Dynamoid::Document is included
         unless(attributes.has_key? hash_key)
           remove_field :id
           field(hash_key)
@@ -82,7 +82,7 @@ module Dynamoid #:nodoc:
 
       def remove_field(field)
         field = field.to_sym
-        attributes.delete(field) or raise "No such field"
+        attributes.delete(field) or raise 'No such field'
 
         generated_methods.module_eval do
           remove_method field

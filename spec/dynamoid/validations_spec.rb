@@ -42,7 +42,7 @@ describe Dynamoid::Validations do
 
     expect { doc_class.create! }.to raise_error(Dynamoid::Errors::DocumentNotValid)
 
-    doc = doc_class.create!(:name => 'test')
+    doc = doc_class.create!(name: 'test')
     expect(doc.errors).to be_empty
   end
 

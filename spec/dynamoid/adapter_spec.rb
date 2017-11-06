@@ -55,8 +55,8 @@ describe Dynamoid::Adapter do
   end
 
   it 'writes through the adapter' do
-    expect(subject).to receive(:put_item).with(test_table, {:id => single_id}, nil).and_return(true)
-    subject.write(test_table, {:id => single_id})
+    expect(subject).to receive(:put_item).with(test_table, {id: single_id}, nil).and_return(true)
+    subject.write(test_table, id: single_id)
   end
 
   it 'reads through the adapter for one ID' do
@@ -75,27 +75,27 @@ describe Dynamoid::Adapter do
   end
 
   it 'deletes through the adapter for many IDs' do
-    expect(subject).to receive(:batch_delete_item).with({test_table => many_ids}).and_return(nil)
+    expect(subject).to receive(:batch_delete_item).with(test_table => many_ids).and_return(nil)
     subject.delete(test_table, many_ids)
   end
 
   it 'reads through the adapter for one ID and a range key' do
-    expect(subject).to receive(:get_item).with(test_table, single_id, :range_key => 2.0).and_return(true)
-    subject.read(test_table, single_id, :range_key => 2.0)
+    expect(subject).to receive(:get_item).with(test_table, single_id, range_key: 2.0).and_return(true)
+    subject.read(test_table, single_id, range_key: 2.0)
   end
 
   it 'reads through the adapter for many IDs and a range key' do
     expect(subject).to receive(:batch_get_item).with({test_table => [['1', 2.0], ['2', 2.0]]}, {}).and_return(true)
-    subject.read(test_table, many_ids, :range_key => 2.0)
+    subject.read(test_table, many_ids, range_key: 2.0)
   end
 
   it 'deletes through the adapter for one ID and a range key' do
-    expect(subject).to receive(:delete_item).with(test_table, single_id, :range_key => 2.0).and_return(nil)
-    subject.delete(test_table, single_id, :range_key => 2.0)
+    expect(subject).to receive(:delete_item).with(test_table, single_id, range_key: 2.0).and_return(nil)
+    subject.delete(test_table, single_id, range_key: 2.0)
   end
 
   it 'deletes through the adapter for many IDs and a range key' do
-    expect(subject).to receive(:batch_delete_item).with({test_table => [['1', 2.0], ['2', 2.0]]}).and_return(nil)
-    subject.delete(test_table, many_ids, :range_key => [2.0,2.0])
+    expect(subject).to receive(:batch_delete_item).with(test_table => [['1', 2.0], ['2', 2.0]]).and_return(nil)
+    subject.delete(test_table, many_ids, range_key: [2.0, 2.0])
   end
 end

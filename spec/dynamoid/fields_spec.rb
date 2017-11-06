@@ -95,7 +95,7 @@ describe Dynamoid::Fields do
 
     it 'should update all attributes' do
       expect(address).to receive(:save).once.and_return(true)
-      address.update_attributes(:city => 'Chicago')
+      address.update_attributes(city: 'Chicago')
       expect(address[:city]).to eq 'Chicago'
       expect(address.id).to eq original_id
     end
@@ -156,22 +156,22 @@ describe Dynamoid::Fields do
     end
 
     it 'returns all attributes' do
-      expect(Address.attributes).to eq({id: {type: :string},
-                                        created_at: {type: :datetime},
-                                        updated_at: {type: :datetime},
-                                        city: {type: :string},
-                                        options: {type: :serialized},
-                                        deliverable: {type: :boolean},
-                                        latitude: {type: :number},
-                                        config: {type: :raw},
-                                        registered_on: {type: :date},
-                                        lock_version: {type: :integer}})
+      expect(Address.attributes).to eq(id: {type: :string},
+                                       created_at: {type: :datetime},
+                                       updated_at: {type: :datetime},
+                                       city: {type: :string},
+                                       options: {type: :serialized},
+                                       deliverable: {type: :boolean},
+                                       latitude: {type: :number},
+                                       config: {type: :raw},
+                                       registered_on: {type: :date},
+                                       lock_version: {type: :integer})
     end
   end
 
-  it "raises an exception when items size exceeds 400kb" do
+  it 'raises an exception when items size exceeds 400kb' do
     expect {
-      Address.create(city: "Ten chars " * 500_000)
+      Address.create(city: 'Ten chars ' * 500_000)
     }.to raise_error(Aws::DynamoDB::Errors::ValidationException, 'Item size has exceeded the maximum allowed size')
   end
 
@@ -204,11 +204,11 @@ describe Dynamoid::Fields do
       Class.new do
         include Dynamoid::Document
 
-        field :name, :string, :default => 'x'
-        field :uid, :integer, :default => lambda { 42 }
+        field :name, :string, default: 'x'
+        field :uid, :integer, default: lambda { 42 }
         field :config, :serialized, default: {}
-        field :version, :integer, :default => 1
-        field :hidden, :boolean, :default => false
+        field :version, :integer, default: 1
+        field :hidden, :boolean, default: false
 
         def self.name
           'Document'
@@ -285,12 +285,12 @@ describe Dynamoid::Fields do
   end
 
   context 'single table inheritance' do
-    it "has only base class fields on the base class" do
+    it 'has only base class fields on the base class' do
       expect(Vehicle.attributes.keys.to_set).to eq Set.new([:type, :description, :created_at, :updated_at, :id])
     end
 
-    it "has only the base and derived fields on a sub-class" do
-      #Only NuclearSubmarines have torpedoes
+    it 'has only the base and derived fields on a sub-class' do
+      # Only NuclearSubmarines have torpedoes
       expect(Car.attributes).to_not have_key(:torpedoes)
     end
   end

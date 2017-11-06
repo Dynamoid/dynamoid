@@ -43,7 +43,7 @@ module Dynamoid #:nodoc
           def #{name}?
             #{name}
           end
-          
+
           def reset_#{name}
             settings[#{name.inspect}] = defaults[#{name.inspect}]
           end
