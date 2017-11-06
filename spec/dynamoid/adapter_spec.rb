@@ -7,6 +7,19 @@ describe Dynamoid::Adapter do
   let(:single_id){'123'}
   let(:many_ids){%w(1 2)}
 
+  {
+    1 => [:id],
+    2 => [:id],
+    3 => [:id, {range_key: {range: :number}}],
+    4 => [:id, {range_key: {range: :number}}]
+  }.each do |n, args|
+    name = "dynamoid_tests_TestTable#{n}"
+    let(:"test_table#{n}") do
+      Dynamoid.adapter.create_table(name, *args)
+      name
+    end
+  end
+
   describe 'connection management' do
     it 'does not auto-establish a connection' do
       expect_any_instance_of(described_class.adapter_plugin_class).to_not receive(:connect!)
@@ -59,43 +72,86 @@ describe Dynamoid::Adapter do
     subject.write(test_table, id: single_id)
   end
 
-  it 'reads through the adapter for one ID' do
-    expect(subject).to receive(:get_item).with(test_table, single_id, {}).and_return(true)
-    subject.read(test_table, single_id)
+  describe '#read' do
+    it 'reads through the adapter for one ID' do
+      expect(subject).to receive(:get_item).with(test_table, single_id, {}).and_return(true)
+      subject.read(test_table, single_id)
+    end
+
+    it 'reads through the adapter for many IDs' do
+      expect(subject).to receive(:batch_get_item).with({test_table => many_ids}, {}).and_return(true)
+      subject.read(test_table, many_ids)
+    end
+
+    it 'reads through the adapter for one ID and a range key' do
+      expect(subject).to receive(:get_item).with(test_table, single_id, range_key: 2.0).and_return(true)
+      subject.read(test_table, single_id, range_key: 2.0)
+    end
+
+    it 'reads through the adapter for many IDs and a range key' do
+      expect(subject).to receive(:batch_get_item).with({test_table => [['1', 2.0], ['2', 2.0]]}, {}).and_return(true)
+      subject.read(test_table, many_ids, range_key: 2.0)
+    end
   end
 
-  it 'reads through the adapter for many IDs' do
-    expect(subject).to receive(:batch_get_item).with({test_table => many_ids}, {}).and_return(true)
-    subject.read(test_table, many_ids)
-  end
+  describe '#delete' do
+    it 'deletes through the adapter for one ID' do
+      Dynamoid.adapter.put_item(test_table1, id: '1')
+      Dynamoid.adapter.put_item(test_table1, id: '2')
 
-  it 'delete through the adapter for one ID' do
-    expect(subject).to receive(:delete_item).with(test_table, single_id, {}).and_return(nil)
-    subject.delete(test_table, single_id)
-  end
+      expect {
+        subject.delete(test_table1, '1')
+      }.to change {
+        Dynamoid.adapter.scan(test_table1).to_a.size
+      }.from(2).to(1)
 
-  it 'deletes through the adapter for many IDs' do
-    expect(subject).to receive(:batch_delete_item).with(test_table => many_ids).and_return(nil)
-    subject.delete(test_table, many_ids)
-  end
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq nil
+    end
 
-  it 'reads through the adapter for one ID and a range key' do
-    expect(subject).to receive(:get_item).with(test_table, single_id, range_key: 2.0).and_return(true)
-    subject.read(test_table, single_id, range_key: 2.0)
-  end
+    it 'deletes through the adapter for many IDs' do
+      Dynamoid.adapter.put_item(test_table1, id: '1')
+      Dynamoid.adapter.put_item(test_table1, id: '2')
+      Dynamoid.adapter.put_item(test_table1, id: '3')
 
-  it 'reads through the adapter for many IDs and a range key' do
-    expect(subject).to receive(:batch_get_item).with({test_table => [['1', 2.0], ['2', 2.0]]}, {}).and_return(true)
-    subject.read(test_table, many_ids, range_key: 2.0)
-  end
+      expect {
+        subject.delete(test_table1, ['1', '2'])
+      }.to change {
+        Dynamoid.adapter.scan(test_table1).to_a.size
+      }.from(3).to(1)
 
-  it 'deletes through the adapter for one ID and a range key' do
-    expect(subject).to receive(:delete_item).with(test_table, single_id, range_key: 2.0).and_return(nil)
-    subject.delete(test_table, single_id, range_key: 2.0)
-  end
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq nil
+      expect(Dynamoid.adapter.get_item(test_table1, '2')).to eq nil
+    end
 
-  it 'deletes through the adapter for many IDs and a range key' do
-    expect(subject).to receive(:batch_delete_item).with(test_table => [['1', 2.0], ['2', 2.0]]).and_return(nil)
-    subject.delete(test_table, many_ids, range_key: [2.0, 2.0])
+    it 'deletes through the adapter for one ID and a range key' do
+      Dynamoid.adapter.put_item(test_table3, id: '1', range: 1.0)
+      Dynamoid.adapter.put_item(test_table3, id: '2', range: 2.0)
+
+      expect {
+        subject.delete(test_table3, '1', range_key: 1.0)
+      }.to change {
+        Dynamoid.adapter.scan(test_table3).to_a.size
+      }.from(2).to(1)
+
+      expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to eq nil
+    end
+
+    it 'deletes through the adapter for many IDs and a range key' do
+      Dynamoid.adapter.put_item(test_table3, id: '1', range: 1.0)
+      Dynamoid.adapter.put_item(test_table3, id: '1', range: 2.0)
+      Dynamoid.adapter.put_item(test_table3, id: '2', range: 1.0)
+      Dynamoid.adapter.put_item(test_table3, id: '2', range: 2.0)
+
+      expect(subject).to receive(:batch_delete_item).and_call_original
+
+      expect {
+        subject.delete(test_table3, ['1', '2'], range_key: 1.0)
+      }.to change {
+        Dynamoid.adapter.scan(test_table3).to_a.size
+      }.from(4).to(2)
+
+      expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to eq nil
+      expect(Dynamoid.adapter.get_item(test_table3, '2', range_key: 1.0)).to eq nil
+    end
   end
 end

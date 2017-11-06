@@ -572,6 +572,32 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(results.to_a.size).to eq 0
     end
 
+    describe '#batch_write_item' do
+      it 'creates several items at once' do
+        Dynamoid.adapter.batch_write_item(test_table3, [
+          {id: '1', range: 1.0},
+          {id: '2', range: 2.0},
+          {id: '3', range: 3.0}
+        ])
+
+        results = Dynamoid.adapter.scan(test_table3)
+        expect(results.to_a).to contain_exactly(
+          {id: '1', range: 1.0},
+          {id: '2', range: 2.0},
+          {id: '3', range: 3.0}
+        )
+      end
+
+      it 'performs BatchDeleteItem with more than 25 items' do
+        items = (1 .. 26).map { |i| {id: i.to_s} }
+
+        expect(Dynamoid.adapter.client).to receive(:batch_write_item)
+          .exactly(2).times.and_call_original
+
+        Dynamoid.adapter.batch_write_item(test_table1, items)
+      end
+    end
+
     # ListTables
     it 'performs ListTables' do
       # Force creation of the tables
