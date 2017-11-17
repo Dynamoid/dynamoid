@@ -11,6 +11,7 @@ rvm-deps:
       - curl
       - git-core
       - subversion
+      - gnupg2
 
 mri-deps:
   pkg.installed:
@@ -39,6 +40,11 @@ mri-deps:
       - subversion
       - ruby
 
+gpg-trust:
+  cmd.run:
+    - name: command curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
+    - user: vagrant
+
 ruby-{{ pillar['ruby']['version'] }}:
   rvm.installed:
     - name: {{ pillar['ruby']['version'] }}
@@ -65,3 +71,8 @@ bundler.install:
     - ruby: ruby-{{ pillar['ruby']['version'] }}
     - rdoc: false
     - ri: false
+
+bundle:
+  cmd.run:
+    - name: (cd /vagrant && bundle install)
+    - user: vagrant
