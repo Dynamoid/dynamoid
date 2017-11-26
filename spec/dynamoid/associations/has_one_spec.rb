@@ -50,21 +50,65 @@ describe Dynamoid::Associations::HasOne do
     expect(subscription.customer).to eq user
   end
 
-  describe '{association}=' do
+  describe 'assigning' do
     context 'belongs to' do
-      it 'stores the same object on this side' do
-        magazine = Magazine.create!
-        sponsor = Sponsor.create!
+      let(:magazine) { Magazine.create }
 
+      it 'associates model on this side' do
+        sponsor = Sponsor.create
         magazine.sponsor = sponsor
+
+        expect(magazine.sponsor).to eq(sponsor)
+      end
+
+      it 'associates model on that side' do
+        sponsor = Sponsor.create
+        magazine.sponsor = sponsor
+
+        expect(sponsor.magazine).to eq(magazine)
+      end
+
+      it 're-associates model on this side' do
+        sponsor_old = Sponsor.create
+        sponsor_new = Sponsor.create
+        magazine.sponsor = sponsor_old
+
+        expect {
+          magazine.sponsor = sponsor_new
+        }.to change { magazine.sponsor.target }.from(sponsor_old).to(sponsor_new)
+      end
+
+      it 're-associates model on that side' do
+        sponsor_old = Sponsor.create
+        sponsor_new = Sponsor.create
+
+        magazine.sponsor = sponsor_old
+        expect {
+          magazine.sponsor = sponsor_new
+        }.to change { sponsor_new.magazine.target }.from(nil).to(magazine)
+      end
+
+      it 'deletes previous model from association' do
+        sponsor_old = Sponsor.create
+        sponsor_new = Sponsor.create
+
+        magazine.sponsor = sponsor_old
+        expect {
+          magazine.sponsor = sponsor_new
+        }.to change { sponsor_old.magazine.target }.from(magazine).to(nil)
+      end
+
+      it 'stores the same object on this side' do
+        sponsor = Sponsor.create
+        magazine.sponsor = sponsor
+
         expect(magazine.sponsor.target.object_id).to eq(sponsor.object_id)
       end
 
       it 'does not store the same object on that side' do
-        magazine = Magazine.create!
         sponsor = Sponsor.create!
-
         magazine.sponsor = sponsor
+
         expect(sponsor.magazine.target.object_id).not_to eq(magazine.object_id)
       end
     end

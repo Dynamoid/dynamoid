@@ -63,36 +63,124 @@ describe Dynamoid::Associations::BelongsTo do
     end
   end
 
-  describe '{association}=' do
+  describe 'assigning' do
     context 'has many' do
-      it 'stores the same object on this side' do
-        subscription = Subscription.create
-        magazine = Magazine.create
+      let(:subscription) { Subscription.create }
 
+      it 'associates model on this side' do
+        magazine = Magazine.create
         subscription.magazine = magazine
+
+        expect(subscription.magazine).to eq(magazine)
+      end
+
+      it 'associates model on that side' do
+        magazine = Magazine.create
+        subscription.magazine = magazine
+
+        expect(magazine.subscriptions.to_a).to eq([subscription])
+      end
+
+      it 're-associates model on this side' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        subscription.magazine = magazine_old
+
+        expect {
+          subscription.magazine = magazine_new
+        }.to change { subscription.magazine.target }.from(magazine_old).to(magazine_new)
+      end
+
+      it 're-associates model on that side' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        subscription.magazine = magazine_old
+
+        expect {
+          subscription.magazine = magazine_new
+        }.to change { magazine_new.subscriptions.target }.from([]).to([subscription])
+      end
+
+      it 'deletes previous model from association' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        subscription.magazine = magazine_old
+
+        expect {
+          subscription.magazine = magazine_new
+        }.to change { magazine_old.subscriptions.to_a }.from([subscription]).to([])
+      end
+
+      it 'stores the same object on this side' do
+        magazine = Magazine.create
+        subscription.magazine = magazine
+
         expect(subscription.magazine.target.object_id).to eq(magazine.object_id)
       end
 
       it 'does not store the same object on that side' do
-        subscription = Subscription.create
         magazine = Magazine.create
-
         subscription.magazine = magazine
+
         expect(magazine.subscriptions.target[0].object_id).to_not eq(subscription.object_id)
       end
     end
 
     context 'has one' do
-      it 'stores the same object on this side' do
-        sponsor = Sponsor.create
-        magazine = Magazine.create
+      let(:sponsor) { Sponsor.create }
 
+      it 'associates model on this side' do
+        magazine = Magazine.create
         sponsor.magazine = magazine
+
+        expect(sponsor.magazine).to eq(magazine)
+      end
+
+      it 'associates model on that side' do
+        magazine = Magazine.create
+        sponsor.magazine = magazine
+
+        expect(magazine.sponsor).to eq(sponsor)
+      end
+
+      it 're-associates model on this side' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        sponsor.magazine = magazine_old
+
+        expect {
+          sponsor.magazine = magazine_new
+        }.to change { sponsor.magazine.target }.from(magazine_old).to(magazine_new)
+      end
+
+      it 're-associates model on this side' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        sponsor.magazine = magazine_old
+
+        expect {
+          sponsor.magazine = magazine_new
+        }.to change { magazine_new.sponsor.target }.from(nil).to(sponsor)
+      end
+
+      it 'deletes previous model from association' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        sponsor.magazine = magazine_old
+
+        expect {
+          sponsor.magazine = magazine_new
+        }.to change { magazine_old.sponsor.target }.from(sponsor).to(nil)
+      end
+
+      it 'stores the same object on this side' do
+        magazine = Magazine.create
+        sponsor.magazine = magazine
+
         expect(sponsor.magazine.target.object_id).to eq(magazine.object_id)
       end
 
       it 'does not store the same object on that side' do
-        sponsor = Sponsor.create
         magazine = Magazine.create
 
         sponsor.magazine = magazine
