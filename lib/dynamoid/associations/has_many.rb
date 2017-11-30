@@ -18,21 +18,6 @@ module Dynamoid #:nodoc:
         return nil if guess.nil? || guess[:type] != :belongs_to
         key_name
       end
-
-      # Associate a source object to this association.
-      #
-      # @since 0.2.0
-      def associate_target(object)
-        object.update_attribute(target_attribute, Set[source.hash_key])
-      end
-
-      # Disassociate a source object from this association.
-      #
-      # @since 0.2.0
-      def disassociate_target(object)
-        object.update_attribute(target_attribute, nil)
-      end
-
     end
   end
 
