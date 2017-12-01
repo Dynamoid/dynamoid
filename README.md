@@ -234,6 +234,7 @@ class User
   has_many :students, :class => User
   belongs_to :teacher, :class_name => :user
   belongs_to :group
+  belongs_to :group, :foreign_key => :group_id
   has_one :role
   has_and_belongs_to_many :friends, :inverse_of => :friending_users
 
