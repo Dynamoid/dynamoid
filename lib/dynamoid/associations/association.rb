@@ -16,6 +16,7 @@ module Dynamoid #:nodoc:
       # @option options [Class] :class the target class of the association; that is, the class to which the association objects belong
       # @option options [Symbol] :class_name the name of the target class of the association; only this or Class is necessary
       # @option options [Symbol] :inverse_of the name of the association on the target class
+      # @option options [Symbol] :foreign_key the name of the field for belongs_to association
       #
       # @return [Dynamoid::Association] the actual association instance itself
       #
@@ -48,6 +49,14 @@ module Dynamoid #:nodoc:
         @loaded = false
       end
 
+      def declaration_field_name
+        "#{name}_ids"
+      end
+
+      def declaration_field_type
+        :set
+      end
+
       private
 
       # The target class name, either inferred through the association's name or specified in options.
@@ -68,7 +77,13 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def target_attribute
-        "#{target_association}_ids".to_sym if target_association
+        # In simple case it's equivalent to
+        # "#{target_association}_ids".to_sym if target_association
+        if target_association
+          target_options = target_class.associations[target_association]
+          assoc = Dynamoid::Associations.const_get(target_options[:type].to_s.camelcase).new(nil, target_association, target_options)
+          assoc.send(:source_attribute)
+        end
       end
 
       # The ids in the target association.
@@ -89,14 +104,15 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def source_attribute
-        "#{name}_ids".to_sym
+        declaration_field_name.to_sym
       end
 
       # The ids in the source association.
       #
       # @since 0.2.0
       def source_ids
-        source.send(source_attribute) || Set.new
+        # handle case when we store scalar value instead of collection (when foreign_key option is specified)
+        Array(source.send(source_attribute)).compact.to_set || Set.new
       end
 
       # Create a new instance of the target class without trying to add it to the association. This creates a base, that caller can update before setting or adding it.

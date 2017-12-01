@@ -278,4 +278,50 @@ describe Dynamoid::Associations::BelongsTo do
       end
     end
   end
+
+  describe 'foreign_key option' do
+    before :each do
+      @directory_class = directory_class = new_class(table_name: :directories)
+
+      @file_class = file_class = new_class(table_name: :files) do
+        belongs_to :directory, class: directory_class, foreign_key: :directory_id
+
+        def self.to_s; 'File' end
+      end
+
+      @directory_class.instance_eval do
+        has_many :files, class: file_class
+
+        def self.to_s; 'Directory' end
+      end
+    end
+
+    it 'specifies field name' do
+      file = @file_class.new
+      expect(file.respond_to? :directory_id).to eq(true)
+    end
+
+    it 'forces to store :id as a scalar value and not as collection' do
+      directory = @directory_class.create!
+      file = @file_class.new(directory: directory)
+      expect(file.directory_id).to eq(directory.id)
+    end
+
+    it 'assigns and persists id correctly on this side of association' do
+      directory = @directory_class.create!
+      file = @file_class.create!(directory: directory)
+
+      expect(@file_class.find(file.id).directory_id).to eq(directory.id)
+      expect(file.directory).to eq(directory)
+      expect(@file_class.find(file.id).directory).to eq(directory)
+    end
+
+    it 'assigns and persists id correctly on the other side of association' do
+      directory = @directory_class.create!
+      file = @file_class.create!(directory: directory)
+
+      expect(directory.files.to_a).to eq [file]
+      expect(@directory_class.find(directory.id).files.to_a).to eq [file]
+    end
+  end
 end
