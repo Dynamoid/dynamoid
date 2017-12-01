@@ -8,9 +8,10 @@ module Dynamoid #:nodoc:
       delegate :class, to: :target
 
       def setter(object)
-        delete
-
-        return if object.nil?
+        if object.nil?
+          delete
+          return
+        end
 
         associate(object.hash_key)
         self.target = object
@@ -63,6 +64,7 @@ module Dynamoid #:nodoc:
       end
 
       def associate(hash_key)
+        target.send(target_association).disassociate(source.hash_key) if target && target_association
         source.update_attribute(source_attribute, Set[hash_key])
       end
 

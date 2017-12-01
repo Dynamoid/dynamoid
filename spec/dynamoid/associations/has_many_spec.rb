@@ -98,14 +98,13 @@ describe Dynamoid::Associations::HasMany do
     end
 
     it 'deletes previous model from association' do
-      skip 'it is a bug'
       magazine_old = Magazine.create
       magazine_new = Magazine.create
       magazine_old.subscriptions << subscription
 
       expect {
         magazine_new.subscriptions << subscription
-      }.to change { magazine_old.subscriptions.to_a }.from([subscription]).to([])
+      }.to change { Magazine.find(magazine_old.title).subscriptions.to_a }.from([subscription]).to([])
     end
   end
 
