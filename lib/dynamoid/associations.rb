@@ -88,11 +88,21 @@ module Dynamoid
       #
       # @since 0.2.0
       def association(type, name, options = {})
-        field "#{name}_ids".to_sym, :set
+        # Declare document field.
+        # In simple case it's equivalent to
+        # field "#{name}_ids".to_sym, :set
+        assoc = Dynamoid::Associations.const_get(type.to_s.camelcase).new(nil, name, options)
+        field_name = assoc.declaration_field_name
+        field_type = assoc.declaration_field_type
+
+        field field_name.to_sym, field_type
+
         self.associations[name] = options.merge(type: type)
+
         define_method(name) do
           @associations[:"#{name}_ids"] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
         end
+
         define_method("#{name}=".to_sym) do |objects|
           @associations[:"#{name}_ids"] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
           @associations[:"#{name}_ids"].setter(objects)

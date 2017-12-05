@@ -63,6 +63,51 @@ describe Dynamoid::Associations::HasMany do
     expect(magazine.camel_cases.count).to eq 2
   end
 
+  describe 'assigning' do
+    let(:magazine) { Magazine.create }
+    let(:subscription) { Subscription.create }
+
+    it 'associates model on this side' do
+      magazine.subscriptions << subscription
+      expect(magazine.subscriptions.to_a).to eq([subscription])
+    end
+
+    it 'associates model on that side' do
+      magazine.subscriptions << subscription
+      expect(subscription.magazine).to eq(magazine)
+    end
+
+    it 're-associates new model on this side' do
+      magazine_old = Magazine.create
+      magazine_new = Magazine.create
+      magazine_old.subscriptions << subscription
+
+      expect {
+        magazine_new.subscriptions << subscription
+      }.to change { magazine_new.subscriptions.to_a }.from([]).to([subscription])
+    end
+
+    it 're-associates new model on that side' do
+      magazine_old = Magazine.create
+      magazine_new = Magazine.create
+      magazine_old.subscriptions << subscription
+
+      expect {
+        magazine_new.subscriptions << subscription
+      }.to change { subscription.magazine.target }.from(magazine_old).to(magazine_new)
+    end
+
+    it 'deletes previous model from association' do
+      magazine_old = Magazine.create
+      magazine_new = Magazine.create
+      magazine_old.subscriptions << subscription
+
+      expect {
+        magazine_new.subscriptions << subscription
+      }.to change { Magazine.find(magazine_old.title).subscriptions.to_a }.from([subscription]).to([])
+    end
+  end
+
   describe '#delete' do
     it 'clears association on this side' do
       magazine = Magazine.create

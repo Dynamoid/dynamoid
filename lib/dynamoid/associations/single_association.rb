@@ -8,19 +8,20 @@ module Dynamoid #:nodoc:
       delegate :class, to: :target
 
       def setter(object)
-        delete
+        if object.nil?
+          delete
+          return
+        end
 
-        return if object.nil?
-
-        source.update_attribute(source_attribute, Set[object.hash_key])
+        associate(object.hash_key)
         self.target = object
-        self.send(:associate_target, object) if target_association
+        object.send(target_association).associate(source.hash_key) if target_association
         object
       end
 
       def delete
-        self.send(:disassociate_target, target) if target && target_association
-        source.update_attribute(source_attribute, nil)
+        target.send(target_association).disassociate(source.hash_key) if target && target_association
+        disassociate
         target
       end
 
@@ -60,6 +61,15 @@ module Dynamoid #:nodoc:
         # This is needed to that ActiveSupport's #blank? and #present?
         # methods work as expected for SingleAssociations.
         target.nil?
+      end
+
+      def associate(hash_key)
+        target.send(target_association).disassociate(source.hash_key) if target && target_association
+        source.update_attribute(source_attribute, Set[hash_key])
+      end
+
+      def disassociate(hash_key=nil)
+        source.update_attribute(source_attribute, nil)
       end
 
       private

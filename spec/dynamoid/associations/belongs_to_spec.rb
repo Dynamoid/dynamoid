@@ -63,36 +63,124 @@ describe Dynamoid::Associations::BelongsTo do
     end
   end
 
-  describe '{association}=' do
+  describe 'assigning' do
     context 'has many' do
-      it 'stores the same object on this side' do
-        subscription = Subscription.create
-        magazine = Magazine.create
+      let(:subscription) { Subscription.create }
 
+      it 'associates model on this side' do
+        magazine = Magazine.create
         subscription.magazine = magazine
+
+        expect(subscription.magazine).to eq(magazine)
+      end
+
+      it 'associates model on that side' do
+        magazine = Magazine.create
+        subscription.magazine = magazine
+
+        expect(magazine.subscriptions.to_a).to eq([subscription])
+      end
+
+      it 're-associates model on this side' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        subscription.magazine = magazine_old
+
+        expect {
+          subscription.magazine = magazine_new
+        }.to change { subscription.magazine.target }.from(magazine_old).to(magazine_new)
+      end
+
+      it 're-associates model on that side' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        subscription.magazine = magazine_old
+
+        expect {
+          subscription.magazine = magazine_new
+        }.to change { magazine_new.subscriptions.target }.from([]).to([subscription])
+      end
+
+      it 'deletes previous model from association' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        subscription.magazine = magazine_old
+
+        expect {
+          subscription.magazine = magazine_new
+        }.to change { magazine_old.subscriptions.to_a }.from([subscription]).to([])
+      end
+
+      it 'stores the same object on this side' do
+        magazine = Magazine.create
+        subscription.magazine = magazine
+
         expect(subscription.magazine.target.object_id).to eq(magazine.object_id)
       end
 
       it 'does not store the same object on that side' do
-        subscription = Subscription.create
         magazine = Magazine.create
-
         subscription.magazine = magazine
+
         expect(magazine.subscriptions.target[0].object_id).to_not eq(subscription.object_id)
       end
     end
 
     context 'has one' do
-      it 'stores the same object on this side' do
-        sponsor = Sponsor.create
-        magazine = Magazine.create
+      let(:sponsor) { Sponsor.create }
 
+      it 'associates model on this side' do
+        magazine = Magazine.create
         sponsor.magazine = magazine
+
+        expect(sponsor.magazine).to eq(magazine)
+      end
+
+      it 'associates model on that side' do
+        magazine = Magazine.create
+        sponsor.magazine = magazine
+
+        expect(magazine.sponsor).to eq(sponsor)
+      end
+
+      it 're-associates model on this side' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        sponsor.magazine = magazine_old
+
+        expect {
+          sponsor.magazine = magazine_new
+        }.to change { sponsor.magazine.target }.from(magazine_old).to(magazine_new)
+      end
+
+      it 're-associates model on this side' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        sponsor.magazine = magazine_old
+
+        expect {
+          sponsor.magazine = magazine_new
+        }.to change { magazine_new.sponsor.target }.from(nil).to(sponsor)
+      end
+
+      it 'deletes previous model from association' do
+        magazine_old = Magazine.create
+        magazine_new = Magazine.create
+        sponsor.magazine = magazine_old
+
+        expect {
+          sponsor.magazine = magazine_new
+        }.to change { magazine_old.sponsor.target }.from(sponsor).to(nil)
+      end
+
+      it 'stores the same object on this side' do
+        magazine = Magazine.create
+        sponsor.magazine = magazine
+
         expect(sponsor.magazine.target.object_id).to eq(magazine.object_id)
       end
 
       it 'does not store the same object on that side' do
-        sponsor = Sponsor.create
         magazine = Magazine.create
 
         sponsor.magazine = magazine
@@ -188,6 +276,52 @@ describe Dynamoid::Associations::BelongsTo do
           sponsor.magazine.delete
         }.to change { Magazine.find(magazine.title).sponsor.target }.from(sponsor).to(nil)
       end
+    end
+  end
+
+  describe 'foreign_key option' do
+    before :each do
+      @directory_class = directory_class = new_class(table_name: :directories)
+
+      @file_class = file_class = new_class(table_name: :files) do
+        belongs_to :directory, class: directory_class, foreign_key: :directory_id
+
+        def self.to_s; 'File' end
+      end
+
+      @directory_class.instance_eval do
+        has_many :files, class: file_class
+
+        def self.to_s; 'Directory' end
+      end
+    end
+
+    it 'specifies field name' do
+      file = @file_class.new
+      expect(file.respond_to? :directory_id).to eq(true)
+    end
+
+    it 'forces to store :id as a scalar value and not as collection' do
+      directory = @directory_class.create!
+      file = @file_class.new(directory: directory)
+      expect(file.directory_id).to eq(directory.id)
+    end
+
+    it 'assigns and persists id correctly on this side of association' do
+      directory = @directory_class.create!
+      file = @file_class.create!(directory: directory)
+
+      expect(@file_class.find(file.id).directory_id).to eq(directory.id)
+      expect(file.directory).to eq(directory)
+      expect(@file_class.find(file.id).directory).to eq(directory)
+    end
+
+    it 'assigns and persists id correctly on the other side of association' do
+      directory = @directory_class.create!
+      file = @file_class.create!(directory: directory)
+
+      expect(directory.files.to_a).to eq [file]
+      expect(@directory_class.find(directory.id).files.to_a).to eq [file]
     end
   end
 end

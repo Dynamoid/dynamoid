@@ -42,6 +42,21 @@ describe Dynamoid::Associations::HasAndBelongsToMany do
     expect(user.subscriptions.size).to eq 0
   end
 
+  describe 'assigning' do
+    let(:subscription) { Subscription.create }
+    let(:user) { User.create }
+
+    it 'associates model on this side' do
+      subscription.users << user
+      expect(subscription.users.to_a).to eq([user])
+    end
+
+    it 'associates model on that side' do
+      subscription.users << user
+      expect(user.subscriptions.to_a).to eq([subscription])
+    end
+  end
+
   describe '#delete' do
     it 'clears association on this side' do
       subscription = Subscription.create
