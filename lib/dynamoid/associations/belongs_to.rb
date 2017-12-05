@@ -8,11 +8,7 @@ module Dynamoid #:nodoc:
       include SingleAssociation
 
       def declaration_field_name
-        if options[:foreign_key]
-          options[:foreign_key]
-        else
-          "#{name}_ids"
-        end
+        options[:foreign_key] || "#{name}_ids"
       end
 
       def declaration_field_type
@@ -23,8 +19,8 @@ module Dynamoid #:nodoc:
         end
       end
 
-      # Override default implemntation
-      # to handle case when we store id as scalar value, not as collaction
+      # Override default implementation
+      # to handle case when we store id as scalar value, not as collection
       def associate(hash_key)
         target.send(target_association).disassociate(source.hash_key) if target && target_association
 
