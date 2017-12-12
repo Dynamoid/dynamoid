@@ -346,6 +346,68 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe "Boolean field" do
+    context "stored in string format" do
+      let(:klass) do
+        new_class do
+          field :active, :boolean
+        end
+      end
+
+      it "saves false as 'f'" do
+        obj = klass.create(active: false)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:active]).to eq "f"
+      end
+
+      it "saves 'f' as 'f'" do
+        obj = klass.create(active: "f")
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:active]).to eq "f"
+      end
+
+      it "saves true as 't'" do
+        obj = klass.create(active: true)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:active]).to eq "t"
+      end
+
+      it "saves 't' as 't'" do
+        obj = klass.create(active: 't')
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:active]).to eq "t"
+      end
+    end
+
+    context "stored in boolean format" do
+      let(:klass) do
+        new_class do
+          field :active, :boolean, store_as_boolean: true
+        end
+      end
+
+      it "saves false as false" do
+        obj = klass.create(active: false)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:active]).to eq false
+      end
+
+      it "saves true as true" do
+        obj = klass.create(active: true)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:active]).to eq true
+      end
+
+      it "saves and loads boolean field correctly" do
+        obj = klass.create(active: true)
+        expect(klass.find(obj.hash_key).active).to eq true
+
+        obj = klass.create(active: false)
+        expect(klass.find(obj.hash_key).active).to eq false
+      end
+    end
+  end
+
   it 'raises on an invalid boolean value' do
     expect do
       address.deliverable = true
