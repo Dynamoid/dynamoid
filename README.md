@@ -138,6 +138,23 @@ By default, fields are assumed to be of type ```:string```. Other built-in types
 If built-in types do not suit you, you can use a custom field type represented by an arbitrary class, provided that the class supports a compatible serialization interface.
 The primary use case for using a custom field type is to represent your business logic with high-level types, while ensuring portability or backward-compatibility of the serialized representation.
 
+#### Note on boolean type
+
+The boolean fields are stored as `"t", "f"` strings by default. DynamoDB
+supports boolean type natively. So if you want to use native boolean
+type or already have table with native boolean attribute you can easily
+achieve this with `store_as_native_boolean` option:
+
+```ruby
+class Document
+  include DynamoId::Document
+
+  field :active, :boolean, store_as_native_boolean: true
+end
+```
+
+#### Magic Columns
+
 You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
 
 ```ruby
@@ -154,12 +171,16 @@ class User
 end
 ```
 
+#### Default Values
+
 You can optionally set a default value on a field using either a plain value or a lambda:
 
 ```ruby
   field :actions_taken, :integer, {default: 0}
   field :joined_at, :datetime, {default: ->(){Time.now}}
 ```
+
+#### Custom Types
 
 To use a custom type for a field, suppose you have a `Money` type.
 
@@ -215,8 +236,8 @@ This is especially important if you want to use your custom field as a numeric r
 number-oriented queries.  By default custom fields are persisted as a string attribute, but
 your custom class can override this with a `.dynamoid_field_type` class method, which would
 return either `:string` or `:number`.
-(DynamoDB supports some other attribute types, but Dynamoid does not yet.)
 
+DynamoDB may support some other attribute types that are not yet supported by Dynamoid.
 
 ### Associations
 

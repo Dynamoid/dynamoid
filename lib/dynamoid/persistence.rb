@@ -138,7 +138,6 @@ module Dynamoid
                   UNIX_EPOCH_DATE + value.to_i
                 end
               when :boolean
-                # persisted as 't', but because undump is called during initialize it can come in as true
                 if value == 't' || value == true
                   true
                 elsif value == 'f' || value == false
@@ -183,7 +182,15 @@ module Dynamoid
             when :raw
               !value.nil? ? value : nil
             when :boolean
-              !value.nil? ? value.to_s[0] : nil
+              if !value.nil?
+                if options[:store_as_native_boolean]
+                  !!value # native boolean type
+                else
+                  value.to_s[0] # => "f" or "t"
+                end
+              else
+                nil
+              end
             else
               raise ArgumentError, "Unknown type #{options[:type]}"
           end
