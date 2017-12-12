@@ -237,7 +237,7 @@ number-oriented queries.  By default custom fields are persisted as a string att
 your custom class can override this with a `.dynamoid_field_type` class method, which would
 return either `:string` or `:number`.
 
-DynamoDB may support some other attribute types that are not yet supported by.
+DynamoDB may support some other attribute types that are not yet supported by Dynamoid.
 
 ### Associations
 
