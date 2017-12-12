@@ -382,7 +382,7 @@ describe Dynamoid::Persistence do
     context "stored in boolean format" do
       let(:klass) do
         new_class do
-          field :active, :boolean, store_as_boolean: true
+          field :active, :boolean, store_as_native_boolean: true
         end
       end
 

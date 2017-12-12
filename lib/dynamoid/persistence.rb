@@ -183,7 +183,7 @@ module Dynamoid
               !value.nil? ? value : nil
             when :boolean
               if !value.nil?
-                if options[:store_as_boolean]
+                if options[:store_as_native_boolean]
                   !!value # native boolean type
                 else
                   value.to_s[0] # => "f" or "t"

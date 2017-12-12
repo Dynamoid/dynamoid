@@ -143,13 +143,13 @@ The primary use case for using a custom field type is to represent your business
 The boolean fields are stored as `"t", "f"` strings by default. DynamoDB
 supports boolean type natively. So if you want to use native boolean
 type or already have table with native boolean attribute you can easily
-acheive this with `store_as_boolean` option:
+achieve this with `store_as_native_boolean` option:
 
 ```ruby
 class Document
   include DynamoId::Document
 
-  field :active, :boolean, store_as_boolean: true
+  field :active, :boolean, store_as_native_boolean: true
 end
 ```
 
