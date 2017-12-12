@@ -217,6 +217,18 @@ your custom class can override this with a `.dynamoid_field_type` class method, 
 return either `:string` or `:number`.
 (DynamoDB supports some other attribute types, but Dynamoid does not yet.)
 
+The boolean fields are stored as `"t", "f"` strings by default. DynamoDB
+supports boolean type natively. So if you want to use native boolean
+type or already have table with native boolean attribute you can easily
+archive this with `store_as_boolean` option:
+
+```ruby
+class Document
+  include DynamoId::Document
+
+  field :active, :boolean, store_as_boolean: true
+end
+```
 
 ### Associations
 
