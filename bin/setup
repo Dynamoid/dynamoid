@@ -3,13 +3,13 @@ set -euo pipefail
 IFS=$'\n\t'
 set -vx
 
-#bundle install
+bundle install
 
 # Do any other automated setup that you need to do here
-if brew info wget &>/dev/null; then
-    echo wget is already installed
-else
+if ! brew info wget &>/dev/null; then
     brew install wget
+else
+    echo wget is already installed
 fi
 wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.zip --quiet -O spec/dynamodb_temp.zip
 unzip -qq spec/dynamodb_temp.zip -d spec/DynamoDBLocal-latest
