@@ -681,9 +681,9 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 
 ## Running the tests
 
-Running the tests is fairly simple. You should have an instance of DynamoDB running locally. Follow this steps to be able to run the tests:
+Running the tests is fairly simple. You should have an instance of DynamoDB running locally. Follow these steps to setup your test environment.
 
- * First download and unpack the latest version of DynamoDB.
+ * First download and unpack the latest version of DynamoDB.  We have a script that will do this for you if you use homebrew on a Mac.
 
     ```shell
     bin/setup
@@ -707,7 +707,7 @@ Running the tests is fairly simple. You should have an instance of DynamoDB runn
     bin/stop_dynamodblocal
     ```
 
-If you want to run all the specs that travis runs, use `bundle exec wwtd`, but first you will need to setup all the rubies, for each of `%w( 2.0.0-p648 2.1.10 2.2.6 2.3.3 2.4.1 jruby-9.1.8.0 )`.  WHen you run `bundle exec wwtd` it will take care of starting and stopping the local dynamodb instance.
+If you want to run all the specs that travis runs, use `bundle exec wwtd`, but first you will need to setup all the rubies, for each of `%w( 2.0.0-p648 2.1.10 2.2.6 2.3.3 2.4.1 jruby-9.1.8.0 )`.  When you run `bundle exec wwtd` it will take care of starting and stopping the local dynamodb instance.
 
 ```shell
 rvm use 2.0.0-p648
