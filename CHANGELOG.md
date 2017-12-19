@@ -54,10 +54,11 @@ Breaking changes in this release generally bring Dynamoid behavior closer to the
 ## Fixes
 
 * Bug: [#191](https://github.com/Dynamoid/Dynamoid/pull/191), [#192](https://github.com/Dynamoid/Dynamoid/pull/192) Support lambdas as fix for value types were not able to be used as default values (@andrykonchin)(@richardhsu) 
-* Bug: [#202]() Fix several issues with single associations (@andrykonchin)
+* Bug: [#202](https://github.com/Dynamoid/Dynamoid/pull/202) Fix several issues with associations (@andrykonchin)
     * setting `nil` value raises an exception
     * document doesn't keep assigned model and loads it from the storage
     * delete call doesn't update cached ids of associated models
+    * fix clearing old `has_many` association while add model to new `has_many` association
 * Bug: [#204](https://github.com/Dynamoid/Dynamoid/pull/204) Fixed issue where `Document.where(:"id.in" => [])` would do `Query` operation instead of `Scan` (@andrykonchin)
     * Fixed `Chain#key_present?`
 * Bug: [#205](https://github.com/Dynamoid/Dynamoid/pull/205) Fixed `delete_all` (@andrykonchin)
