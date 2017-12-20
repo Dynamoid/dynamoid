@@ -34,11 +34,11 @@ But if you want a fast, scalable, simple, easy-to-use database (and a Gem that s
 Installing Dynamoid is pretty simple. First include the Gem in your Gemfile:
 
 ```ruby
-gem 'dynamoid', '~> 1'
+gem 'dynamoid', '~> 2'
 ```
 ## Prerequisities
 
-Dynamoid depends on the aws-sdk, and this is tested on the current version of aws-sdk (~> 2), rails (~> 4).
+Dynamoid depends on the aws-sdk, and this is tested on the current version of aws-sdk (~> 2), rails (>= 4).
 Hence the configuration as needed for aws to work will be dealt with by aws setup.
 
 Here are the steps to setup aws-sdk.
@@ -49,7 +49,18 @@ gem 'aws-sdk', '~>2'
 
 (or) include the aws-sdk in your Gemfile.
 
-**NOTE:** Dynamoid-1.0 doesn't support aws-sdk Version 1 (Use Dynamoid Major Version 0 for aws-sdk 1)
+### AWS SDK Version Compatibility
+
+Make sure you are using the version for the right AWS SDK.
+
+| Dynamoid version | AWS SDK Version |
+| ---------------- | --------------- |
+| 0.x              | 1.x             |
+| 1.x              | 2.x             |
+| 2.x              | 2.x             |
+| 3.x (unreleased) | 3.x             |
+
+### AWS Configuration
 
 Configure AWS access:
 [Reference](https://github.com/aws/aws-sdk-ruby)
@@ -90,7 +101,7 @@ Then you need to initialize Dynamoid config to get it going. Put code similar to
 
 ```
 
-### Compatibility Matrix
+### Ruby  & Rails Compatibility Matrix
 
 | Ruby / Active Record  | 4.0.x | 4.1.x | 4.2.x | 5.0.x |
 |:---------------------:|:-----:|:-----:|:-----:|:-----:|
