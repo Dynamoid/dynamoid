@@ -1,12 +1,75 @@
 # HEAD
 
-Improving
+## Breaking
 
-* Added `Document.import` method (@andrykonchin)
+* N/A
+
+## Improvements
+
+* N/A
+
+## Fixes
+
+* N/A
+
+# 2.0.0
+
+## Breaking
+
+Breaking changes in this release generally bring Dynamoid behavior closer to the Rails-way.
+
+* Change: [#186](https://github.com/Dynamoid/Dynamoid/pull/186) Consistent behavior for `Model.where({}).all` (@andrykonchin)
+    * <= 1.3.x behaviour - 
+        * load lazily if user specified batch size
+        * load all collection into memory otherwise
+    * New behaviour -
+        * always return lazy evaluated collection
+        * It means Model.where({}).all returns Enumerator instead of Array.
+        * If you need Array interface you have to convert collection to Array manually with to_a method call
+* Change: [#195](https://github.com/Dynamoid/Dynamoid/pull/195) Failed `#find` returns error (@andrykonchin)
+    * <= 1.3.x behaviour - find returns nil or smaller array.
+    * New behaviour - it raises RecordNotFound if one or more records can not be found for the requested ids
+* Change: [#196](https://github.com/Dynamoid/Dynamoid/pull/196) Return value of `#save` (@andrykonchin)
+    * <= 1.3.x behaviour - save returns self if model is saved successfully
+    * New behaviour - it returns true
+
+## Improvements
+
+* Feature: [#185](https://github.com/Dynamoid/Dynamoid/pull/185) `where`, finders and friends take into account STI (single table inheritance) now (@andrykonchin)
+    * query will return items of the model class and all subclasses
+* Feature: [#190](https://github.com/Dynamoid/Dynamoid/pull/190) Allow passing options to range when defining attributes of the document (@richardhsu)
+    * Allows for serialized fields and passing the serializer option.
+* Feature: [#198](https://github.com/Dynamoid/Dynamoid/pull/198) Enhanced `#create` and `#create!` to allow multiple document creation like `#import` (@andrykonchin)
+    * `User.create([{name: 'Josh'}, {name: 'Nick'}])`
+* Feature: [#199](https://github.com/Dynamoid/Dynamoid/pull/199) Added `Document.import` method (@andrykonchin)
+* Feature: [#205](https://github.com/Dynamoid/Dynamoid/pull/205) Use batch deletion via `batch_write_item` for `delete_all` (@andrykonchin)
+* Rename: [#205](https://github.com/Dynamoid/Dynamoid/pull/205) `Chain#destroy_all` as `Chain#delete_all`, to better match Rails conventions when no callbacks are run (@andrykonchin)
+    * kept the old name as an alias, for backwards compatibility
+* Feature: [#207](https://github.com/Dynamoid/Dynamoid/pull/207) Added slicing by 25 requests in #batch_write_item (@andrykonchin)
+* Feature: [#211](https://github.com/Dynamoid/Dynamoid/pull/211) Improved Vagrant setup for testing (@richardhsu)
+* Feature: [#212](https://github.com/Dynamoid/Dynamoid/pull/212) Add foreign_key option (@andrykonchin)
+* Feature: [#213](https://github.com/Dynamoid/Dynamoid/pull/213) Support Boolean raw type (@andrykonchin)
+* Improved Documentation (@pboling, @andrykonchin)
+
+## Fixes
+
+* Bug: [#191](https://github.com/Dynamoid/Dynamoid/pull/191), [#192](https://github.com/Dynamoid/Dynamoid/pull/192) Support lambdas as fix for value types were not able to be used as default values (@andrykonchin)(@richardhsu) 
+* Bug: [#202](https://github.com/Dynamoid/Dynamoid/pull/202) Fix several issues with associations (@andrykonchin)
+    * setting `nil` value raises an exception
+    * document doesn't keep assigned model and loads it from the storage
+    * delete call doesn't update cached ids of associated models
+    * fix clearing old `has_many` association while add model to new `has_many` association
+* Bug: [#204](https://github.com/Dynamoid/Dynamoid/pull/204) Fixed issue where `Document.where(:"id.in" => [])` would do `Query` operation instead of `Scan` (@andrykonchin)
+    * Fixed `Chain#key_present?`
+* Bug: [#205](https://github.com/Dynamoid/Dynamoid/pull/205) Fixed `delete_all` (@andrykonchin)
+    * Fixed exception when makes scan and sort key is declared in model
+    * Fixed exception when makes scan and any condition is specified in where clause (like Document.where().delete_all) 
+    * Fixed exception when makes query and sort key isn't declared in model
+* Bug: [#207](https://github.com/Dynamoid/Dynamoid/pull/207) Fixed `#delete` method for case `adapter.delete(table_name, [1, 2, 3], range_key: 1)` (@andrykonchin)
 
 # 1.3.4
 
-Improving
+## Improvements
 
 * Added `Chain#last` method (@andrykonchin)
 * Added `date` field type (@andrykonchin)
@@ -23,7 +86,7 @@ Improving
 * Support querying Global/Local Secondary Indices in `where` clause (@richardhsu)
 * Only query on GSI if projects all attributes in `where` clause (@richardhsu)
 
-Fixes
+## Fixes
 
 * Fix incorrect applying of default field value (#36 and #117, @andrykonchin)
 * Fix sync table creation/deletion (#160, @mirokuxy)
