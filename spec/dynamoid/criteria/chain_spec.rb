@@ -604,6 +604,15 @@ describe Dynamoid::Criteria::Chain do
         expect(chain).to receive(:records_via_query).and_call_original
         expect(chain.where(city: 'San Francisco').start(@customer2).all).to contain_exactly(@customer3)
       end
+
+      it "does not use index if a condition for index hash key is other than 'equal'" do
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_scan).and_call_original
+        expect(chain.where('city.begins_with' => 'San').count).to eq(3)
+        expect(chain.hash_key).to be_nil
+        expect(chain.range_key).to be_nil
+        expect(chain.index_name).to be_nil
+      end
     end
 
     it 'supports query on global secondary index with correct start key without table range key' do
