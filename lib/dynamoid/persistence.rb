@@ -197,7 +197,7 @@ module Dynamoid
               :string
             else
               raise 'unknown type'
-            end
+          end
         end
       end
 
