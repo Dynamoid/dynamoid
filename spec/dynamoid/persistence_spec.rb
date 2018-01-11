@@ -454,6 +454,31 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe "Set field" do
+    let(:klass) do
+      new_class do
+        field :string_set, :set
+        field :integer_set, :set, { of: :integer }
+        field :number_set, :set, { of: :number }
+      end
+    end
+
+    it "stored a string set" do
+      obj = klass.create(string_set: Set.new(['a','b']))
+      expect(obj.reload[:string_set]).to eq(Set.new(['a','b']))
+    end
+
+    it "stored an integer set" do
+      obj = klass.create(integer_set: Set.new([1,2]))
+      expect(obj.reload[:integer_set]).to eq(Set.new([1,2]))
+    end
+
+    it "stored a number set" do
+      obj = klass.create(number_set: Set.new([1,2]))
+      expect(obj.reload[:number_set]).to eq(Set.new([BigDecimal(1),BigDecimal(2)]))
+    end
+  end
+
   it 'raises on an invalid boolean value' do
     expect do
       address.deliverable = true
