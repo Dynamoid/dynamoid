@@ -326,6 +326,8 @@ describe Dynamoid::Criteria::Chain do
         table name: :customer
         field :age, :integer
         field :job_title, :string
+        field :skill_list, :array
+        field :skill_set, :set
       end
     }
 
@@ -406,6 +408,22 @@ describe Dynamoid::Criteria::Chain do
 
       expect(model.where('job_title.contains' => 'Consul').all)
         .to contain_exactly(customer1, customer3)
+    end
+
+    it 'support contains for array' do
+      customer1 = model.create(job_title: 'Environmental Air Quality Consultant', skill_list: [1, 'ruby'])
+      customer2 = model.create(job_title: 'Creative Consultant')
+
+      expect(model.where('skill_list.contains' => 'ruby').all)
+        .to contain_exactly(customer1)
+    end
+
+    it 'support contains for set' do
+      customer1 = model.create(job_title: 'Environmental Air Quality Consultant', skill_set: Set.new(['ruby']))
+      customer2 = model.create(job_title: 'Creative Consultant')
+
+      expect(model.where('skill_set.contains' => 'ruby').all)
+        .to contain_exactly(customer1)
     end
 
     it 'supports not_contains' do
