@@ -119,18 +119,7 @@ module Dynamoid
               when :set
                 Set.new(value)
               when :datetime
-                if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
-                  value
-                else
-                  case Dynamoid::Config.application_timezone
-                    when :utc
-                      ActiveSupport::TimeZone['UTC'].at(value).to_datetime
-                    when :local
-                      Time.at(value).to_datetime
-                    when String
-                      ActiveSupport::TimeZone[Dynamoid::Config.application_timezone].at(value).to_datetime
-                  end
-                end
+                parse_datetime(value)
               when :date
                 if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
                   value.to_date
@@ -174,7 +163,7 @@ module Dynamoid
             when :array
               !value.nil? ? value : nil
             when :datetime
-              !value.nil? ? value.to_time.to_f : nil
+              !value.nil? ? format_datetime(value) : nil
             when :date
               !value.nil? ? (value.to_date - UNIX_EPOCH_DATE).to_i : nil
             when :serialized
@@ -208,7 +197,7 @@ module Dynamoid
               :string
             else
               raise 'unknown type'
-          end
+            end
         end
       end
 
@@ -247,6 +236,36 @@ module Dynamoid
           val.map { |v| undump_hash_value(v) }
         else
           val
+        end
+      end
+
+      def format_datetime(value)
+        if Dynamoid::Config.convert_date_to_string
+          value.iso8601
+        else
+          value.to_time.to_f
+        end
+      end
+
+      def parse_datetime(value)
+        return value if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
+
+        case Dynamoid::Config.application_timezone
+          when :utc
+            time_for_timezone(value, 'UTC')
+          when :local
+            time_for_timezone(value, Time.now.getlocal.zone)
+          when String
+            time_for_timezone(value, Dynamoid::Config.application_timezone)
+        end
+      end
+
+      def time_for_timezone(time, timezone)
+        case time
+        when String
+          ActiveSupport::TimeZone[timezone].parse(time).to_datetime
+        else
+          ActiveSupport::TimeZone[timezone].at(time).to_datetime
         end
       end
 
