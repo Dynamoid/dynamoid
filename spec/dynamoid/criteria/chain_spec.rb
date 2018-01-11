@@ -408,6 +408,30 @@ describe Dynamoid::Criteria::Chain do
         .to contain_exactly(customer1, customer3)
     end
 
+    it 'supports contains for set' do
+      klass = new_class do
+        field :set, :set
+      end
+      document1 = klass.create(set: ['a', 'b'])
+      document2 = klass.create(set: ['b', 'c'])
+
+      expect(klass.where('set.contains' => 'a').all).to contain_exactly(document1)
+      expect(klass.where('set.contains' => 'b').all).to contain_exactly(document1, document2)
+      expect(klass.where('set.contains' => 'c').all).to contain_exactly(document2)
+    end
+
+    it 'supports contains for array' do
+      klass = new_class do
+        field :array, :array
+      end
+      document1 = klass.create(array: ['a', 'b'])
+      document2 = klass.create(array: ['b', 'c'])
+
+      expect(klass.where('array.contains' => 'a').all).to contain_exactly(document1)
+      expect(klass.where('array.contains' => 'b').all).to contain_exactly(document1, document2)
+      expect(klass.where('array.contains' => 'c').all).to contain_exactly(document2)
+    end
+
     it 'supports not_contains' do
       customer1 = model.create(job_title: 'Environmental Air Quality Consultant')
       customer2 = model.create(job_title: 'Environmental Project Manager')
