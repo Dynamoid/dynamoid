@@ -258,6 +258,8 @@ module Dynamoid #:nodoc:
       end
 
       def type_cast_condition_parameter(key, value)
+        return value if [:array, :set].include?(source.attributes[key.to_sym][:type])
+
         if !value.respond_to?(:to_ary)
           source.dump_field(value, source.attributes[key.to_sym])
         else
