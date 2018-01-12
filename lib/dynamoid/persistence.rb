@@ -119,7 +119,7 @@ module Dynamoid
               when :set
                 Set.new(value)
               when :datetime
-                parse_datetime(value)
+                parse_datetime(value, options)
               when :date
                 if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
                   value.to_date
@@ -163,7 +163,7 @@ module Dynamoid
             when :array
               !value.nil? ? value : nil
             when :datetime
-              !value.nil? ? format_datetime(value) : nil
+              !value.nil? ? format_datetime(value, options) : nil
             when :date
               !value.nil? ? (value.to_date - UNIX_EPOCH_DATE).to_i : nil
             when :serialized
@@ -239,33 +239,21 @@ module Dynamoid
         end
       end
 
-      def format_datetime(value)
-        if Dynamoid::Config.convert_date_to_string
-          value.iso8601
-        else
-          value.to_time.to_f
-        end
+      def format_datetime(value, options)
+        options[:convert_date_to_string] ? value.iso8601 : value.to_time.to_f
       end
 
-      def parse_datetime(value)
+      def parse_datetime(value, options)
         return value if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
 
+        value = DateTime.iso8601(value).to_time.to_i if options[:convert_date_to_string]
         case Dynamoid::Config.application_timezone
           when :utc
-            time_for_timezone(value, 'UTC')
+            ActiveSupport::TimeZone['UTC'].at(value).to_datetime
           when :local
-            time_for_timezone(value, Time.now.getlocal.zone)
+            Time.at(value).to_datetime
           when String
-            time_for_timezone(value, Dynamoid::Config.application_timezone)
-        end
-      end
-
-      def time_for_timezone(time, timezone)
-        case time
-        when String
-          ActiveSupport::TimeZone[timezone].parse(time).to_datetime
-        else
-          ActiveSupport::TimeZone[timezone].at(time).to_datetime
+            ActiveSupport::TimeZone[Dynamoid::Config.application_timezone].at(value).to_datetime
         end
       end
 

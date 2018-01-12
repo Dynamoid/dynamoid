@@ -164,6 +164,18 @@ class Document
 end
 ```
 
+#### Note on datetime type
+
+By default datetime fields are persisted as UNIX timestamps with milisecond precission in DynamoDB. If you prefer datetimes to be stored as ISO-8601 formatted strings instead then set `convert_date_to_string` to `true`
+
+```ruby
+class Document
+  include DynamoId::Document
+
+  field :sent_at, :datetime, convert_date_to_string: true
+end
+```
+
 #### Magic Columns
 
 You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
@@ -598,7 +610,6 @@ Listed below are all configuration options.
 * `sync_retry_max_times` - when Dynamoid creates or deletes table synchronously it checks for completion specified times. Default is 60 (times). It's a bit over 2 minutes by default
 * `sync_retry_wait_seconds` - time to wait between retries. Default is 2 (seconds)
 * `convert_big_decimal` - if `true` then Dynamoid converts numbers stored in `Hash` in `raw` field to float. Default is `false`
-* `convert_date_to_string` - if `true`, datetimes will be stores as ISO-8601 formatted strings. When `false`, datetimes will be stores as UNIX timestamps with milisecond precission. Default is `false`
 * `models_dir` - `dynamoid:create_tables` rake task loads DynamoDb models from this directory. Default is `app/models`. In Rails application you should set `./app/models` value
 * `application_timezone` - Dynamoid converts all `datetime` fields to specified time zone when loads data from the storage.
   Acceptable values - `utc`, `local` (to use system time zone) and time zone name e.g. `Eastern Time (US & Canada)`. Default is `local`
