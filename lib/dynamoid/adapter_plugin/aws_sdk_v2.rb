@@ -499,9 +499,7 @@ module Dynamoid
           hk => {
             # TODO: Provide option for other operators like NE, IN, LE, etc
             comparison_operator: EQ,
-            attribute_value_list: [
-              opts.delete(:hash_value).freeze
-            ]
+            attribute_value_list: attribute_value_list(EQ, opts.delete(:hash_value).freeze)
           }
         }
 
@@ -510,9 +508,7 @@ module Dynamoid
           next unless(op = RANGE_MAP[k])
           key_conditions[rng] = {
             comparison_operator: op,
-            attribute_value_list: [
-              opts.delete(k).freeze
-            ].flatten # Flatten as BETWEEN operator specifies array of two elements
+            attribute_value_list: attribute_value_list(op, opts.delete(k).freeze)
           }
         end
 
@@ -520,9 +516,7 @@ module Dynamoid
         opts.reject {|k, _| k.in? RANGE_MAP.keys}.each do |attr, hash|
           query_filter[attr] = {
             comparison_operator: FIELD_MAP[hash.keys[0]],
-            attribute_value_list: [
-              hash.values[0].freeze
-            ].flatten # Flatten as BETWEEN operator specifies array of two elements
+            attribute_value_list: attribute_value_list(FIELD_MAP[hash.keys[0]], hash.values[0].freeze)
           }
         end
 
@@ -598,10 +592,9 @@ module Dynamoid
 
         if scan_hash.present?
           request[:scan_filter] = scan_hash.reduce({}) do |memo, (attr, cond)|
-            # Flatten as BETWEEN operator specifies array of two elements
             memo.merge(attr.to_s => {
               comparison_operator: FIELD_MAP[cond.keys[0]],
-              attribute_value_list: [cond.values[0].freeze].flatten
+              attribute_value_list: attribute_value_list(FIELD_MAP[cond.keys[0]], cond.values[0].freeze)
             })
           end
         end
@@ -917,6 +910,21 @@ module Dynamoid
           attribute_name: name.to_s,
           attribute_type: aws_type
         }
+      end
+
+      # Build an array of values for Condition
+      # Is used in ScanFilter and QueryFilter
+      # https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
+      # @params [String] operator: value of RANGE_MAP or FIELD_MAP hash, e.g. "EQ", "LT" etc
+      # @params [Object] value: scalar value or array/set
+      def attribute_value_list(operator, value)
+        # For BETWEEN and IN operators we should keep value as is (it should be already an array)
+        # For all the other operators we wrap the value with array
+        if ["BETWEEN", "IN"].include?(operator)
+          [value].flatten
+        else
+          [value]
+        end
       end
 
       #
