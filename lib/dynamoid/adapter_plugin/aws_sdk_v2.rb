@@ -497,14 +497,12 @@ module Dynamoid
 
         key_conditions = {
           hk => {
-            # TODO: Provide option for other operators like NE, IN, LE, etc
             comparison_operator: EQ,
             attribute_value_list: attribute_value_list(EQ, opts.delete(:hash_value).freeze)
           }
         }
 
         opts.each_pair do |k, v|
-          # TODO: ATM, only few comparison operators are supported, provide support for all operators
           next unless(op = RANGE_MAP[k])
           key_conditions[rng] = {
             comparison_operator: op,
