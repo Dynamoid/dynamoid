@@ -166,13 +166,13 @@ end
 
 #### Note on datetime type
 
-By default datetime fields are persisted as UNIX timestamps with milisecond precission in DynamoDB. If you prefer datetimes to be stored as ISO-8601 formatted strings instead then set `convert_date_to_string` to `true`
+By default datetime fields are persisted as UNIX timestamps with milisecond precission in DynamoDB. If you prefer datetimes to be stored as ISO-8601 formatted strings instead then set `store_as_native_string` to `true`
 
 ```ruby
 class Document
   include DynamoId::Document
 
-  field :sent_at, :datetime, convert_date_to_string: true
+  field :sent_at, :datetime, store_as_native_string: true
 end
 ```
 

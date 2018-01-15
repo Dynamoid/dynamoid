@@ -240,13 +240,13 @@ module Dynamoid
       end
 
       def format_datetime(value, options)
-        options[:convert_date_to_string] ? value.iso8601 : value.to_time.to_f
+        options[:store_as_native_string] ? value.iso8601 : value.to_time.to_f
       end
 
       def parse_datetime(value, options)
         return value if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
 
-        value = DateTime.iso8601(value).to_time.to_i if options[:convert_date_to_string]
+        value = DateTime.iso8601(value).to_time.to_i if options[:store_as_native_string]
         case Dynamoid::Config.application_timezone
           when :utc
             ActiveSupport::TimeZone['UTC'].at(value).to_datetime

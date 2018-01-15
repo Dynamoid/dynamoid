@@ -434,7 +434,7 @@ describe Dynamoid::Persistence do
     context "Stored in :string format" do
       let(:klass) do
         new_class do
-          field :sent_at, :datetime, { convert_date_to_string: true }
+          field :sent_at, :datetime, { store_as_native_string: true }
         end
       end
 
