@@ -164,6 +164,18 @@ class Document
 end
 ```
 
+#### Note on datetime type
+
+By default datetime fields are persisted as UNIX timestamps with milisecond precission in DynamoDB. If you prefer datetimes to be stored as ISO-8601 formatted strings instead then set `store_as_native_string` to `true`
+
+```ruby
+class Document
+  include DynamoId::Document
+
+  field :sent_at, :datetime, store_as_native_string: true
+end
+```
+
 #### Magic Columns
 
 You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.

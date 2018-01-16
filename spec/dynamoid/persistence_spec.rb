@@ -408,6 +408,52 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe "Datetime field" do
+    context "Stored in :number format" do
+      let(:klass) do
+        new_class do
+          field :sent_at, :datetime
+        end
+      end
+
+      it "saves time as :number" do
+        time = Time.now
+        obj = klass.create(sent_at: time)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:sent_at]).to eq BigDecimal.new(time.to_f.to_s)
+      end
+
+      it "saves date as :number" do
+        date = Date.today
+        obj = klass.create(sent_at: date)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:sent_at]).to eq BigDecimal.new(date.to_time.to_f.to_s)
+      end
+    end
+
+    context "Stored in :string format" do
+      let(:klass) do
+        new_class do
+          field :sent_at, :datetime, { store_as_native_string: true }
+        end
+      end
+
+      it "saves time as a :string" do
+        time = Time.now
+        obj = klass.create(sent_at: time)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:sent_at]).to eq time.iso8601
+      end
+
+      it "saves date as :string" do
+        date = Date.today
+        obj = klass.create(sent_at: date)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:sent_at]).to eq date.iso8601
+      end
+    end
+  end
+
   it 'raises on an invalid boolean value' do
     expect do
       address.deliverable = true

@@ -119,18 +119,7 @@ module Dynamoid
               when :set
                 Set.new(value)
               when :datetime
-                if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
-                  value
-                else
-                  case Dynamoid::Config.application_timezone
-                    when :utc
-                      ActiveSupport::TimeZone['UTC'].at(value).to_datetime
-                    when :local
-                      Time.at(value).to_datetime
-                    when String
-                      ActiveSupport::TimeZone[Dynamoid::Config.application_timezone].at(value).to_datetime
-                  end
-                end
+                parse_datetime(value, options)
               when :date
                 if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
                   value.to_date
@@ -174,7 +163,7 @@ module Dynamoid
             when :array
               !value.nil? ? value : nil
             when :datetime
-              !value.nil? ? value.to_time.to_f : nil
+              !value.nil? ? format_datetime(value, options) : nil
             when :date
               !value.nil? ? (value.to_date - UNIX_EPOCH_DATE).to_i : nil
             when :serialized
@@ -247,6 +236,24 @@ module Dynamoid
           val.map { |v| undump_hash_value(v) }
         else
           val
+        end
+      end
+
+      def format_datetime(value, options)
+        options[:store_as_native_string] ? value.iso8601 : value.to_time.to_f
+      end
+
+      def parse_datetime(value, options)
+        return value if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
+
+        value = DateTime.iso8601(value).to_time.to_i if options[:store_as_native_string]
+        case Dynamoid::Config.application_timezone
+          when :utc
+            ActiveSupport::TimeZone['UTC'].at(value).to_datetime
+          when :local
+            Time.at(value).to_datetime
+          when String
+            ActiveSupport::TimeZone[Dynamoid::Config.application_timezone].at(value).to_datetime
         end
       end
 
