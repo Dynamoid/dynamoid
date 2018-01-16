@@ -200,8 +200,7 @@ describe Dynamoid::Criteria::Chain do
   # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.QueryFilter.html?shortFooter=true
   describe 'Query with not-keys conditions' do
     let(:model) {
-      Class.new do
-        include Dynamoid::Document
+      new_class do
         table name: :customer, key: :name
         range :last_name
         field :age, :integer
@@ -218,6 +217,34 @@ describe Dynamoid::Criteria::Chain do
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to be_nil
       expect(chain.index_name).to be_nil
+    end
+
+    it 'supports eq for set' do
+      klass = new_class do
+        range :last_name
+        field :set, :set
+      end
+
+      document1 = klass.create(id: 1, last_name: 'a', set: [1, 2].to_set)
+      document2 = klass.create(id: 1, last_name: 'b', set: [3, 4].to_set)
+
+      chain = Dynamoid::Criteria::Chain.new(klass)
+      expect(chain).to receive(:records_via_query).and_call_original
+      expect(chain.where(id: 1, set: [1, 2].to_set).all).to contain_exactly(document1)
+    end
+
+    it 'supports eq for array' do
+      klass = new_class do
+        range :last_name
+        field :array, :array
+      end
+
+      document1 = klass.create(id: 1, last_name: 'a', array: [1, 2])
+      document2 = klass.create(id: 1, last_name: 'b', array: [3, 4])
+
+      chain = Dynamoid::Criteria::Chain.new(klass)
+      expect(chain).to receive(:records_via_query).and_call_original
+      expect(chain.where(id: 1, array: [1, 2]).all).to contain_exactly(document1)
     end
 
     it 'supports lt' do
@@ -339,6 +366,26 @@ describe Dynamoid::Criteria::Chain do
       expect(chain.hash_key).to be_nil
       expect(chain.range_key).to be_nil
       expect(chain.index_name).to be_nil
+    end
+
+    it 'supports eq for set' do
+      klass = new_class do
+        field :set, :set
+      end
+      document1 = klass.create(set: ['a', 'b'])
+      document2 = klass.create(set: ['b', 'c'])
+
+      expect(klass.where(set: ['a', 'b'].to_set).all).to contain_exactly(document1)
+    end
+
+    it 'supports eq for array' do
+      klass = new_class do
+        field :array, :array
+      end
+      document1 = klass.create(array: ['a', 'b'])
+      document2 = klass.create(array: ['b', 'c'])
+
+      expect(klass.where(array: ['a', 'b']).all).to contain_exactly(document1)
     end
 
     it 'supports lt' do
