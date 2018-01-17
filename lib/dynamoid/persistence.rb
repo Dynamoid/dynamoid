@@ -117,7 +117,7 @@ module Dynamoid
                   value
                 end
               when :set
-                Set.new(value)
+                undump_set(options, value)
               when :datetime
                 parse_datetime(value, options)
               when :date
@@ -138,6 +138,17 @@ module Dynamoid
                 raise ArgumentError, "Unknown type #{options[:type]}"
             end
           end
+        end
+      end
+
+      def undump_set(options, value)
+        case options[:of]
+        when :integer
+          value.map { |v| Integer(v) }.to_set
+        when :number
+          value.map { |v| BigDecimal.new(v.to_s) }.to_set
+        else
+          value.is_a?(Set) ? value : Set.new(value)
         end
       end
 
