@@ -451,6 +451,34 @@ describe Dynamoid::Persistence do
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
         expect(attributes[:sent_at]).to eq date.iso8601
       end
+
+      it 'saves as :string if global option :store_date_time_as_string is true' do
+        klass2 = new_class do
+          field :sent_at, :datetime
+        end
+
+        store_datetime_as_string = Dynamoid.config.store_datetime_as_string
+        Dynamoid.config.store_datetime_as_string = true
+
+        time = Time.now
+        obj = klass2.create(sent_at: time)
+        attributes = Dynamoid.adapter.get_item(klass2.table_name, obj.hash_key)
+        expect(attributes[:sent_at]).to eq time.iso8601
+
+        Dynamoid.config.store_datetime_as_string = store_datetime_as_string
+      end
+
+      it 'prioritize field option over global one' do
+        store_datetime_as_string = Dynamoid.config.store_datetime_as_string
+        Dynamoid.config.store_datetime_as_string = false
+
+        time = Time.now
+        obj = klass.create(sent_at: time)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:sent_at]).to eq time.iso8601
+
+        Dynamoid.config.store_datetime_as_string = store_datetime_as_string
+      end
     end
   end
 

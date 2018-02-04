@@ -251,7 +251,11 @@ module Dynamoid
       end
 
       def format_datetime(value, options)
-        options[:store_as_native_string] ? value.iso8601 : value.to_time.to_f
+        use_string_format = options[:store_as_native_string].nil? \
+          ? Dynamoid.config.store_datetime_as_string \
+          : options[:store_as_native_string]
+
+        use_string_format ? value.iso8601 : value.to_time.to_f
       end
 
       def format_date(value, options)
@@ -269,7 +273,11 @@ module Dynamoid
       def parse_datetime(value, options)
         return value if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
 
-        value = DateTime.iso8601(value).to_time.to_i if options[:store_as_native_string]
+        use_string_format = options[:store_as_native_string].nil? \
+          ? Dynamoid.config.store_datetime_as_string \
+          : options[:store_as_native_string]
+        value = DateTime.iso8601(value).to_time.to_i if use_string_format
+
         case Dynamoid::Config.application_timezone
           when :utc
             ActiveSupport::TimeZone['UTC'].at(value).to_datetime
