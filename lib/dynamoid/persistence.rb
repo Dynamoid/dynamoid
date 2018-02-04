@@ -124,7 +124,7 @@ module Dynamoid
                 if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
                   value.to_date
                 else
-                  UNIX_EPOCH_DATE + value.to_i
+                  parse_date(value, options)
                 end
               when :boolean
                 if value == 't' || value == true
@@ -176,7 +176,7 @@ module Dynamoid
             when :datetime
               !value.nil? ? format_datetime(value, options) : nil
             when :date
-              !value.nil? ? (value.to_date - UNIX_EPOCH_DATE).to_i : nil
+              !value.nil? ? format_date(value, options) : nil
             when :serialized
               options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
             when :raw
@@ -254,6 +254,14 @@ module Dynamoid
         options[:store_as_native_string] ? value.iso8601 : value.to_time.to_f
       end
 
+      def format_date(value, options)
+        unless options[:store_as_native_string]
+          (value.to_date - UNIX_EPOCH_DATE).to_i
+        else
+          value.to_date.iso8601
+        end
+      end
+
       def parse_datetime(value, options)
         return value if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
 
@@ -265,6 +273,14 @@ module Dynamoid
             Time.at(value).to_datetime
           when String
             ActiveSupport::TimeZone[Dynamoid::Config.application_timezone].at(value).to_datetime
+        end
+      end
+
+      def parse_date(value, options)
+        unless options[:store_as_native_string]
+          UNIX_EPOCH_DATE + value.to_i
+        else
+          Date.iso8601(value)
         end
       end
 

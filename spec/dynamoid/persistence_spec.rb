@@ -454,6 +454,22 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe 'Date field' do
+    context 'stored in :string format' do
+      it 'stores in ISO 8601 format' do
+        klass = new_class do
+          field :signed_up_on, :date, store_as_native_string: true
+        end
+
+        model = klass.create(signed_up_on: '25-09-2017'.to_date)
+        expect(klass.find(model.id).signed_up_on).to eq('25-09-2017'.to_date)
+
+        attributes = Dynamoid.adapter.get_item(klass.table_name, model.id)
+        expect(attributes[:signed_up_on]).to eq '2017-09-25'
+      end
+    end
+  end
+
   describe "Set field" do
     let(:klass) do
       new_class do
