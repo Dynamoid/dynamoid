@@ -255,7 +255,11 @@ module Dynamoid
       end
 
       def format_date(value, options)
-        unless options[:store_as_native_string]
+        use_string_format = options[:store_as_native_string].nil? \
+          ? Dynamoid.config.store_date_as_string \
+          : options[:store_as_native_string]
+
+        unless use_string_format
           (value.to_date - UNIX_EPOCH_DATE).to_i
         else
           value.to_date.iso8601
@@ -277,7 +281,11 @@ module Dynamoid
       end
 
       def parse_date(value, options)
-        unless options[:store_as_native_string]
+        use_string_format = options[:store_as_native_string].nil? \
+          ? Dynamoid.config.store_date_as_string \
+          : options[:store_as_native_string]
+
+        unless use_string_format
           UNIX_EPOCH_DATE + value.to_i
         else
           Date.iso8601(value)

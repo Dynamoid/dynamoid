@@ -467,6 +467,36 @@ describe Dynamoid::Persistence do
         attributes = Dynamoid.adapter.get_item(klass.table_name, model.id)
         expect(attributes[:signed_up_on]).to eq '2017-09-25'
       end
+
+      it 'stores in string format when global option :store_date_as_string is true' do
+        klass = new_class do
+          field :signed_up_on, :date
+        end
+
+        store_date_as_string = Dynamoid.config.store_date_as_string
+        Dynamoid.config.store_date_as_string = true
+
+        model = klass.create(signed_up_on: '25-09-2017'.to_date)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, model.id)
+        expect(attributes[:signed_up_on]).to eq '2017-09-25'
+
+        Dynamoid.config.store_date_as_string = store_date_as_string
+      end
+
+      it 'prioritize field option over global one' do
+        klass = new_class do
+          field :signed_up_on, :date, store_as_native_string: true
+        end
+
+        store_date_as_string = Dynamoid.config.store_date_as_string
+        Dynamoid.config.store_date_as_string = false
+
+        model = klass.create(signed_up_on: '25-09-2017'.to_date)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, model.id)
+        expect(attributes[:signed_up_on]).to eq '2017-09-25'
+
+        Dynamoid.config.store_date_as_string = store_date_as_string
+      end
     end
   end
 
