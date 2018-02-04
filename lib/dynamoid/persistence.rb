@@ -251,17 +251,17 @@ module Dynamoid
       end
 
       def format_datetime(value, options)
-        use_string_format = options[:store_as_native_string].nil? \
+        use_string_format = options[:store_as_string].nil? \
           ? Dynamoid.config.store_datetime_as_string \
-          : options[:store_as_native_string]
+          : options[:store_as_string]
 
         use_string_format ? value.iso8601 : value.to_time.to_f
       end
 
       def format_date(value, options)
-        use_string_format = options[:store_as_native_string].nil? \
+        use_string_format = options[:store_as_string].nil? \
           ? Dynamoid.config.store_date_as_string \
-          : options[:store_as_native_string]
+          : options[:store_as_string]
 
         unless use_string_format
           (value.to_date - UNIX_EPOCH_DATE).to_i
@@ -273,9 +273,9 @@ module Dynamoid
       def parse_datetime(value, options)
         return value if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
 
-        use_string_format = options[:store_as_native_string].nil? \
+        use_string_format = options[:store_as_string].nil? \
           ? Dynamoid.config.store_datetime_as_string \
-          : options[:store_as_native_string]
+          : options[:store_as_string]
         value = DateTime.iso8601(value).to_time.to_i if use_string_format
 
         case Dynamoid::Config.application_timezone
@@ -289,9 +289,9 @@ module Dynamoid
       end
 
       def parse_date(value, options)
-        use_string_format = options[:store_as_native_string].nil? \
+        use_string_format = options[:store_as_string].nil? \
           ? Dynamoid.config.store_date_as_string \
-          : options[:store_as_native_string]
+          : options[:store_as_string]
 
         unless use_string_format
           UNIX_EPOCH_DATE + value.to_i

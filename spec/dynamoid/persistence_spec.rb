@@ -434,7 +434,7 @@ describe Dynamoid::Persistence do
     context "Stored in :string format" do
       let(:klass) do
         new_class do
-          field :sent_at, :datetime, { store_as_native_string: true }
+          field :sent_at, :datetime, { store_as_string: true }
         end
       end
 
@@ -486,7 +486,7 @@ describe Dynamoid::Persistence do
     context 'stored in :string format' do
       it 'stores in ISO 8601 format' do
         klass = new_class do
-          field :signed_up_on, :date, store_as_native_string: true
+          field :signed_up_on, :date, store_as_string: true
         end
 
         model = klass.create(signed_up_on: '25-09-2017'.to_date)
@@ -513,7 +513,7 @@ describe Dynamoid::Persistence do
 
       it 'prioritize field option over global one' do
         klass = new_class do
-          field :signed_up_on, :date, store_as_native_string: true
+          field :signed_up_on, :date, store_as_string: true
         end
 
         store_date_as_string = Dynamoid.config.store_date_as_string
