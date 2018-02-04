@@ -449,7 +449,7 @@ describe Dynamoid::Persistence do
         date = Date.today
         obj = klass.create(sent_at: date)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq date.iso8601
+        expect(attributes[:sent_at]).to eq date.to_time.iso8601
       end
 
       it 'saves as :string if global option :store_date_time_as_string is true' do

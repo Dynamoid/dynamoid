@@ -255,7 +255,7 @@ module Dynamoid
           ? Dynamoid.config.store_datetime_as_string \
           : options[:store_as_string]
 
-        use_string_format ? value.iso8601 : value.to_time.to_f
+        use_string_format ? value.to_time.iso8601 : value.to_time.to_f
       end
 
       def format_date(value, options)
