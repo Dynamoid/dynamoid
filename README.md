@@ -164,15 +164,27 @@ class Document
 end
 ```
 
-#### Note on datetime type
+#### Note on date type
 
-By default datetime fields are persisted as UNIX timestamps with milisecond precission in DynamoDB. If you prefer datetimes to be stored as ISO-8601 formatted strings instead then set `store_as_native_string` to `true`
+By default date fields are persisted as days count since 1 January 1970 like UNIX time. If you prefer dates to be stored as ISO-8601 formatted strings instead then set `store_as_string` to `true`
 
 ```ruby
 class Document
   include DynamoId::Document
 
-  field :sent_at, :datetime, store_as_native_string: true
+  field :sent_at, :datetime, store_as_string: true
+end
+```
+
+#### Note on datetime type
+
+By default datetime fields are persisted as UNIX timestamps with milisecond precission in DynamoDB. If you prefer datetimes to be stored as ISO-8601 formatted strings instead then set `store_as_string` to `true`
+
+```ruby
+class Document
+  include DynamoId::Document
+
+  field :sent_at, :datetime, store_as_string: true
 end
 ```
 
@@ -613,6 +625,8 @@ Listed below are all configuration options.
 * `models_dir` - `dynamoid:create_tables` rake task loads DynamoDb models from this directory. Default is `app/models`. In Rails application you should set `./app/models` value
 * `application_timezone` - Dynamoid converts all `datetime` fields to specified time zone when loads data from the storage.
   Acceptable values - `utc`, `local` (to use system time zone) and time zone name e.g. `Eastern Time (US & Canada)`. Default is `local`
+* `store_datetime_as_string` - if `true` then Dynamoid stores :datetime fields in ISO 8601 string format. Default is `false`
+* `store_date_as_string` - if `true` then Dynamoid stores :date fields in ISO 8601 string format. Default is `false`
 
 
 ## Concurrency

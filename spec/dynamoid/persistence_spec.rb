@@ -434,7 +434,7 @@ describe Dynamoid::Persistence do
     context "Stored in :string format" do
       let(:klass) do
         new_class do
-          field :sent_at, :datetime, { store_as_native_string: true }
+          field :sent_at, :datetime, { store_as_string: true }
         end
       end
 
@@ -449,7 +449,81 @@ describe Dynamoid::Persistence do
         date = Date.today
         obj = klass.create(sent_at: date)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq date.iso8601
+        expect(attributes[:sent_at]).to eq date.to_time.iso8601
+      end
+
+      it 'saves as :string if global option :store_date_time_as_string is true' do
+        klass2 = new_class do
+          field :sent_at, :datetime
+        end
+
+        store_datetime_as_string = Dynamoid.config.store_datetime_as_string
+        Dynamoid.config.store_datetime_as_string = true
+
+        time = Time.now
+        obj = klass2.create(sent_at: time)
+        attributes = Dynamoid.adapter.get_item(klass2.table_name, obj.hash_key)
+        expect(attributes[:sent_at]).to eq time.iso8601
+
+        Dynamoid.config.store_datetime_as_string = store_datetime_as_string
+      end
+
+      it 'prioritize field option over global one' do
+        store_datetime_as_string = Dynamoid.config.store_datetime_as_string
+        Dynamoid.config.store_datetime_as_string = false
+
+        time = Time.now
+        obj = klass.create(sent_at: time)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
+        expect(attributes[:sent_at]).to eq time.iso8601
+
+        Dynamoid.config.store_datetime_as_string = store_datetime_as_string
+      end
+    end
+  end
+
+  describe 'Date field' do
+    context 'stored in :string format' do
+      it 'stores in ISO 8601 format' do
+        klass = new_class do
+          field :signed_up_on, :date, store_as_string: true
+        end
+
+        model = klass.create(signed_up_on: '25-09-2017'.to_date)
+        expect(klass.find(model.id).signed_up_on).to eq('25-09-2017'.to_date)
+
+        attributes = Dynamoid.adapter.get_item(klass.table_name, model.id)
+        expect(attributes[:signed_up_on]).to eq '2017-09-25'
+      end
+
+      it 'stores in string format when global option :store_date_as_string is true' do
+        klass = new_class do
+          field :signed_up_on, :date
+        end
+
+        store_date_as_string = Dynamoid.config.store_date_as_string
+        Dynamoid.config.store_date_as_string = true
+
+        model = klass.create(signed_up_on: '25-09-2017'.to_date)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, model.id)
+        expect(attributes[:signed_up_on]).to eq '2017-09-25'
+
+        Dynamoid.config.store_date_as_string = store_date_as_string
+      end
+
+      it 'prioritize field option over global one' do
+        klass = new_class do
+          field :signed_up_on, :date, store_as_string: true
+        end
+
+        store_date_as_string = Dynamoid.config.store_date_as_string
+        Dynamoid.config.store_date_as_string = false
+
+        model = klass.create(signed_up_on: '25-09-2017'.to_date)
+        attributes = Dynamoid.adapter.get_item(klass.table_name, model.id)
+        expect(attributes[:signed_up_on]).to eq '2017-09-25'
+
+        Dynamoid.config.store_date_as_string = store_date_as_string
       end
     end
   end

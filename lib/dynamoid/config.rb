@@ -28,6 +28,8 @@ module Dynamoid
     option :convert_big_decimal, default: false
     option :models_dir, default: 'app/models' # perhaps you keep your dynamoid models in a different directory?
     option :application_timezone, default: :local # available values - :utc, :local, time zone names
+    option :store_datetime_as_string, default: false # store Time fields in ISO 8601 string format
+    option :store_date_as_string, default: false # store Date fields in ISO 8601 string format
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #
