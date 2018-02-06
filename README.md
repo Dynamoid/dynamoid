@@ -431,8 +431,8 @@ You can thus limit the number of evaluated records, or select a record from whic
 ```ruby
 Address.record_limit(5).start(address) # Only 5 addresses starting at `address`
 ```
-Where `address` is an instance of the model or a hash {the_model_hash_key: 'value', the_model_range_key: 'value'}:
-Keep in mind that if you are passing a hash to `.start()` you need to explicitly define all required keys in it, including range keys and secondary global indexes, if any, when querying and, range keys, if any, when scanning. Otherwise you'll get an `Aws::DynamoDB::Errors::ValidationException` either for `Exclusive Start Key must have same size as table's key schema` or `The provided starting key is invalid`
+Where `address` is an instance of the model or a hash `{the_model_hash_key: 'value', the_model_range_key: 'value'}`:
+Keep in mind that if you are passing a hash to `.start()` you need to explicitly define all required keys in it including range keys, depending on table or secondary indexes signatures, otherwise you'll get an `Aws::DynamoDB::Errors::ValidationException` either for `Exclusive Start Key must have same size as table's key schema` or `The provided starting key is invalid`
 
 If you are potentially running over a large data set and this is especially true when using certain filters, you may
 want to consider limiting the number of scanned records (the number of records DynamoDB infrastructure looks through

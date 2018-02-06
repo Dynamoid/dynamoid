@@ -614,7 +614,7 @@ module Dynamoid
             if request[:limit] && scan_limit && scan_limit - scan_count < request[:limit]
               request[:limit] = scan_limit - scan_count
             end
-            
+
             results = client.scan(request)
             results.items.each { |row| y << result_item_to_hash(row) }
 

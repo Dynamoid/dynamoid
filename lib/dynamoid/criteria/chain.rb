@@ -306,7 +306,7 @@ module Dynamoid #:nodoc:
         # Could not utilize any indices so we'll have to scan
         false
       end
-
+#"
       # Start key needs to be set up based on the index utilized
       # If using a secondary index then we must include the index's composite key
       # as well as the tables composite key.
@@ -317,12 +317,16 @@ module Dynamoid #:nodoc:
 
         key = {}
         key[hash_key] = type_cast_condition_parameter(hash_key, @start.send(hash_key))
-        key[range_key] = type_cast_condition_parameter(range_key, @start.send(range_key)) if range_key
+        if range_key
+          key[range_key] = type_cast_condition_parameter(range_key, @start.send(range_key))
+        end
         # Add table composite keys if they differ from secondary index used composite key
-        key[source.hash_key] = type_cast_condition_parameter(source.hash_key, @start.hash_key) if hash_key != source.hash_key
-
-        key[source.range_key] = type_cast_condition_parameter(source.range_key, @start.range_value) if source.range_key && range_key != source.range_key
-
+        if hash_key != source.hash_key
+          key[source.hash_key] = type_cast_condition_parameter(source.hash_key, @start.hash_key)
+        end
+        if source.range_key && range_key != source.range_key
+          key[source.range_key] = type_cast_condition_parameter(source.range_key, @start.range_value)
+        end
         key
       end
 
