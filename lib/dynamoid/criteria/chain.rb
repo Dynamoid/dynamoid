@@ -306,7 +306,7 @@ module Dynamoid #:nodoc:
         # Could not utilize any indices so we'll have to scan
         false
       end
-#"
+
       # Start key needs to be set up based on the index utilized
       # If using a secondary index then we must include the index's composite key
       # as well as the tables composite key.
