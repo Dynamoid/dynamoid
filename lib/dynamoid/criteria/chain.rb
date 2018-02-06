@@ -311,20 +311,17 @@ module Dynamoid #:nodoc:
       # If using a secondary index then we must include the index's composite key
       # as well as the tables composite key.
       def start_key
+        return @start if @start.is_a?(Hash)
         hash_key = @hash_key || source.hash_key
         range_key = @range_key || source.range_key
 
         key = {}
-        key[:hash_key_element] = type_cast_condition_parameter(hash_key, @start.send(hash_key))
-        key[:range_key_element] = type_cast_condition_parameter(range_key, @start.send(range_key)) if range_key
+        key[hash_key] = type_cast_condition_parameter(hash_key, @start.send(hash_key))
+        key[range_key] = type_cast_condition_parameter(range_key, @start.send(range_key)) if range_key
+        # Add table composite keys if they differ from secondary index used composite key
+        key[source.hash_key] = type_cast_condition_parameter(source.hash_key, @start.hash_key) if hash_key != source.hash_key
 
-        # Add table composite keys if differ from secondary index used composite key
-        if hash_key != source.hash_key
-          key[:table_hash_key_element] = type_cast_condition_parameter(source.hash_key, @start.hash_key)
-        end
-        if source.range_key && range_key != source.range_key
-          key[:table_range_key_element] = type_cast_condition_parameter(source.range_key, @start.range_value)
-        end
+        key[source.range_key] = type_cast_condition_parameter(source.range_key, @start.range_value) if source.range_key && range_key != source.range_key
 
         key
       end
@@ -336,7 +333,7 @@ module Dynamoid #:nodoc:
         opts[:record_limit] = @record_limit if @record_limit
         opts[:scan_limit] = @scan_limit if @scan_limit
         opts[:batch_size] = @batch_size if @batch_size
-        opts[:next_token] = start_key if @start
+        opts[:exclusive_start_key] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
         opts
       end
@@ -359,7 +356,7 @@ module Dynamoid #:nodoc:
         opts[:record_limit] = @record_limit if @record_limit
         opts[:scan_limit] = @scan_limit if @scan_limit
         opts[:batch_size] = @batch_size if @batch_size
-        opts[:next_token] = start_key if @start
+        opts[:exclusive_start_key] = start_key if @start
         opts[:consistent_read] = true if @consistent_read
         opts
       end

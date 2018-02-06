@@ -674,8 +674,20 @@ describe Dynamoid::Criteria::Chain do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_query).and_call_original
         expect(chain.where(city: 'San Francisco').start(@customer2).all).to contain_exactly(@customer3)
+        # Repeat with hash notation
+        expect(chain).to receive(:records_via_query).and_call_original
+        expect(chain.where(city: 'San Francisco').start({city: @customer2.city, age: @customer2.age, name: @customer2.name, customerid: @customer2.customerid}).all).to contain_exactly(@customer3)
       end
 
+      it 'supports scan with start on hash key & range key' do
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_scan).and_call_original
+        expect(chain.scan_limit(1).start(@customer2)).to contain_exactly(@customer4)
+        # Repeat with hash notation
+        expect(chain).to receive(:records_via_scan).and_call_original
+        expect(chain.scan_limit(1).start({name: @customer2.name, customerid: @customer2.customerid})).to contain_exactly(@customer4)
+      end
+      
       it "does not use index if a condition for index hash key is other than 'equal'" do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_scan).and_call_original

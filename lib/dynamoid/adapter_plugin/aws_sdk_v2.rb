@@ -480,20 +480,8 @@ module Dynamoid
         record_limit = opts.delete(:record_limit)
         scan_limit = opts.delete(:scan_limit)
         batch_size = opts.delete(:batch_size)
-        limit = [record_limit, scan_limit, batch_size].compact.min
-        q[:limit] = limit if limit
-
-        opts.delete(:next_token).tap do |token|
-          break unless token
-          q[:exclusive_start_key] = {
-            hk  => token[:hash_key_element],
-            rng => token[:range_key_element]
-          }
-          # For secondary indices the start key must contain the indices composite key
-          # but also the table's composite keys
-          q[:exclusive_start_key][table.hash_key] = token[:table_hash_key_element] if token[:table_hash_key_element]
-          q[:exclusive_start_key][table.range_key] = token[:table_range_key_element] if token[:table_range_key_element]
-        end
+        exclusive_start_key = opts.delete(:exclusive_start_key)
+        limit = [record_limit, scan_limit, batch_size].compact.min        
 
         key_conditions = {
           hk => {
@@ -518,6 +506,8 @@ module Dynamoid
           }
         end
 
+        q[:limit] = limit if limit
+        q[:exclusive_start_key] = exclusive_start_key if exclusive_start_key
         q[:table_name]     = table_name
         q[:key_conditions] = key_conditions
         q[:query_filter]   = query_filter
@@ -585,9 +575,11 @@ module Dynamoid
         record_limit = select_opts.delete(:record_limit)
         scan_limit = select_opts.delete(:scan_limit)
         batch_size = select_opts.delete(:batch_size)
+        exclusive_start_key = select_opts.delete(:exclusive_start_key)
         request_limit = [record_limit, scan_limit, batch_size].compact.min
         request[:limit] = request_limit if request_limit
-
+        request[:exclusive_start_key] = exclusive_start_key if exclusive_start_key
+        
         if scan_hash.present?
           request[:scan_filter] = scan_hash.reduce({}) do |memo, (attr, cond)|
             memo.merge(attr.to_s => {
@@ -622,7 +614,7 @@ module Dynamoid
             if request[:limit] && scan_limit && scan_limit - scan_count < request[:limit]
               request[:limit] = scan_limit - scan_count
             end
-
+            
             results = client.scan(request)
             results.items.each { |row| y << result_item_to_hash(row) }
 
