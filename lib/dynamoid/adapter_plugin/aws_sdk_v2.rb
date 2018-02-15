@@ -72,6 +72,9 @@ module Dynamoid
         if Dynamoid::Config.region?
           @connection_hash[:region] = Dynamoid::Config.region
         end
+        if Dynamoid::Config.log_level?
+          @connection_hash[:log_level] = Dynamoid::Config.log_level
+        end
 
         @connection_hash
       end
