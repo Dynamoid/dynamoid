@@ -21,7 +21,7 @@ But if you want a fast, scalable, simple, easy-to-use database (and a Gem that s
 | license                 |  MIT              |
 | download rank           |  [![Total Downloads](https://img.shields.io/gem/rt/Dynamoid.svg)](https://rubygems.org/gems/dynamoid) |
 | version                 |  [![Gem Version](https://badge.fury.io/rb/dynamoid.svg)](https://rubygems.org/gems/dynamoid) |
-| dependencies            |  [![Dependency Status](https://gemnasium.com/badges/github.com/Dynamoid/Dynamoid.svg)](https://gemnasium.com/github.com/Dynamoid/Dynamoid) |
+| dependencies            |  [![Dependency Status](https://gemnasium.com/badges/github.com/Dynamoid/Dynamoid.svg)](https://gemnasium.com/github.com/Dynamoid/Dynamoid) [![Depfu](https://badges.depfu.com/badges/6661c063c8e77a5008344fc7283a50aa/status.svg)](https://depfu.com)|
 | code quality            |  [![Code Climate](https://codeclimate.com/github/Dynamoid/Dynamoid.svg)](https://codeclimate.com/github/Dynamoid/Dynamoid) |
 | continuous integration  |  [![Build Status](https://travis-ci.org/Dynamoid/Dynamoid.svg?branch=master)](https://travis-ci.org/Dynamoid/Dynamoid) |
 | test coverage           |  [![Coverage Status](https://coveralls.io/repos/github/Dynamoid/Dynamoid/badge.svg?branch=master)](https://coveralls.io/github/Dynamoid/Dynamoid?branch=master) |
