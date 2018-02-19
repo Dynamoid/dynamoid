@@ -624,7 +624,7 @@ Listed below are all configuration options.
 * `sync_retry_max_times` - when Dynamoid creates or deletes table synchronously it checks for completion specified times. Default is 60 (times). It's a bit over 2 minutes by default
 * `sync_retry_wait_seconds` - time to wait between retries. Default is 2 (seconds)
 * `convert_big_decimal` - if `true` then Dynamoid converts numbers stored in `Hash` in `raw` field to float. Default is `false`
-* `models_dir` - `dynamoid:create_tables` rake task loads DynamoDb models from this directory. Default is `app/models`. In Rails application you should set `./app/models` value
+* `models_dir` - `dynamoid:create_tables` rake task loads DynamoDb models from this directory. Default is `./app/models`.
 * `application_timezone` - Dynamoid converts all `datetime` fields to specified time zone when loads data from the storage.
   Acceptable values - `utc`, `local` (to use system time zone) and time zone name e.g. `Eastern Time (US & Canada)`. Default is `local`
 * `store_datetime_as_string` - if `true` then Dynamoid stores :datetime fields in ISO 8601 string format. Default is `false`
