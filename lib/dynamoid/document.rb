@@ -131,6 +131,36 @@ module Dynamoid #:nodoc:
         model
       end
 
+      def update_fields(hash_key_value, range_key_value=nil, attrs={}, conditions={})
+        optional_params = [range_key_value, attrs, conditions].compact
+        if optional_params.first.is_a?(Hash)
+          range_key_value = nil
+          attrs, conditions = optional_params[0 .. 1]
+        else
+          range_key_value = optional_params.first
+          attrs, conditions = optional_params[1 .. 2]
+        end
+
+        options = if range_key
+                    { range_key: dump_field(range_key_value, attributes[range_key]) }
+                  else
+                    {}
+                  end
+
+        (conditions[:if_exists] ||= {})[hash_key] = hash_key_value
+        options[:conditions] = conditions
+
+        begin
+          new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
+            attrs.symbolize_keys.each do |k, v|
+              t.set k => dump_field(v, attributes[k])
+            end
+          end
+          new(new_attrs)
+        rescue Dynamoid::Errors::ConditionalCheckFailedException
+        end
+      end
+
       def deep_subclasses
         subclasses + subclasses.map(&:deep_subclasses).flatten
       end
