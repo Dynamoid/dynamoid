@@ -119,6 +119,18 @@ module Dynamoid #:nodoc:
         end
       end
 
+      def update(hash_key, range_key_value=nil, attrs)
+        if range_key.present?
+          range_key_value = dump_field(range_key_value, attributes[self.range_key])
+        else
+          range_key_value = nil
+        end
+
+        model = find(hash_key, range_key: range_key_value, consistent_read: true)
+        model.update_attributes(attrs)
+        model
+      end
+
       def deep_subclasses
         subclasses + subclasses.map(&:deep_subclasses).flatten
       end
