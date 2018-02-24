@@ -523,6 +523,41 @@ User.where("created_at.lt" => DateTime.now - 1.day).all
 
 It also supports .gte and .lte. Turning those into symbols and allowing a Rails SQL-style string syntax is in the works. You can only have one range argument per query, because of DynamoDB's inherent limitations, so use it sensibly!
 
+
+### Updating
+
+In order to update document you can use high level methods
+`#update_attrubutes`, `#update_attrubute` and `.update`.
+They run validation and collbacks.
+
+```ruby
+Address.find(id).update_attrubutes(city: 'Chicago')
+Address.find(id).update_attrubute(city, 'Chicago')
+Address.update(id, city: 'Chicago')
+Address.update(id, { city: 'Chicago' }, if: { deliverable: true })
+```
+
+There are also some low level methods `#update`, `.update_fields` and
+`.upsert`. They don't run validation and callbacks (except `#update` - it
+runs `update` callbacks). All of them support conditional updates.
+`#upsert` will create new document if document with specified `id`
+doesn't exist.
+
+```ruby
+Adderess.find(id).update do |i|
+  i.set city: 'Chicago'
+  i.add latitude: 100
+  i.delete set_of_numbers: 10
+end
+Adderess.find(id).update(if: { deliverable: true }) do |i|
+  i.set city: 'Chicago'
+end
+Address.update_fields(id, city: 'Chicago')
+Address.update_fields(id, { city: 'Chicago' }, if: { deliverable: true })
+Address.upsert(id, city: 'Chicago')
+Address.upsert(id, { city: 'Chicago' }, if: { deliverable: true })
+```
+
 ### Deleting
 
 In order to delete some items `delete_all` method should be used.
