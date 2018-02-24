@@ -188,6 +188,20 @@ class Document
 end
 ```
 
+### Note on set type
+
+There is `if` option to declare the type of set elements. You can use
+`:integer` value only
+
+```ruby
+class Document
+  include DynamoId::Document
+
+  field :tags, :set, of: :integer
+end
+```
+
+
 #### Magic Columns
 
 You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
