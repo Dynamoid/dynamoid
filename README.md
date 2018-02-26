@@ -190,7 +190,7 @@ end
 
 ### Note on set type
 
-There is `if` option to declare the type of set elements. You can use
+There is `of` option to declare the type of set elements. You can use
 `:integer` value only
 
 ```ruby
