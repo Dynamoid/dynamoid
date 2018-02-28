@@ -81,6 +81,7 @@ Create config/initializers/aws.rb as follows:
 Alternatively, if you don't want Aws connection settings to be overwritten for you entire project, you can specify connection settings for Dynamoid only, by setting those in the `Dynamoid.configure` clause:
 
 ```ruby
+  require 'dynamoid'
   Dynamoid.configure do |config|
     config.access_key = 'REPLACE_WITH_ACCESS_KEY_ID'
     config.secret_key = 'REPLACE_WITH_SECRET_ACCESS_KEY'
@@ -94,6 +95,7 @@ For a full list of the DDB regions, you can go
 Then you need to initialize Dynamoid config to get it going. Put code similar to this somewhere (a Rails initializer would be a great place for this if you're using Rails):
 
 ```ruby
+  require 'dynamoid'
   Dynamoid.configure do |config|
     config.namespace = "dynamoid_app_development" # To namespace tables created by Dynamoid from other tables you might have. Set to nil to avoid namespacing.
     config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
