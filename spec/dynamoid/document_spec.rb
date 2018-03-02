@@ -124,6 +124,241 @@ describe Dynamoid::Document do
     expect(address.errors.full_messages).to be_empty
   end
 
+  describe '.update' do
+    let(:document_class) do
+      new_class do
+        field :name
+
+        validates :name, presence: true, length: { minimum: 5 }
+        def self.name; 'Document' end
+      end
+    end
+
+    it 'loads and saves document' do
+      d = document_class.create(name: 'Document#1')
+
+      expect {
+        document_class.update(d.id, name: '[Updated]')
+      }.to change { d.reload.name }.from('Document#1').to('[Updated]')
+    end
+
+    it 'returns updated document' do
+      d = document_class.create(name: 'Document#1')
+      d2 = document_class.update(d.id, name: '[Updated]')
+
+      expect(d2).to be_a(document_class)
+      expect(d2.name).to eq '[Updated]'
+    end
+
+    it 'does not save invalid document' do
+      d = document_class.create(name: 'Document#1')
+      d2 = nil
+
+      expect {
+        d2 = document_class.update(d.id, name: '[Up')
+      }.not_to change { d.reload.name }
+      expect(d2).not_to be_valid
+    end
+
+    it 'accepts range key value if document class declares it' do
+      klass = new_class do
+        field :name
+        range :status
+      end
+
+      d = klass.create(status: 'old', name: 'Document#1')
+      expect {
+        klass.update(d.id, 'old', name: '[Updated]')
+      }.to change { d.reload.name }.to('[Updated]')
+    end
+
+    it 'converts range key value to proper format' do
+      klass = new_class do
+        field :name
+        range :activated_on, :date
+        field :another_date, :datetime
+      end
+
+      d = klass.create(activated_on: '2018-01-14'.to_date, name: 'Document#1')
+      expect {
+        klass.update(d.id, '2018-01-14'.to_date, name: '[Updated]')
+      }.to change { d.reload.name }.to('[Updated]')
+    end
+  end
+
+  describe '.update_fields' do
+    let(:document_class) do
+      new_class do
+        field :title
+        field :version, :integer
+        field :published_on, :date
+      end
+    end
+
+    it 'changes field value' do
+      obj = document_class.create(title: 'Old title')
+      expect {
+        document_class.update_fields(obj.id, title: 'New title')
+      }.to change { document_class.find(obj.id).title }.from('Old title').to('New title')
+    end
+
+    it 'changes field value to nil' do
+      obj = document_class.create(title: 'New Document')
+      expect {
+        document_class.update_fields(obj.id, title: nil)
+      }.to change { document_class.find(obj.id).title }.from('New Document').to(nil)
+    end
+
+    it 'returns updated document' do
+      obj = document_class.create(title: 'Old title')
+      result = document_class.update_fields(obj.id, title: 'New title')
+
+      expect(result.id).to eq obj.id
+      expect(result.title).to eq 'New title'
+    end
+
+    it 'checks the conditions on update' do
+      obj = document_class.create(title: 'Old title', version: 1)
+      expect {
+        document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 1 })
+      }.to change { document_class.find(obj.id).title }.to('New title')
+
+      obj = document_class.create(title: 'Old title', version: 1)
+      expect {
+        result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
+      }.not_to change { document_class.find(obj.id).title }
+    end
+
+    it 'does not create new document if it does not exist yet' do
+      document_class.create_table
+
+      expect {
+        document_class.update_fields('some-fake-id', title: 'Title')
+      }.not_to change { document_class.count }
+    end
+
+    it 'accepts range key if it is declared' do
+      document_class_with_range = new_class do
+        field :title
+        range :category
+      end
+
+      obj = document_class_with_range.create(category: 'New')
+
+      expect {
+        document_class_with_range.update_fields(obj.id, 'New', title: '[Updated]')
+      }.to change {
+        document_class_with_range.find(obj.id, range_key: 'New').title
+      }.to('[Updated]')
+    end
+
+    it 'converts range key value' do
+      document_class_with_range = new_class do
+        field :title
+        range :published_on, :date
+      end
+
+      obj = document_class_with_range.create(title: 'Old', published_on: '2018-02-23'.to_date)
+      document_class_with_range.update_fields(obj.id, '2018-02-23'.to_date, title: 'New')
+      expect(obj.reload.title).to eq 'New'
+    end
+
+    it 'converts attributes values' do
+      obj = document_class.create
+      document_class.update_fields(obj.id, published_on: '2018-02-23'.to_date)
+      attributes = Dynamoid.adapter.get_item(document_class.table_name, obj.id)
+      expect(attributes[:published_on]).to eq 17585
+    end
+  end
+
+  describe '.upsert' do
+    let(:document_class) do
+      new_class do
+        field :title
+        field :version, :integer
+        field :published_on, :date
+      end
+    end
+
+    it 'changes field value' do
+      obj = document_class.create(title: 'Old title')
+      expect {
+        document_class.upsert(obj.id, title: 'New title')
+      }.to change { document_class.find(obj.id).title }.from('Old title').to('New title')
+    end
+
+    it 'changes field value to nil' do
+      obj = document_class.create(title: 'New Document')
+      expect {
+        document_class.upsert(obj.id, title: nil)
+      }.to change { document_class.find(obj.id).title }.from('New Document').to(nil)
+    end
+
+    it 'returns updated document' do
+      obj = document_class.create(title: 'Old title')
+      result = document_class.upsert(obj.id, title: 'New title')
+
+      expect(result.id).to eq obj.id
+      expect(result.title).to eq 'New title'
+    end
+
+    it 'checks the conditions on update' do
+      obj = document_class.create(title: 'Old title', version: 1)
+      expect {
+        document_class.upsert(obj.id, { title: 'New title' }, if: { version: 1 })
+      }.to change { document_class.find(obj.id).title }.to('New title')
+
+      obj = document_class.create(title: 'Old title', version: 1)
+      expect {
+        result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
+      }.not_to change { document_class.find(obj.id).title }
+    end
+
+    it 'creates new document if it does not exist yet' do
+      document_class.create_table
+
+      expect {
+        document_class.upsert('not-existed-id', title: 'Title')
+      }.to change { document_class.count }
+
+      obj = document_class.find('not-existed-id')
+      expect(obj.title).to eq 'Title'
+    end
+
+    it 'accepts range key if it is declared' do
+      document_class_with_range = new_class do
+        field :title
+        range :category
+      end
+
+      obj = document_class_with_range.create(category: 'New')
+
+      expect {
+        document_class_with_range.upsert(obj.id, 'New', title: '[Updated]')
+      }.to change {
+        document_class_with_range.find(obj.id, range_key: 'New').title
+      }.to('[Updated]')
+    end
+
+    it 'converts range key value' do
+      document_class_with_range = new_class do
+        field :title
+        range :published_on, :date
+      end
+
+      obj = document_class_with_range.create(title: 'Old', published_on: '2018-02-23'.to_date)
+      document_class_with_range.upsert(obj.id, '2018-02-23'.to_date, title: 'New')
+      expect(obj.reload.title).to eq 'New'
+    end
+
+    it 'converts attributes values' do
+      obj = document_class.create
+      document_class.upsert(obj.id, published_on: '2018-02-23'.to_date)
+      attributes = Dynamoid.adapter.get_item(document_class.table_name, obj.id)
+      expect(attributes[:published_on]).to eq 17585
+    end
+  end
+
   context '.reload' do
     let(:address){ Address.create }
     let(:message){ Message.create(text: 'Nice, supporting datetime range!', time: Time.now.to_datetime) }
