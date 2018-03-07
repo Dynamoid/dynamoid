@@ -529,12 +529,12 @@ It also supports .gte and .lte. Turning those into symbols and allowing a Rails 
 ### Updating
 
 In order to update document you can use high level methods
-`#update_attrubutes`, `#update_attrubute` and `.update`.
+`#update_attributes`, `#update_attribute` and `.update`.
 They run validation and collbacks.
 
 ```ruby
-Address.find(id).update_attrubutes(city: 'Chicago')
-Address.find(id).update_attrubute(city, 'Chicago')
+Address.find(id).update_attributes(city: 'Chicago')
+Address.find(id).update_attribute(city, 'Chicago')
 Address.update(id, city: 'Chicago')
 Address.update(id, { city: 'Chicago' }, if: { deliverable: true })
 ```
