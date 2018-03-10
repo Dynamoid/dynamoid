@@ -99,7 +99,7 @@ module Dynamoid
         requests = []
 
         objects.each_slice(BATCH_WRITE_ITEM_REQUESTS_LIMIT) do |os|
-          requests << os.map { |o| { put_request: { item: o } } }
+          requests << os.map { |o| { put_request: { item: sanitize_item(o) } } }
         end
 
         begin
@@ -421,13 +421,8 @@ module Dynamoid
       #
       # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#put_item-instance_method
       def put_item(table_name, object, options = {})
-        item = {}
         options ||= {}
-
-        object.each do |k, v|
-          next if v.nil? || ((v.is_a?(Set) || v.is_a?(String)) && v.empty?)
-          item[k.to_s] = v
-        end
+        item = sanitize_item(object)
 
         begin
           client.put_item(
@@ -1036,6 +1031,12 @@ module Dynamoid
         ADD    = 'ADD'.freeze
         DELETE = 'DELETE'.freeze
         PUT    = 'PUT'.freeze
+      end
+
+      def sanitize_item(attributes)
+        attributes.reject do |k, v|
+          v.nil? || ((v.is_a?(Set) || v.is_a?(String)) && v.empty?)
+        end
       end
     end
   end

@@ -330,6 +330,11 @@ describe Dynamoid::Persistence do
     expect(User.find(user.id).name).to eq nil
   end
 
+  it 'saves attributes with nil value' do
+    user = User.create(name: nil)
+    expect(User.find(user.id).name).to eq nil
+  end
+
   it 'supports container types being nil' do
     u = User.create(name: 'Philip')
     u.todo_list = nil
@@ -933,6 +938,8 @@ describe Dynamoid::Persistence do
   describe '.import' do
     before do
       Address.create_table
+      User.create_table
+      Tweet.create_table
     end
 
     it 'creates multiple documents' do
@@ -978,6 +985,48 @@ describe Dynamoid::Persistence do
     it 'makes batch operation' do
       expect(Dynamoid.adapter).to receive(:batch_write_item).and_call_original
       Address.import([{city: 'Chicago'}, {city: 'New York'}])
+    end
+
+    it 'supports empty containers in `serialized` fields' do
+      users = User.import([name: 'Philip', favorite_colors: Set.new])
+
+      user = User.find(users[0].id)
+      expect(user.favorite_colors).to eq Set.new
+    end
+
+    it 'supports array being empty' do
+      users = User.import([{todo_list: []}])
+
+      user = User.find(users[0].id)
+      expect(user.todo_list).to eq []
+    end
+
+    it 'saves empty set as nil' do
+      tweets = Tweet.import([{group: 'one', tags: []}])
+
+      tweet = Tweet.find_by_tweet_id(tweets[0].tweet_id)
+      expect(tweet.tags).to eq nil
+    end
+
+    it 'saves empty string as nil' do
+      users = User.import([{name: ''}])
+
+      user = User.find(users[0].id)
+      expect(user.name).to eq nil
+    end
+
+    it 'saves attributes with nil value' do
+      users = User.import([{name: nil}])
+
+      user = User.find(users[0].id)
+      expect(user.name).to eq nil
+    end
+
+    it 'supports container types being nil' do
+      users = User.import([{name: 'Philip', todo_list: nil}])
+
+      user = User.find(users[0].id)
+      expect(user.todo_list).to eq nil
     end
   end
 end
