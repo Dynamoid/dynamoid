@@ -196,6 +196,8 @@ module Dynamoid #:nodoc:
         val = type_cast_condition_parameter(name, query[key])
 
         hash = case operation
+        when 'ne'
+          { ne: val }
         when 'gt'
           { gt: val }
         when 'lt'

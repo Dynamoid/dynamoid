@@ -18,6 +18,7 @@ module Dynamoid
       # we declare schema in models
       FIELD_MAP = {
           eq:           'EQ',
+          ne:           'NE',
           gt:           'GT',
           lt:           'LT',
           gte:          'GE',
