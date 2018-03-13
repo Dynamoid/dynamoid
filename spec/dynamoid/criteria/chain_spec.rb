@@ -247,6 +247,13 @@ describe Dynamoid::Criteria::Chain do
       expect(chain.where(id: 1, array: [1, 2]).all).to contain_exactly(document1)
     end
 
+    it 'supports ne' do
+      customer1 = model.create(name: 'a', last_name: 'a', age: 5)
+      customer2 = model.create(name: 'a', last_name: 'b', age: 9)
+
+      expect(model.where(name: 'a', 'age.ne' => 9).all).to contain_exactly(customer1)
+    end
+
     it 'supports lt' do
       customer1 = model.create(name: 'a', last_name: 'a', age: 5)
       customer2 = model.create(name: 'a', last_name: 'b', age: 9)
@@ -386,6 +393,13 @@ describe Dynamoid::Criteria::Chain do
       document2 = klass.create(array: ['b', 'c'])
 
       expect(klass.where(array: ['a', 'b']).all).to contain_exactly(document1)
+    end
+
+    it 'supports ne' do
+      customer1 = model.create(age: 5)
+      customer2 = model.create(age: 9)
+
+      expect(model.where('age.ne' => 9).all).to contain_exactly(customer1)
     end
 
     it 'supports lt' do
