@@ -19,7 +19,8 @@ But if you want a fast, scalable, simple, easy-to-use database (and a Gem that s
 |------------------------ | ----------------- |
 | gem name                |  dynamoid         |
 | license                 |  MIT              |
-| download rank           |  [![Total Downloads](https://img.shields.io/gem/rt/Dynamoid.svg)](https://rubygems.org/gems/dynamoid) |
+| download rank           |  [![Total Downloads](https://img.shields.io/gem/rt/Dynamoid.svg)](https://rubygems.org/gems/dynamoid) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FDynamoid%2FDynamoid.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FDynamoid%2FDynamoid?ref=badge_shield)
+|
 | version                 |  [![Gem Version](https://badge.fury.io/rb/dynamoid.svg)](https://rubygems.org/gems/dynamoid) |
 | dependencies            |  [![Dependency Status](https://gemnasium.com/badges/github.com/Dynamoid/Dynamoid.svg)](https://gemnasium.com/github.com/Dynamoid/Dynamoid) [![Depfu](https://badges.depfu.com/badges/6661c063c8e77a5008344fc7283a50aa/status.svg)](https://depfu.com)|
 | code quality            |  [![Code Climate](https://codeclimate.com/github/Dynamoid/Dynamoid.svg)](https://codeclimate.com/github/Dynamoid/Dynamoid) |
@@ -815,3 +816,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FDynamoid%2FDynamoid.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FDynamoid%2FDynamoid?ref=badge_large)
