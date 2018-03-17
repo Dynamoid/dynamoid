@@ -11,7 +11,8 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     1 => [:id],
     2 => [:id],
     3 => [:id, {range_key: {range: :number}}],
-    4 => [:id, {range_key: {range: :number}}]
+    4 => [:id, {range_key: {range: :number}}],
+    5 => [:id, { read_capacity: 10_000, write_capacity: 1000 }]
   }.each do |n, args|
     name = "dynamoid_tests_TestTable#{n}"
     let(:"test_table#{n}") do
@@ -490,6 +491,29 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(results.size).to eq 1
 
       expect(results[test_table3]).to include(name: 'Josh_101', id: '101', range: 101.0)
+    end
+
+    it 'loads unprocessed items' do
+      # batch_get_item has following limitations:
+      # * up to 100 items at once
+      # * up to 16 MB at once
+      #
+      # So we write data as large as possible and read it back
+      # 100 * 400 KB (limit for item) = ~40 MB
+      # 40 MB / 16 MB = 3 times
+
+      ids = (1 .. 100).map(&:to_s)
+      ids.each do |id|
+        text = ' ' * (400.kilobytes - 9) # length('id' + 'text' + 1-100) = 9 bytes
+        Dynamoid.adapter.put_item(test_table5, id: id, text: text)
+      end
+
+      expect(Dynamoid.adapter.client).to receive(:batch_get_item).exactly(3).times.and_call_original
+
+      results = Dynamoid.adapter.batch_get_item(test_table5 => ids)
+      items = results[test_table5]
+      expect(items.size).to eq 100
+      expect(items.map { |h| h[:id] }).to match_array(ids)
     end
 
     # BatchDeleteItem

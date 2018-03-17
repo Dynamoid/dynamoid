@@ -130,9 +130,12 @@ module Dynamoid
       #
       # @return [Hash] a hash where keys are the table names and the values are the retrieved items
       #
+      #  See:
+      #  * http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_get_item-instance_method
+      #
       # @since 1.0.0
       #
-      # @todo: Provide support for passing options to underlying batch_get_item http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_get_item-instance_method
+      # @todo: Provide support for passing options to underlying batch_get_item
       def batch_get_item(table_ids, options = {})
         request_items = Hash.new{|h, k| h[k] = []}
         return request_items if table_ids.all?{|k, v| v.blank?}
@@ -141,19 +144,23 @@ module Dynamoid
 
         table_ids.each do |t, ids|
           next if ids.blank?
+          ids = Array(ids).dup
           tbl = describe_table(t)
           hk  = tbl.hash_key.to_s
           rng = tbl.range_key.to_s
 
-          Array(ids).each_slice(Dynamoid::Config.batch_size) do |ids|
+          while ids.present? do
+            batch = ids.take(Dynamoid::Config.batch_size)
+            ids.shift(Dynamoid::Config.batch_size)
+
             request_items = Hash.new{|h, k| h[k] = []}
 
             keys = if rng.present?
-              Array(ids).map do |h, r|
+              Array(batch).map do |h, r|
                 { hk => h, rng => r }
               end
             else
-              Array(ids).map do |id|
+              Array(batch).map do |id|
                 { hk => id }
               end
             end
@@ -168,6 +175,10 @@ module Dynamoid
 
             results.data[:responses].each do |table, rows|
               ret[table] += rows.collect { |r| result_item_to_hash(r) }
+            end
+
+            if results.unprocessed_keys.present?
+              ids += results.unprocessed_keys[t].keys.map { |h| h[hk] }
             end
           end
         end
