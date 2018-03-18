@@ -52,8 +52,10 @@ module Dynamoid
         end
       end
 
-      # Return objects found by the given array of ids, either hash keys, or hash/range key combinations using BatchGet.
+      # Return objects found by the given array of ids, either hash keys, or hash/range key combinations using BatchGetItem.
       # Returns empty array if no results found.
+      #
+      # Uses backoff specified by `Dynamoid::Config.backoff` config option
       #
       # @param [Array<ID>] ids
       # @param [Hash] options: Passed to the underlying query.
@@ -65,8 +67,26 @@ module Dynamoid
       #   find all the tweets using hash key and range key with consistent read
       #   Tweet.find_all([['1', 'red'], ['1', 'green']], :consistent_read => true)
       def find_all(ids, options = {})
-        items = Dynamoid.adapter.read(self.table_name, ids, options)
-        items ? items[self.table_name].map{|i| from_database(i)} : []
+        results = unless Dynamoid.config.backoff
+          items = Dynamoid.adapter.read(self.table_name, ids, options)
+          items ? items[self.table_name] : []
+        else
+          items = []
+          backoff = nil
+          Dynamoid.adapter.read(self.table_name, ids, options) do |hash, has_unprocessed_items|
+            items += hash[self.table_name]
+
+            if has_unprocessed_items
+              backoff ||= Dynamoid.config.build_backoff
+              backoff.call
+            else
+              backoff = nil
+            end
+          end
+          items
+        end
+
+        results ? results.map {|i| from_database(i) } : []
       end
 
       # Find one object directly by id.
