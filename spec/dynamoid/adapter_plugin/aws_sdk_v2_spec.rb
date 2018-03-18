@@ -516,6 +516,59 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(items.map { |h| h[:id] }).to match_array(ids)
     end
 
+    context 'optional block passed' do
+      it 'returns nil' do
+        ids = (1 .. 110).map(&:to_s)
+        ids.each do |id|
+          Dynamoid.adapter.put_item(test_table1, id: id)
+        end
+
+        results = Dynamoid.adapter.batch_get_item(test_table1 => ids) do
+        end
+
+        expect(results).to eq nil
+      end
+
+      it 'passes as block arguments items for each batch' do
+        ids = (1 .. 110).map(&:to_s)
+        ids.each do |id|
+          Dynamoid.adapter.put_item(test_table1, id: id)
+        end
+
+        args = []
+        results = Dynamoid.adapter.batch_get_item(test_table1 => ids) do |hash|
+          args << hash
+        end
+
+        expect(args.size).to eq 2
+
+        expect(args[0].keys[0]).to eq test_table1
+        expect(args[0].values[0].size).to eq 100
+
+        expect(args[1].keys[0]).to eq test_table1
+        expect(args[1].values[0].size).to eq 10
+
+        expect((args[0].values[0] + args[1].values[0]).map { |h| h[:id] }).to match_array(ids)
+      end
+
+      it 'passes as block arguments flag if there are unprocessed items for each batch' do
+        # 50 * 400KB = ~20 MB
+        # It should be enough to exceed limit of 16 MB per call
+        ids = (1 .. 50).map(&:to_s)
+        ids.each do |id|
+          text = ' ' * (400.kilobytes - 9) # length('id' + 'text' + 1-100) = 9 bytes
+          Dynamoid.adapter.put_item(test_table5, id: id, text: text)
+        end
+
+        args = []
+        results = Dynamoid.adapter.batch_get_item(test_table5 => ids) do |hash, flag|
+          args << flag
+        end
+
+        expect(args).to eq [true, false]
+      end
+    end
+
     # BatchDeleteItem
     it 'performs BatchDeleteItem with singular keys' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')

@@ -122,11 +122,26 @@ module Dynamoid
 
       # Get many items at once from DynamoDB. More efficient than getting each item individually.
       #
+      # If optional block is passed method call returns `nil` and calls passed block for each batch of items.
+      # Block receives parameters:
+      # * hash with items like `{ table_name: [items]}`
+      # * and boolean flag what indicates there are some unprocessed keys.
+      #
       # @example Retrieve IDs 1 and 2 from the table testtable
-      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item({'table1' => ['1', '2']})
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item('table1' => ['1', '2'])
+      #
+      # @example Pass block to receive each batch
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item('table1' => ids) do |hash, bool|
+      #     puts hash['table1']
+      #
+      #     if bool
+      #       puts 'there are unprocessed keys'
+      #     end
+      #   end
       #
       # @param [Hash] table_ids the hash of tables and IDs to retrieve
       # @param [Hash] options to be passed to underlying BatchGet call
+      # @param [Proc] optional block can be passed to handle each batch of items
       #
       # @return [Hash] a hash where keys are the table names and the values are the retrieved items
       #
@@ -173,8 +188,18 @@ module Dynamoid
               request_items: request_items
             )
 
-            results.data[:responses].each do |table, rows|
-              ret[table] += rows.collect { |r| result_item_to_hash(r) }
+            unless block_given?
+              results.data[:responses].each do |table, rows|
+                ret[table] += rows.collect { |r| result_item_to_hash(r) }
+              end
+            else
+              batch_results = Hash.new([].freeze)
+
+              results.data[:responses].each do |table, rows|
+                batch_results[table] += rows.collect { |r| result_item_to_hash(r) }
+              end
+
+              yield(batch_results, results.unprocessed_keys.present?)
             end
 
             if results.unprocessed_keys.present?
@@ -183,7 +208,9 @@ module Dynamoid
           end
         end
 
-        ret
+        unless block_given?
+          ret
+        end
       end
 
       # Delete many items at once from DynamoDB. More efficient than delete each item individually.

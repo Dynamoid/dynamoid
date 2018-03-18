@@ -144,8 +144,12 @@ module Dynamoid
       # Method delegation with benchmark to the underlying adapter. Faster than relying on method_missing.
       #
       # @since 0.2.0
-      define_method(m) do |*args|
-        benchmark("#{m.to_s}", *args) {adapter.send(m, *args)}
+      define_method(m) do |*args, &blk|
+        if blk.present?
+          benchmark("#{m.to_s}", *args) { adapter.send(m, *args, &blk) }
+        else
+          benchmark("#{m.to_s}", *args) { adapter.send(m, *args) }
+        end
       end
     end
 
