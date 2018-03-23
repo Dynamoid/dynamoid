@@ -673,6 +673,43 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
 
         Dynamoid.adapter.batch_write_item(test_table1, items)
       end
+
+      it 'writes unprocessed items' do
+        # batch_write_item has following limitations:
+        # * up to 25 items at once
+        # * up to 16 MB at once
+        #
+        # dynamodb-local ignores provisioned throughput settings
+        # so we cannot emulate unprocessed items - let's stub
+
+        ids = (1 .. 3).map(&:to_s)
+        items = ids.map { |id| { id: id } }
+
+        records = []
+        responses = [
+          double('response 1', unprocessed_items: { test_table1 => [
+            double(put_request: double(item: { id: '2' })),
+            double(put_request: double(item: { id: '3' }))
+          ]}),
+          double('response 2', unprocessed_items: { test_table1 => [
+            double(put_request: double(item: { id: '3' }))
+          ]}),
+          double('response 3', unprocessed_items: nil)
+        ]
+        allow(Dynamoid.adapter.client).to receive(:batch_write_item) do |args|
+          records << args[:request_items][test_table1].map { |h| h[:put_request][:item] }
+          responses.shift
+        end
+
+        Dynamoid.adapter.batch_write_item(test_table1, items)
+        expect(records).to eq(
+          [
+            [{ id: '1' }, { id: '2' }, { id: '3' }],
+            [{ id: '2' }, { id: '3' }],
+            [{ id: '3' }],
+          ]
+        )
+      end
     end
 
     # ListTables

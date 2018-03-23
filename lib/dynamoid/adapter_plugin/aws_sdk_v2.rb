@@ -93,27 +93,28 @@ module Dynamoid
       # See:
       # * http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
       # * http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
-      #
-      # TODO handle rejections because of exceeding limit for the whole request - 16 MB,
-      # item size limit - 400 KB or because provisioned throughput is exceeded
       def batch_write_item table_name, objects, options = {}
-        requests = []
-
-        objects.each_slice(BATCH_WRITE_ITEM_REQUESTS_LIMIT) do |os|
-          requests << os.map { |o| { put_request: { item: sanitize_item(o) } } }
-        end
+        items = objects.map { |o| sanitize_item(o) }
 
         begin
-          requests.each do |request_items|
-            client.batch_write_item(
+          while items.present? do
+            batch = items.take(BATCH_WRITE_ITEM_REQUESTS_LIMIT)
+            items.shift(BATCH_WRITE_ITEM_REQUESTS_LIMIT)
+            requests = batch.map { |item| { put_request: { item: item } } }
+
+            response = client.batch_write_item(
               {
                 request_items: {
-                  table_name => request_items,
+                  table_name => requests,
                 },
                 return_consumed_capacity: 'TOTAL',
                 return_item_collection_metrics: 'SIZE'
               }.merge!(options)
             )
+
+            if response.unprocessed_items.present?
+              items += response.unprocessed_items[table_name].map { |r| r.put_request.item }
+            end
           end
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
           raise Dynamoid::Errors::ConditionalCheckFailedException, e
