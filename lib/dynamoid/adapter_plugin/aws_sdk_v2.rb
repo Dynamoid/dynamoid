@@ -84,11 +84,25 @@ module Dynamoid
         @client
       end
 
-      # Puts or deletes multiple items in one or more tables
+      # Puts multiple items in one tables
+      #
+      # If optional block is passed method calls passed block for each written batch of items.
+      # Block receives boolean flag what indicates there are some unprocessed items.
+      #
+      # @example Saves several items to the table testtable
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_write_item('table1', [{ id: '1', name: 'a' }, { id: '2', name: 'b'}])
+      #
+      # @example Pass block
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_write_item('table1', items) do |bool|
+      #     if bool
+      #       puts 'there are unprocessed items'
+      #     end
+      #   end
       #
       # @param [String] table_name the name of the table
       # @param [Array]  items to be processed
       # @param [Hash]   additional options
+      # @param [Proc]   optional block
       #
       # See:
       # * http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
@@ -111,6 +125,10 @@ module Dynamoid
                 return_item_collection_metrics: 'SIZE'
               }.merge!(options)
             )
+
+            if block_given?
+              yield(response.unprocessed_items.present?)
+            end
 
             if response.unprocessed_items.present?
               items += response.unprocessed_items[table_name].map { |r| r.put_request.item }

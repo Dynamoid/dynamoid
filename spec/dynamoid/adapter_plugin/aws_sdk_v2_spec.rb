@@ -710,6 +710,32 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
           ]
         )
       end
+
+      context 'optional block passed' do
+        it 'passes as block arguments flag if there are unprocessed items for each batch' do
+          # dynamodb-local ignores provisioned throughput settings
+          # so we cannot emulate unprocessed items - let's stub
+
+          responses = [
+            double('response 1', unprocessed_items: { test_table1 => [
+              double(put_request: double(item: { id: '25' }))           # fail
+            ]}),
+            double('response 2', unprocessed_items: nil),               # success
+            double('response 3', unprocessed_items: { test_table1 => [
+              double(put_request: double(item: { id: '25' }))           # fail
+            ]}),
+            double('response 4', unprocessed_items: nil)                # success
+          ]
+          allow(Dynamoid.adapter.client).to receive(:batch_write_item).and_return(*responses)
+
+          args = []
+          items = (1 .. 50).map(&:to_s).map { |id| { id: id } } # the limit is 25 items at once
+          Dynamoid.adapter.batch_write_item(test_table1, items) do |has_unprocessed_items|
+            args << has_unprocessed_items
+          end
+          expect(args).to eq [true, false, true, false]
+        end
+      end
     end
 
     # ListTables
