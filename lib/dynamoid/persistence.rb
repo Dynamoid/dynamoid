@@ -212,14 +212,38 @@ module Dynamoid
         end
       end
 
+      # Creates several models at once.
+      # Neither callbacks nor validations run.
+      # It works efficiently because of using BatchWriteItem.
+      #
+      # Returns array of models
+      #
+      # Uses backoff specified by `Dynamoid::Config.backoff` config option
+      #
+      # @param [Array<Hash>] items
+      #
+      # @example
+      #   User.import([{ name: 'a' }, { name: 'b' }])
       def import(objects)
-        documents = objects.map { |attrs|
-          self.build(attrs).tap { |item|
+        documents = objects.map do |attrs|
+          self.build(attrs).tap do |item|
             item.hash_key = SecureRandom.uuid if item.hash_key.blank?
-          }
-        }
+          end
+        end
 
-        Dynamoid.adapter.batch_write_item(self.table_name, documents.map(&:dump))
+        unless Dynamoid.config.backoff
+          Dynamoid.adapter.batch_write_item(self.table_name, documents.map(&:dump))
+        else
+          backoff = nil
+          Dynamoid.adapter.batch_write_item(self.table_name, documents.map(&:dump)) do |has_unprocessed_items|
+            if has_unprocessed_items
+              backoff ||= Dynamoid.config.build_backoff
+              backoff.call
+            else
+              backoff = nil
+            end
+          end
+        end
 
         documents.each { |d| d.new_record = false }
         documents
