@@ -84,10 +84,10 @@ module Dynamoid
         @client
       end
 
-      # Puts multiple items in one tables
+      # Puts multiple items in one table
       #
-      # If optional block is passed method calls passed block for each written batch of items.
-      # Block receives boolean flag what indicates there are some unprocessed items.
+      # If optional block is passed it will be called for each written batch of items, meaning once per batch.
+      # Block receives boolean flag which is true if there are some unprocessed items, otherwise false.
       #
       # @example Saves several items to the table testtable
       #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_write_item('table1', [{ id: '1', name: 'a' }, { id: '2', name: 'b'}])
@@ -141,10 +141,12 @@ module Dynamoid
 
       # Get many items at once from DynamoDB. More efficient than getting each item individually.
       #
-      # If optional block is passed method call returns `nil` and calls passed block for each batch of items.
+      # If optional block is passed `nil` will be returned and the block will be called for each read batch of items,
+      # meaning once per batch.
+      #
       # Block receives parameters:
       # * hash with items like `{ table_name: [items]}`
-      # * and boolean flag what indicates there are some unprocessed keys.
+      # * and boolean flag is true if there are some unprocessed keys, otherwise false.
       #
       # @example Retrieve IDs 1 and 2 from the table testtable
       #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item('table1' => ['1', '2'])

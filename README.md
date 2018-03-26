@@ -708,13 +708,13 @@ Calls to `update` and `update!` also increment the `lock_version`, however they 
 
 You can use several methods what do efficiently in batch mode like `.find_all` and `.import`.
 
-By some reasons, for instanse table throughput limit is exceeded, some items could be not processed.
-By default operations will be re-run to process this items.
+The backoff strategy will be used when, for any reason, some items could not be processed as part of a batch mode command.
+Operations will be re-run to process this items.
 
-Recommended way to handle throughput limits exceeding and throttling on the table is to use exponential backoff.
+Exponential backoff is the recommended way to handle throughput limits exceeding and throttling on the table.
 
-There are two default backoff strategies - constant delay and truncated binary exponential backoff.
-By default no backof is used but you can specify one of the default ones:
+There are two built-in strategies - constant delay and truncated binary exponential backoff.
+By default no backoff is used but you can specify one of the build-in ones:
 
 ```ruby
 Dynamoid.configure do |config|
