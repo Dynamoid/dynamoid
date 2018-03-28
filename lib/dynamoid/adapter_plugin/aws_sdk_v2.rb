@@ -112,8 +112,7 @@ module Dynamoid
 
         begin
           while items.present? do
-            batch = items.take(BATCH_WRITE_ITEM_REQUESTS_LIMIT)
-            items.shift(BATCH_WRITE_ITEM_REQUESTS_LIMIT)
+            batch = items.shift(BATCH_WRITE_ITEM_REQUESTS_LIMIT)
             requests = batch.map { |item| { put_request: { item: item } } }
 
             response = client.batch_write_item(
@@ -186,8 +185,7 @@ module Dynamoid
           rng = tbl.range_key.to_s
 
           while ids.present? do
-            batch = ids.take(Dynamoid::Config.batch_size)
-            ids.shift(Dynamoid::Config.batch_size)
+            batch = ids.shift(Dynamoid::Config.batch_size)
 
             request_items = Hash.new{|h, k| h[k] = []}
 

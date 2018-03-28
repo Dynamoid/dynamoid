@@ -65,10 +65,14 @@ module Dynamoid
     end
 
     def build_backoff
-      name = backoff.keys[0]
-      args = backoff.values[0]
+      if backoff.is_a?(Hash)
+        name = backoff.keys[0]
+        args = backoff.values[0]
 
-      backoff_strategies[name].call(args)
+        backoff_strategies[name].call(args)
+      else
+        backoff_strategies[backoff].call
+      end
     end
   end
 end

@@ -45,4 +45,28 @@ RSpec.describe Dynamoid::Config::BackoffStrategies::ExponentialBackoff do
       base_backoff * 16
     ]
   end
+
+  it 'can be called without parameters' do
+    backoff = nil
+    expect do
+      backoff = described_class.call
+    end.not_to raise_error
+  end
+
+  it 'uses base backoff = 0.5 and ceiling = 3 by default' do
+    backoff = described_class.call
+
+    seconds = []
+    allow(described_class).to receive(:sleep) do |s|
+      seconds << s
+    end
+
+    4.times { backoff.call }
+    expect(seconds).to eq([
+      0.5,
+      0.5 * 2,
+      0.5 * 4,
+      0.5 * 4
+    ])
+  end
 end

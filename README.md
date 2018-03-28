@@ -706,15 +706,15 @@ Calls to `update` and `update!` also increment the `lock_version`, however they 
 ### Backoff strategies
 
 
-You can use several methods what do efficiently in batch mode like `.find_all` and `.import`.
+You can use several methods that run efficiently in batch mode like `.find_all` and `.import`.
 
 The backoff strategy will be used when, for any reason, some items could not be processed as part of a batch mode command.
-Operations will be re-run to process this items.
+Operations will be re-run to process these items.
 
 Exponential backoff is the recommended way to handle throughput limits exceeding and throttling on the table.
 
 There are two built-in strategies - constant delay and truncated binary exponential backoff.
-By default no backoff is used but you can specify one of the build-in ones:
+By default no backoff is used but you can specify one of the built-in ones:
 
 ```ruby
 Dynamoid.configure do |config|
@@ -725,6 +725,14 @@ Dynamoid.configure do |config|
   config.backoff = { exponential: { base_backoff: 0.2.seconds, ceiling: 10 } }
 end
 
+```
+
+You can just specify strategy without any arguments to use default presets:
+
+```ruby
+Dynamoid.configure do |config|
+  config.backoff = :constant
+end
 ```
 
 You can use your own strategy in following way:
