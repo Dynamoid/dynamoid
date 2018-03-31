@@ -1,6 +1,8 @@
 # encoding: utf-8
 require 'uri'
 require 'dynamoid/config/options'
+require 'dynamoid/config/backoff_strategies/constant_backoff'
+require 'dynamoid/config/backoff_strategies/exponential_backoff'
 
 module Dynamoid
 
@@ -30,6 +32,11 @@ module Dynamoid
     option :application_timezone, default: :local # available values - :utc, :local, time zone names
     option :store_datetime_as_string, default: false # store Time fields in ISO 8601 string format
     option :store_date_as_string, default: false # store Date fields in ISO 8601 string format
+    option :backoff, default: nil # callable object to handle exceeding of table throughput limit
+    option :backoff_strategies, default: {
+      constant: BackoffStrategies::ConstantBackoff,
+      exponential: BackoffStrategies::ExponentialBackoff
+    }
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #
@@ -57,5 +64,15 @@ module Dynamoid
       end
     end
 
+    def build_backoff
+      if backoff.is_a?(Hash)
+        name = backoff.keys[0]
+        args = backoff.values[0]
+
+        backoff_strategies[name].call(args)
+      else
+        backoff_strategies[backoff].call
+      end
+    end
   end
 end

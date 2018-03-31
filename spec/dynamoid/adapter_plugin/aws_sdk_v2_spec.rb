@@ -11,7 +11,8 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
     1 => [:id],
     2 => [:id],
     3 => [:id, {range_key: {range: :number}}],
-    4 => [:id, {range_key: {range: :number}}]
+    4 => [:id, {range_key: {range: :number}}],
+    5 => [:id, { read_capacity: 10_000, write_capacity: 1000 }]
   }.each do |n, args|
     name = "dynamoid_tests_TestTable#{n}"
     let(:"test_table#{n}") do
@@ -492,6 +493,82 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
       expect(results[test_table3]).to include(name: 'Josh_101', id: '101', range: 101.0)
     end
 
+    it 'loads unprocessed items' do
+      # batch_get_item has following limitations:
+      # * up to 100 items at once
+      # * up to 16 MB at once
+      #
+      # So we write data as large as possible and read it back
+      # 100 * 400 KB (limit for item) = ~40 MB
+      # 40 MB / 16 MB = 3 times
+
+      ids = (1 .. 100).map(&:to_s)
+      ids.each do |id|
+        text = ' ' * (400.kilobytes - 9) # length('id' + 'text' + 1-100) = 9 bytes
+        Dynamoid.adapter.put_item(test_table5, id: id, text: text)
+      end
+
+      expect(Dynamoid.adapter.client).to receive(:batch_get_item).exactly(3).times.and_call_original
+
+      results = Dynamoid.adapter.batch_get_item(test_table5 => ids)
+      items = results[test_table5]
+      expect(items.size).to eq 100
+      expect(items.map { |h| h[:id] }).to match_array(ids)
+    end
+
+    context 'optional block passed' do
+      it 'returns nil' do
+        ids = (1 .. 110).map(&:to_s)
+        ids.each do |id|
+          Dynamoid.adapter.put_item(test_table1, id: id)
+        end
+
+        results = Dynamoid.adapter.batch_get_item(test_table1 => ids) do
+        end
+
+        expect(results).to eq nil
+      end
+
+      it 'passes as block arguments items for each batch' do
+        ids = (1 .. 110).map(&:to_s)
+        ids.each do |id|
+          Dynamoid.adapter.put_item(test_table1, id: id)
+        end
+
+        args = []
+        results = Dynamoid.adapter.batch_get_item(test_table1 => ids) do |hash|
+          args << hash
+        end
+
+        expect(args.size).to eq 2
+
+        expect(args[0].keys[0]).to eq test_table1
+        expect(args[0].values[0].size).to eq 100
+
+        expect(args[1].keys[0]).to eq test_table1
+        expect(args[1].values[0].size).to eq 10
+
+        expect((args[0].values[0] + args[1].values[0]).map { |h| h[:id] }).to match_array(ids)
+      end
+
+      it 'passes as block arguments flag if there are unprocessed items for each batch' do
+        # 50 * 400KB = ~20 MB
+        # It should be enough to exceed limit of 16 MB per call
+        ids = (1 .. 50).map(&:to_s)
+        ids.each do |id|
+          text = ' ' * (400.kilobytes - 9) # length('id' + 'text' + 1-100) = 9 bytes
+          Dynamoid.adapter.put_item(test_table5, id: id, text: text)
+        end
+
+        args = []
+        results = Dynamoid.adapter.batch_get_item(test_table5 => ids) do |hash, flag|
+          args << flag
+        end
+
+        expect(args).to eq [true, false]
+      end
+    end
+
     # BatchDeleteItem
     it 'performs BatchDeleteItem with singular keys' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
@@ -595,6 +672,69 @@ describe Dynamoid::AdapterPlugin::AwsSdkV2 do
           .exactly(2).times.and_call_original
 
         Dynamoid.adapter.batch_write_item(test_table1, items)
+      end
+
+      it 'writes unprocessed items' do
+        # batch_write_item has following limitations:
+        # * up to 25 items at once
+        # * up to 16 MB at once
+        #
+        # dynamodb-local ignores provisioned throughput settings
+        # so we cannot emulate unprocessed items - let's stub
+
+        ids = (1 .. 3).map(&:to_s)
+        items = ids.map { |id| { id: id } }
+
+        records = []
+        responses = [
+          double('response 1', unprocessed_items: { test_table1 => [
+            double(put_request: double(item: { id: '2' })),
+            double(put_request: double(item: { id: '3' }))
+          ]}),
+          double('response 2', unprocessed_items: { test_table1 => [
+            double(put_request: double(item: { id: '3' }))
+          ]}),
+          double('response 3', unprocessed_items: nil)
+        ]
+        allow(Dynamoid.adapter.client).to receive(:batch_write_item) do |args|
+          records << args[:request_items][test_table1].map { |h| h[:put_request][:item] }
+          responses.shift
+        end
+
+        Dynamoid.adapter.batch_write_item(test_table1, items)
+        expect(records).to eq(
+          [
+            [{ id: '1' }, { id: '2' }, { id: '3' }],
+            [{ id: '2' }, { id: '3' }],
+            [{ id: '3' }],
+          ]
+        )
+      end
+
+      context 'optional block passed' do
+        it 'passes as block arguments flag if there are unprocessed items for each batch' do
+          # dynamodb-local ignores provisioned throughput settings
+          # so we cannot emulate unprocessed items - let's stub
+
+          responses = [
+            double('response 1', unprocessed_items: { test_table1 => [
+              double(put_request: double(item: { id: '25' }))           # fail
+            ]}),
+            double('response 2', unprocessed_items: nil),               # success
+            double('response 3', unprocessed_items: { test_table1 => [
+              double(put_request: double(item: { id: '25' }))           # fail
+            ]}),
+            double('response 4', unprocessed_items: nil)                # success
+          ]
+          allow(Dynamoid.adapter.client).to receive(:batch_write_item).and_return(*responses)
+
+          args = []
+          items = (1 .. 50).map(&:to_s).map { |id| { id: id } } # the limit is 25 items at once
+          Dynamoid.adapter.batch_write_item(test_table1, items) do |has_unprocessed_items|
+            args << has_unprocessed_items
+          end
+          expect(args).to eq [true, false, true, false]
+        end
       end
     end
 

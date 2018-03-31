@@ -680,6 +680,8 @@ Listed below are all configuration options.
   Acceptable values - `utc`, `local` (to use system time zone) and time zone name e.g. `Eastern Time (US & Canada)`. Default is `local`
 * `store_datetime_as_string` - if `true` then Dynamoid stores :datetime fields in ISO 8601 string format. Default is `false`
 * `store_date_as_string` - if `true` then Dynamoid stores :date fields in ISO 8601 string format. Default is `false`
+* `backoff` - is a hash: key is a backoff strategy (symbol), value is parameters for the strategy. Is used in batch operations. Default id `nil`
+* `backoff_strategies`: is a hash and contains all available strategies. Default is { constant: ..., exponential: ...}
 
 
 ## Concurrency
@@ -699,6 +701,52 @@ end
 In this example, all saves to `MyTable` will raise an `Dynamoid::Errors::StaleObjectError` if a concurrent process loaded, edited, and saved the same row. Your code should trap this exception, reload the row (so that it will pick up the newest values), and try the save again.
 
 Calls to `update` and `update!` also increment the `lock_version`, however they do not check the existing value. This guarantees that a update operation will raise an exception in a concurrent save operation, however a save operation will never cause an update to fail. Thus, `update` is useful & safe only for doing atomic operations (e.g. increment a value, add/remove from a set, etc), but should not be used in a read-modify-write pattern.
+
+
+### Backoff strategies
+
+
+You can use several methods that run efficiently in batch mode like `.find_all` and `.import`.
+
+The backoff strategy will be used when, for any reason, some items could not be processed as part of a batch mode command.
+Operations will be re-run to process these items.
+
+Exponential backoff is the recommended way to handle throughput limits exceeding and throttling on the table.
+
+There are two built-in strategies - constant delay and truncated binary exponential backoff.
+By default no backoff is used but you can specify one of the built-in ones:
+
+```ruby
+Dynamoid.configure do |config|
+  config.backoff = { constant: 2.second }
+end
+
+Dynamoid.configure do |config|
+  config.backoff = { exponential: { base_backoff: 0.2.seconds, ceiling: 10 } }
+end
+
+```
+
+You can just specify strategy without any arguments to use default presets:
+
+```ruby
+Dynamoid.configure do |config|
+  config.backoff = :constant
+end
+```
+
+You can use your own strategy in following way:
+
+```ruby
+Dynamoid.configure do |config|
+  config.backoff_strategies[:custom] = lambda do |n|
+    -> { sleep rand(n) }
+  end
+
+  config.backoff = { custom: 10 }
+end
+```
+
 
 ## Rake Tasks
 

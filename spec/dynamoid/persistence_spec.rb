@@ -1028,5 +1028,81 @@ describe Dynamoid::Persistence do
       user = User.find(users[0].id)
       expect(user.todo_list).to eq nil
     end
+
+    context 'backoff is specified' do
+      let(:backoff_strategy) do
+        ->(_) { -> { @counter += 1 } }
+      end
+
+      before do
+        @old_backoff = Dynamoid.config.backoff
+        @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
+
+        @counter = 0
+        Dynamoid.config.backoff_strategies[:simple] = backoff_strategy
+        Dynamoid.config.backoff = { simple: nil }
+      end
+
+      after do
+        Dynamoid.config.backoff = @old_backoff
+        Dynamoid.config.backoff_strategies = @old_backoff_strategies
+      end
+
+      it 'creates multiple documents' do
+        expect {
+          Address.import([{city: 'Chicago'}, {city: 'New York'}])
+        }.to change { Address.count }.by(2)
+      end
+
+      it 'uses specified backoff when some items are not processed' do
+        # dynamodb-local ignores provisioned throughput settings
+        # so we cannot emulate unprocessed items - let's stub
+
+        klass = new_class
+        table_name = klass.table_name
+        items = (1 .. 3).map(&:to_s).map { |id| { id: id } }
+
+        responses = [
+          double('response 1', unprocessed_items: { table_name => [
+            double(put_request: double(item: { id: '3' }))
+          ]}),
+          double('response 2', unprocessed_items: { table_name => [
+            double(put_request: double(item: { id: '3' }))
+          ]}),
+          double('response 3', unprocessed_items: nil)
+        ]
+        allow(Dynamoid.adapter.client).to receive(:batch_write_item).and_return(*responses)
+
+        klass.import(items)
+        expect(@counter).to eq 2
+      end
+
+      it 'uses new backoff after successful call without unprocessed items' do
+        # dynamodb-local ignores provisioned throughput settings
+        # so we cannot emulate unprocessed items - let's stub
+
+        klass = new_class
+        table_name = klass.table_name
+        # batch_write_item processes up to 15 items at once
+        # so we emulate 4 calls with items
+        items = (1 .. 50).map(&:to_s).map { |id| { id: id } }
+
+        responses = [
+          double('response 1', unprocessed_items: { table_name => [
+            double(put_request: double(item: { id: '25' }))
+          ]}),
+          double('response 3', unprocessed_items: nil),
+          double('response 2', unprocessed_items: { table_name => [
+            double(put_request: double(item: { id: '25' }))
+          ]}),
+          double('response 3', unprocessed_items: nil)
+        ]
+        allow(Dynamoid.adapter.client).to receive(:batch_write_item).and_return(*responses)
+
+        expect(backoff_strategy).to receive(:call).exactly(2).times.and_call_original
+        klass.import(items)
+        expect(@counter).to eq 2
+      end
+    end
   end
 end

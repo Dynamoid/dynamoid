@@ -80,12 +80,12 @@ module Dynamoid
     #                        unless multiple ids are passed in.
     #
     # @since 0.2.0
-    def read(table, ids, options = {})
+    def read(table, ids, options = {}, &blk)
       range_key = options.delete(:range_key)
 
       if ids.respond_to?(:each)
         ids = ids.collect{|id| range_key ? [id, range_key] : id}
-        batch_get_item({table => ids}, options)
+        batch_get_item({table => ids}, options, &blk)
       else
         options[:range_key] = range_key if range_key
         get_item(table, ids, options)
@@ -144,8 +144,12 @@ module Dynamoid
       # Method delegation with benchmark to the underlying adapter. Faster than relying on method_missing.
       #
       # @since 0.2.0
-      define_method(m) do |*args|
-        benchmark("#{m.to_s}", *args) {adapter.send(m, *args)}
+      define_method(m) do |*args, &blk|
+        if blk.present?
+          benchmark("#{m.to_s}", *args) { adapter.send(m, *args, &blk) }
+        else
+          benchmark("#{m.to_s}", *args) { adapter.send(m, *args) }
+        end
       end
     end
 

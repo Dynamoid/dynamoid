@@ -84,36 +84,54 @@ module Dynamoid
         @client
       end
 
-      # Puts or deletes multiple items in one or more tables
+      # Puts multiple items in one table
+      #
+      # If optional block is passed it will be called for each written batch of items, meaning once per batch.
+      # Block receives boolean flag which is true if there are some unprocessed items, otherwise false.
+      #
+      # @example Saves several items to the table testtable
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_write_item('table1', [{ id: '1', name: 'a' }, { id: '2', name: 'b'}])
+      #
+      # @example Pass block
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_write_item('table1', items) do |bool|
+      #     if bool
+      #       puts 'there are unprocessed items'
+      #     end
+      #   end
       #
       # @param [String] table_name the name of the table
       # @param [Array]  items to be processed
       # @param [Hash]   additional options
+      # @param [Proc]   optional block
       #
       # See:
       # * http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
       # * http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
-      #
-      # TODO handle rejections because of exceeding limit for the whole request - 16 MB,
-      # item size limit - 400 KB or because provisioned throughput is exceeded
       def batch_write_item table_name, objects, options = {}
-        requests = []
-
-        objects.each_slice(BATCH_WRITE_ITEM_REQUESTS_LIMIT) do |os|
-          requests << os.map { |o| { put_request: { item: sanitize_item(o) } } }
-        end
+        items = objects.map { |o| sanitize_item(o) }
 
         begin
-          requests.each do |request_items|
-            client.batch_write_item(
+          while items.present? do
+            batch = items.shift(BATCH_WRITE_ITEM_REQUESTS_LIMIT)
+            requests = batch.map { |item| { put_request: { item: item } } }
+
+            response = client.batch_write_item(
               {
                 request_items: {
-                  table_name => request_items,
+                  table_name => requests,
                 },
                 return_consumed_capacity: 'TOTAL',
                 return_item_collection_metrics: 'SIZE'
               }.merge!(options)
             )
+
+            if block_given?
+              yield(response.unprocessed_items.present?)
+            end
+
+            if response.unprocessed_items.present?
+              items += response.unprocessed_items[table_name].map { |r| r.put_request.item }
+            end
           end
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
           raise Dynamoid::Errors::ConditionalCheckFailedException, e
@@ -122,17 +140,37 @@ module Dynamoid
 
       # Get many items at once from DynamoDB. More efficient than getting each item individually.
       #
+      # If optional block is passed `nil` will be returned and the block will be called for each read batch of items,
+      # meaning once per batch.
+      #
+      # Block receives parameters:
+      # * hash with items like `{ table_name: [items]}`
+      # * and boolean flag is true if there are some unprocessed keys, otherwise false.
+      #
       # @example Retrieve IDs 1 and 2 from the table testtable
-      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item({'table1' => ['1', '2']})
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item('table1' => ['1', '2'])
+      #
+      # @example Pass block to receive each batch
+      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item('table1' => ids) do |hash, bool|
+      #     puts hash['table1']
+      #
+      #     if bool
+      #       puts 'there are unprocessed keys'
+      #     end
+      #   end
       #
       # @param [Hash] table_ids the hash of tables and IDs to retrieve
       # @param [Hash] options to be passed to underlying BatchGet call
+      # @param [Proc] optional block can be passed to handle each batch of items
       #
       # @return [Hash] a hash where keys are the table names and the values are the retrieved items
       #
+      #  See:
+      #  * http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_get_item-instance_method
+      #
       # @since 1.0.0
       #
-      # @todo: Provide support for passing options to underlying batch_get_item http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_get_item-instance_method
+      # @todo: Provide support for passing options to underlying batch_get_item
       def batch_get_item(table_ids, options = {})
         request_items = Hash.new{|h, k| h[k] = []}
         return request_items if table_ids.all?{|k, v| v.blank?}
@@ -141,19 +179,22 @@ module Dynamoid
 
         table_ids.each do |t, ids|
           next if ids.blank?
+          ids = Array(ids).dup
           tbl = describe_table(t)
           hk  = tbl.hash_key.to_s
           rng = tbl.range_key.to_s
 
-          Array(ids).each_slice(Dynamoid::Config.batch_size) do |ids|
+          while ids.present? do
+            batch = ids.shift(Dynamoid::Config.batch_size)
+
             request_items = Hash.new{|h, k| h[k] = []}
 
             keys = if rng.present?
-              Array(ids).map do |h, r|
+              Array(batch).map do |h, r|
                 { hk => h, rng => r }
               end
             else
-              Array(ids).map do |id|
+              Array(batch).map do |id|
                 { hk => id }
               end
             end
@@ -166,13 +207,29 @@ module Dynamoid
               request_items: request_items
             )
 
-            results.data[:responses].each do |table, rows|
-              ret[table] += rows.collect { |r| result_item_to_hash(r) }
+            unless block_given?
+              results.data[:responses].each do |table, rows|
+                ret[table] += rows.collect { |r| result_item_to_hash(r) }
+              end
+            else
+              batch_results = Hash.new([].freeze)
+
+              results.data[:responses].each do |table, rows|
+                batch_results[table] += rows.collect { |r| result_item_to_hash(r) }
+              end
+
+              yield(batch_results, results.unprocessed_keys.present?)
+            end
+
+            if results.unprocessed_keys.present?
+              ids += results.unprocessed_keys[t].keys.map { |h| h[hk] }
             end
           end
         end
 
-        ret
+        unless block_given?
+          ret
+        end
       end
 
       # Delete many items at once from DynamoDB. More efficient than delete each item individually.

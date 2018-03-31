@@ -168,6 +168,58 @@ describe Dynamoid::Finders do
       User.find_all(user_ids, consistent_read: true)
     end
 
+    context 'backoff is specified' do
+      before do
+        @old_backoff = Dynamoid.config.backoff
+        @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
+
+        @counter = 0
+        Dynamoid.config.backoff_strategies[:simple] = ->(_) { -> { @counter += 1 } }
+        Dynamoid.config.backoff = { simple: nil }
+      end
+
+      after do
+        Dynamoid.config.backoff = @old_backoff
+        Dynamoid.config.backoff_strategies = @old_backoff_strategies
+      end
+
+      it 'returns items' do
+        users = (1..10).map { User.create }
+
+        results = User.find_all(users.map(&:id))
+        expect(results).to match_array(users)
+      end
+
+      it 'returns empty array when there are no results' do
+        User.create_table
+        expect(User.find_all(['some-fake-id'])).to eq []
+      end
+
+      it 'uses specified backoff when some items are not processed' do
+        # batch_get_item has following limitations:
+        # * up to 100 items at once
+        # * up to 16 MB at once
+        #
+        # So we write data as large as possible and read it back
+        # 100 * 400 KB (limit for item) = ~40 MB
+        # 40 MB / 16 MB = 3 times
+
+        ids = (1 .. 100).map(&:to_s)
+        users = ids.map do |id|
+          name = ' ' * (400.kilobytes - 120) # 400KB - length(attribute names)
+          User.create(id: id, name: name)
+        end
+
+        results = User.find_all(users.map(&:id))
+        expect(results).to match_array(users)
+
+        expect(@counter).to eq 2
+      end
+
+      it 'uses new backoff after successful call without unprocessed items' do
+        skip 'it is difficult to test'
+      end
+    end
   end
 
   describe '.find_all_by_secondary_index' do
