@@ -255,7 +255,14 @@ module Dynamoid
           ? Dynamoid.config.store_datetime_as_string \
           : options[:store_as_string]
 
-        use_string_format ? value.to_time.iso8601 : value.to_time.to_f
+        if use_string_format
+          value.to_time.iso8601
+        else
+          unless value.respond_to?(:to_i) && value.respond_to?(:nsec)
+            value = value.to_time
+          end
+          BigDecimal("%d.%09d" % [value.to_i, value.nsec])
+        end
       end
 
       def format_date(value, options)
