@@ -6,11 +6,28 @@
 
 ## Improvements
 
-* N/A
+* Feature: [#221](https://github.com/Dynamoid/Dynamoid/pull/221) Add field declaration option `of` to specify the type of `set` elements (@pratik60)
+* Feature: [#223](https://github.com/Dynamoid/Dynamoid/pull/223) Add field declaration option `store_as_string` to store `datetime` as ISO-8601 formatted strings (@william101)
+* Feature: [#228](https://github.com/Dynamoid/Dynamoid/pull/228) Add field declaration option `store_as_string` to store `date` as ISO-8601 formatted strings (@andrykonchin)
+* Feature: [#229](https://github.com/Dynamoid/Dynamoid/pull/229) Support hash argument for `start` chain method (@mnussbaumer)
+* Feature: [#236](https://github.com/Dynamoid/Dynamoid/pull/236) Change log level from `info` to `debug` for benchmark logging (@kicktheken)
+* Feature: [#239](https://github.com/Dynamoid/Dynamoid/pull/239) Add methods for low-level updating: `.update`, `.update_fields` and `.upsert` (@andrykonchin)
+* Feature: [#243](https://github.com/Dynamoid/Dynamoid/pull/243) Support `ne` condition operator (@andrykonchin)
+* Feature: [#246](https://github.com/Dynamoid/Dynamoid/pull/246) Added support of backoff in batch operations (@andrykonchin)
+    * added global config options `backoff` and `backoff_strategies` to configure backoff
+    * added `constant` and `exponential` built-in backoff strategies
+    * `.find_all` and `.import` support new backoff options
 
 ## Fixes
 
-* N/A
+* Bug: [#216](https://github.com/Dynamoid/Dynamoid/pull/216) Fix global index detection in queries with conditions other than equal (@andrykonchin)
+* Bug: [#224](https://github.com/Dynamoid/Dynamoid/pull/224) Fix how `contains` operator works with `set` and `array` field types (@andrykonchin)
+* Bug: [#225](https://github.com/Dynamoid/Dynamoid/pull/225) Fix equal conditions for `array` fields (@andrykonchin)
+* Bug: [#229](https://github.com/Dynamoid/Dynamoid/pull/229) Repair support `start` chain method on Scan operation (@mnussbaumer)
+* Bug: [#238](https://github.com/Dynamoid/Dynamoid/pull/238) Fix default value of `models_dir` config option (@baloran)
+* Bug: [#244](https://github.com/Dynamoid/Dynamoid/pull/244) Allow to pass empty strings and sets to `.import` (@andrykonchin)
+* Bug: [#246](https://github.com/Dynamoid/Dynamoid/pull/246) Batch operations (`batch_write_item` and `batch_read_item`) handle unprocessed items themselves (@andrykonchin)
+* Bug: [#250](https://github.com/Dynamoid/Dynamoid/pull/250) Update outdated warning message about inefficient query and missing indices (@andrykonchin)
 
 # 2.0.0
 
