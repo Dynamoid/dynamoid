@@ -223,8 +223,8 @@ describe Dynamoid::Finders do
   end
 
   describe '.find_all_by_secondary_index' do
-    def time_to_f(time)
-      time.to_time.to_f
+    def time_to_decimal(time)
+      BigDecimal("%d.%09d" % [time.to_i, time.nsec])
     end
 
     it 'returns exception if index could not be found' do
@@ -300,14 +300,14 @@ describe Dynamoid::Finders do
       end
 
       it 'queries gsi with hash and range key' do
-        time = DateTime.now
+        time = Time.now
         p1 = Post.create(post_id: 1, posted_at: time, name: 'post1')
         p2 = Post.create(post_id: 2, posted_at: time + 1.day, name: 'post1')
         p3 = Post.create(post_id: 3, posted_at: time, name: 'post3')
 
         posts = Post.find_all_by_secondary_index(
           {name: 'post1'},
-          range: {posted_at: time_to_f(time)}
+          range: {posted_at: time_to_decimal(time)}
         )
         expect(posts.map(&:post_id).sort).to eql ['1']
       end
@@ -338,7 +338,7 @@ describe Dynamoid::Finders do
         it 'filters based on gt (greater than)' do
           posts = Post.find_all_by_secondary_index(
             {name: 'post'},
-            range: {'posted_at.gt' => time_to_f(@time + 1.day)}
+            range: {'posted_at.gt' => time_to_decimal(@time + 1.day)}
           )
           expect(posts.map(&:post_id).sort).to eql ['3']
         end
@@ -346,7 +346,7 @@ describe Dynamoid::Finders do
         it 'filters based on lt (less than)' do
           posts = Post.find_all_by_secondary_index(
             {name: 'post'},
-            range: {'posted_at.lt' => time_to_f(@time + 1.day)}
+            range: {'posted_at.lt' => time_to_decimal(@time + 1.day)}
           )
           expect(posts.map(&:post_id).sort).to eql ['1']
         end
@@ -354,7 +354,7 @@ describe Dynamoid::Finders do
         it 'filters based on gte (greater than or equal to)' do
           posts = Post.find_all_by_secondary_index(
             {name: 'post'},
-            range: {'posted_at.gte' => time_to_f(@time + 1.day)}
+            range: {'posted_at.gte' => time_to_decimal(@time + 1.day)}
           )
           expect(posts.map(&:post_id).sort).to eql ['2', '3']
         end
@@ -362,13 +362,13 @@ describe Dynamoid::Finders do
         it 'filters based on lte (less than or equal to)' do
           posts = Post.find_all_by_secondary_index(
             {name: 'post'},
-            range: {'posted_at.lte' => time_to_f(@time + 1.day)}
+            range: {'posted_at.lte' => time_to_decimal(@time + 1.day)}
           )
           expect(posts.map(&:post_id).sort).to eql ['1', '2']
         end
 
         it 'filters based on between operator' do
-          between = [time_to_f(@time - 1.day), time_to_f(@time + 1.5.day)]
+          between = [time_to_decimal(@time - 1.day), time_to_decimal(@time + 1.5.day)]
           posts = Post.find_all_by_secondary_index(
             {name: 'post'},
             range: {'posted_at.between' => between}

@@ -255,6 +255,23 @@ describe Dynamoid::Persistence do
       user = User.find(user.id)
       expect(user.last_logged_in_at).to eq '2017-06-20 05:00:00 +0000'.to_datetime
     end
+
+    it 'can be used as sort key' do
+      klass = new_class do
+        range :expired_at, :datetime
+      end
+
+      models = (1..100).map { klass.create(expired_at: Time.now) }
+      loaded_models = models.map do |m|
+        klass.find(m.id, range_key: klass.dump_field(m.expired_at, klass.attributes[:expired_at]))
+      end
+
+      expect do
+        loaded_models.map do |m|
+          klass.find(m.id, range_key: klass.dump_field(m.expired_at, klass.attributes[:expired_at]))
+        end
+      end.not_to raise_error
+    end
   end
 
   it 'dumps date attributes' do
@@ -425,14 +442,14 @@ describe Dynamoid::Persistence do
         time = Time.now
         obj = klass.create(sent_at: time)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq BigDecimal.new(time.to_f.to_s)
+        expect(attributes[:sent_at]).to eq BigDecimal("%d.%09d" % [time.to_i, time.nsec])
       end
 
       it "saves date as :number" do
         date = Date.today
         obj = klass.create(sent_at: date)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq BigDecimal.new(date.to_time.to_f.to_s)
+        expect(attributes[:sent_at]).to eq BigDecimal("%d.%09d" % [date.to_time.to_i, date.to_time.nsec])
       end
     end
 
@@ -574,10 +591,10 @@ describe Dynamoid::Persistence do
 
   it 'loads attributes from a hash' do
     @time = DateTime.now
-    @hash = {name: 'Josh', created_at: @time.to_f}
+    @hash = {name: 'Josh', created_at: BigDecimal("%d.%09d" % [@time.to_i, @time.nsec])}
 
     expect(User.undump(@hash)[:name]).to eq 'Josh'
-    User.undump(@hash)[:created_at].to_f == @time.to_f
+    expect(User.undump(@hash)[:created_at]).to eq @time
   end
 
   it 'runs the before_create callback only once' do
