@@ -28,6 +28,7 @@
 * Bug: [#244](https://github.com/Dynamoid/Dynamoid/pull/244) Allow to pass empty strings and sets to `.import` (@andrykonchin)
 * Bug: [#246](https://github.com/Dynamoid/Dynamoid/pull/246) Batch operations (`batch_write_item` and `batch_read_item`) handle unprocessed items themselves (@andrykonchin)
 * Bug: [#250](https://github.com/Dynamoid/Dynamoid/pull/250) Update outdated warning message about inefficient query and missing indices (@andrykonchin)
+* Bug: [252](https://github.com/Dynamoid/Dynamoid/pull/252) Don't loose nanoseconds when store DateTime as float number
 
 # 2.0.0
 
