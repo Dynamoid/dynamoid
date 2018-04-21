@@ -21,7 +21,8 @@ Gem::Specification.new do |spec|
       "Sumanth Ravipati",
       "Pascal Corpet",
       "Brian Glusman",
-      "Peter Boling"
+      "Peter Boling",
+      "Andrew Konchin"
   ]
   spec.email = ["peter.boling@gmail.com", "brian@stellaservice.com"]
 

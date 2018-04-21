@@ -814,6 +814,7 @@ Also, without contributors the project wouldn't be nearly as awesome. So many th
 * [Pascal Corpet](https://github.com/pcorpet)
 * [Brian Glusman](https://github.com/bglusman) *
 * [Peter Boling](https://github.com/pboling) *
+* [Andrew Konchin](https://github.com/andrykonchin) *
 
 \* Current Maintainers
 
