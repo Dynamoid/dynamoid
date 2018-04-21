@@ -6,6 +6,20 @@
 
 ## Improvements
 
+* N/A
+
+## Fixes
+
+* N/A
+
+# 2.1.0
+
+## Breaking
+
+* N/A
+
+## Improvements
+
 * Feature: [#221](https://github.com/Dynamoid/Dynamoid/pull/221) Add field declaration option `of` to specify the type of `set` elements (@pratik60)
 * Feature: [#223](https://github.com/Dynamoid/Dynamoid/pull/223) Add field declaration option `store_as_string` to store `datetime` as ISO-8601 formatted strings (@william101)
 * Feature: [#228](https://github.com/Dynamoid/Dynamoid/pull/228) Add field declaration option `store_as_string` to store `date` as ISO-8601 formatted strings (@andrykonchin)
