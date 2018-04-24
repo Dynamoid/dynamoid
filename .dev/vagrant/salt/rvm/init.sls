@@ -42,8 +42,9 @@ mri-deps:
 
 gpg-trust:
   cmd.run:
-    - name: command curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
-    - user: vagrant
+    - cwd: /home/vagrant
+    - name: gpg2 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+    - runas: vagrant
 
 ruby-{{ pillar['ruby']['version'] }}:
   rvm.installed:
@@ -74,5 +75,6 @@ bundler.install:
 
 bundle:
   cmd.run:
-    - name: (cd /vagrant && bundle install)
-    - user: vagrant
+    - cwd: /vagrant
+    - name: bundle install
+    - runas: vagrant
