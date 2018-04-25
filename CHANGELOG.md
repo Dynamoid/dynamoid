@@ -10,7 +10,7 @@
 
 ## Fixes
 
-* N/A
+* Bug: [#255](https://github.com/Dynamoid/Dynamoid/pull/255) Fix Vagrant RVM configuration and upgrade to Ruby 2.4.1 (@richardhsu)
 
 # 2.1.0
 
@@ -51,7 +51,7 @@
 Breaking changes in this release generally bring Dynamoid behavior closer to the Rails-way.
 
 * Change: [#186](https://github.com/Dynamoid/Dynamoid/pull/186) Consistent behavior for `Model.where({}).all` (@andrykonchin)
-    * <= 1.3.x behaviour - 
+    * <= 1.3.x behaviour -
         * load lazily if user specified batch size
         * load all collection into memory otherwise
     * New behaviour -
@@ -85,7 +85,7 @@ Breaking changes in this release generally bring Dynamoid behavior closer to the
 
 ## Fixes
 
-* Bug: [#191](https://github.com/Dynamoid/Dynamoid/pull/191), [#192](https://github.com/Dynamoid/Dynamoid/pull/192) Support lambdas as fix for value types were not able to be used as default values (@andrykonchin)(@richardhsu) 
+* Bug: [#191](https://github.com/Dynamoid/Dynamoid/pull/191), [#192](https://github.com/Dynamoid/Dynamoid/pull/192) Support lambdas as fix for value types were not able to be used as default values (@andrykonchin)(@richardhsu)
 * Bug: [#202](https://github.com/Dynamoid/Dynamoid/pull/202) Fix several issues with associations (@andrykonchin)
     * setting `nil` value raises an exception
     * document doesn't keep assigned model and loads it from the storage
@@ -95,7 +95,7 @@ Breaking changes in this release generally bring Dynamoid behavior closer to the
     * Fixed `Chain#key_present?`
 * Bug: [#205](https://github.com/Dynamoid/Dynamoid/pull/205) Fixed `delete_all` (@andrykonchin)
     * Fixed exception when makes scan and sort key is declared in model
-    * Fixed exception when makes scan and any condition is specified in where clause (like Document.where().delete_all) 
+    * Fixed exception when makes scan and any condition is specified in where clause (like Document.where().delete_all)
     * Fixed exception when makes query and sort key isn't declared in model
 * Bug: [#207](https://github.com/Dynamoid/Dynamoid/pull/207) Fixed `#delete` method for case `adapter.delete(table_name, [1, 2, 3], range_key: 1)` (@andrykonchin)
 

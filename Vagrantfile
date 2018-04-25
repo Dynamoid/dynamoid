@@ -18,7 +18,7 @@ Vagrant.configure('2') do |config|
     # Pillars
     salt.pillar({
       'ruby' => {
-        'version' => '2.3.3',
+        'version' => '2.4.1',
       }
     })
 
