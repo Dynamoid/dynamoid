@@ -5,7 +5,7 @@ module Dynamoid
 
     module ClassMethods
       def from_database(*)
-        super.tap { |d| d.changed_attributes.clear }
+        super.tap { |d| d.send(:clear_changes_information) }
       end
     end
 
@@ -28,7 +28,7 @@ module Dynamoid
       (block_given? ? yield : true).tap do |result|
         unless result == false # failed validation; nil is OK.
           @previously_changed = previous
-          changed_attributes.clear
+          clear_changes_information
         end
       end
     end
@@ -42,6 +42,19 @@ module Dynamoid
 
     def attribute_method?(attr)
       super || self.class.attributes.has_key?(attr.to_sym)
+    end
+
+    if ActiveModel::VERSION::STRING >= '5.2.0'
+      # The ActiveModel::Dirty API was changed
+      # https://github.com/rails/rails/commit/c3675f50d2e59b7fc173d7b332860c4b1a24a726#diff-aaddd42c7feb0834b1b5c66af69814d3
+      # So we just try to disable new functionality
+
+      def mutations_from_database
+        @mutations_from_database ||= ActiveModel::NullMutationTracker.instance
+      end
+
+      def forget_attribute_assignments
+      end
     end
   end
 end
