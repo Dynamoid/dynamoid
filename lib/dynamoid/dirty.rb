@@ -56,5 +56,11 @@ module Dynamoid
       def forget_attribute_assignments
       end
     end
+
+    if ActiveModel::VERSION::STRING < '4.2.0'
+      def clear_changes_information
+        changed_attributes.clear
+      end
+    end
   end
 end
