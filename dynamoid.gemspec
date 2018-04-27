@@ -47,8 +47,8 @@ Gem::Specification.new do |spec|
   #   spec.add_runtime_dependency(%q<activemodel>, ["~> 4"])
   #   spec.add_development_dependency(%q<activesupport>, ["~> 4"])
   # end
-  spec.add_runtime_dependency(%q<activemodel>, [">= 4"])
-  spec.add_development_dependency(%q<activesupport>, [">= 4"])
+  spec.add_runtime_dependency(%q<activemodel>, [">= 4", "<= 5.1"])
+  spec.add_development_dependency(%q<activesupport>, [">= 4", "<= 5.1"])
   spec.add_runtime_dependency(%q<aws-sdk-resources>, ["~> 2"])
   spec.add_runtime_dependency(%q<concurrent-ruby>, [">= 1.0"])
   spec.add_development_dependency "pry"
