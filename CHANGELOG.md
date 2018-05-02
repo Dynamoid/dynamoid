@@ -10,6 +10,20 @@
 
 ## Fixes
 
+* N/A
+
+# 2.2.0
+
+## Breaking
+
+* N/A
+
+## Improvements
+
+* Feature: [#256](https://github.com/Dynamoid/Dynamoid/pull/256) Support Rails 5.2 (@andrykonchin)
+
+## Fixes
+
 * Bug: [#255](https://github.com/Dynamoid/Dynamoid/pull/255) Fix Vagrant RVM configuration and upgrade to Ruby 2.4.1 (@richardhsu)
 
 # 2.1.0
