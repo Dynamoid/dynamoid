@@ -501,8 +501,8 @@ Following operators are available: `in`, `contains`, `not_contains`:
 
 ```ruby
 Address.where('city.in' => ['London', 'Edenburg', 'Birmingham'])
-Address.where('city.contains' => [on])
-Address.where('city.not_contains' => [ing])
+Address.where('city.contains' => ['on'])
+Address.where('city.not_contains' => ['ing'])
 ```
 
 ### Consistent Reads
