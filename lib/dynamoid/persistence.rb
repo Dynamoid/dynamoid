@@ -350,7 +350,7 @@ module Dynamoid
     #
     def touch(name = nil)
       now = DateTime.now
-      self.updated_at = now
+      self.updated_at = now if self.respond_to?(:updated_at)
       attributes[name] = now if name
       save
     end
@@ -407,6 +407,18 @@ module Dynamoid
       true
     rescue Dynamoid::Errors::StaleObjectError
       false
+    end
+
+    def increment!(field, increment_size = 1, conditions = {})
+      update!(conditions) do |t|
+        t.add(field => increment_size)
+      end
+    end
+
+    def decrement!(field, decrement_size = 1, conditions = {})
+      update!(conditions) do |t|
+        t.add(field => -decrement_size)
+      end
     end
 
     # Delete this object, but only after running callbacks for it.

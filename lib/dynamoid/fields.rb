@@ -77,6 +77,9 @@ module Dynamoid #:nodoc:
         unless(attributes.has_key? hash_key)
           remove_field :id
           field(hash_key)
+
+          remove_field :created_at if options[:without_created_at] || options[:without_timestamps]
+          remove_field :updated_at if options[:without_updated_at] || options[:without_timestamps]
         end
       end
 
@@ -158,14 +161,14 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def set_created_at
-      self.created_at ||= DateTime.now.in_time_zone(Time.zone) if Dynamoid::Config.timestamps
+      self.created_at ||= DateTime.now.in_time_zone(Time.zone) if Dynamoid::Config.timestamps && self.respond_to?(:created_at)
     end
 
     # Automatically called during the save callback to set the updated_at time.
     #
     # @since 0.2.0
     def set_updated_at
-      if Dynamoid::Config.timestamps && !self.updated_at_changed?
+      if Dynamoid::Config.timestamps && self.respond_to?(:updated_at) && !self.updated_at_changed?
         self.updated_at = DateTime.now.in_time_zone(Time.zone)
       end
     end
@@ -174,6 +177,11 @@ module Dynamoid #:nodoc:
       self.type ||= self.class.to_s if self.class.attributes[:type]
     end
 
+     def set_ttl
+      if self.class.ttl_column && self.respond_to?(self.class.ttl_column)
+        self[self.class.ttl_column] ||= DateTime.now.in_time_zone(Time.zone) + self.class.ttl_range
+      end
+    end
   end
 
 end

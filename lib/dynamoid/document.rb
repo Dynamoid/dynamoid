@@ -57,6 +57,14 @@ module Dynamoid #:nodoc:
         options[:key] || :id
       end
 
+      def ttl_column
+        options[:ttl_column]
+      end
+
+      def ttl_range
+        options[:ttl_range]
+      end
+
       # Returns the number of items for this class.
       #
       # @since 0.6.1
