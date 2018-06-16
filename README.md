@@ -658,7 +658,7 @@ the table since a query against GSI then a query on base table is still likely f
 
 Listed below are all configuration options.
 
-* `adapter` - usefull only for the gem developers to switch to a new adapter. Default and the only available value is `aws_sdk_v2`
+* `adapter` - usefull only for the gem developers to switch to a new adapter. Default and the only available value is `aws_sdk_v3`
 * `namespace` - prefix for table names, default is `dynamoid_#{application_name}_#{environment}` for Rails application and `dynamoid` otherwise
 * `logger` - by default it's a `Rails.logger` in Rails application and `stdout` otherwise. You can disable logging by setting `nil` or `false` values. Set `true` value to use defaults
 * `access_key` - DynamoDb custom credentials for AWS, override global AWS credentials if they present

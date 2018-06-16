@@ -1,8 +1,8 @@
 module Dynamoid
   module AdapterPlugin
 
-    # The AwsSdkV2 adapter provides support for the aws-sdk version 2 for ruby.
-    class AwsSdkV2
+    # The AwsSdkV3 adapter provides support for the aws-sdk version 2 for ruby.
+    class AwsSdkV3
       EQ = 'EQ'.freeze
       RANGE_MAP = {
           range_greater_than: 'GT',
@@ -90,10 +90,10 @@ module Dynamoid
       # Block receives boolean flag which is true if there are some unprocessed items, otherwise false.
       #
       # @example Saves several items to the table testtable
-      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_write_item('table1', [{ id: '1', name: 'a' }, { id: '2', name: 'b'}])
+      #   Dynamoid::AdapterPlugin::AwsSdkV3.batch_write_item('table1', [{ id: '1', name: 'a' }, { id: '2', name: 'b'}])
       #
       # @example Pass block
-      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_write_item('table1', items) do |bool|
+      #   Dynamoid::AdapterPlugin::AwsSdkV3.batch_write_item('table1', items) do |bool|
       #     if bool
       #       puts 'there are unprocessed items'
       #     end
@@ -148,10 +148,10 @@ module Dynamoid
       # * and boolean flag is true if there are some unprocessed keys, otherwise false.
       #
       # @example Retrieve IDs 1 and 2 from the table testtable
-      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item('table1' => ['1', '2'])
+      #   Dynamoid::AdapterPlugin::AwsSdkV3.batch_get_item('table1' => ['1', '2'])
       #
       # @example Pass block to receive each batch
-      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_get_item('table1' => ids) do |hash, bool|
+      #   Dynamoid::AdapterPlugin::AwsSdkV3.batch_get_item('table1' => ids) do |hash, bool|
       #     puts hash['table1']
       #
       #     if bool
@@ -237,7 +237,7 @@ module Dynamoid
       # @example Delete IDs 1 and 2 from the table testtable
       #   Dynamoid::AdapterPlugin::AwsSdk.batch_delete_item('table1' => ['1', '2'])
       # or
-      #   Dynamoid::AdapterPlugin::AwsSdkV2.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
+      #   Dynamoid::AdapterPlugin::AwsSdkV3.batch_delete_item('table1' => [['hk1', 'rk2'], ['hk1', 'rk2']]]))
       #
       # @param [Hash] options the hash of tables and IDs to delete
       #
