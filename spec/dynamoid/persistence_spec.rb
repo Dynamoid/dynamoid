@@ -947,7 +947,7 @@ describe Dynamoid::Persistence do
         pending 'casting to declared type is not supported yet'
         # With the primary key, we're forcing a Query rather than a Scan because of https://github.com/Dynamoid/Dynamoid/issues/6
         primary_key = subject.id
-        expect(doc_class.where(id: primary_key).where('price.gt' => 4).first).to_not be_nil
+        expect(doc_class.where(id: primary_key).where('price.gt': 4).first).to_not be_nil
       end
     end
   end
