@@ -2,7 +2,7 @@
 
 ## Breaking
 
-* N/A
+* Improvement: [#267](https://github.com/Dynamoid/Dynamoid/pull/267) Upgrade AWS SDK to V3 (@andrykonchin)
 
 ## Improvements
 
