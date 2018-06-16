@@ -7,7 +7,6 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rspec'
 require 'dynamoid'
 require 'pry'
-require 'aws-sdk-resources'
 require 'byebug' if ENV['DEBUG']
 
 require 'dynamodb_local'

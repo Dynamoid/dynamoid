@@ -13,7 +13,7 @@ module Dynamoid
     include ActiveModel::Observing if defined?(ActiveModel::Observing)
 
     # All the default options.
-    option :adapter, default: 'aws_sdk_v2'
+    option :adapter, default: 'aws_sdk_v3'
     option :namespace, default: defined?(Rails) ? "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" : 'dynamoid'
     option :access_key, default: nil
     option :secret_key, default: nil
