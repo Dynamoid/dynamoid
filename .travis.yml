@@ -33,7 +33,7 @@ before_install:
   - docker ps
 
 after_install:
-  - gem install bundler -v 1.15.4
+  - gem install bundler -v 1.16.2
   - bundle install
 
 before_script:
