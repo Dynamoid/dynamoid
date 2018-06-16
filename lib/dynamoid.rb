@@ -1,3 +1,4 @@
+require 'aws-sdk-dynamodb'
 require 'delegate'
 require 'time'
 require 'securerandom'
