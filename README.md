@@ -38,16 +38,8 @@ gem 'dynamoid', '~> 2'
 ```
 ## Prerequisities
 
-Dynamoid depends on the aws-sdk, and this is tested on the current version of aws-sdk (~> 2), rails (>= 4).
+Dynamoid depends on the aws-sdk, and this is tested on the current version of aws-sdk (~> 3), rails (>= 4).
 Hence the configuration as needed for aws to work will be dealt with by aws setup.
-
-Here are the steps to setup aws-sdk.
-
-```ruby
-gem 'aws-sdk', '~>2'
-```
-
-(or) include the aws-sdk in your Gemfile.
 
 ### AWS SDK Version Compatibility
 
