@@ -1,6 +1,6 @@
 # encoding: utf-8
-module Dynamoid #:nodoc:
 
+module Dynamoid #:nodoc:
   # The belongs_to association. For belongs_to, we reference only a single target instead of multiple records; that target is the
   # object to which the association object is associated.
   module Associations
@@ -50,5 +50,4 @@ module Dynamoid #:nodoc:
       end
     end
   end
-
 end

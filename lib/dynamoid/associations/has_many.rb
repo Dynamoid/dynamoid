@@ -1,6 +1,6 @@
 # encoding: utf-8
-module Dynamoid #:nodoc:
 
+module Dynamoid #:nodoc:
   # The has_many association.
   module Associations
     class HasMany
@@ -20,5 +20,4 @@ module Dynamoid #:nodoc:
       end
     end
   end
-
 end

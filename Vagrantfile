@@ -17,10 +17,10 @@ Vagrant.configure('2') do |config|
 
     # Pillars
     salt.pillar({
-      'ruby' => {
-        'version' => '2.4.1',
-      }
-    })
+                  'ruby' => {
+                    'version' => '2.4.1',
+                  }
+                })
 
     salt.run_highstate = true
   end

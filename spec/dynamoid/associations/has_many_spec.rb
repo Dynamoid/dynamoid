@@ -1,9 +1,9 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe Dynamoid::Associations::HasMany do
-  let(:magazine) {Magazine.create}
-  let(:user) {User.create}
-  let(:camel_case) {CamelCase.create}
+  let(:magazine) { Magazine.create }
+  let(:user) { User.create }
+  let(:camel_case) { CamelCase.create }
 
   it 'determines equality from its records' do
     subscription = magazine.subscriptions.create

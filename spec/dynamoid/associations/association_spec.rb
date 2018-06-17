@@ -1,8 +1,8 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe Dynamoid::Associations::Association do
-  let(:subscription) {Subscription.create}
-  let(:magazine) {Magazine.create}
+  let(:subscription) { Subscription.create }
+  let(:magazine) { Magazine.create }
 
   it 'returns an empty array if there are no associations' do
     expect(magazine.subscriptions).to be_empty
@@ -174,5 +174,4 @@ describe Dynamoid::Associations::Association do
     magazine.sponsor.hash_key
     magazine.sponsor.hash_key
   end
-
 end

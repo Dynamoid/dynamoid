@@ -1,9 +1,8 @@
 # encoding: utf-8
-module Dynamoid
 
+module Dynamoid
   # All the errors specific to Dynamoid.  The goal is to mimic ActiveRecord.
   module Errors
-
     # Generic Dynamoid error
     class Error < StandardError; end
 

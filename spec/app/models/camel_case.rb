@@ -30,5 +30,4 @@ class CamelCase
   def doing_after_update
     true
   end
-
 end

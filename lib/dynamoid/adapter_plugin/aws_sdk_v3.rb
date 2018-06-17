@@ -1,33 +1,32 @@
 module Dynamoid
   module AdapterPlugin
-
     # The AwsSdkV3 adapter provides support for the aws-sdk version 2 for ruby.
     class AwsSdkV3
       EQ = 'EQ'.freeze
       RANGE_MAP = {
-          range_greater_than: 'GT',
-          range_less_than:    'LT',
-          range_gte:          'GE',
-          range_lte:          'LE',
-          range_begins_with:  'BEGINS_WITH',
-          range_between:      'BETWEEN',
-          range_eq:           'EQ'
+        range_greater_than: 'GT',
+        range_less_than:    'LT',
+        range_gte:          'GE',
+        range_lte:          'LE',
+        range_begins_with:  'BEGINS_WITH',
+        range_between:      'BETWEEN',
+        range_eq:           'EQ'
       }
 
       # Don't implement NULL and NOT_NULL because it doesn't make seanse -
       # we declare schema in models
       FIELD_MAP = {
-          eq:           'EQ',
-          ne:           'NE',
-          gt:           'GT',
-          lt:           'LT',
-          gte:          'GE',
-          lte:          'LE',
-          begins_with:  'BEGINS_WITH',
-          between:      'BETWEEN',
-          in:           'IN',
-          contains:     'CONTAINS',
-          not_contains: 'NOT_CONTAINS'
+        eq:           'EQ',
+        ne:           'NE',
+        gt:           'GT',
+        lt:           'LT',
+        gte:          'GE',
+        lte:          'LE',
+        begins_with:  'BEGINS_WITH',
+        between:      'BETWEEN',
+        in:           'IN',
+        contains:     'CONTAINS',
+        not_contains: 'NOT_CONTAINS'
       }
       HASH_KEY  = 'HASH'.freeze
       RANGE_KEY = 'RANGE'.freeze
@@ -35,10 +34,10 @@ module Dynamoid
       NUM_TYPE     = 'N'.freeze
       BINARY_TYPE  = 'B'.freeze
       TABLE_STATUSES = {
-          creating: 'CREATING',
-          updating: 'UPDATING',
-          deleting: 'DELETING',
-          active: 'ACTIVE'
+        creating: 'CREATING',
+        updating: 'UPDATING',
+        deleting: 'DELETING',
+        active: 'ACTIVE'
       }.freeze
       PARSE_TABLE_STATUS = ->(resp, lookup = :table) {
         # lookup is table for describe_table API
@@ -172,8 +171,8 @@ module Dynamoid
       #
       # @todo: Provide support for passing options to underlying batch_get_item
       def batch_get_item(table_ids, options = {})
-        request_items = Hash.new{|h, k| h[k] = []}
-        return request_items if table_ids.all?{|k, v| v.blank?}
+        request_items = Hash.new { |h, k| h[k] = [] }
+        return request_items if table_ids.all? { |k, v| v.blank? }
 
         ret = Hash.new([].freeze) # Default for tables where no rows are returned
 
@@ -187,16 +186,16 @@ module Dynamoid
           while ids.present? do
             batch = ids.shift(Dynamoid::Config.batch_size)
 
-            request_items = Hash.new{|h, k| h[k] = []}
+            request_items = Hash.new { |h, k| h[k] = [] }
 
             keys = if rng.present?
-              Array(batch).map do |h, r|
-                { hk => h, rng => r }
-              end
-            else
-              Array(batch).map do |id|
-                { hk => id }
-              end
+                     Array(batch).map do |h, r|
+                       { hk => h, rng => r }
+                     end
+                   else
+                     Array(batch).map do |id|
+                       { hk => id }
+                     end
             end
 
             request_items[t] = {
@@ -254,10 +253,10 @@ module Dynamoid
 
           ids.each_slice(BATCH_WRITE_ITEM_REQUESTS_LIMIT) do |sliced_ids|
             delete_requests = sliced_ids.map { |id|
-              {delete_request: {key: key_stanza(table, *id)}}
+              { delete_request: { key: key_stanza(table, *id) } }
             }
 
-            requests << {table_name => delete_requests}
+            requests << { table_name => delete_requests }
           end
         end
 
@@ -266,7 +265,8 @@ module Dynamoid
             client.batch_write_item(
               request_items: request_items,
               return_consumed_capacity: 'TOTAL',
-              return_item_collection_metrics: 'SIZE')
+              return_item_collection_metrics: 'SIZE'
+            )
           end
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
           raise Dynamoid::Errors::ConditionalCheckFailedException, e
@@ -332,8 +332,8 @@ module Dynamoid
         resp = client.create_table(client_opts)
         options[:sync] = true if !options.has_key?(:sync) && ls_indexes.present? || gs_indexes.present?
         until_past_table_status(table_name, :creating) if options[:sync] &&
-            (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-            status == TABLE_STATUSES[:creating]
+                                                          (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
+                                                          status == TABLE_STATUSES[:creating]
         # Response to original create_table, which, if options[:sync]
         #   may have an outdated table_description.table_status of "CREATING"
         resp
@@ -395,8 +395,8 @@ module Dynamoid
       def delete_table(table_name, options = {})
         resp = client.delete_table(table_name: table_name)
         until_past_table_status(table_name, :deleting) if options[:sync] &&
-            (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-            status == TABLE_STATUSES[:deleting]
+                                                          (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
+                                                          status == TABLE_STATUSES[:deleting]
         table_cache.delete(table_name)
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         Dynamoid.logger.error "Table #{table_name} cannot be deleted as it is in use"
@@ -422,12 +422,11 @@ module Dynamoid
       # @todo Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#get_item-instance_method
       def get_item(table_name, key, options = {})
         options ||= {}
-        table    = describe_table(table_name)
+        table = describe_table(table_name)
         range_key = options.delete(:range_key)
 
         item = client.get_item(table_name: table_name,
-          key: key_stanza(table, key, range_key)
-        )[:item]
+                               key: key_stanza(table, key, range_key))[:item]
         item ? result_item_to_hash(item) : nil
       end
 
@@ -450,11 +449,10 @@ module Dynamoid
         raise "non-empty options: #{options}" unless options.empty?
         begin
           result = client.update_item(table_name: table_name,
-            key: key_stanza(table, key, range_key),
-            attribute_updates: iu.to_h,
-            expected: expected_stanza(conditions),
-            return_values: 'ALL_NEW'
-          )
+                                      key: key_stanza(table, key, range_key),
+                                      attribute_updates: iu.to_h,
+                                      expected: expected_stanza(conditions),
+                                      return_values: 'ALL_NEW')
           result_item_to_hash(result[:attributes])
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
           raise Dynamoid::Errors::ConditionalCheckFailedException, e
@@ -518,11 +516,11 @@ module Dynamoid
         hk    = (opts[:hash_key].present? ? opts.delete(:hash_key) : table.hash_key).to_s
         rng   = (opts[:range_key].present? ? opts.delete(:range_key) : table.range_key).to_s
         q     = opts.slice(
-                  :consistent_read,
-                  :scan_index_forward,
-                  :select,
-                  :index_name
-                )
+          :consistent_read,
+          :scan_index_forward,
+          :select,
+          :index_name
+        )
 
         opts.delete(:consistent_read)
         opts.delete(:scan_index_forward)
@@ -534,7 +532,7 @@ module Dynamoid
         scan_limit = opts.delete(:scan_limit)
         batch_size = opts.delete(:batch_size)
         exclusive_start_key = opts.delete(:exclusive_start_key)
-        limit = [record_limit, scan_limit, batch_size].compact.min        
+        limit = [record_limit, scan_limit, batch_size].compact.min
 
         key_conditions = {
           hk => {
@@ -544,7 +542,7 @@ module Dynamoid
         }
 
         opts.each_pair do |k, v|
-          next unless(op = RANGE_MAP[k])
+          next unless (op = RANGE_MAP[k])
           key_conditions[rng] = {
             comparison_operator: op,
             attribute_value_list: attribute_value_list(op, opts.delete(k).freeze)
@@ -552,7 +550,7 @@ module Dynamoid
         end
 
         query_filter = {}
-        opts.reject {|k, _| k.in? RANGE_MAP.keys}.each do |attr, hash|
+        opts.reject { |k, _| k.in? RANGE_MAP.keys }.each do |attr, hash|
           query_filter[attr] = {
             comparison_operator: FIELD_MAP[hash.keys[0]],
             attribute_value_list: attribute_value_list(FIELD_MAP[hash.keys[0]], hash.values[0].freeze)
@@ -600,7 +598,7 @@ module Dynamoid
             scan_count += results.scanned_count
             break if scan_limit && scan_count >= scan_limit
 
-            if(lk = results.last_evaluated_key)
+            if (lk = results.last_evaluated_key)
               q[:exclusive_start_key] = lk
             else
               break
@@ -632,13 +630,13 @@ module Dynamoid
         request_limit = [record_limit, scan_limit, batch_size].compact.min
         request[:limit] = request_limit if request_limit
         request[:exclusive_start_key] = exclusive_start_key if exclusive_start_key
-        
+
         if scan_hash.present?
           request[:scan_filter] = scan_hash.reduce({}) do |memo, (attr, cond)|
             memo.merge(attr.to_s => {
-              comparison_operator: FIELD_MAP[cond.keys[0]],
-              attribute_value_list: attribute_value_list(FIELD_MAP[cond.keys[0]], cond.values[0].freeze)
-            })
+                         comparison_operator: FIELD_MAP[cond.keys[0]],
+                         attribute_value_list: attribute_value_list(FIELD_MAP[cond.keys[0]], cond.values[0].freeze)
+                       })
           end
         end
 
@@ -678,7 +676,7 @@ module Dynamoid
             break if scan_limit && scan_count >= scan_limit
 
             # Keep pulling if we haven't finished paging in all data
-            if(lk = results[:last_evaluated_key])
+            if (lk = results[:last_evaluated_key])
               request[:exclusive_start_key] = lk
             else
               break
@@ -715,14 +713,14 @@ module Dynamoid
         status = PARSE_TABLE_STATUS.call(resp)
         again = counter < Dynamoid::Config.sync_retry_max_times &&
                 status == TABLE_STATUSES[expect_status]
-        {again: again, status: status, counter: counter}
+        { again: again, status: status, counter: counter }
       end
 
       def until_past_table_status(table_name, status = :creating)
         counter = 0
         resp = nil
         begin
-          check = {again: true}
+          check = { again: true }
           while check[:again]
             sleep Dynamoid::Config.sync_retry_wait_seconds
             resp = client.describe_table(table_name: table_name)
@@ -756,7 +754,7 @@ module Dynamoid
       # Converts from symbol to the API string for the given data type
       # E.g. :number -> 'N'
       def api_type(type)
-        case(type)
+        case (type)
         when :string then STRING_TYPE
         when :number then NUM_TYPE
         when :binary then BINARY_TYPE
@@ -999,7 +997,7 @@ module Dynamoid
         end
 
         def hash_key
-          @hash_key ||= schema[:key_schema].find { |d| d[:key_type] == HASH_KEY  }.try(:attribute_name).to_sym
+          @hash_key ||= schema[:key_schema].find { |d| d[:key_type] == HASH_KEY }.try(:attribute_name).to_sym
         end
 
         #

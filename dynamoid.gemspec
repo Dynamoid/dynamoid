@@ -1,4 +1,5 @@
 # coding: utf-8
+
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "dynamoid/version"
@@ -9,28 +10,28 @@ Gem::Specification.new do |spec|
 
   # Keep in sync with README
   spec.authors = [
-      "Josh Symonds",
-      "Logan Bowers",
-      "Craig Heneveld",
-      "Anatha Kumaran",
-      "Jason Dew",
-      "Luis Arias",
-      "Stefan Neculai",
-      "Philip White",
-      "Peeyush Kumar",
-      "Sumanth Ravipati",
-      "Pascal Corpet",
-      "Brian Glusman",
-      "Peter Boling",
-      "Andrew Konchin"
+    "Josh Symonds",
+    "Logan Bowers",
+    "Craig Heneveld",
+    "Anatha Kumaran",
+    "Jason Dew",
+    "Luis Arias",
+    "Stefan Neculai",
+    "Philip White",
+    "Peeyush Kumar",
+    "Sumanth Ravipati",
+    "Pascal Corpet",
+    "Brian Glusman",
+    "Peter Boling",
+    "Andrew Konchin"
   ]
   spec.email = ["peter.boling@gmail.com", "brian@stellaservice.com"]
 
   spec.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   spec.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
   spec.extra_rdoc_files = [
-      "LICENSE.txt",
-      "README.md"
+    "LICENSE.txt",
+    "README.md"
   ]
   spec.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(bin|test|spec|features|.dev|Vagrantfile)/}) }
   spec.homepage = "http://github.com/Dynamoid/Dynamoid"

@@ -1,7 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Document do
-
   it 'initializes a new document' do
     address = Address.new
 
@@ -87,7 +86,7 @@ describe Dynamoid::Document do
   end
 
   it 'creates multiple documents' do
-    addresses = Address.create([{city: 'Chicago'}, {city: 'New York'}])
+    addresses = Address.create([{ city: 'Chicago' }, { city: 'New York' }])
 
     expect(addresses.size).to eq 2
     expect(addresses.all?(&:persisted?)).to be true
@@ -105,7 +104,7 @@ describe Dynamoid::Document do
     end
 
     expect {
-      klass.create!([{city: 'Chicago'}, {city: nil}])
+      klass.create!([{ city: 'Chicago' }, { city: nil }])
     }.to raise_error(Dynamoid::Errors::DocumentNotValid)
   end
 
@@ -360,9 +359,9 @@ describe Dynamoid::Document do
   end
 
   context '.reload' do
-    let(:address){ Address.create }
-    let(:message){ Message.create(text: 'Nice, supporting datetime range!', time: Time.now.to_datetime) }
-    let(:tweet){ tweet = Tweet.create(tweet_id: 'x', group: 'abc') }
+    let(:address) { Address.create }
+    let(:message) { Message.create(text: 'Nice, supporting datetime range!', time: Time.now.to_datetime) }
+    let(:tweet) { tweet = Tweet.create(tweet_id: 'x', group: 'abc') }
 
     it 'reflects persisted changes' do
       address.update_attributes(city: 'Chicago')
@@ -396,7 +395,7 @@ describe Dynamoid::Document do
   it 'follows any table options provided to it' do
     tweet = Tweet.create(group: 12345)
 
-    expect{tweet.id}.to raise_error(NoMethodError)
+    expect { tweet.id }.to raise_error(NoMethodError)
     expect(tweet.tweet_id).to_not be_nil
     expect(Tweet.table_name).to eq 'dynamoid_tests_twitters'
     expect(Tweet.hash_key).to eq :tweet_id
@@ -440,7 +439,7 @@ describe Dynamoid::Document do
 
   context 'with a range key' do
     it_behaves_like 'it has equality testing and hashing' do
-      let(:document){ Tweet.create(tweet_id: 'x', group: 'abc', msg: 'foo') }
+      let(:document) { Tweet.create(tweet_id: 'x', group: 'abc', msg: 'foo') }
       let(:different) { Tweet.create(tweet_id: 'y', group: 'abc', msg: 'foo') }
       let(:same) { Tweet.new(tweet_id: 'x', group: 'abc', msg: 'bar') }
     end

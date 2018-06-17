@@ -1,6 +1,6 @@
 # encoding: utf-8
-module Dynamoid
 
+module Dynamoid
   # This module defines the finder methods that hang off the document at the
   # class level, like find, find_by_id, and the method_missing style finders.
   module Finders
@@ -17,7 +17,6 @@ module Dynamoid
     }
 
     module ClassMethods
-
       # Find one or many objects, specified by one id or an array of ids.
       #
       # @param [Array/String] *id an array of ids or one single id
@@ -68,25 +67,25 @@ module Dynamoid
       #   Tweet.find_all([['1', 'red'], ['1', 'green']], :consistent_read => true)
       def find_all(ids, options = {})
         results = unless Dynamoid.config.backoff
-          items = Dynamoid.adapter.read(self.table_name, ids, options)
-          items ? items[self.table_name] : []
-        else
-          items = []
-          backoff = nil
-          Dynamoid.adapter.read(self.table_name, ids, options) do |hash, has_unprocessed_items|
-            items += hash[self.table_name]
+                    items = Dynamoid.adapter.read(self.table_name, ids, options)
+                    items ? items[self.table_name] : []
+                  else
+                    items = []
+                    backoff = nil
+                    Dynamoid.adapter.read(self.table_name, ids, options) do |hash, has_unprocessed_items|
+                      items += hash[self.table_name]
 
-            if has_unprocessed_items
-              backoff ||= Dynamoid.config.build_backoff
-              backoff.call
-            else
-              backoff = nil
-            end
-          end
-          items
+                      if has_unprocessed_items
+                        backoff ||= Dynamoid.config.build_backoff
+                        backoff.call
+                      else
+                        backoff = nil
+                      end
+                    end
+                    items
         end
 
-        results ? results.map {|i| from_database(i) } : []
+        results ? results.map { |i| from_database(i) } : []
       end
 
       # Find one object directly by id.
@@ -189,7 +188,7 @@ module Dynamoid
           opts[:range_key] = range_key_field
           opts[range_op_mapped] = range_key_value
         end
-        dynamo_options = opts.merge(options.reject {|key, _| key == :range })
+        dynamo_options = opts.merge(options.reject { |key, _| key == :range })
         Dynamoid.adapter.query(self.table_name, dynamo_options).map do |item|
           from_database(item)
         end
@@ -212,7 +211,7 @@ module Dynamoid
           attributes = method.to_s.split('_by_').last.split('_and_')
 
           chain = Dynamoid::Criteria::Chain.new(self)
-          chain.query = Hash.new.tap {|h| attributes.each_with_index {|attr, index| h[attr.to_sym] = args[index]}}
+          chain.query = Hash.new.tap { |h| attributes.each_with_index { |attr, index| h[attr.to_sym] = args[index] } }
 
           if finder =~ /all/
             return chain.all
@@ -225,5 +224,4 @@ module Dynamoid
       end
     end
   end
-
 end

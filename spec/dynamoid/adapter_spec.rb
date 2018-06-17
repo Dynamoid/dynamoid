@@ -4,14 +4,14 @@ describe Dynamoid::Adapter do
   subject { described_class.new }
 
   def test_table; 'dynamoid_tests_TestTable'; end
-  let(:single_id){'123'}
-  let(:many_ids){%w(1 2)}
+  let(:single_id) { '123' }
+  let(:many_ids) { %w(1 2) }
 
   {
     1 => [:id],
     2 => [:id],
-    3 => [:id, {range_key: {range: :number}}],
-    4 => [:id, {range_key: {range: :number}}]
+    3 => [:id, { range_key: { range: :number } }],
+    4 => [:id, { range_key: { range: :number } }]
   }.each do |n, args|
     name = "dynamoid_tests_TestTable#{n}"
     let(:"test_table#{n}") do
@@ -64,11 +64,11 @@ describe Dynamoid::Adapter do
   end
 
   it 'raises NoMethodError if we try a method that is not on the child' do
-    expect {subject.foobar}.to raise_error(NoMethodError)
+    expect { subject.foobar }.to raise_error(NoMethodError)
   end
 
   it 'writes through the adapter' do
-    expect(subject).to receive(:put_item).with(test_table, {id: single_id}, nil).and_return(true)
+    expect(subject).to receive(:put_item).with(test_table, { id: single_id }, nil).and_return(true)
     subject.write(test_table, id: single_id)
   end
 
@@ -79,7 +79,7 @@ describe Dynamoid::Adapter do
     end
 
     it 'reads through the adapter for many IDs' do
-      expect(subject).to receive(:batch_get_item).with({test_table => many_ids}, {}).and_return(true)
+      expect(subject).to receive(:batch_get_item).with({ test_table => many_ids }, {}).and_return(true)
       subject.read(test_table, many_ids)
     end
 
@@ -89,7 +89,7 @@ describe Dynamoid::Adapter do
     end
 
     it 'reads through the adapter for many IDs and a range key' do
-      expect(subject).to receive(:batch_get_item).with({test_table => [['1', 2.0], ['2', 2.0]]}, {}).and_return(true)
+      expect(subject).to receive(:batch_get_item).with({ test_table => [['1', 2.0], ['2', 2.0]] }, {}).and_return(true)
       subject.read(test_table, many_ids, range_key: 2.0)
     end
   end

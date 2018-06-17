@@ -4,7 +4,6 @@ require 'concurrent'
 
 # encoding: utf-8
 module Dynamoid
-
   # Adapter's value-add:
   # 1) For the rest of Dynamoid, the gateway to DynamoDB.
   # 2) Allows switching `config.adapter` to ease development of a new adapter.
@@ -17,7 +16,7 @@ module Dynamoid
 
     def tables
       if !@tables_.value
-        @tables_.swap{|value, args| benchmark('Cache Tables') { list_tables || [] } }
+        @tables_.swap { |value, args| benchmark('Cache Tables') { list_tables || [] } }
       end
       @tables_.value
     end
@@ -36,7 +35,7 @@ module Dynamoid
     end
 
     def clear_cache!
-      @tables_.swap{|value, args| nil}
+      @tables_.swap { |value, args| nil }
     end
 
     # Shows how long it takes a method to run on the adapter. Useful for generating logged output.
@@ -51,7 +50,7 @@ module Dynamoid
     def benchmark(method, *args)
       start = Time.now
       result = yield
-      Dynamoid.logger.debug "(#{((Time.now - start) * 1000.0).round(2)} ms) #{method.to_s.split('_').collect(&:upcase).join(' ')}#{ " - #{args.inspect}" unless args.nil? || args.empty? }"
+      Dynamoid.logger.debug "(#{((Time.now - start) * 1000.0).round(2)} ms) #{method.to_s.split('_').collect(&:upcase).join(' ')}#{" - #{args.inspect}" unless args.nil? || args.empty?}"
       return result
     end
 
@@ -84,8 +83,8 @@ module Dynamoid
       range_key = options.delete(:range_key)
 
       if ids.respond_to?(:each)
-        ids = ids.collect{|id| range_key ? [id, range_key] : id}
-        batch_get_item({table => ids}, options, &blk)
+        ids = ids.collect { |id| range_key ? [id, range_key] : id }
+        batch_get_item({ table => ids }, options, &blk)
       else
         options[:range_key] = range_key if range_key
         get_item(table, ids, options)
@@ -103,7 +102,7 @@ module Dynamoid
       if ids.respond_to?(:each)
         if range_key.respond_to?(:each)
           # turn ids into array of arrays each element being hash_key, range_key
-          ids = ids.each_with_index.map{|id, i| [id, range_key[i]]}
+          ids = ids.each_with_index.map { |id, i| [id, range_key[i]] }
         else
           ids = range_key ? ids.map { |id| [id, range_key] } : ids
         end
@@ -121,7 +120,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def scan(table, query = {}, opts = {})
-      benchmark('Scan', table, query) {adapter.scan(table, query, opts)}
+      benchmark('Scan', table, query) { adapter.scan(table, query, opts) }
     end
 
     def create_table(table_name, key, options = {})
@@ -157,7 +156,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def method_missing(method, *args, &block)
-      return benchmark(method, *args) {adapter.send(method, *args, &block)} if adapter.respond_to?(method)
+      return benchmark(method, *args) { adapter.send(method, *args, &block) } if adapter.respond_to?(method)
       super
     end
 
@@ -189,6 +188,5 @@ module Dynamoid
 
       Dynamoid::AdapterPlugin.const_get(Dynamoid::Config.adapter.camelcase)
     end
-
   end
 end

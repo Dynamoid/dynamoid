@@ -27,7 +27,7 @@ module Dynamoid
       #         index; does not work on existing indexes.
       # @option options [Integer] :write_capacity set the write capacity for
       #         the index; does not work on existing indexes.
-      def global_secondary_index(options={})
+      def global_secondary_index(options = {})
         unless options.present?
           raise Dynamoid::Errors::InvalidIndex.new('empty index definition')
         end
@@ -39,8 +39,8 @@ module Dynamoid
         end
 
         index_opts = {
-            read_capacity: Dynamoid::Config.read_capacity,
-            write_capacity: Dynamoid::Config.write_capacity
+          read_capacity: Dynamoid::Config.read_capacity,
+          write_capacity: Dynamoid::Config.write_capacity
         }.merge(options)
 
         index_opts[:dynamoid_class] = self
@@ -63,7 +63,7 @@ module Dynamoid
       #         attributes to project for this index. Can be :keys_only, :all
       #         or an array of included fields. If not specified, defaults to
       #         :keys_only.
-      def local_secondary_index(options={})
+      def local_secondary_index(options = {})
         unless options.present?
           raise Dynamoid::Errors::InvalidIndex.new('empty index definition')
         end
@@ -85,7 +85,8 @@ module Dynamoid
         index_opts = options.merge(
           dynamoid_class: self,
           type: :local_secondary,
-          hash_key: primary_hash_key)
+          hash_key: primary_hash_key
+        )
 
         index = Dynamoid::Indexes::Index.new(index_opts)
         key = index_key(primary_hash_key, index_range_key)
@@ -93,7 +94,7 @@ module Dynamoid
         self
       end
 
-      def find_index(hash, range=nil)
+      def find_index(hash, range = nil)
         index = self.indexes[index_key(hash, range)]
         index
       end
@@ -105,7 +106,7 @@ module Dynamoid
       # @param [Symbol] range range key name.
       # @return [Boolean] true iff provided keys correspond to a local
       #         secondary index.
-      def is_local_secondary_index?(hash, range=nil)
+      def is_local_secondary_index?(hash, range = nil)
         self.local_secondary_indexes[index_key(hash, range)].present?
       end
 
@@ -116,7 +117,7 @@ module Dynamoid
       # @param [Symbol] range range key name.
       # @return [Boolean] true iff provided keys correspond to a global
       #         secondary index.
-      def is_global_secondary_index?(hash, range=nil)
+      def is_global_secondary_index?(hash, range = nil)
         self.global_secondary_indexes[index_key(hash, range)].present?
       end
 
@@ -126,7 +127,7 @@ module Dynamoid
       # @param [Symbol] hash hash key name.
       # @param [Symbol] range range key name.
       # @return [String] returns "hash" if hash only, "hash_range" otherwise.
-      def index_key(hash, range=nil)
+      def index_key(hash, range = nil)
         name = hash.to_s
         if range.present?
           name += "_#{range.to_s}"
@@ -139,7 +140,7 @@ module Dynamoid
       # @param [Symbol] hash hash key name.
       # @param [Symbol] range range key name.
       # @return [String] index name of the form "table_name_index_index_key".
-      def index_name(hash, range=nil)
+      def index_name(hash, range = nil)
         "#{self.table_name}_index_#{self.index_key(hash, range)}"
       end
 
@@ -166,8 +167,8 @@ module Dynamoid
       DEFAULT_PROJECTION_TYPE = :keys_only
 
       attr_accessor :name, :dynamoid_class, :type, :hash_key, :range_key,
-          :hash_key_schema, :range_key_schema, :projected_attributes,
-          :read_capacity, :write_capacity
+        :hash_key_schema, :range_key_schema, :projected_attributes,
+        :read_capacity, :write_capacity
 
       validate do
         validate_index_type
@@ -176,7 +177,7 @@ module Dynamoid
         validate_projected_attributes
       end
 
-      def initialize(attrs={})
+      def initialize(attrs = {})
         unless attrs[:dynamoid_class].present?
           raise Dynamoid::Errors::InvalidIndex.new(':dynamoid_class is required')
         end
@@ -187,7 +188,7 @@ module Dynamoid
         @range_key = attrs[:range_key]
         @name = attrs[:name] || @dynamoid_class.index_name(@hash_key, @range_key)
         @projected_attributes =
-            attrs[:projected_attributes] || DEFAULT_PROJECTION_TYPE
+          attrs[:projected_attributes] || DEFAULT_PROJECTION_TYPE
         @read_capacity = attrs[:read_capacity]
         @write_capacity = attrs[:write_capacity]
 
@@ -218,7 +219,7 @@ module Dynamoid
       def validate_index_type
         unless (@type.present? &&
           [:local_secondary, :global_secondary].include?(@type))
-            errors.add(:type, 'Invalid index :type specified')
+          errors.add(:type, 'Invalid index :type specified')
         end
       end
 

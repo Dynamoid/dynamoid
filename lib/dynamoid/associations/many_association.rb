@@ -1,6 +1,6 @@
 # encoding: utf-8
-module Dynamoid #:nodoc:
 
+module Dynamoid #:nodoc:
   module Associations
     module ManyAssociation
       include Association
@@ -86,7 +86,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def setter(object)
-        target.each {|o| delete(o)}
+        target.each { |o| delete(o) }
         self << (object)
         object
       end
@@ -152,7 +152,7 @@ module Dynamoid #:nodoc:
       def where(args)
         filtered = clone
         filtered.query = query.clone
-        args.each {|k, v| filtered.query[k] = v}
+        args.each { |k, v| filtered.query[k] = v }
         filtered
       end
 
@@ -200,7 +200,6 @@ module Dynamoid #:nodoc:
           end
         end
       end
-
     end
   end
 end

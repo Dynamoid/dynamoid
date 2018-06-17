@@ -1,6 +1,6 @@
 # encoding: utf-8
-module Dynamoid #:nodoc:
 
+module Dynamoid #:nodoc:
   # This is the base module for all domain objects that need to be persisted to
   # the database as documents.
   module Document
@@ -114,12 +114,12 @@ module Dynamoid #:nodoc:
       # @since 0.2.0
       def exists?(id_or_conditions = {})
         case id_or_conditions
-          when Hash then where(id_or_conditions).first.present?
-          else !! find_by_id(id_or_conditions)
+        when Hash then where(id_or_conditions).first.present?
+        else !!find_by_id(id_or_conditions)
         end
       end
 
-      def update(hash_key, range_key_value=nil, attrs)
+      def update(hash_key, range_key_value = nil, attrs)
         if range_key.present?
           range_key_value = dump_field(range_key_value, attributes[self.range_key])
         else
@@ -131,14 +131,14 @@ module Dynamoid #:nodoc:
         model
       end
 
-      def update_fields(hash_key_value, range_key_value=nil, attrs={}, conditions={})
+      def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
           range_key_value = nil
-          attrs, conditions = optional_params[0 .. 1]
+          attrs, conditions = optional_params[0..1]
         else
           range_key_value = optional_params.first
-          attrs, conditions = optional_params[1 .. 2]
+          attrs, conditions = optional_params[1..2]
         end
 
         options = if range_key
@@ -161,14 +161,14 @@ module Dynamoid #:nodoc:
         end
       end
 
-      def upsert(hash_key_value, range_key_value=nil, attrs={}, conditions={})
+      def upsert(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
           range_key_value = nil
-          attrs, conditions = optional_params[0 .. 1]
+          attrs, conditions = optional_params[0..1]
         else
           range_key_value = optional_params.first
-          attrs, conditions = optional_params[1 .. 2]
+          attrs, conditions = optional_params[1..2]
         end
 
         options = if range_key

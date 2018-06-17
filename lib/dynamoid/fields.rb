@@ -1,4 +1,5 @@
 # encoding: utf-8
+
 module Dynamoid #:nodoc:
   # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not
   # specified with field, then they will be ignored.
@@ -27,7 +28,6 @@ module Dynamoid #:nodoc:
     end
 
     module ClassMethods
-
       # Specify a field for a document.
       #
       # Its type determines how it is coerced when read in and out of the datastore.
@@ -50,7 +50,7 @@ module Dynamoid #:nodoc:
           Dynamoid.logger.warn("Field type :float, which you declared for '#{name}', is deprecated in favor of :number.")
           type = :number
         end
-        self.attributes = attributes.merge(name => {type: type}.merge(options))
+        self.attributes = attributes.merge(name => { type: type }.merge(options))
 
         generated_methods.module_eval do
           define_method(named) { read_attribute(named) }
@@ -63,7 +63,7 @@ module Dynamoid #:nodoc:
               !value.nil?
             end
           end
-          define_method("#{named}=") {|value| write_attribute(named, value) }
+          define_method("#{named}=") { |value| write_attribute(named, value) }
         end
       end
 
@@ -74,7 +74,7 @@ module Dynamoid #:nodoc:
 
       def table(options)
         # a default 'id' column is created when Dynamoid::Document is included
-        unless(attributes.has_key? hash_key)
+        unless (attributes.has_key? hash_key)
           remove_field :id
           field(hash_key)
         end
@@ -137,7 +137,7 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def update_attributes(attributes)
-      attributes.each {|attribute, value| self.write_attribute(attribute, value)} unless attributes.nil? || attributes.empty?
+      attributes.each { |attribute, value| self.write_attribute(attribute, value) } unless attributes.nil? || attributes.empty?
       save
     end
 
@@ -173,7 +173,5 @@ module Dynamoid #:nodoc:
     def set_type
       self.type ||= self.class.to_s if self.class.attributes[:type]
     end
-
   end
-
 end

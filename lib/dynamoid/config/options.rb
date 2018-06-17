@@ -1,10 +1,8 @@
 # Shamelessly stolen from Mongoid!
 module Dynamoid #:nodoc
   module Config
-
     # Encapsulates logic for setting options.
     module Options
-
       # Get the defaults or initialize a new empty hash.
       #
       # @example Get the defaults.

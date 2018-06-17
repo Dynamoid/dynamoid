@@ -41,7 +41,7 @@ describe Dynamoid::Persistence do
         table name: :addresses
         field :city
 
-        before_destroy {|i|
+        before_destroy { |i|
           # Halting the callback chain in active record changed with Rails >= 5.0.0.beta1
           # We now have to throw :abort to halt the callback chain
           # See: https://github.com/rails/rails/commit/bb78af73ab7e86fd9662e8810e346b082a1ae193
@@ -183,7 +183,7 @@ describe Dynamoid::Persistence do
   end
 
   it 'keeps raw Hash attributes as a Hash' do
-    config = {acres: 5, trees: {cyprus: 30, poplar: 10, joshua: 1}, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1}
+    config = { acres: 5, trees: { cyprus: 30, poplar: 10, joshua: 1 }, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1 }
     @addr = Address.new(config: config)
     expect(@addr.send(:dump)[:config]).to eq config
   end
@@ -300,7 +300,7 @@ describe Dynamoid::Persistence do
   end
 
   it 'dumps and undump a serialized field' do
-    address.options = (hash = {:x => [1, 2], 'foobar' => 3.14})
+    address.options = (hash = { :x => [1, 2], 'foobar' => 3.14 })
     expect(Address.undump(address.send(:dump))[:options]).to eq hash
   end
 
@@ -560,18 +560,18 @@ describe Dynamoid::Persistence do
     end
 
     it "stored a string set" do
-      obj = klass.create(string_set: Set.new(['a','b']))
-      expect(obj.reload[:string_set]).to eq(Set.new(['a','b']))
+      obj = klass.create(string_set: Set.new(['a', 'b']))
+      expect(obj.reload[:string_set]).to eq(Set.new(['a', 'b']))
     end
 
     it "stored an integer set" do
-      obj = klass.create(integer_set: Set.new([1,2]))
-      expect(obj.reload[:integer_set]).to eq(Set.new([1,2]))
+      obj = klass.create(integer_set: Set.new([1, 2]))
+      expect(obj.reload[:integer_set]).to eq(Set.new([1, 2]))
     end
 
     it "stored a number set" do
-      obj = klass.create(number_set: Set.new([1,2]))
-      expect(obj.reload[:number_set]).to eq(Set.new([BigDecimal(1),BigDecimal(2)]))
+      obj = klass.create(number_set: Set.new([1, 2]))
+      expect(obj.reload[:number_set]).to eq(Set.new([BigDecimal(1), BigDecimal(2)]))
     end
   end
 
@@ -585,13 +585,13 @@ describe Dynamoid::Persistence do
   end
 
   it 'loads a hash into a serialized field' do
-    hash = {foo: :bar}
+    hash = { foo: :bar }
     expect(Address.new(options: hash).options).to eq hash
   end
 
   it 'loads attributes from a hash' do
     @time = DateTime.now
-    @hash = {name: 'Josh', created_at: BigDecimal("%d.%09d" % [@time.to_i, @time.nsec])}
+    @hash = { name: 'Josh', created_at: BigDecimal("%d.%09d" % [@time.to_i, @time.nsec]) }
 
     expect(User.undump(@hash)[:name]).to eq 'Josh'
     expect(User.undump(@hash)[:created_at]).to eq @time
@@ -618,7 +618,7 @@ describe Dynamoid::Persistence do
   it 'works with a HashWithIndifferentAccess' do
     hash = ActiveSupport::HashWithIndifferentAccess.new('city' => 'Atlanta')
 
-    expect{Address.create(hash)}.to_not raise_error
+    expect { Address.create(hash) }.to_not raise_error
   end
 
   context 'create' do
@@ -678,7 +678,6 @@ describe Dynamoid::Persistence do
   end
 
   context 'update' do
-
     before :each do
       @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(['db', 'sql']), user_name: 'john')
     end
@@ -741,7 +740,6 @@ describe Dynamoid::Persistence do
         address.save!
       end.to raise_error(Dynamoid::Errors::StaleObjectError)
     end
-
   end
 
   context 'delete' do
@@ -818,7 +816,7 @@ describe Dynamoid::Persistence do
     subject { Address.new() }
 
     it 'it persists raw Hash and reads the same back' do
-      config = {acres: 5, trees: {cyprus: 30, poplar: 10, joshua: 1}, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1}
+      config = { acres: 5, trees: { cyprus: 30, poplar: 10, joshua: 1 }, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1 }
       subject.config = config
       subject.save!
       subject.reload
@@ -961,12 +959,12 @@ describe Dynamoid::Persistence do
 
     it 'creates multiple documents' do
       expect {
-        Address.import([{city: 'Chicago'}, {city: 'New York'}])
+        Address.import([{ city: 'Chicago' }, { city: 'New York' }])
       }.to change { Address.count }.by(2)
     end
 
     it 'returns created documents' do
-      addresses = Address.import([{city: 'Chicago'}, {city: 'New York'}])
+      addresses = Address.import([{ city: 'Chicago' }, { city: 'New York' }])
       expect(addresses[0].city).to eq('Chicago')
       expect(addresses[1].city).to eq('New York')
     end
@@ -980,7 +978,7 @@ describe Dynamoid::Persistence do
         def self.name; 'Address'; end
       end
 
-      addresses = klass.import([{city: nil}, {city: 'Chicago'}])
+      addresses = klass.import([{ city: nil }, { city: 'Chicago' }])
       expect(addresses[0].persisted?).to be true
       expect(addresses[1].persisted?).to be true
     end
@@ -996,12 +994,12 @@ describe Dynamoid::Persistence do
         before_save { raise 'before save callback called' }
       end
 
-      expect { klass.import([{city: 'Chicago'}]) }.not_to raise_error
+      expect { klass.import([{ city: 'Chicago' }]) }.not_to raise_error
     end
 
     it 'makes batch operation' do
       expect(Dynamoid.adapter).to receive(:batch_write_item).and_call_original
-      Address.import([{city: 'Chicago'}, {city: 'New York'}])
+      Address.import([{ city: 'Chicago' }, { city: 'New York' }])
     end
 
     it 'supports empty containers in `serialized` fields' do
@@ -1012,35 +1010,35 @@ describe Dynamoid::Persistence do
     end
 
     it 'supports array being empty' do
-      users = User.import([{todo_list: []}])
+      users = User.import([{ todo_list: [] }])
 
       user = User.find(users[0].id)
       expect(user.todo_list).to eq []
     end
 
     it 'saves empty set as nil' do
-      tweets = Tweet.import([{group: 'one', tags: []}])
+      tweets = Tweet.import([{ group: 'one', tags: [] }])
 
       tweet = Tweet.find_by_tweet_id(tweets[0].tweet_id)
       expect(tweet.tags).to eq nil
     end
 
     it 'saves empty string as nil' do
-      users = User.import([{name: ''}])
+      users = User.import([{ name: '' }])
 
       user = User.find(users[0].id)
       expect(user.name).to eq nil
     end
 
     it 'saves attributes with nil value' do
-      users = User.import([{name: nil}])
+      users = User.import([{ name: nil }])
 
       user = User.find(users[0].id)
       expect(user.name).to eq nil
     end
 
     it 'supports container types being nil' do
-      users = User.import([{name: 'Philip', todo_list: nil}])
+      users = User.import([{ name: 'Philip', todo_list: nil }])
 
       user = User.find(users[0].id)
       expect(user.todo_list).to eq nil
@@ -1067,7 +1065,7 @@ describe Dynamoid::Persistence do
 
       it 'creates multiple documents' do
         expect {
-          Address.import([{city: 'Chicago'}, {city: 'New York'}])
+          Address.import([{ city: 'Chicago' }, { city: 'New York' }])
         }.to change { Address.count }.by(2)
       end
 
@@ -1077,15 +1075,15 @@ describe Dynamoid::Persistence do
 
         klass = new_class
         table_name = klass.table_name
-        items = (1 .. 3).map(&:to_s).map { |id| { id: id } }
+        items = (1..3).map(&:to_s).map { |id| { id: id } }
 
         responses = [
           double('response 1', unprocessed_items: { table_name => [
-            double(put_request: double(item: { id: '3' }))
-          ]}),
+                   double(put_request: double(item: { id: '3' }))
+                 ] }),
           double('response 2', unprocessed_items: { table_name => [
-            double(put_request: double(item: { id: '3' }))
-          ]}),
+                   double(put_request: double(item: { id: '3' }))
+                 ] }),
           double('response 3', unprocessed_items: nil)
         ]
         allow(Dynamoid.adapter.client).to receive(:batch_write_item).and_return(*responses)
@@ -1102,16 +1100,16 @@ describe Dynamoid::Persistence do
         table_name = klass.table_name
         # batch_write_item processes up to 15 items at once
         # so we emulate 4 calls with items
-        items = (1 .. 50).map(&:to_s).map { |id| { id: id } }
+        items = (1..50).map(&:to_s).map { |id| { id: id } }
 
         responses = [
           double('response 1', unprocessed_items: { table_name => [
-            double(put_request: double(item: { id: '25' }))
-          ]}),
+                   double(put_request: double(item: { id: '25' }))
+                 ] }),
           double('response 3', unprocessed_items: nil),
           double('response 2', unprocessed_items: { table_name => [
-            double(put_request: double(item: { id: '25' }))
-          ]}),
+                   double(put_request: double(item: { id: '25' }))
+                 ] }),
           double('response 3', unprocessed_items: nil)
         ]
         allow(Dynamoid.adapter.client).to receive(:batch_write_item).and_return(*responses)

@@ -13,7 +13,7 @@ module Dynamoid
 
           lambda do
             power = [times - 1, ceiling - 1].min
-            backoff = base_backoff * (2 ** power)
+            backoff = base_backoff * (2**power)
             sleep backoff
 
             times += 1

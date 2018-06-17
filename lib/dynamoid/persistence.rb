@@ -4,7 +4,6 @@ require 'yaml'
 
 # encoding: utf-8
 module Dynamoid
-
   # Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize
   # values to be of the same type as when they were passed in, based on the fields in the class.
   module Persistence
@@ -16,10 +15,9 @@ module Dynamoid
     UNIX_EPOCH_DATE = Date.new(1970, 1, 1).freeze
 
     module ClassMethods
-
       def table_name
         table_base_name = options[:name] || base_class.name.split('::').last
-          .downcase.pluralize
+                                                      .downcase.pluralize
 
         @table_name ||= [Dynamoid::Config.namespace.to_s, table_base_name].reject(&:empty?).join('_')
       end
@@ -79,7 +77,7 @@ module Dynamoid
               hash[attribute] = nil
             end
           end
-          incoming.each {|attribute, value| hash[attribute] = value unless hash.has_key? attribute }
+          incoming.each { |attribute, value| hash[attribute] = value unless hash.has_key? attribute }
         end
       end
 
@@ -102,40 +100,40 @@ module Dynamoid
         else
           unless value.nil?
             case options[:type]
-              when :string
-                value.to_s
-              when :integer
-                Integer(value)
-              when :number
-                BigDecimal.new(value.to_s)
-              when :array
-                value.to_a
-              when :raw
-                if value.is_a?(Hash)
-                  undump_hash(value)
-                else
-                  value
-                end
-              when :set
-                undump_set(options, value)
-              when :datetime
-                parse_datetime(value, options)
-              when :date
-                if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
-                  value.to_date
-                else
-                  parse_date(value, options)
-                end
-              when :boolean
-                if value == 't' || value == true
-                  true
-                elsif value == 'f' || value == false
-                  false
-                else
-                  raise ArgumentError, 'Boolean column neither true nor false'
-                end
+            when :string
+              value.to_s
+            when :integer
+              Integer(value)
+            when :number
+              BigDecimal.new(value.to_s)
+            when :array
+              value.to_a
+            when :raw
+              if value.is_a?(Hash)
+                undump_hash(value)
               else
-                raise ArgumentError, "Unknown type #{options[:type]}"
+                value
+              end
+            when :set
+              undump_set(options, value)
+            when :datetime
+              parse_datetime(value, options)
+            when :date
+              if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
+                value.to_date
+              else
+                parse_date(value, options)
+              end
+            when :boolean
+              if value == 't' || value == true
+                true
+              elsif value == 'f' || value == false
+                false
+              else
+                raise ArgumentError, 'Boolean column neither true nor false'
+              end
+            else
+              raise ArgumentError, "Unknown type #{options[:type]}"
             end
           end
         end
@@ -163,36 +161,36 @@ module Dynamoid
           end
         else
           case options[:type]
-            when :string
-              !value.nil? ? value.to_s : nil
-            when :integer
-              !value.nil? ? Integer(value) : nil
-            when :number
-              !value.nil? ? value : nil
-            when :set
-              !value.nil? ? Set.new(value) : nil
-            when :array
-              !value.nil? ? value : nil
-            when :datetime
-              !value.nil? ? format_datetime(value, options) : nil
-            when :date
-              !value.nil? ? format_date(value, options) : nil
-            when :serialized
-              options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
-            when :raw
-              !value.nil? ? value : nil
-            when :boolean
-              if !value.nil?
-                if options[:store_as_native_boolean]
-                  !!value # native boolean type
-                else
-                  value.to_s[0] # => "f" or "t"
-                end
+          when :string
+            !value.nil? ? value.to_s : nil
+          when :integer
+            !value.nil? ? Integer(value) : nil
+          when :number
+            !value.nil? ? value : nil
+          when :set
+            !value.nil? ? Set.new(value) : nil
+          when :array
+            !value.nil? ? value : nil
+          when :datetime
+            !value.nil? ? format_datetime(value, options) : nil
+          when :date
+            !value.nil? ? format_date(value, options) : nil
+          when :serialized
+            options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
+          when :raw
+            !value.nil? ? value : nil
+          when :boolean
+            if !value.nil?
+              if options[:store_as_native_boolean]
+                !!value # native boolean type
               else
-                nil
+                value.to_s[0] # => "f" or "t"
               end
             else
-              raise ArgumentError, "Unknown type #{options[:type]}"
+              nil
+            end
+          else
+            raise ArgumentError, "Unknown type #{options[:type]}"
           end
         end
       end
@@ -202,12 +200,12 @@ module Dynamoid
           type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
         else
           case type
-            when :integer, :number, :datetime, :date
-              :number
-            when :string, :serialized
-              :string
-            else
-              raise 'unknown type'
+          when :integer, :number, :datetime, :date
+            :number
+          when :string, :serialized
+            :string
+          else
+            raise 'unknown type'
           end
         end
       end
@@ -310,12 +308,12 @@ module Dynamoid
         value = DateTime.iso8601(value).to_time.to_i if use_string_format
 
         case Dynamoid::Config.application_timezone
-          when :utc
-            ActiveSupport::TimeZone['UTC'].at(value).to_datetime
-          when :local
-            Time.at(value).to_datetime
-          when String
-            ActiveSupport::TimeZone[Dynamoid::Config.application_timezone].at(value).to_datetime
+        when :utc
+          ActiveSupport::TimeZone['UTC'].at(value).to_datetime
+        when :local
+          Time.at(value).to_datetime
+        when String
+          ActiveSupport::TimeZone[Dynamoid::Config.application_timezone].at(value).to_datetime
         end
       end
 
@@ -369,8 +367,8 @@ module Dynamoid
       self.class.create_table
 
       if new_record?
-        conditions = { unless_exists: [self.class.hash_key]}
-        conditions[:unless_exists] << range_key if(range_key)
+        conditions = { unless_exists: [self.class.hash_key] }
+        conditions[:unless_exists] << range_key if (range_key)
 
         run_callbacks(:create) { persist(conditions) }
       else
@@ -385,11 +383,11 @@ module Dynamoid
     #
     def update!(conditions = {}, &block)
       run_callbacks(:update) do
-        options = range_key ? {range_key: dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
+        options = range_key ? { range_key: dump_field(self.read_attribute(range_key), self.class.attributes[range_key]) } : {}
 
         begin
           new_attrs = Dynamoid.adapter.update_item(self.class.table_name, self.hash_key, options.merge(conditions: conditions)) do |t|
-            if(self.class.attributes[:lock_version])
+            if (self.class.attributes[:lock_version])
               t.add(lock_version: 1)
             end
 
@@ -427,11 +425,11 @@ module Dynamoid
     #
     # @since 0.2.0
     def delete
-      options = range_key ? {range_key: dump_field(self.read_attribute(range_key), self.class.attributes[range_key])} : {}
+      options = range_key ? { range_key: dump_field(self.read_attribute(range_key), self.class.attributes[range_key]) } : {}
 
       # Add an optimistic locking check if the lock_version column exists
-      if(self.class.attributes[:lock_version])
-        conditions = {if: {}}
+      if (self.class.attributes[:lock_version])
+        conditions = { if: {} }
         conditions[:if][:lock_version] =
           if changes[:lock_version].nil?
             self.lock_version
@@ -474,17 +472,17 @@ module Dynamoid
         self.hash_key = SecureRandom.uuid if self.hash_key.blank?
 
         # Add an exists check to prevent overwriting existing records with new ones
-        if(new_record?)
+        if (new_record?)
           conditions ||= {}
           (conditions[:unless_exists] ||= []) << self.class.hash_key
         end
 
         # Add an optimistic locking check if the lock_version column exists
-        if(self.class.attributes[:lock_version])
+        if (self.class.attributes[:lock_version])
           conditions ||= {}
           self.lock_version = (lock_version || 0) + 1
           # Uses the original lock_version value from ActiveModel::Dirty in case user changed lock_version manually
-          (conditions[:if] ||= {})[:lock_version] = changes[:lock_version][0] if(changes[:lock_version][0])
+          (conditions[:if] ||= {})[:lock_version] = changes[:lock_version][0] if (changes[:lock_version][0])
         end
 
         begin

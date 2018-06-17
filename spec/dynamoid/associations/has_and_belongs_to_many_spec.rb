@@ -1,8 +1,8 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe Dynamoid::Associations::HasAndBelongsToMany do
-  let(:subscription) {Subscription.create}
-  let(:camel_case) {CamelCase.create}
+  let(:subscription) { Subscription.create }
+  let(:camel_case) { CamelCase.create }
 
   it 'determines equality from its records' do
     user = subscription.users.create

@@ -8,7 +8,7 @@ module Dynamoid
       def create_tables
         results = { created: [], existing: [] }
         # We can't quite rely on Dynamoid.included_models alone, we need to select only viable models
-        Dynamoid.included_models.select{ |m| not m.base_class.try(:name).blank? }.uniq(&:table_name).each do |model|
+        Dynamoid.included_models.select { |m| not m.base_class.try(:name).blank? }.uniq(&:table_name).each do |model|
           if Dynamoid.adapter.list_tables.include? model.table_name
             results[:existing] << model.table_name
           else
@@ -24,7 +24,6 @@ module Dynamoid
         Dynamoid.adapter.list_tables
         true
       end
-
     end
   end
 end

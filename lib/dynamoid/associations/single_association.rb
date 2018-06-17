@@ -1,6 +1,6 @@
 # encoding: utf-8
-module Dynamoid #:nodoc:
 
+module Dynamoid #:nodoc:
   module Associations
     module SingleAssociation
       include Association
@@ -68,7 +68,7 @@ module Dynamoid #:nodoc:
         source.update_attribute(source_attribute, Set[hash_key])
       end
 
-      def disassociate(hash_key=nil)
+      def disassociate(hash_key = nil)
         source.update_attribute(source_attribute, nil)
       end
 

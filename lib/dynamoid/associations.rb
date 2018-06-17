@@ -1,4 +1,5 @@
 # encoding: utf-8
+
 require 'dynamoid/associations/association'
 require 'dynamoid/associations/single_association'
 require 'dynamoid/associations/many_association'
@@ -8,7 +9,6 @@ require 'dynamoid/associations/has_one'
 require 'dynamoid/associations/has_and_belongs_to_many'
 
 module Dynamoid
-
   # Connects models together through the magic of associations. We enjoy four different kinds of associations presently:
   #   * belongs_to
   #   * has_and_belongs_to_many
@@ -25,7 +25,6 @@ module Dynamoid
     end
 
     module ClassMethods
-
       # create a has_many association for this document.
       #
       # @param [Symbol] name the name of the association
@@ -109,7 +108,5 @@ module Dynamoid
         end
       end
     end
-
   end
-
 end

@@ -5,10 +5,10 @@ require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe Dynamoid::Associations::BelongsTo do
   context 'has many' do
-    let(:subscription) {Subscription.create}
-    let(:camel_case) {CamelCase.create}
-    let(:magazine) {subscription.magazine.create}
-    let(:user) {magazine.owner.create}
+    let(:subscription) { Subscription.create }
+    let(:camel_case) { CamelCase.create }
+    let(:magazine) { subscription.magazine.create }
+    let(:user) { magazine.owner.create }
 
     it 'determines nil if it has no associated record' do
       expect(subscription.magazine).to be_nil
@@ -37,10 +37,10 @@ describe Dynamoid::Associations::BelongsTo do
   end
 
   context 'has one' do
-    let(:subscription) {Subscription.create}
-    let(:sponsor) {Sponsor.create}
-    let(:magazine) {sponsor.magazine.create}
-    let(:user) {subscription.customer.create}
+    let(:subscription) { Subscription.create }
+    let(:sponsor) { Sponsor.create }
+    let(:magazine) { sponsor.magazine.create }
+    let(:user) { subscription.customer.create }
 
     it 'considers an association nil/blank if it has no associated record' do
       expect(sponsor.magazine).to be_nil

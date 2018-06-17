@@ -1,6 +1,6 @@
 # encoding: utf-8
-module Dynamoid #:nodoc:
 
+module Dynamoid #:nodoc:
   # The HasOne association.
   module Associations
     class HasOne
@@ -21,5 +21,4 @@ module Dynamoid #:nodoc:
       end
     end
   end
-
 end

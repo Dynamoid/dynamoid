@@ -1,6 +1,6 @@
 # encoding: utf-8
-module Dynamoid
 
+module Dynamoid
   # Provide ActiveModel validations to Dynamoid documents.
   module Validations
     extend ActiveSupport::Concern
@@ -35,7 +35,6 @@ module Dynamoid
     end
 
     module ClassMethods
-
       # Override validates_presence_of to handle false values as present.
       #
       # @since 1.1.1

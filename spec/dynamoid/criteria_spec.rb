@@ -1,8 +1,8 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Criteria do
-  let!(:user1) {User.create(name: 'Josh', email: 'josh@joshsymonds.com', admin: true)}
-  let!(:user2) {User.create(name: 'Justin', email: 'justin@joshsymonds.com', admin: false)}
+  let!(:user1) { User.create(name: 'Josh', email: 'josh@joshsymonds.com', admin: true) }
+  let!(:user2) { User.create(name: 'Justin', email: 'justin@joshsymonds.com', admin: false) }
 
   it 'finds first using where' do
     expect(User.where(name: 'Josh').first).to eq user1
@@ -62,14 +62,14 @@ describe Dynamoid::Criteria do
   end
 
   # TODO This test is broken using the AWS SDK adapter.
-  #it 'start with a record' do
+  # it 'start with a record' do
   #  5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }
   #  all = User.all
   #  User.start(all[3]).all.should eq(all[4..-1])
   #
   #  all = User.where(:name => 'Josh').all
   #  User.where(:name => 'Josh').start(all[3]).all.should eq(all[4..-1])
-  #end
+  # end
 
   it 'send consistent option to adapter' do
     pending 'This test is broken as we are overriding the consistent_read option to true inside the adapter'

@@ -1,11 +1,11 @@
 # encoding: utf-8
+
 require 'uri'
 require 'dynamoid/config/options'
 require 'dynamoid/config/backoff_strategies/constant_backoff'
 require 'dynamoid/config/backoff_strategies/exponential_backoff'
 
 module Dynamoid
-
   # Contains all the basic configuration information required for Dynamoid: both sensible defaults and required fields.
   module Config
     extend self

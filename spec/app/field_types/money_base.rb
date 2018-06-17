@@ -14,4 +14,3 @@ class MoneyBase
     '$%.2f' % @v.to_s('F')
   end
 end
-
