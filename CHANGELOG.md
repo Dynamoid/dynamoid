@@ -2,7 +2,8 @@
 
 ## Breaking
 
-* Improvement: [#267](https://github.com/Dynamoid/Dynamoid/pull/267) Upgrade AWS SDK to V3 (@andrykonchin)
+* Maintenace: [#267](https://github.com/Dynamoid/Dynamoid/pull/267) Upgrade AWS SDK to V3 (@andrykonchin)
+* Maintenace: [#268](https://github.com/Dynamoid/Dynamoid/pull/268) Drop support of old Ruby and Rails versions (@andrykonchin)
 
 ## Improvements
 
