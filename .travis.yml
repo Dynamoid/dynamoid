@@ -2,38 +2,16 @@ sudo: required
 
 language: ruby
 rvm:
-  - ruby-2.0.0-p648
-  - ruby-2.1.10
-  - ruby-2.2.7
-  - ruby-2.3.4
-  - ruby-2.4.1
-  - jruby-9.1.9.0
+  - ruby-2.3.7
+  - ruby-2.4.4
+  - ruby-2.5.1
+  - jruby-9.1.17.0
 gemfile:
 gemfile:
-  - gemfiles/rails_4_0.gemfile
-  - gemfiles/rails_4_1.gemfile
   - gemfiles/rails_4_2.gemfile
   - gemfiles/rails_5_0.gemfile
   - gemfiles/rails_5_1.gemfile
   - gemfiles/rails_5_2.gemfile
-matrix:
-  exclude:
-    - rvm: ruby-2.0.0-p648
-      gemfile: gemfiles/rails_5_0.gemfile
-    - rvm: ruby-2.0.0-p648
-      gemfile: gemfiles/rails_5_1.gemfile
-    - rvm: ruby-2.0.0-p648
-      gemfile: gemfiles/rails_5_2.gemfile
-    - rvm: ruby-2.1.10
-      gemfile: gemfiles/rails_5_0.gemfile
-    - rvm: ruby-2.1.10
-      gemfile: gemfiles/rails_5_1.gemfile
-    - rvm: ruby-2.1.10
-      gemfile: gemfiles/rails_5_2.gemfile
-    - rvm: ruby-2.4.1
-      gemfile: gemfiles/rails_4_0.gemfile
-    - rvm: ruby-2.4.1
-      gemfile: gemfiles/rails_4_1.gemfile
 
 ### BUILD LIFECYCLE STEPS ###
 
@@ -47,7 +25,7 @@ before_install:
   - docker ps
 
 after_install:
-  - gem install bundler -v 1.15.4
+  - gem install bundler -v 1.16.2
   - bundle install
 
 before_script:

@@ -261,7 +261,7 @@ describe Dynamoid::Finders do
         last_visit = Bar.create(name: 'Drank', visited_at: (time + 1.day).to_i)
 
         bars = Bar.find_all_by_secondary_index(
-            {name: 'Drank'}, range: {'visited_at.lte' => (time + 10.days).to_i}
+            {name: 'Drank'}, range: {'visited_at.lte': (time + 10.days).to_i}
         )
         first_bar = bars.first
         last_bar = bars.last
@@ -278,7 +278,7 @@ describe Dynamoid::Finders do
         last_visit = Bar.create(name: 'Drank', visited_at: time + 1.day)
         different_bar = Bar.create(name: 'Junk', visited_at: time + 7.days)
         bars = Bar.find_all_by_secondary_index(
-            {name: 'Drank'}, range: {'visited_at.lte' => (time + 10.days).to_i},
+            {name: 'Drank'}, range: {'visited_at.lte': (time + 10.days).to_i},
             scan_index_forward: false
         )
         first_bar = bars.first
@@ -321,7 +321,7 @@ describe Dynamoid::Finders do
           Post.create(post_id: 1, posted_at: time + 1.day, name: 'blog_post')
 
           posts = Post.find_all_by_secondary_index(
-            {post_id: '1'}, range: {'name.begins_with' => 'blog_'}
+            {post_id: '1'}, range: {'name.begins_with': 'blog_'}
           )
           expect(posts.map(&:name)).to eql ['blog_post']
         end
@@ -338,7 +338,7 @@ describe Dynamoid::Finders do
         it 'filters based on gt (greater than)' do
           posts = Post.find_all_by_secondary_index(
             {name: 'post'},
-            range: {'posted_at.gt' => time_to_decimal(@time + 1.day)}
+            range: {'posted_at.gt': time_to_decimal(@time + 1.day)}
           )
           expect(posts.map(&:post_id).sort).to eql ['3']
         end
@@ -346,7 +346,7 @@ describe Dynamoid::Finders do
         it 'filters based on lt (less than)' do
           posts = Post.find_all_by_secondary_index(
             {name: 'post'},
-            range: {'posted_at.lt' => time_to_decimal(@time + 1.day)}
+            range: {'posted_at.lt': time_to_decimal(@time + 1.day)}
           )
           expect(posts.map(&:post_id).sort).to eql ['1']
         end
@@ -354,7 +354,7 @@ describe Dynamoid::Finders do
         it 'filters based on gte (greater than or equal to)' do
           posts = Post.find_all_by_secondary_index(
             {name: 'post'},
-            range: {'posted_at.gte' => time_to_decimal(@time + 1.day)}
+            range: {'posted_at.gte': time_to_decimal(@time + 1.day)}
           )
           expect(posts.map(&:post_id).sort).to eql ['2', '3']
         end
@@ -362,7 +362,7 @@ describe Dynamoid::Finders do
         it 'filters based on lte (less than or equal to)' do
           posts = Post.find_all_by_secondary_index(
             {name: 'post'},
-            range: {'posted_at.lte' => time_to_decimal(@time + 1.day)}
+            range: {'posted_at.lte': time_to_decimal(@time + 1.day)}
           )
           expect(posts.map(&:post_id).sort).to eql ['1', '2']
         end
@@ -371,7 +371,7 @@ describe Dynamoid::Finders do
           between = [time_to_decimal(@time - 1.day), time_to_decimal(@time + 1.5.day)]
           posts = Post.find_all_by_secondary_index(
             {name: 'post'},
-            range: {'posted_at.between' => between}
+            range: {'posted_at.between': between}
           )
           expect(posts.map(&:post_id).sort).to eql ['1', '2']
         end
