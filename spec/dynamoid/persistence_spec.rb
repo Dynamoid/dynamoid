@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Persistence do
@@ -41,7 +43,7 @@ describe Dynamoid::Persistence do
         table name: :addresses
         field :city
 
-        before_destroy { |i|
+        before_destroy do |_i|
           # Halting the callback chain in active record changed with Rails >= 5.0.0.beta1
           # We now have to throw :abort to halt the callback chain
           # See: https://github.com/rails/rails/commit/bb78af73ab7e86fd9662e8810e346b082a1ae193
@@ -50,7 +52,7 @@ describe Dynamoid::Persistence do
           else
             throw :abort
           end
-        }
+        end
       end
     end
 
@@ -183,13 +185,13 @@ describe Dynamoid::Persistence do
   end
 
   it 'keeps raw Hash attributes as a Hash' do
-    config = { acres: 5, trees: { cyprus: 30, poplar: 10, joshua: 1 }, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1 }
+    config = { acres: 5, trees: { cyprus: 30, poplar: 10, joshua: 1 }, horses: %w[Lucky Dummy], lake: 1, tennis_court: 1 }
     @addr = Address.new(config: config)
     expect(@addr.send(:dump)[:config]).to eq config
   end
 
   it 'keeps raw Array attributes as an Array' do
-    config = ['windows', 'roof', 'doors']
+    config = %w[windows roof doors]
     @addr = Address.new(config: config)
     expect(@addr.send(:dump)[:config]).to eq config
   end
@@ -280,7 +282,7 @@ describe Dynamoid::Persistence do
 
     # check internal format - days since 1970-01-01
     expect(Address.find(address.id).send(:dump)[:registered_on])
-      .to eq ('2017-06-18'.to_date - Date.new(1970, 1, 1)).to_i
+      .to eq(('2017-06-18'.to_date - Date.new(1970, 1, 1)).to_i)
   end
 
   it 'dumps integer attributes' do
@@ -313,7 +315,7 @@ describe Dynamoid::Persistence do
   end
 
   it 'dumps and undumps a BigDecimal in number field' do
-    expect(Address.undump(Address.new(latitude: BigDecimal.new(123.45, 3)).send(:dump))[:latitude]).to eq 123
+    expect(Address.undump(Address.new(latitude: BigDecimal(123.45, 3)).send(:dump))[:latitude]).to eq 123
   end
 
   it 'dumps and undumps a date' do
@@ -368,8 +370,8 @@ describe Dynamoid::Persistence do
     end
   end
 
-  describe "Boolean field" do
-    context "stored in string format" do
+  describe 'Boolean field' do
+    context 'stored in string format' do
       let(:klass) do
         new_class do
           field :active, :boolean
@@ -379,48 +381,48 @@ describe Dynamoid::Persistence do
       it "saves false as 'f'" do
         obj = klass.create(active: false)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:active]).to eq "f"
+        expect(attributes[:active]).to eq 'f'
       end
 
       it "saves 'f' as 'f'" do
-        obj = klass.create(active: "f")
+        obj = klass.create(active: 'f')
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:active]).to eq "f"
+        expect(attributes[:active]).to eq 'f'
       end
 
       it "saves true as 't'" do
         obj = klass.create(active: true)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:active]).to eq "t"
+        expect(attributes[:active]).to eq 't'
       end
 
       it "saves 't' as 't'" do
         obj = klass.create(active: 't')
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:active]).to eq "t"
+        expect(attributes[:active]).to eq 't'
       end
     end
 
-    context "stored in boolean format" do
+    context 'stored in boolean format' do
       let(:klass) do
         new_class do
           field :active, :boolean, store_as_native_boolean: true
         end
       end
 
-      it "saves false as false" do
+      it 'saves false as false' do
         obj = klass.create(active: false)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
         expect(attributes[:active]).to eq false
       end
 
-      it "saves true as true" do
+      it 'saves true as true' do
         obj = klass.create(active: true)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
         expect(attributes[:active]).to eq true
       end
 
-      it "saves and loads boolean field correctly" do
+      it 'saves and loads boolean field correctly' do
         obj = klass.create(active: true)
         expect(klass.find(obj.hash_key).active).to eq true
 
@@ -430,44 +432,44 @@ describe Dynamoid::Persistence do
     end
   end
 
-  describe "Datetime field" do
-    context "Stored in :number format" do
+  describe 'Datetime field' do
+    context 'Stored in :number format' do
       let(:klass) do
         new_class do
           field :sent_at, :datetime
         end
       end
 
-      it "saves time as :number" do
+      it 'saves time as :number' do
         time = Time.now
         obj = klass.create(sent_at: time)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq BigDecimal("%d.%09d" % [time.to_i, time.nsec])
+        expect(attributes[:sent_at]).to eq BigDecimal(format('%d.%09d', time.to_i, time.nsec))
       end
 
-      it "saves date as :number" do
+      it 'saves date as :number' do
         date = Date.today
         obj = klass.create(sent_at: date)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq BigDecimal("%d.%09d" % [date.to_time.to_i, date.to_time.nsec])
+        expect(attributes[:sent_at]).to eq BigDecimal(format('%d.%09d', date.to_time.to_i, date.to_time.nsec))
       end
     end
 
-    context "Stored in :string format" do
+    context 'Stored in :string format' do
       let(:klass) do
         new_class do
-          field :sent_at, :datetime, { store_as_string: true }
+          field :sent_at, :datetime, store_as_string: true
         end
       end
 
-      it "saves time as a :string" do
+      it 'saves time as a :string' do
         time = Time.now
         obj = klass.create(sent_at: time)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
         expect(attributes[:sent_at]).to eq time.iso8601
       end
 
-      it "saves date as :string" do
+      it 'saves date as :string' do
         date = Date.today
         obj = klass.create(sent_at: date)
         attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
@@ -550,26 +552,26 @@ describe Dynamoid::Persistence do
     end
   end
 
-  describe "Set field" do
+  describe 'Set field' do
     let(:klass) do
       new_class do
         field :string_set, :set
-        field :integer_set, :set, { of: :integer }
-        field :number_set, :set, { of: :number }
+        field :integer_set, :set, of: :integer
+        field :number_set, :set, of: :number
       end
     end
 
-    it "stored a string set" do
-      obj = klass.create(string_set: Set.new(['a', 'b']))
-      expect(obj.reload[:string_set]).to eq(Set.new(['a', 'b']))
+    it 'stored a string set' do
+      obj = klass.create(string_set: Set.new(%w[a b]))
+      expect(obj.reload[:string_set]).to eq(Set.new(%w[a b]))
     end
 
-    it "stored an integer set" do
+    it 'stored an integer set' do
       obj = klass.create(integer_set: Set.new([1, 2]))
       expect(obj.reload[:integer_set]).to eq(Set.new([1, 2]))
     end
 
-    it "stored a number set" do
+    it 'stored a number set' do
       obj = klass.create(number_set: Set.new([1, 2]))
       expect(obj.reload[:number_set]).to eq(Set.new([BigDecimal(1), BigDecimal(2)]))
     end
@@ -591,7 +593,7 @@ describe Dynamoid::Persistence do
 
   it 'loads attributes from a hash' do
     @time = DateTime.now
-    @hash = { name: 'Josh', created_at: BigDecimal("%d.%09d" % [@time.to_i, @time.nsec]) }
+    @hash = { name: 'Josh', created_at: BigDecimal(format('%d.%09d', @time.to_i, @time.nsec)) }
 
     expect(User.undump(@hash)[:name]).to eq 'Josh'
     expect(User.undump(@hash)[:created_at]).to eq @time
@@ -679,7 +681,7 @@ describe Dynamoid::Persistence do
 
   context 'update' do
     before :each do
-      @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(['db', 'sql']), user_name: 'john')
+      @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'john')
     end
 
     it 'runs before_update callbacks when doing #update' do
@@ -791,10 +793,10 @@ describe Dynamoid::Persistence do
       c = car
       s = sub
 
-      Vehicle.all.to_a.tap { |v|
+      Vehicle.all.to_a.tap do |v|
         expect(v).to include(c)
         expect(v).to include(s)
-      }
+      end
     end
 
     it 'does not load parent item when quering the child table' do
@@ -813,10 +815,10 @@ describe Dynamoid::Persistence do
   end
 
   describe ':raw datatype persistence' do
-    subject { Address.new() }
+    subject { Address.new }
 
     it 'it persists raw Hash and reads the same back' do
-      config = { acres: 5, trees: { cyprus: 30, poplar: 10, joshua: 1 }, horses: ['Lucky', 'Dummy'], lake: 1, tennis_court: 1 }
+      config = { acres: 5, trees: { cyprus: 30, poplar: 10, joshua: 1 }, horses: %w[Lucky Dummy], lake: 1, tennis_court: 1 }
       subject.config = config
       subject.save!
       subject.reload
@@ -824,7 +826,7 @@ describe Dynamoid::Persistence do
     end
 
     it 'it persists raw Array and reads the same back' do
-      config = ['windows', 'doors', 'roof']
+      config = %w[windows doors roof]
       subject.config = config
       subject.save!
       subject.reload
@@ -867,7 +869,9 @@ describe Dynamoid::Persistence do
     context 'when Money can load itself and Money instances can dump themselves with Dynamoid-specific methods' do
       let(:doc_class) do
         Class.new do
-          def self.name; 'Doc'; end
+          def self.name
+            'Doc'
+          end
 
           include Dynamoid::Document
 
@@ -876,7 +880,7 @@ describe Dynamoid::Persistence do
       end
 
       before(:each) do
-        subject.price = MoneyInstanceDump.new(BigDecimal.new('5'))
+        subject.price = MoneyInstanceDump.new(BigDecimal('5'))
         subject.save!
       end
 
@@ -893,7 +897,9 @@ describe Dynamoid::Persistence do
     context 'when MoneyAdapter dumps/loads a class that does not directly support Dynamoid\'s interface' do
       let(:doc_class) do
         Class.new do
-          def self.name; 'Doc'; end
+          def self.name
+            'Doc'
+          end
 
           include Dynamoid::Document
 
@@ -902,7 +908,7 @@ describe Dynamoid::Persistence do
       end
 
       before(:each) do
-        subject.price = Money.new(BigDecimal.new('5'))
+        subject.price = Money.new(BigDecimal('5'))
         subject.save!
         subject.reload
       end
@@ -924,7 +930,9 @@ describe Dynamoid::Persistence do
     context 'when Money has Dynamoid-specific serialization methods and is a range' do
       let(:doc_class) do
         Class.new do
-          def self.name; 'Doc'; end
+          def self.name
+            'Doc'
+          end
 
           include Dynamoid::Document
 
@@ -933,7 +941,7 @@ describe Dynamoid::Persistence do
       end
 
       before(:each) do
-        subject.price = MoneyAsNumber.new(BigDecimal.new('5'))
+        subject.price = MoneyAsNumber.new(BigDecimal('5'))
         subject.save!
       end
 
@@ -958,9 +966,9 @@ describe Dynamoid::Persistence do
     end
 
     it 'creates multiple documents' do
-      expect {
+      expect do
         Address.import([{ city: 'Chicago' }, { city: 'New York' }])
-      }.to change { Address.count }.by(2)
+      end.to change { Address.count }.by(2)
     end
 
     it 'returns created documents' do
@@ -975,7 +983,9 @@ describe Dynamoid::Persistence do
         field :city
         validates :city, presence: true
 
-        def self.name; 'Address'; end
+        def self.name
+          'Address'
+        end
       end
 
       addresses = klass.import([{ city: nil }, { city: 'Chicago' }])
@@ -989,7 +999,9 @@ describe Dynamoid::Persistence do
         field :city
         validates :city, presence: true
 
-        def self.name; 'Address'; end
+        def self.name
+          'Address'
+        end
 
         before_save { raise 'before save callback called' }
       end
@@ -1064,9 +1076,9 @@ describe Dynamoid::Persistence do
       end
 
       it 'creates multiple documents' do
-        expect {
+        expect do
           Address.import([{ city: 'Chicago' }, { city: 'New York' }])
-        }.to change { Address.count }.by(2)
+        end.to change { Address.count }.by(2)
       end
 
       it 'uses specified backoff when some items are not processed' do

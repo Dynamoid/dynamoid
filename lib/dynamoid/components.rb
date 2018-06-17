@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 module Dynamoid
   # All modules that a Document is composed of are defined in this

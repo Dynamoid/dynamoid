@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 # Shamelessly stolen from Mongoid!
-module Dynamoid #:nodoc
+module Dynamoid
   module Config
     # Encapsulates logic for setting options.
     module Options
@@ -29,7 +31,7 @@ module Dynamoid #:nodoc
       def option(name, options = {})
         defaults[name] = settings[name] = options[:default]
 
-        class_eval <<-RUBY
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{name}
             settings[#{name.inspect}]
           end

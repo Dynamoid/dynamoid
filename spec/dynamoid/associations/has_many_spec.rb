@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe Dynamoid::Associations::HasMany do
@@ -82,9 +84,9 @@ describe Dynamoid::Associations::HasMany do
       magazine_new = Magazine.create
       magazine_old.subscriptions << subscription
 
-      expect {
+      expect do
         magazine_new.subscriptions << subscription
-      }.to change { magazine_new.subscriptions.to_a }.from([]).to([subscription])
+      end.to change { magazine_new.subscriptions.to_a }.from([]).to([subscription])
     end
 
     it 're-associates new model on that side' do
@@ -92,9 +94,9 @@ describe Dynamoid::Associations::HasMany do
       magazine_new = Magazine.create
       magazine_old.subscriptions << subscription
 
-      expect {
+      expect do
         magazine_new.subscriptions << subscription
-      }.to change { subscription.magazine.target }.from(magazine_old).to(magazine_new)
+      end.to change { subscription.magazine.target }.from(magazine_old).to(magazine_new)
     end
 
     it 'deletes previous model from association' do
@@ -102,9 +104,9 @@ describe Dynamoid::Associations::HasMany do
       magazine_new = Magazine.create
       magazine_old.subscriptions << subscription
 
-      expect {
+      expect do
         magazine_new.subscriptions << subscription
-      }.to change { Magazine.find(magazine_old.title).subscriptions.to_a }.from([subscription]).to([])
+      end.to change { Magazine.find(magazine_old.title).subscriptions.to_a }.from([subscription]).to([])
     end
   end
 
@@ -113,18 +115,18 @@ describe Dynamoid::Associations::HasMany do
       magazine = Magazine.create
       subscription = magazine.subscriptions.create
 
-      expect {
+      expect do
         magazine.subscriptions.delete(subscription)
-      }.to change { magazine.subscriptions.target }.from([subscription]).to([])
+      end.to change { magazine.subscriptions.target }.from([subscription]).to([])
     end
 
     it 'persists changes on this side' do
       magazine = Magazine.create
       subscription = magazine.subscriptions.create
 
-      expect {
+      expect do
         magazine.subscriptions.delete(subscription)
-      }.to change { Magazine.find(magazine.title).subscriptions.target }.from([subscription]).to([])
+      end.to change { Magazine.find(magazine.title).subscriptions.target }.from([subscription]).to([])
     end
 
     context 'belongs to' do
@@ -132,15 +134,15 @@ describe Dynamoid::Associations::HasMany do
       let!(:subscription) { magazine.subscriptions.create }
 
       it 'clears association on that side' do
-        expect {
+        expect do
           magazine.subscriptions.delete(subscription)
-        }.to change { magazine.subscriptions.target }.from([subscription]).to([])
+        end.to change { magazine.subscriptions.target }.from([subscription]).to([])
       end
 
       it 'persists changes on that side' do
-        expect {
+        expect do
           magazine.subscriptions.delete(subscription)
-        }.to change { Magazine.find(magazine.title).subscriptions.target }.from([subscription]).to([])
+        end.to change { Magazine.find(magazine.title).subscriptions.target }.from([subscription]).to([])
       end
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # require only 'concurrent/atom' once this issue is resolved:
 #   https://github.com/ruby-concurrency/concurrent-ruby/pull/377
 require 'concurrent'
@@ -15,8 +17,8 @@ module Dynamoid
     end
 
     def tables
-      if !@tables_.value
-        @tables_.swap { |value, args| benchmark('Cache Tables') { list_tables || [] } }
+      unless @tables_.value
+        @tables_.swap { |_value, _args| benchmark('Cache Tables') { list_tables || [] } }
       end
       @tables_.value
     end
@@ -25,7 +27,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def adapter
-      if !@adapter_.value
+      unless @adapter_.value
         adapter = self.class.adapter_plugin_class.new
         adapter.connect! if adapter.respond_to?(:connect!)
         @adapter_.compare_and_set(nil, adapter)
@@ -35,7 +37,7 @@ module Dynamoid
     end
 
     def clear_cache!
-      @tables_.swap { |value, args| nil }
+      @tables_.swap { |_value, _args| nil }
     end
 
     # Shows how long it takes a method to run on the adapter. Useful for generating logged output.
@@ -51,7 +53,7 @@ module Dynamoid
       start = Time.now
       result = yield
       Dynamoid.logger.debug "(#{((Time.now - start) * 1000.0).round(2)} ms) #{method.to_s.split('_').collect(&:upcase).join(' ')}#{" - #{args.inspect}" unless args.nil? || args.empty?}"
-      return result
+      result
     end
 
     # Write an object to the adapter.
@@ -100,12 +102,12 @@ module Dynamoid
     def delete(table, ids, options = {})
       range_key = options[:range_key] # array of range keys that matches the ids passed in
       if ids.respond_to?(:each)
-        if range_key.respond_to?(:each)
-          # turn ids into array of arrays each element being hash_key, range_key
-          ids = ids.each_with_index.map { |id, i| [id, range_key[i]] }
-        else
-          ids = range_key ? ids.map { |id| [id, range_key] } : ids
-        end
+        ids = if range_key.respond_to?(:each)
+                # turn ids into array of arrays each element being hash_key, range_key
+                ids.each_with_index.map { |id, i| [id, range_key[i]] }
+              else
+                range_key ? ids.map { |id| [id, range_key] } : ids
+              end
 
         batch_delete_item(table => ids)
       else
@@ -124,7 +126,7 @@ module Dynamoid
     end
 
     def create_table(table_name, key, options = {})
-      if !tables.include?(table_name)
+      unless tables.include?(table_name)
         benchmark('Create Table') { adapter.create_table(table_name, key, options) }
         tables << table_name
       end
@@ -139,15 +141,15 @@ module Dynamoid
       end
     end
 
-    [:batch_get_item, :delete_item, :get_item, :list_tables, :put_item, :truncate, :batch_write_item, :batch_delete_item].each do |m|
+    %i[batch_get_item delete_item get_item list_tables put_item truncate batch_write_item batch_delete_item].each do |m|
       # Method delegation with benchmark to the underlying adapter. Faster than relying on method_missing.
       #
       # @since 0.2.0
       define_method(m) do |*args, &blk|
         if blk.present?
-          benchmark("#{m.to_s}", *args) { adapter.send(m, *args, &blk) }
+          benchmark(m.to_s, *args) { adapter.send(m, *args, &blk) }
         else
-          benchmark("#{m.to_s}", *args) { adapter.send(m, *args) }
+          benchmark(m.to_s, *args) { adapter.send(m, *args) }
         end
       end
     end
@@ -178,8 +180,6 @@ module Dynamoid
     def query(table_name, opts = {})
       adapter.query(table_name, opts)
     end
-
-    private
 
     def self.adapter_plugin_class
       unless Dynamoid.const_defined?(:AdapterPlugin) && Dynamoid::AdapterPlugin.const_defined?(Dynamoid::Config.adapter.camelcase)

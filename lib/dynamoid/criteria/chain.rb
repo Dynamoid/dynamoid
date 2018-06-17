@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 module Dynamoid #:nodoc:
   module Criteria
@@ -6,7 +6,7 @@ module Dynamoid #:nodoc:
     # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
     class Chain
       # TODO: Should we transform any other types of query values?
-      TYPES_TO_DUMP_FOR_QUERY = [:string, :integer, :boolean, :serialized]
+      TYPES_TO_DUMP_FOR_QUERY = %i[string integer boolean serialized].freeze
       attr_accessor :query, :source, :values, :consistent_read
       attr_reader :hash_key, :range_key, :index_name
       include Enumerable
@@ -79,18 +79,16 @@ module Dynamoid #:nodoc:
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
-
-          Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
         else
           Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
-
-          Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
         end
+
+        Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
       end
-      alias_method :destroy_all, :delete_all
+      alias destroy_all delete_all
 
       # The record limit is the limit of evaluated records returned by the
       # query or scan.
@@ -219,9 +217,9 @@ module Dynamoid #:nodoc:
                  { contains: val }
                when 'not_contains'
                  { not_contains: val }
-        end
+               end
 
-        return { name.to_sym => hash }
+        { name.to_sym => hash }
       end
 
       def consistent_opts
@@ -263,7 +261,7 @@ module Dynamoid #:nodoc:
       end
 
       def type_cast_condition_parameter(key, value)
-        return value if [:array, :set].include?(source.attributes[key.to_sym][:type])
+        return value if %i[array set].include?(source.attributes[key.to_sym][:type])
 
         if !value.respond_to?(:to_ary)
           source.dump_field(value, source.attributes[key.to_sym])

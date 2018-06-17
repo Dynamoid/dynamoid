@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support'
 require 'active_support/core_ext/object'
 
@@ -86,9 +88,9 @@ describe Dynamoid::Associations::BelongsTo do
         magazine_new = Magazine.create
         subscription.magazine = magazine_old
 
-        expect {
+        expect do
           subscription.magazine = magazine_new
-        }.to change { subscription.magazine.target }.from(magazine_old).to(magazine_new)
+        end.to change { subscription.magazine.target }.from(magazine_old).to(magazine_new)
       end
 
       it 're-associates model on that side' do
@@ -96,9 +98,9 @@ describe Dynamoid::Associations::BelongsTo do
         magazine_new = Magazine.create
         subscription.magazine = magazine_old
 
-        expect {
+        expect do
           subscription.magazine = magazine_new
-        }.to change { magazine_new.subscriptions.target }.from([]).to([subscription])
+        end.to change { magazine_new.subscriptions.target }.from([]).to([subscription])
       end
 
       it 'deletes previous model from association' do
@@ -106,9 +108,9 @@ describe Dynamoid::Associations::BelongsTo do
         magazine_new = Magazine.create
         subscription.magazine = magazine_old
 
-        expect {
+        expect do
           subscription.magazine = magazine_new
-        }.to change { magazine_old.subscriptions.to_a }.from([subscription]).to([])
+        end.to change { magazine_old.subscriptions.to_a }.from([subscription]).to([])
       end
 
       it 'stores the same object on this side' do
@@ -148,9 +150,9 @@ describe Dynamoid::Associations::BelongsTo do
         magazine_new = Magazine.create
         sponsor.magazine = magazine_old
 
-        expect {
+        expect do
           sponsor.magazine = magazine_new
-        }.to change { sponsor.magazine.target }.from(magazine_old).to(magazine_new)
+        end.to change { sponsor.magazine.target }.from(magazine_old).to(magazine_new)
       end
 
       it 're-associates model on this side' do
@@ -158,9 +160,9 @@ describe Dynamoid::Associations::BelongsTo do
         magazine_new = Magazine.create
         sponsor.magazine = magazine_old
 
-        expect {
+        expect do
           sponsor.magazine = magazine_new
-        }.to change { magazine_new.sponsor.target }.from(nil).to(sponsor)
+        end.to change { magazine_new.sponsor.target }.from(nil).to(sponsor)
       end
 
       it 'deletes previous model from association' do
@@ -168,9 +170,9 @@ describe Dynamoid::Associations::BelongsTo do
         magazine_new = Magazine.create
         sponsor.magazine = magazine_old
 
-        expect {
+        expect do
           sponsor.magazine = magazine_new
-        }.to change { magazine_old.sponsor.target }.from(sponsor).to(nil)
+        end.to change { magazine_old.sponsor.target }.from(sponsor).to(nil)
       end
 
       it 'stores the same object on this side' do
@@ -204,10 +206,10 @@ describe Dynamoid::Associations::BelongsTo do
       magazine = Magazine.create!
       subscription = Subscription.create!(magazine: magazine)
 
-      expect {
+      expect do
         subscription.magazine = nil
         subscription.save!
-      }.to change {
+      end.to change {
         Subscription.find(subscription.id).magazine.target
       }.from(magazine).to(nil)
     end
@@ -216,10 +218,10 @@ describe Dynamoid::Associations::BelongsTo do
       magazine = Magazine.create!
       subscription = Subscription.create!(magazine: magazine)
 
-      expect {
+      expect do
         subscription.magazine = nil
         subscription.save!
-      }.to change {
+      end.to change {
         Magazine.find(magazine.title).subscriptions.to_a
       }.from([subscription]).to([])
     end
@@ -230,18 +232,18 @@ describe Dynamoid::Associations::BelongsTo do
       subscription = Subscription.create
       magazine = subscription.magazine.create
 
-      expect {
+      expect do
         subscription.magazine.delete
-      }.to change { subscription.magazine.target }.from(magazine).to(nil)
+      end.to change { subscription.magazine.target }.from(magazine).to(nil)
     end
 
     it 'persists changes on this side' do
       subscription = Subscription.create
       magazine = subscription.magazine.create
 
-      expect {
+      expect do
         subscription.magazine.delete
-      }.to change { Subscription.find(subscription.id).magazine.target }.from(magazine).to(nil)
+      end.to change { Subscription.find(subscription.id).magazine.target }.from(magazine).to(nil)
     end
 
     context 'has many' do
@@ -249,15 +251,15 @@ describe Dynamoid::Associations::BelongsTo do
       let!(:magazine) { subscription.magazine.create }
 
       it 'clears association on that side' do
-        expect {
+        expect do
           subscription.magazine.delete
-        }.to change { magazine.subscriptions.target }.from([subscription]).to([])
+        end.to change { magazine.subscriptions.target }.from([subscription]).to([])
       end
 
       it 'persists changes on that side' do
-        expect {
+        expect do
           subscription.magazine.delete
-        }.to change { Magazine.find(magazine.title).subscriptions.target }.from([subscription]).to([])
+        end.to change { Magazine.find(magazine.title).subscriptions.target }.from([subscription]).to([])
       end
     end
 
@@ -266,15 +268,15 @@ describe Dynamoid::Associations::BelongsTo do
       let!(:magazine) { sponsor.magazine.create }
 
       it 'clears association on that side' do
-        expect {
+        expect do
           sponsor.magazine.delete
-        }.to change { magazine.sponsor.target }.from(sponsor).to(nil)
+        end.to change { magazine.sponsor.target }.from(sponsor).to(nil)
       end
 
       it 'persists changes on that side' do
-        expect {
+        expect do
           sponsor.magazine.delete
-        }.to change { Magazine.find(magazine.title).sponsor.target }.from(sponsor).to(nil)
+        end.to change { Magazine.find(magazine.title).sponsor.target }.from(sponsor).to(nil)
       end
     end
   end
@@ -286,19 +288,23 @@ describe Dynamoid::Associations::BelongsTo do
       @file_class = file_class = new_class(table_name: :files) do
         belongs_to :directory, class: directory_class, foreign_key: :directory_id
 
-        def self.to_s; 'File' end
+        def self.to_s
+          'File'
+        end
       end
 
       @directory_class.instance_eval do
         has_many :files, class: file_class
 
-        def self.to_s; 'Directory' end
+        def self.to_s
+          'Directory'
+        end
       end
     end
 
     it 'specifies field name' do
       file = @file_class.new
-      expect(file.respond_to? :directory_id).to eq(true)
+      expect(file.respond_to?(:directory_id)).to eq(true)
     end
 
     it 'forces to store :id as a scalar value and not as collection' do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Dynamoid
   module IdentityMap
     extend ActiveSupport::Concern
@@ -36,18 +38,12 @@ module Dynamoid
           key += "::#{range_key}"
         end
 
-        if identity_map[key]
-          identity_map[key]
-        else
-          super
-        end
+        identity_map[key] || super
       end
 
       def identity_map_key(attrs)
         key = attrs[hash_key].to_s
-        if range_key
-          key += "::#{attrs[range_key]}"
-        end
+        key += "::#{attrs[range_key]}" if range_key
         key
       end
 
@@ -82,9 +78,7 @@ module Dynamoid
 
     def identity_map_key
       key = hash_key.to_s
-      if self.class.range_key
-        key += "::#{range_value}"
-      end
+      key += "::#{range_value}" if self.class.range_key
       key
     end
   end

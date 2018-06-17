@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Dynamoid::Indexes do
@@ -352,7 +354,7 @@ describe Dynamoid::Indexes do
               name: :mont_blanc,
               hash_key: :secondary_hash_field,
               type: :global_secondary,
-              projected_attributes: [:secondary_hash_field, :array_field],
+              projected_attributes: %i[secondary_hash_field array_field],
               read_capacity: 100,
               write_capacity: 200
             )
@@ -366,7 +368,7 @@ describe Dynamoid::Indexes do
             expect(other_index.read_capacity).to eq(100)
             expect(other_index.write_capacity).to eq(200)
             expect(other_index.projected_attributes).to eq(
-              [:secondary_hash_field, :array_field]
+              %i[secondary_hash_field array_field]
             )
           end
         end
@@ -391,7 +393,7 @@ describe Dynamoid::Indexes do
           dynamoid_class: doc_class,
           hash_key: :secondary_hash_field,
           type: :global_secondary,
-          projected_attributes: [:secondary_hash_field, :array_field]
+          projected_attributes: %i[secondary_hash_field array_field]
         ).projection_type
         expect(projection_include).to eq(:include)
       end

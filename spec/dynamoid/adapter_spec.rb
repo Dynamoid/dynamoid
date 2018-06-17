@@ -1,11 +1,15 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Adapter do
   subject { described_class.new }
 
-  def test_table; 'dynamoid_tests_TestTable'; end
+  def test_table
+    'dynamoid_tests_TestTable'
+  end
   let(:single_id) { '123' }
-  let(:many_ids) { %w(1 2) }
+  let(:many_ids) { %w[1 2] }
 
   {
     1 => [:id],
@@ -99,9 +103,9 @@ describe Dynamoid::Adapter do
       Dynamoid.adapter.put_item(test_table1, id: '1')
       Dynamoid.adapter.put_item(test_table1, id: '2')
 
-      expect {
+      expect do
         subject.delete(test_table1, '1')
-      }.to change {
+      end.to change {
         Dynamoid.adapter.scan(test_table1).to_a.size
       }.from(2).to(1)
 
@@ -113,9 +117,9 @@ describe Dynamoid::Adapter do
       Dynamoid.adapter.put_item(test_table1, id: '2')
       Dynamoid.adapter.put_item(test_table1, id: '3')
 
-      expect {
-        subject.delete(test_table1, ['1', '2'])
-      }.to change {
+      expect do
+        subject.delete(test_table1, %w[1 2])
+      end.to change {
         Dynamoid.adapter.scan(test_table1).to_a.size
       }.from(3).to(1)
 
@@ -127,9 +131,9 @@ describe Dynamoid::Adapter do
       Dynamoid.adapter.put_item(test_table3, id: '1', range: 1.0)
       Dynamoid.adapter.put_item(test_table3, id: '2', range: 2.0)
 
-      expect {
+      expect do
         subject.delete(test_table3, '1', range_key: 1.0)
-      }.to change {
+      end.to change {
         Dynamoid.adapter.scan(test_table3).to_a.size
       }.from(2).to(1)
 
@@ -144,9 +148,9 @@ describe Dynamoid::Adapter do
 
       expect(subject).to receive(:batch_delete_item).and_call_original
 
-      expect {
-        subject.delete(test_table3, ['1', '2'], range_key: 1.0)
-      }.to change {
+      expect do
+        subject.delete(test_table3, %w[1 2], range_key: 1.0)
+      end.to change {
         Dynamoid.adapter.scan(test_table3).to_a.size
       }.from(4).to(2)
 

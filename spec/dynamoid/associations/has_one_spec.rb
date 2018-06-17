@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support'
 require 'active_support/core_ext/object'
 
@@ -73,9 +75,9 @@ describe Dynamoid::Associations::HasOne do
         sponsor_new = Sponsor.create
         magazine.sponsor = sponsor_old
 
-        expect {
+        expect do
           magazine.sponsor = sponsor_new
-        }.to change { magazine.sponsor.target }.from(sponsor_old).to(sponsor_new)
+        end.to change { magazine.sponsor.target }.from(sponsor_old).to(sponsor_new)
       end
 
       it 're-associates model on that side' do
@@ -83,9 +85,9 @@ describe Dynamoid::Associations::HasOne do
         sponsor_new = Sponsor.create
 
         magazine.sponsor = sponsor_old
-        expect {
+        expect do
           magazine.sponsor = sponsor_new
-        }.to change { sponsor_new.magazine.target }.from(nil).to(magazine)
+        end.to change { sponsor_new.magazine.target }.from(nil).to(magazine)
       end
 
       it 'deletes previous model from association' do
@@ -93,9 +95,9 @@ describe Dynamoid::Associations::HasOne do
         sponsor_new = Sponsor.create
 
         magazine.sponsor = sponsor_old
-        expect {
+        expect do
           magazine.sponsor = sponsor_new
-        }.to change { sponsor_old.magazine.target }.from(magazine).to(nil)
+        end.to change { sponsor_old.magazine.target }.from(magazine).to(nil)
       end
 
       it 'stores the same object on this side' do
@@ -129,10 +131,10 @@ describe Dynamoid::Associations::HasOne do
       sponsor = Sponsor.create!
       magazine = Magazine.create!(sponsor: sponsor)
 
-      expect {
+      expect do
         magazine.sponsor = nil
         magazine.save!
-      }.to change {
+      end.to change {
         Magazine.find(magazine.title).sponsor.target
       }.from(sponsor).to(nil)
     end
@@ -141,10 +143,10 @@ describe Dynamoid::Associations::HasOne do
       sponsor = Sponsor.create!
       magazine = Magazine.create!(sponsor: sponsor)
 
-      expect {
+      expect do
         magazine.sponsor = nil
         magazine.save!
-      }.to change {
+      end.to change {
         Sponsor.find(sponsor.id).magazine.target
       }.from(magazine).to(nil)
     end
@@ -155,18 +157,18 @@ describe Dynamoid::Associations::HasOne do
       magazine = Magazine.create
       sponsor = magazine.sponsor.create
 
-      expect {
+      expect do
         magazine.sponsor.delete
-      }.to change { magazine.sponsor.target }.from(sponsor).to(nil)
+      end.to change { magazine.sponsor.target }.from(sponsor).to(nil)
     end
 
     it 'persists changes on this side' do
       magazine = Magazine.create
       sponsor = magazine.sponsor.create
 
-      expect {
+      expect do
         magazine.sponsor.delete
-      }.to change { Magazine.find(magazine.title).sponsor.target }.from(sponsor).to(nil)
+      end.to change { Magazine.find(magazine.title).sponsor.target }.from(sponsor).to(nil)
     end
 
     context 'belongs to' do
@@ -174,15 +176,15 @@ describe Dynamoid::Associations::HasOne do
       let!(:sponsor) { magazine.sponsor.create }
 
       it 'clears association on that side' do
-        expect {
+        expect do
           magazine.sponsor.delete
-        }.to change { sponsor.magazine.target }.from(magazine).to(nil)
+        end.to change { sponsor.magazine.target }.from(magazine).to(nil)
       end
 
       it 'persists changes on that side' do
-        expect {
+        expect do
           magazine.sponsor.delete
-        }.to change { Sponsor.find(sponsor.id).magazine.target }.from(magazine).to(nil)
+        end.to change { Sponsor.find(sponsor.id).magazine.target }.from(magazine).to(nil)
       end
     end
   end

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 module Dynamoid #:nodoc:
   module Associations
@@ -34,9 +34,9 @@ module Dynamoid #:nodoc:
       end
 
       # Alias convenience methods for the associations.
-      alias :all :records
-      alias :count :size
-      alias :nil? :empty?
+      alias all records
+      alias count size
+      alias nil? empty?
 
       # Delegate include? to the records.
       def include?(object)
@@ -87,7 +87,7 @@ module Dynamoid #:nodoc:
       # @since 0.2.0
       def setter(object)
         target.each { |o| delete(o) }
-        self << (object)
+        self << object
         object
       end
 

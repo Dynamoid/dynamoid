@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Criteria do
@@ -57,11 +59,11 @@ describe Dynamoid::Criteria do
   end
 
   it 'returns N records' do
-    5.times { |i| User.create(name: 'Josh', email: 'josh_#{i}@joshsymonds.com') }
+    5.times { |i| User.create(name: 'Josh', email: "josh_#{i}@joshsymonds.com") }
     expect(User.record_limit(2).all.count).to eq(2)
   end
 
-  # TODO This test is broken using the AWS SDK adapter.
+  # TODO: This test is broken using the AWS SDK adapter.
   # it 'start with a record' do
   #  5.times { |i| User.create(:name => 'Josh', :email => 'josh_#{i}@joshsymonds.com') }
   #  all = User.all
@@ -73,13 +75,13 @@ describe Dynamoid::Criteria do
 
   it 'send consistent option to adapter' do
     pending 'This test is broken as we are overriding the consistent_read option to true inside the adapter'
-    expect(Dynamoid::Adapter).to receive(:get_item) { |table_name, key, options| options[:consistent_read] == true }
+    expect(Dynamoid::Adapter).to receive(:get_item) { |_table_name, _key, options| options[:consistent_read] == true }
     User.where(name: 'x').consistent.first
 
-    expect(Dynamoid::Adapter).to receive(:query) { |table_name, options| options[:consistent_read] == true }.returns([])
+    expect(Dynamoid::Adapter).to receive(:query) { |_table_name, options| options[:consistent_read] == true }.returns([])
     Tweet.where(tweet_id: 'xx', group: 'two').consistent.all
 
-    expect(Dynamoid::Adapter).to receive(:query) { |table_name, options| options[:consistent_read] == false }.returns([])
+    expect(Dynamoid::Adapter).to receive(:query) { |_table_name, options| options[:consistent_read] == false }.returns([])
     Tweet.where(tweet_id: 'xx', group: 'two').all
   end
 
@@ -100,10 +102,10 @@ describe Dynamoid::Criteria do
 
     it 'logs warnings' do
       expect(Dynamoid.logger).to receive(:warn).with('Queries without an index are forced to use scan and are generally much slower than indexed queries!')
-      expect(Dynamoid.logger).to receive(:warn).with("You can index this query by adding index declaration to user.rb:")
+      expect(Dynamoid.logger).to receive(:warn).with('You can index this query by adding index declaration to user.rb:')
       expect(Dynamoid.logger).to receive(:warn).with("* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'")
       expect(Dynamoid.logger).to receive(:warn).with("* local_secondary_indexe range_key: 'some-name'")
-      expect(Dynamoid.logger).to receive(:warn).with("Not indexed attributes: :name, :password")
+      expect(Dynamoid.logger).to receive(:warn).with('Not indexed attributes: :name, :password')
 
       User.where(name: 'x', password: 'password').all
     end

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 module Dynamoid
   # All the errors specific to Dynamoid.  The goal is to mimic ActiveRecord.
@@ -14,10 +14,10 @@ module Dynamoid
     # specified key attribute(s) or projected attributes do not exist.
     class InvalidIndex < Error
       def initialize(item)
-        if (item.is_a? String)
+        if item.is_a? String
           super(item)
         else
-          super("Validation failed: #{item.errors.full_messages.join(", ")}")
+          super("Validation failed: #{item.errors.full_messages.join(', ')}")
         end
       end
     end
@@ -67,7 +67,7 @@ module Dynamoid
       attr_reader :document
 
       def initialize(document)
-        super("Validation failed: #{document.errors.full_messages.join(", ")}")
+        super("Validation failed: #{document.errors.full_messages.join(', ')}")
         @document = document
       end
     end

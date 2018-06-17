@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module Dynamoid
   module AdapterPlugin
     # The AwsSdkV3 adapter provides support for the aws-sdk version 2 for ruby.
     class AwsSdkV3
-      EQ = 'EQ'.freeze
+      EQ = 'EQ'
       RANGE_MAP = {
         range_greater_than: 'GT',
         range_less_than:    'LT',
@@ -11,7 +13,7 @@ module Dynamoid
         range_begins_with:  'BEGINS_WITH',
         range_between:      'BETWEEN',
         range_eq:           'EQ'
-      }
+      }.freeze
 
       # Don't implement NULL and NOT_NULL because it doesn't make seanse -
       # we declare schema in models
@@ -27,19 +29,19 @@ module Dynamoid
         in:           'IN',
         contains:     'CONTAINS',
         not_contains: 'NOT_CONTAINS'
-      }
-      HASH_KEY  = 'HASH'.freeze
-      RANGE_KEY = 'RANGE'.freeze
-      STRING_TYPE  = 'S'.freeze
-      NUM_TYPE     = 'N'.freeze
-      BINARY_TYPE  = 'B'.freeze
+      }.freeze
+      HASH_KEY  = 'HASH'
+      RANGE_KEY = 'RANGE'
+      STRING_TYPE  = 'S'
+      NUM_TYPE     = 'N'
+      BINARY_TYPE  = 'B'
       TABLE_STATUSES = {
         creating: 'CREATING',
         updating: 'UPDATING',
         deleting: 'DELETING',
         active: 'ACTIVE'
       }.freeze
-      PARSE_TABLE_STATUS = ->(resp, lookup = :table) {
+      PARSE_TABLE_STATUS = lambda { |resp, lookup = :table|
         # lookup is table for describe_table API
         # lookup is table_description for create_table API
         #   because Amazon, damnit.
@@ -106,27 +108,25 @@ module Dynamoid
       # See:
       # * http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
       # * http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_write_item-instance_method
-      def batch_write_item table_name, objects, options = {}
+      def batch_write_item(table_name, objects, options = {})
         items = objects.map { |o| sanitize_item(o) }
 
         begin
-          while items.present? do
+          while items.present?
             batch = items.shift(BATCH_WRITE_ITEM_REQUESTS_LIMIT)
             requests = batch.map { |item| { put_request: { item: item } } }
 
             response = client.batch_write_item(
               {
                 request_items: {
-                  table_name => requests,
+                  table_name => requests
                 },
                 return_consumed_capacity: 'TOTAL',
                 return_item_collection_metrics: 'SIZE'
               }.merge!(options)
             )
 
-            if block_given?
-              yield(response.unprocessed_items.present?)
-            end
+            yield(response.unprocessed_items.present?) if block_given?
 
             if response.unprocessed_items.present?
               items += response.unprocessed_items[table_name].map { |r| r.put_request.item }
@@ -170,9 +170,9 @@ module Dynamoid
       # @since 1.0.0
       #
       # @todo: Provide support for passing options to underlying batch_get_item
-      def batch_get_item(table_ids, options = {})
+      def batch_get_item(table_ids, _options = {})
         request_items = Hash.new { |h, k| h[k] = [] }
-        return request_items if table_ids.all? { |k, v| v.blank? }
+        return request_items if table_ids.all? { |_k, v| v.blank? }
 
         ret = Hash.new([].freeze) # Default for tables where no rows are returned
 
@@ -183,7 +183,7 @@ module Dynamoid
           hk  = tbl.hash_key.to_s
           rng = tbl.range_key.to_s
 
-          while ids.present? do
+          while ids.present?
             batch = ids.shift(Dynamoid::Config.batch_size)
 
             request_items = Hash.new { |h, k| h[k] = [] }
@@ -196,7 +196,7 @@ module Dynamoid
                      Array(batch).map do |id|
                        { hk => id }
                      end
-            end
+                   end
 
             request_items[t] = {
               keys: keys
@@ -206,11 +206,7 @@ module Dynamoid
               request_items: request_items
             )
 
-            unless block_given?
-              results.data[:responses].each do |table, rows|
-                ret[table] += rows.collect { |r| result_item_to_hash(r) }
-              end
-            else
+            if block_given?
               batch_results = Hash.new([].freeze)
 
               results.data[:responses].each do |table, rows|
@@ -218,6 +214,10 @@ module Dynamoid
               end
 
               yield(batch_results, results.unprocessed_keys.present?)
+            else
+              results.data[:responses].each do |table, rows|
+                ret[table] += rows.collect { |r| result_item_to_hash(r) }
+              end
             end
 
             if results.unprocessed_keys.present?
@@ -226,9 +226,7 @@ module Dynamoid
           end
         end
 
-        unless block_given?
-          ret
-        end
+        ret unless block_given?
       end
 
       # Delete many items at once from DynamoDB. More efficient than delete each item individually.
@@ -252,9 +250,9 @@ module Dynamoid
           table = describe_table(table_name)
 
           ids.each_slice(BATCH_WRITE_ITEM_REQUESTS_LIMIT) do |sliced_ids|
-            delete_requests = sliced_ids.map { |id|
+            delete_requests = sliced_ids.map do |id|
               { delete_request: { key: key_stanza(table, *id) } }
-            }
+            end
 
             requests << { table_name => delete_requests }
           end
@@ -330,7 +328,7 @@ module Dynamoid
           end
         end
         resp = client.create_table(client_opts)
-        options[:sync] = true if !options.has_key?(:sync) && ls_indexes.present? || gs_indexes.present?
+        options[:sync] = true if !options.key?(:sync) && ls_indexes.present? || gs_indexes.present?
         until_past_table_status(table_name, :creating) if options[:sync] &&
                                                           (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
                                                           status == TABLE_STATUSES[:creating]
@@ -541,7 +539,7 @@ module Dynamoid
           }
         }
 
-        opts.each_pair do |k, v|
+        opts.each_pair do |k, _v|
           next unless (op = RANGE_MAP[k])
           key_conditions[rng] = {
             comparison_operator: op,
@@ -563,7 +561,7 @@ module Dynamoid
         q[:key_conditions] = key_conditions
         q[:query_filter]   = query_filter
 
-        Enumerator.new { |y|
+        Enumerator.new do |y|
           record_count = 0
           scan_count = 0
           loop do
@@ -604,7 +602,7 @@ module Dynamoid
               break
             end
           end
-        }
+        end
       end
 
       # Scan the DynamoDB table. This is usually a very slow operation as it naively filters all data on
@@ -754,7 +752,7 @@ module Dynamoid
       # Converts from symbol to the API string for the given data type
       # E.g. :number -> 'N'
       def api_type(type)
-        case (type)
+        case type
         when :string then STRING_TYPE
         when :number then NUM_TYPE
         when :binary then BINARY_TYPE
@@ -965,7 +963,7 @@ module Dynamoid
       def attribute_value_list(operator, value)
         # For BETWEEN and IN operators we should keep value as is (it should be already an array)
         # For all the other operators we wrap the value with array
-        if ["BETWEEN", "IN"].include?(operator)
+        if %w[BETWEEN IN].include?(operator)
           [value].flatten
         else
           [value]
@@ -991,9 +989,9 @@ module Dynamoid
         end
 
         def range_type
-          range_type ||= schema[:attribute_definitions].find { |d|
+          range_type ||= schema[:attribute_definitions].find do |d|
             d[:attribute_name] == range_key
-          }.try(:fetch, :attribute_type, nil)
+          end.try(:fetch, :attribute_type, nil)
         end
 
         def hash_key
@@ -1022,7 +1020,9 @@ module Dynamoid
         attr_reader :table, :key, :range_key
 
         def initialize(table, key, range_key = nil)
-          @table = table; @key = key, @range_key = range_key
+          @table = table
+          @key = key
+          @range_key = range_key
           @additions = {}
           @deletions = {}
           @updates   = {}
@@ -1084,13 +1084,13 @@ module Dynamoid
           ret
         end
 
-        ADD    = 'ADD'.freeze
-        DELETE = 'DELETE'.freeze
-        PUT    = 'PUT'.freeze
+        ADD    = 'ADD'
+        DELETE = 'DELETE'
+        PUT    = 'PUT'
       end
 
       def sanitize_item(attributes)
-        attributes.reject do |k, v|
+        attributes.reject do |_k, v|
           v.nil? || ((v.is_a?(Set) || v.is_a?(String)) && v.empty?)
         end
       end

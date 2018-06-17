@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Validations do
@@ -80,7 +82,9 @@ describe Dynamoid::Validations do
       field :name
       validates :name, presence: true
 
-      def self.name; 'Document'; end
+      def self.name
+        'Document'
+      end
     end
 
     expect(klass.new(name: nil).save).to eq(false)

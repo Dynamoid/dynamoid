@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 module Dynamoid #:nodoc:
   # The belongs_to association. For belongs_to, we reference only a single target instead of multiple records; that target is the
@@ -40,11 +40,11 @@ module Dynamoid #:nodoc:
       def target_association
         has_many_key_name = options[:inverse_of] || source.class.to_s.underscore.pluralize.to_sym
         has_one_key_name = options[:inverse_of] || source.class.to_s.underscore.to_sym
-        if !target_class.associations[has_many_key_name].nil?
+        unless target_class.associations[has_many_key_name].nil?
           return has_many_key_name if target_class.associations[has_many_key_name][:type] == :has_many
         end
 
-        if !target_class.associations[has_one_key_name].nil?
+        unless target_class.associations[has_one_key_name].nil?
           return has_one_key_name if target_class.associations[has_one_key_name][:type] == :has_one
         end
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Finders do
@@ -33,7 +35,7 @@ describe Dynamoid::Finders do
     a2 = Address.create
     expect { Address.find(a1.id, a2.id, 'fake-id') }.to raise_error(
       Dynamoid::Errors::RecordNotFound,
-      "Couldn't find all Addresses with 'id': (#{a1.id}, #{a2.id}, fake-id) " +
+      "Couldn't find all Addresses with 'id': (#{a1.id}, #{a2.id}, fake-id) " \
       '(found 2 results, but was looking for 3)'
     )
   end
@@ -151,7 +153,7 @@ describe Dynamoid::Finders do
     end
 
     it 'should return a array of tweets' do
-      tweets = (1..10).map { |i| Tweet.create(tweet_id: "#{i}", group: "group_#{i}") }
+      tweets = (1..10).map { |i| Tweet.create(tweet_id: i.to_s, group: "group_#{i}") }
       expect(Tweet.find_all(tweets.map { |t| [t.tweet_id, t.group] })).to match_array(tweets)
     end
 
@@ -165,7 +167,7 @@ describe Dynamoid::Finders do
 
     it 'passes options to the adapter' do
       pending 'This test is broken as we are overriding the consistent_read option to true inside the adapter'
-      user_ids = [%w(1 red), %w(1 green)]
+      user_ids = [%w[1 red], %w[1 green]]
       Dynamoid.adapter.expects(:read).with(anything, user_ids, consistent_read: true)
       User.find_all(user_ids, consistent_read: true)
     end
@@ -226,7 +228,7 @@ describe Dynamoid::Finders do
 
   describe '.find_all_by_secondary_index' do
     def time_to_decimal(time)
-      BigDecimal("%d.%09d" % [time.to_i, time.nsec])
+      BigDecimal(format('%d.%09d', time.to_i, time.nsec))
     end
 
     it 'returns exception if index could not be found' do
@@ -298,7 +300,7 @@ describe Dynamoid::Finders do
         p3 = Post.create(post_id: 3, posted_at: time, length: '10')
 
         posts = Post.find_all_by_secondary_index(length: '10')
-        expect(posts.map(&:post_id).sort).to eql ['1', '3']
+        expect(posts.map(&:post_id).sort).to eql %w[1 3]
       end
 
       it 'queries gsi with hash and range key' do
@@ -358,7 +360,7 @@ describe Dynamoid::Finders do
             { name: 'post' },
             range: { 'posted_at.gte': time_to_decimal(@time + 1.day) }
           )
-          expect(posts.map(&:post_id).sort).to eql ['2', '3']
+          expect(posts.map(&:post_id).sort).to eql %w[2 3]
         end
 
         it 'filters based on lte (less than or equal to)' do
@@ -366,7 +368,7 @@ describe Dynamoid::Finders do
             { name: 'post' },
             range: { 'posted_at.lte': time_to_decimal(@time + 1.day) }
           )
-          expect(posts.map(&:post_id).sort).to eql ['1', '2']
+          expect(posts.map(&:post_id).sort).to eql %w[1 2]
         end
 
         it 'filters based on between operator' do
@@ -375,7 +377,7 @@ describe Dynamoid::Finders do
             { name: 'post' },
             range: { 'posted_at.between': between }
           )
-          expect(posts.map(&:post_id).sort).to eql ['1', '2']
+          expect(posts.map(&:post_id).sort).to eql %w[1 2]
         end
       end
     end

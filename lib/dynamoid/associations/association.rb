@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 module Dynamoid #:nodoc:
   # The base association module which all associations include. Every association has two very important components: the source and
@@ -32,8 +32,7 @@ module Dynamoid #:nodoc:
         @loaded
       end
 
-      def find_target
-      end
+      def find_target; end
 
       def target
         unless loaded?

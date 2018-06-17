@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 require 'dynamoid/criteria/chain'
 
@@ -8,7 +8,7 @@ module Dynamoid
     extend ActiveSupport::Concern
 
     module ClassMethods
-      [:where, :all, :first, :last, :each, :record_limit, :scan_limit, :batch, :start, :scan_index_forward].each do |meth|
+      %i[where all first last each record_limit scan_limit batch start scan_index_forward].each do |meth|
         # Return a criteria chain in response to a method that will begin or end a chain. For more information,
         # see Dynamoid::Criteria::Chain.
         #

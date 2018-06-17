@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Fields do
@@ -21,12 +23,12 @@ describe Dynamoid::Fields do
 
   it 'allows range key serializers' do
     date_serializer = Class.new do
-      def self.dump(v)
-        v && v.strftime('%m/%d/%Y')
+      def self.dump(val)
+        val&.strftime('%m/%d/%Y')
       end
 
-      def self.load(v)
-        v && DateTime.strptime(v, '%m/%d/%Y')
+      def self.load(val)
+        val && DateTime.strptime(val, '%m/%d/%Y')
       end
     end
 
@@ -169,9 +171,9 @@ describe Dynamoid::Fields do
   end
 
   it 'raises an exception when items size exceeds 400kb' do
-    expect {
+    expect do
       Address.create(city: 'Ten chars ' * 500_000)
-    }.to raise_error(Aws::DynamoDB::Errors::ValidationException, 'Item size has exceeded the maximum allowed size')
+    end.to raise_error(Aws::DynamoDB::Errors::ValidationException, 'Item size has exceeded the maximum allowed size')
   end
 
   context '.remove_attribute' do
@@ -204,7 +206,7 @@ describe Dynamoid::Fields do
         include Dynamoid::Document
 
         field :name, :string, default: 'x'
-        field :uid, :integer, default: lambda { 42 }
+        field :uid, :integer, default: -> { 42 }
         field :config, :serialized, default: {}
         field :version, :integer, default: 1
         field :hidden, :boolean, default: false
@@ -285,7 +287,7 @@ describe Dynamoid::Fields do
 
   context 'single table inheritance' do
     it 'has only base class fields on the base class' do
-      expect(Vehicle.attributes.keys.to_set).to eq Set.new([:type, :description, :created_at, :updated_at, :id])
+      expect(Vehicle.attributes.keys.to_set).to eq Set.new(%i[type description created_at updated_at id])
     end
 
     it 'has only the base and derived fields on a sub-class' do
@@ -295,14 +297,14 @@ describe Dynamoid::Fields do
   end
 
   context 'extention overides field accessors' do
-    let(:klass) {
+    let(:klass) do
       extention = Module.new do
         def name
           super.upcase
         end
 
-        def name=(s)
-          super(s.try(:downcase))
+        def name=(str)
+          super(str.try(:downcase))
         end
       end
 
@@ -312,7 +314,7 @@ describe Dynamoid::Fields do
 
         field :name
       end
-    }
+    end
 
     it 'can access new setter' do
       address = klass.new

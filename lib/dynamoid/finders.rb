@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 module Dynamoid
   # This module defines the finder methods that hang off the document at the
@@ -14,7 +14,7 @@ module Dynamoid
       'begins_with'   => :range_begins_with,
       'between'       => :range_between,
       'eq'            => :range_eq
-    }
+    }.freeze
 
     module ClassMethods
       # Find one or many objects, specified by one id or an array of ids.
@@ -30,22 +30,22 @@ module Dynamoid
                   else
                     {}
                   end
-        expects_array = ids.first.kind_of?(Array)
+        expects_array = ids.first.is_a?(Array)
 
         ids = Array(ids.flatten.uniq)
         if ids.count == 1
-          result = self.find_by_id(ids.first, options)
+          result = find_by_id(ids.first, options)
           if result.nil?
-            message = "Couldn't find #{self.name} with '#{self.hash_key}'=#{ids[0]}"
-            raise Errors::RecordNotFound.new(message)
+            message = "Couldn't find #{name} with '#{hash_key}'=#{ids[0]}"
+            raise Errors::RecordNotFound, message
           end
           expects_array ? Array(result) : result
         else
           result = find_all(ids)
           if result.size != ids.size
-            message = "Couldn't find all #{self.name.pluralize} with '#{self.hash_key}': (#{ids.join(', ')}) "
-            message << "(found #{result.size} results, but was looking for #{ids.size})"
-            raise Errors::RecordNotFound.new(message)
+            message = "Couldn't find all #{name.pluralize} with '#{hash_key}': (#{ids.join(', ')}) "
+            message += "(found #{result.size} results, but was looking for #{ids.size})"
+            raise Errors::RecordNotFound, message
           end
           result
         end
@@ -66,14 +66,11 @@ module Dynamoid
       #   find all the tweets using hash key and range key with consistent read
       #   Tweet.find_all([['1', 'red'], ['1', 'green']], :consistent_read => true)
       def find_all(ids, options = {})
-        results = unless Dynamoid.config.backoff
-                    items = Dynamoid.adapter.read(self.table_name, ids, options)
-                    items ? items[self.table_name] : []
-                  else
+        results = if Dynamoid.config.backoff
                     items = []
                     backoff = nil
-                    Dynamoid.adapter.read(self.table_name, ids, options) do |hash, has_unprocessed_items|
-                      items += hash[self.table_name]
+                    Dynamoid.adapter.read(table_name, ids, options) do |hash, has_unprocessed_items|
+                      items += hash[table_name]
 
                       if has_unprocessed_items
                         backoff ||= Dynamoid.config.build_backoff
@@ -83,7 +80,10 @@ module Dynamoid
                       end
                     end
                     items
-        end
+                  else
+                    items = Dynamoid.adapter.read(table_name, ids, options)
+                    items ? items[table_name] : []
+                  end
 
         results ? results.map { |i| from_database(i) } : []
       end
@@ -96,10 +96,8 @@ module Dynamoid
       #
       # @since 0.2.0
       def find_by_id(id, options = {})
-        if item = Dynamoid.adapter.read(self.table_name, id, options)
+        if item = Dynamoid.adapter.read(table_name, id, options)
           from_database(item)
-        else
-          nil
         end
       end
 
@@ -134,7 +132,7 @@ module Dynamoid
       # @return [Array] an array of all matching items
       #
       def find_all_by_composite_key(hash_key, options = {})
-        Dynamoid.adapter.query(self.table_name, options.merge(hash_value: hash_key)).collect do |item|
+        Dynamoid.adapter.query(table_name, options.merge(hash_value: hash_key)).collect do |item|
           from_database(item)
         end
       end
@@ -175,21 +173,21 @@ module Dynamoid
         end
 
         # Find the index
-        index = self.find_index(hash_key_field, range_key_field)
-        raise Dynamoid::Errors::MissingIndex.new("attempted to find #{[hash_key_field, range_key_field]}") if index.nil?
+        index = find_index(hash_key_field, range_key_field)
+        raise Dynamoid::Errors::MissingIndex, "attempted to find #{[hash_key_field, range_key_field]}" if index.nil?
 
         # query
         opts = {
           hash_key: hash_key_field.to_s,
           hash_value: hash_key_value,
-          index_name: index.name,
+          index_name: index.name
         }
         if range_key_field
           opts[:range_key] = range_key_field
           opts[range_op_mapped] = range_key_value
         end
         dynamo_options = opts.merge(options.reject { |key, _| key == :range })
-        Dynamoid.adapter.query(self.table_name, dynamo_options).map do |item|
+        Dynamoid.adapter.query(table_name, dynamo_options).map do |item|
           from_database(item)
         end
       end
@@ -211,7 +209,7 @@ module Dynamoid
           attributes = method.to_s.split('_by_').last.split('_and_')
 
           chain = Dynamoid::Criteria::Chain.new(self)
-          chain.query = Hash.new.tap { |h| attributes.each_with_index { |attr, index| h[attr.to_sym] = args[index] } }
+          chain.query = {}.tap { |h| attributes.each_with_index { |attr, index| h[attr.to_sym] = args[index] } }
 
           if finder =~ /all/
             return chain.all

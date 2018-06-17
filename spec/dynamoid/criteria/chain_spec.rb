@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe Dynamoid::Criteria::Chain do
@@ -51,14 +53,14 @@ describe Dynamoid::Criteria::Chain do
 
   describe 'Limits' do
     shared_examples 'correct handling chain limits' do |request_type|
-      let(:model) {
+      let(:model) do
         Class.new do
           include Dynamoid::Document
           table name: :customer, key: :id
           range :age, :integer
           field :name
         end
-      }
+      end
 
       before(:each) do
         @request_type = request_type
@@ -120,13 +122,13 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe 'Query with keys conditions' do
-    let(:model) {
+    let(:model) do
       Class.new do
         include Dynamoid::Document
         table name: :customer, key: :name
         range :age, :integer
       end
-    }
+    end
 
     it 'supports eq' do
       customer1 = model.create(name: 'Bob', age: 10)
@@ -199,13 +201,13 @@ describe Dynamoid::Criteria::Chain do
 
   # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.QueryFilter.html?shortFooter=true
   describe 'Query with not-keys conditions' do
-    let(:model) {
+    let(:model) do
       new_class do
         table name: :customer, key: :name
         range :last_name
         field :age, :integer
       end
-    }
+    end
 
     it 'supports eq' do
       customer1 = model.create(name: 'a', last_name: 'a', age: 10)
@@ -354,14 +356,14 @@ describe Dynamoid::Criteria::Chain do
 
   # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ScanFilter.html?shortFooter=true
   describe 'Scan conditions ' do
-    let(:model) {
+    let(:model) do
       Class.new do
         include Dynamoid::Document
         table name: :customer
         field :age, :integer
         field :job_title, :string
       end
-    }
+    end
 
     it 'supports eq' do
       customer1 = model.create(age: 10)
@@ -379,20 +381,20 @@ describe Dynamoid::Criteria::Chain do
       klass = new_class do
         field :set, :set
       end
-      document1 = klass.create(set: ['a', 'b'])
-      document2 = klass.create(set: ['b', 'c'])
+      document1 = klass.create(set: %w[a b])
+      document2 = klass.create(set: %w[b c])
 
-      expect(klass.where(set: ['a', 'b'].to_set).all).to contain_exactly(document1)
+      expect(klass.where(set: %w[a b].to_set).all).to contain_exactly(document1)
     end
 
     it 'supports eq for array' do
       klass = new_class do
         field :array, :array
       end
-      document1 = klass.create(array: ['a', 'b'])
-      document2 = klass.create(array: ['b', 'c'])
+      document1 = klass.create(array: %w[a b])
+      document2 = klass.create(array: %w[b c])
 
-      expect(klass.where(array: ['a', 'b']).all).to contain_exactly(document1)
+      expect(klass.where(array: %w[a b]).all).to contain_exactly(document1)
     end
 
     it 'supports ne' do
@@ -473,8 +475,8 @@ describe Dynamoid::Criteria::Chain do
       klass = new_class do
         field :set, :set
       end
-      document1 = klass.create(set: ['a', 'b'])
-      document2 = klass.create(set: ['b', 'c'])
+      document1 = klass.create(set: %w[a b])
+      document2 = klass.create(set: %w[b c])
 
       expect(klass.where('set.contains': 'a').all).to contain_exactly(document1)
       expect(klass.where('set.contains': 'b').all).to contain_exactly(document1, document2)
@@ -485,8 +487,8 @@ describe Dynamoid::Criteria::Chain do
       klass = new_class do
         field :array, :array
       end
-      document1 = klass.create(array: ['a', 'b'])
-      document2 = klass.create(array: ['b', 'c'])
+      document1 = klass.create(array: %w[a b])
+      document2 = klass.create(array: %w[b c])
 
       expect(klass.where('array.contains': 'a').all).to contain_exactly(document1)
       expect(klass.where('array.contains': 'b').all).to contain_exactly(document1, document2)
@@ -515,7 +517,7 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe 'local secondary indexes used for `where` clauses' do
-    let(:model) {
+    let(:model) do
       Class.new do
         include Dynamoid::Document
         table name: :customer, key: :name
@@ -526,7 +528,7 @@ describe Dynamoid::Criteria::Chain do
         local_secondary_index range_key: :range2, name: :range2index
         local_secondary_index range_key: :range3, name: :range3index
       end
-    }
+    end
 
     before(:each) do
       @customer1 = model.create(name: 'Bob', range: 1, range2: 11, range3: 111)
@@ -537,7 +539,7 @@ describe Dynamoid::Criteria::Chain do
     it 'supports query on local secondary index but always defaults to table range key' do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(:name => 'Bob', 'range.lt': 3, 'range2.gt': 15).count).to eq(1)
+      expect(chain.where(name: 'Bob', 'range.lt': 3, 'range2.gt': 15).count).to eq(1)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to eq(:range)
       expect(chain.index_name).to be_nil
@@ -546,14 +548,14 @@ describe Dynamoid::Criteria::Chain do
     it 'supports query on local secondary index' do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(:name => 'Bob', 'range2.gt': 15).count).to eq(2)
+      expect(chain.where(name: 'Bob', 'range2.gt': 15).count).to eq(2)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to eq(:range2)
       expect(chain.index_name).to eq(:range2index)
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(:name => 'Bob', 'range3.lt': 200).count).to eq(1)
+      expect(chain.where(name: 'Bob', 'range3.lt': 200).count).to eq(1)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to eq(:range3)
       expect(chain.index_name).to eq(:range3index)
@@ -562,14 +564,14 @@ describe Dynamoid::Criteria::Chain do
     it 'supports query on local secondary index with start' do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(:name => 'Bob', 'range2.gt': 15).count).to eq(2)
+      expect(chain.where(name: 'Bob', 'range2.gt': 15).count).to eq(2)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to eq(:range2)
       expect(chain.index_name).to eq(:range2index)
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(:name => 'Bob', 'range2.gt': 15).start(@customer2).all).to contain_exactly(@customer3)
+      expect(chain.where(name: 'Bob', 'range2.gt': 15).start(@customer2).all).to contain_exactly(@customer3)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to eq(:range2)
       expect(chain.index_name).to eq(:range2index)
@@ -602,7 +604,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     context 'with full composite key for table' do
-      let(:model) {
+      let(:model) do
         Class.new do
           include Dynamoid::Document
           table name: :customer, key: :name
@@ -615,7 +617,7 @@ describe Dynamoid::Criteria::Chain do
           global_secondary_index hash_key: :city, range_key: :age, name: :cityage, projected_attributes: :all
           global_secondary_index hash_key: :email, range_key: :age, name: :emailage, projected_attributes: :all
         end
-      }
+      end
 
       before(:each) do
         @customer1 = model.create(name: 'Bob', city: 'San Francisco', email: 'bob@test.com', age: 10, gender: 'male',
@@ -647,7 +649,7 @@ describe Dynamoid::Criteria::Chain do
 
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_query).and_call_original
-        expect(chain.where(:city => 'San Francisco', 'age.gt': 12).count).to eq(2)
+        expect(chain.where(city: 'San Francisco', 'age.gt': 12).count).to eq(2)
         expect(chain.hash_key).to eq(:city)
         expect(chain.range_key).to eq(:age)
         expect(chain.index_name).to eq(:cityage)
@@ -661,7 +663,7 @@ describe Dynamoid::Criteria::Chain do
 
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_query).and_call_original
-        expect(chain.where(:email => 'greg@test.com', 'age.gt': 12).count).to eq(1)
+        expect(chain.where(email: 'greg@test.com', 'age.gt': 12).count).to eq(1)
         expect(chain.hash_key).to eq(:email)
         expect(chain.range_key).to eq(:age)
         expect(chain.index_name).to eq(:emailage)
@@ -690,7 +692,7 @@ describe Dynamoid::Criteria::Chain do
         expect(chain.where(city: 'San Francisco').start(@customer2).all).to contain_exactly(@customer3)
         # Repeat with hash notation
         expect(chain).to receive(:records_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco').start({ city: @customer2.city, age: @customer2.age, name: @customer2.name, customerid: @customer2.customerid }).all).to contain_exactly(@customer3)
+        expect(chain.where(city: 'San Francisco').start(city: @customer2.city, age: @customer2.age, name: @customer2.name, customerid: @customer2.customerid).all).to contain_exactly(@customer3)
       end
 
       it 'supports scan with start on hash key & range key' do
@@ -699,7 +701,7 @@ describe Dynamoid::Criteria::Chain do
         expect(chain.scan_limit(1).start(@customer2)).to contain_exactly(@customer4)
         # Repeat with hash notation
         expect(chain).to receive(:records_via_scan).and_call_original
-        expect(chain.scan_limit(1).start({ name: @customer2.name, customerid: @customer2.customerid })).to contain_exactly(@customer4)
+        expect(chain.scan_limit(1).start(name: @customer2.name, customerid: @customer2.customerid)).to contain_exactly(@customer4)
       end
 
       it "does not use index if a condition for index hash key is other than 'equal'" do
@@ -1088,7 +1090,7 @@ describe Dynamoid::Criteria::Chain do
     it 'includes Enumerable' do
       chain.query = { name: 'Josh' }
 
-      expect(chain.collect { |u| u.name }).to eq ['Josh']
+      expect(chain.collect(&:name)).to eq ['Josh']
     end
   end
 
@@ -1123,7 +1125,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(post_id: 'x', posted_at: time)
       post2 = Post.create(post_id: 'x', posted_at: (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => 'x', 'posted_at.gt': (time + ts_epsilon) }
+      query = { post_id: 'x', 'posted_at.gt': (time + ts_epsilon) }
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first
@@ -1140,7 +1142,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(post_id: 'x', posted_at: time)
       post2 = Post.create(post_id: 'x', posted_at: (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => 'x', 'posted_at.lt': (time + 1.hour - ts_epsilon) }
+      query = { post_id: 'x', 'posted_at.lt': (time + 1.hour - ts_epsilon) }
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first
@@ -1157,7 +1159,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(post_id: 'x', posted_at: time)
       post2 = Post.create(post_id: 'x', posted_at: (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { :post_id => 'x', 'posted_at.between': [time - ts_epsilon, time + ts_epsilon] }
+      query = { post_id: 'x', 'posted_at.between': [time - ts_epsilon, time + ts_epsilon] }
       resultset = chain.send(:where, query)
       expect(resultset.count).to eq 1
       stored_record = resultset.first

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 require 'dynamoid/associations/association'
 require 'dynamoid/associations/single_association'
@@ -96,7 +96,7 @@ module Dynamoid
 
         field field_name.to_sym, field_type
 
-        self.associations[name] = options.merge(type: type)
+        associations[name] = options.merge(type: type)
 
         define_method(name) do
           @associations[:"#{name}_ids"] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)

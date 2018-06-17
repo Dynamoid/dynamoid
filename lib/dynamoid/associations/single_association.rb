@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 module Dynamoid #:nodoc:
   module Associations
@@ -68,7 +68,7 @@ module Dynamoid #:nodoc:
         source.update_attribute(source_attribute, Set[hash_key])
       end
 
-      def disassociate(hash_key = nil)
+      def disassociate(_hash_key = nil)
         source.update_attribute(source_attribute, nil)
       end
 

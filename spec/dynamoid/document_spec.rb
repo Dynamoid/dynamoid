@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Document do
@@ -63,7 +65,9 @@ describe Dynamoid::Document do
     klass = Class.new do
       include Dynamoid::Document
       field :city
-      def city=(value); self[:city] = value.downcase; end
+      def city=(value)
+        self[:city] = value.downcase
+      end
     end
     expect(klass.new(city: 'Chicago').city).to eq 'chicago'
   end
@@ -100,12 +104,14 @@ describe Dynamoid::Document do
       field :city
       validates :city, presence: true
 
-      def self.name; 'Address'; end
+      def self.name
+        'Address'
+      end
     end
 
-    expect {
+    expect do
       klass.create!([{ city: 'Chicago' }, { city: nil }])
-    }.to raise_error(Dynamoid::Errors::DocumentNotValid)
+    end.to raise_error(Dynamoid::Errors::DocumentNotValid)
   end
 
   it 'knows if a document exists or not' do
@@ -129,16 +135,18 @@ describe Dynamoid::Document do
         field :name
 
         validates :name, presence: true, length: { minimum: 5 }
-        def self.name; 'Document' end
+        def self.name
+          'Document'
+        end
       end
     end
 
     it 'loads and saves document' do
       d = document_class.create(name: 'Document#1')
 
-      expect {
+      expect do
         document_class.update(d.id, name: '[Updated]')
-      }.to change { d.reload.name }.from('Document#1').to('[Updated]')
+      end.to change { d.reload.name }.from('Document#1').to('[Updated]')
     end
 
     it 'returns updated document' do
@@ -153,9 +161,9 @@ describe Dynamoid::Document do
       d = document_class.create(name: 'Document#1')
       d2 = nil
 
-      expect {
+      expect do
         d2 = document_class.update(d.id, name: '[Up')
-      }.not_to change { d.reload.name }
+      end.not_to change { d.reload.name }
       expect(d2).not_to be_valid
     end
 
@@ -166,9 +174,9 @@ describe Dynamoid::Document do
       end
 
       d = klass.create(status: 'old', name: 'Document#1')
-      expect {
+      expect do
         klass.update(d.id, 'old', name: '[Updated]')
-      }.to change { d.reload.name }.to('[Updated]')
+      end.to change { d.reload.name }.to('[Updated]')
     end
 
     it 'converts range key value to proper format' do
@@ -179,9 +187,9 @@ describe Dynamoid::Document do
       end
 
       d = klass.create(activated_on: '2018-01-14'.to_date, name: 'Document#1')
-      expect {
+      expect do
         klass.update(d.id, '2018-01-14'.to_date, name: '[Updated]')
-      }.to change { d.reload.name }.to('[Updated]')
+      end.to change { d.reload.name }.to('[Updated]')
     end
   end
 
@@ -196,16 +204,16 @@ describe Dynamoid::Document do
 
     it 'changes field value' do
       obj = document_class.create(title: 'Old title')
-      expect {
+      expect do
         document_class.update_fields(obj.id, title: 'New title')
-      }.to change { document_class.find(obj.id).title }.from('Old title').to('New title')
+      end.to change { document_class.find(obj.id).title }.from('Old title').to('New title')
     end
 
     it 'changes field value to nil' do
       obj = document_class.create(title: 'New Document')
-      expect {
+      expect do
         document_class.update_fields(obj.id, title: nil)
-      }.to change { document_class.find(obj.id).title }.from('New Document').to(nil)
+      end.to change { document_class.find(obj.id).title }.from('New Document').to(nil)
     end
 
     it 'returns updated document' do
@@ -218,22 +226,22 @@ describe Dynamoid::Document do
 
     it 'checks the conditions on update' do
       obj = document_class.create(title: 'Old title', version: 1)
-      expect {
+      expect do
         document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 1 })
-      }.to change { document_class.find(obj.id).title }.to('New title')
+      end.to change { document_class.find(obj.id).title }.to('New title')
 
       obj = document_class.create(title: 'Old title', version: 1)
-      expect {
+      expect do
         result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
-      }.not_to change { document_class.find(obj.id).title }
+      end.not_to change { document_class.find(obj.id).title }
     end
 
     it 'does not create new document if it does not exist yet' do
       document_class.create_table
 
-      expect {
+      expect do
         document_class.update_fields('some-fake-id', title: 'Title')
-      }.not_to change { document_class.count }
+      end.not_to change { document_class.count }
     end
 
     it 'accepts range key if it is declared' do
@@ -244,9 +252,9 @@ describe Dynamoid::Document do
 
       obj = document_class_with_range.create(category: 'New')
 
-      expect {
+      expect do
         document_class_with_range.update_fields(obj.id, 'New', title: '[Updated]')
-      }.to change {
+      end.to change {
         document_class_with_range.find(obj.id, range_key: 'New').title
       }.to('[Updated]')
     end
@@ -266,7 +274,7 @@ describe Dynamoid::Document do
       obj = document_class.create
       document_class.update_fields(obj.id, published_on: '2018-02-23'.to_date)
       attributes = Dynamoid.adapter.get_item(document_class.table_name, obj.id)
-      expect(attributes[:published_on]).to eq 17585
+      expect(attributes[:published_on]).to eq 17_585
     end
   end
 
@@ -281,16 +289,16 @@ describe Dynamoid::Document do
 
     it 'changes field value' do
       obj = document_class.create(title: 'Old title')
-      expect {
+      expect do
         document_class.upsert(obj.id, title: 'New title')
-      }.to change { document_class.find(obj.id).title }.from('Old title').to('New title')
+      end.to change { document_class.find(obj.id).title }.from('Old title').to('New title')
     end
 
     it 'changes field value to nil' do
       obj = document_class.create(title: 'New Document')
-      expect {
+      expect do
         document_class.upsert(obj.id, title: nil)
-      }.to change { document_class.find(obj.id).title }.from('New Document').to(nil)
+      end.to change { document_class.find(obj.id).title }.from('New Document').to(nil)
     end
 
     it 'returns updated document' do
@@ -303,22 +311,22 @@ describe Dynamoid::Document do
 
     it 'checks the conditions on update' do
       obj = document_class.create(title: 'Old title', version: 1)
-      expect {
+      expect do
         document_class.upsert(obj.id, { title: 'New title' }, if: { version: 1 })
-      }.to change { document_class.find(obj.id).title }.to('New title')
+      end.to change { document_class.find(obj.id).title }.to('New title')
 
       obj = document_class.create(title: 'Old title', version: 1)
-      expect {
+      expect do
         result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
-      }.not_to change { document_class.find(obj.id).title }
+      end.not_to change { document_class.find(obj.id).title }
     end
 
     it 'creates new document if it does not exist yet' do
       document_class.create_table
 
-      expect {
+      expect do
         document_class.upsert('not-existed-id', title: 'Title')
-      }.to change { document_class.count }
+      end.to change { document_class.count }
 
       obj = document_class.find('not-existed-id')
       expect(obj.title).to eq 'Title'
@@ -332,9 +340,9 @@ describe Dynamoid::Document do
 
       obj = document_class_with_range.create(category: 'New')
 
-      expect {
+      expect do
         document_class_with_range.upsert(obj.id, 'New', title: '[Updated]')
-      }.to change {
+      end.to change {
         document_class_with_range.find(obj.id, range_key: 'New').title
       }.to('[Updated]')
     end
@@ -354,7 +362,7 @@ describe Dynamoid::Document do
       obj = document_class.create
       document_class.upsert(obj.id, published_on: '2018-02-23'.to_date)
       attributes = Dynamoid.adapter.get_item(document_class.table_name, obj.id)
-      expect(attributes[:published_on]).to eq 17585
+      expect(attributes[:published_on]).to eq 17_585
     end
   end
 
@@ -393,7 +401,7 @@ describe Dynamoid::Document do
   end
 
   it 'follows any table options provided to it' do
-    tweet = Tweet.create(group: 12345)
+    tweet = Tweet.create(group: 12_345)
 
     expect { tweet.id }.to raise_error(NoMethodError)
     expect(tweet.tweet_id).to_not be_nil

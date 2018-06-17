@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 require 'uri'
 require 'dynamoid/config/options'
@@ -9,6 +9,7 @@ module Dynamoid
   # Contains all the basic configuration information required for Dynamoid: both sensible defaults and required fields.
   module Config
     extend self
+
     extend Options
     include ActiveModel::Observing if defined?(ActiveModel::Observing)
 

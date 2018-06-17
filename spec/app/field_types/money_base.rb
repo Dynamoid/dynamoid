@@ -1,16 +1,18 @@
-class MoneyBase
-  attr_reader :v
+# frozen_string_literal: true
 
-  def initialize(v)
-    raise 'Money can be initialized only with BigDecimal!' unless v.is_a?(BigDecimal)
-    @v = v
+class MoneyBase
+  attr_reader :value
+
+  def initialize(value)
+    raise 'Money can be initialized only with BigDecimal!' unless value.is_a?(BigDecimal)
+    @value = value
   end
 
   def ==(other)
-    other.is_a?(MoneyBase) && @v == other.v
+    other.is_a?(MoneyBase) && @value == other.value
   end
 
   def to_s
-    '$%.2f' % @v.to_s('F')
+    format('$%.2f', @value.to_s('F'))
   end
 end

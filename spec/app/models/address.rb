@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Address
   include Dynamoid::Document
 
@@ -10,7 +12,7 @@ class Address
 
   field :lock_version, :integer # Provides Optimistic Locking
 
-  def zip_code=(zip_code)
+  def zip_code=(_zip_code)
     self.city = 'Chicago'
   end
 end

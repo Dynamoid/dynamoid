@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 module Dynamoid #:nodoc:
   # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not
@@ -7,13 +7,13 @@ module Dynamoid #:nodoc:
     extend ActiveSupport::Concern
 
     # Types allowed in indexes:
-    PERMITTED_KEY_TYPES = [
-      :number,
-      :integer,
-      :string,
-      :datetime,
-      :serialized,
-    ]
+    PERMITTED_KEY_TYPES = %i[
+      number
+      integer
+      string
+      datetime
+      serialized
+    ].freeze
 
     # Initialize the attributes we know the class has, in addition to our magic attributes: id, created_at, and updated_at.
     included do
@@ -72,9 +72,9 @@ module Dynamoid #:nodoc:
         self.range_key = name
       end
 
-      def table(options)
+      def table(_options)
         # a default 'id' column is created when Dynamoid::Document is included
-        unless (attributes.has_key? hash_key)
+        unless attributes.key? hash_key
           remove_field :id
           field(hash_key)
         end
@@ -82,7 +82,7 @@ module Dynamoid #:nodoc:
 
       def remove_field(field)
         field = field.to_sym
-        attributes.delete(field) or raise 'No such field'
+        attributes.delete(field) || raise('No such field')
 
         generated_methods.module_eval do
           remove_method field
@@ -104,7 +104,7 @@ module Dynamoid #:nodoc:
 
     # You can access the attributes of an object directly on its attributes method, which is by default an empty hash.
     attr_accessor :attributes
-    alias :raw_attributes :attributes
+    alias raw_attributes attributes
 
     # Write an attribute on the object. Also marks the previous value as dirty.
     #
@@ -119,7 +119,7 @@ module Dynamoid #:nodoc:
 
       attributes[name.to_sym] = value
     end
-    alias :[]= :write_attribute
+    alias []= write_attribute
 
     # Read an attribute from an object.
     #
@@ -129,7 +129,7 @@ module Dynamoid #:nodoc:
     def read_attribute(name)
       attributes[name.to_sym]
     end
-    alias :[] :read_attribute
+    alias [] read_attribute
 
     # Updates multiple attibutes at once, saving the object once the updates are complete.
     #
@@ -137,7 +137,7 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def update_attributes(attributes)
-      attributes.each { |attribute, value| self.write_attribute(attribute, value) } unless attributes.nil? || attributes.empty?
+      attributes.each { |attribute, value| write_attribute(attribute, value) } unless attributes.nil? || attributes.empty?
       save
     end
 
@@ -165,7 +165,7 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def set_updated_at
-      if Dynamoid::Config.timestamps && !self.updated_at_changed?
+      if Dynamoid::Config.timestamps && !updated_at_changed?
         self.updated_at = DateTime.now.in_time_zone(Time.zone)
       end
     end
