@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Dynamoid::Indexes do
@@ -35,7 +37,8 @@ describe Dynamoid::Indexes do
         index_key = doc_class.index_key(:some_hash_field, :some_range_field)
         doc_class.global_secondary_index(
           hash_key: :some_hash_field,
-          range_key: :some_range_field)
+          range_key: :some_range_field
+        )
 
         expected_index = doc_class.global_secondary_indexes[index_key]
         expect(expected_index).to eq(@dummy_index)
@@ -71,7 +74,8 @@ describe Dynamoid::Indexes do
           let(:doc_class_with_gsi) do
             doc_class.global_secondary_index(
               hash_key: :secondary_hash_field,
-              range_key: :secondary_range_field)
+              range_key: :secondary_range_field
+            )
           end
 
           it 'creates the index with the correct options' do
@@ -106,7 +110,8 @@ describe Dynamoid::Indexes do
         expect do
           doc_class.global_secondary_index(range_key: :something)
         end.to raise_error(
-          Dynamoid::Errors::InvalidIndex, /hash_key.*specified/)
+          Dynamoid::Errors::InvalidIndex, /hash_key.*specified/
+        )
       end
     end
   end
@@ -242,7 +247,8 @@ describe Dynamoid::Indexes do
             Dynamoid::Indexes::Index.new(
               dynamoid_class: doc_class,
               hash_key: :primary_hash_field,
-              type: :garbage)
+              type: :garbage
+            )
           end.to raise_error(Dynamoid::Errors::InvalidIndex, /Invalid.*:type/)
         end
 
@@ -251,7 +257,8 @@ describe Dynamoid::Indexes do
             Dynamoid::Indexes::Index.new(
               dynamoid_class: doc_class,
               hash_key: :garbage,
-              type: :global_secondary)
+              type: :global_secondary
+            )
           end.to raise_error(Dynamoid::Errors::InvalidIndex, /No such field/)
         end
 
@@ -260,7 +267,8 @@ describe Dynamoid::Indexes do
             Dynamoid::Indexes::Index.new(
               dynamoid_class: doc_class,
               hash_key: :array_field,
-              type: :global_secondary)
+              type: :global_secondary
+            )
           end.to raise_error(Dynamoid::Errors::InvalidIndex, /hash_key.*/)
         end
 
@@ -270,17 +278,19 @@ describe Dynamoid::Indexes do
               dynamoid_class: doc_class,
               hash_key: :primary_hash_field,
               type: :global_secondary,
-              range_key: :array_field)
+              range_key: :array_field
+            )
           end.to raise_error(Dynamoid::Errors::InvalidIndex, /range_key.*/)
         end
 
         it 'throws an error when :range_key is not a table attribute' do
           expect do
-           Dynamoid::Indexes::Index.new(
+            Dynamoid::Indexes::Index.new(
               dynamoid_class: doc_class,
               hash_key: :primary_hash_field,
               type: :global_secondary,
-              range_key: :garbage)
+              range_key: :garbage
+            )
           end.to raise_error(Dynamoid::Errors::InvalidIndex, /No such field/)
         end
 
@@ -290,7 +300,8 @@ describe Dynamoid::Indexes do
               dynamoid_class: doc_class,
               hash_key: :primary_hash_field,
               type: :global_secondary,
-              projected_attributes: :garbage)
+              projected_attributes: :garbage
+            )
           end.to raise_error(Dynamoid::Errors::InvalidIndex, /Invalid projected attributes/)
         end
       end
@@ -299,10 +310,10 @@ describe Dynamoid::Indexes do
         context 'with only required params' do
           let(:defaults_index) do
             Dynamoid::Indexes::Index.new(
-                dynamoid_class: doc_class,
-                hash_key: :primary_hash_field,
-                range_key: :secondary_range_field,
-                type: :local_secondary
+              dynamoid_class: doc_class,
+              hash_key: :primary_hash_field,
+              range_key: :secondary_range_field,
+              type: :local_secondary
             )
           end
 
@@ -315,12 +326,12 @@ describe Dynamoid::Indexes do
           end
 
           it 'sets the hash_key_schema' do
-            expected = {primary_hash_field: :string}
+            expected = { primary_hash_field: :string }
             expect(defaults_index.hash_key_schema).to eql expected
           end
 
           it 'sets the range_key_schema' do
-            expected = {secondary_range_field: :string}
+            expected = { secondary_range_field: :string }
             expect(defaults_index.range_key_schema).to eql expected
           end
 
@@ -339,13 +350,13 @@ describe Dynamoid::Indexes do
         context 'with other params specified' do
           let(:other_index) do
             Dynamoid::Indexes::Index.new(
-                dynamoid_class: doc_class,
-                name: :mont_blanc,
-                hash_key: :secondary_hash_field,
-                type: :global_secondary,
-                projected_attributes: [:secondary_hash_field, :array_field],
-                read_capacity: 100,
-                write_capacity: 200
+              dynamoid_class: doc_class,
+              name: :mont_blanc,
+              hash_key: :secondary_hash_field,
+              type: :global_secondary,
+              projected_attributes: %i[secondary_hash_field array_field],
+              read_capacity: 100,
+              write_capacity: 200
             )
           end
           it 'sets the provided attributes' do
@@ -357,10 +368,10 @@ describe Dynamoid::Indexes do
             expect(other_index.read_capacity).to eq(100)
             expect(other_index.write_capacity).to eq(200)
             expect(other_index.projected_attributes).to eq(
-              [:secondary_hash_field, :array_field])
+              %i[secondary_hash_field array_field]
+            )
           end
         end
-
       end
     end
 
@@ -379,25 +390,24 @@ describe Dynamoid::Indexes do
 
       it 'projection type is :include' do
         projection_include = Dynamoid::Indexes::Index.new(
-            dynamoid_class: doc_class,
-            hash_key: :secondary_hash_field,
-            type: :global_secondary,
-            projected_attributes: [:secondary_hash_field, :array_field]
+          dynamoid_class: doc_class,
+          hash_key: :secondary_hash_field,
+          type: :global_secondary,
+          projected_attributes: %i[secondary_hash_field array_field]
         ).projection_type
         expect(projection_include).to eq(:include)
       end
 
       it 'projection type is :all' do
         projection_all = Dynamoid::Indexes::Index.new(
-            dynamoid_class: doc_class,
-            hash_key: :secondary_hash_field,
-            type: :global_secondary,
-            projected_attributes: :all
+          dynamoid_class: doc_class,
+          hash_key: :secondary_hash_field,
+          type: :global_secondary,
+          projected_attributes: :all
         ).projection_type
 
         expect(projection_all).to eq(:all)
       end
     end
   end
-
 end

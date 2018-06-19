@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Tweet
   include Dynamoid::Document
 

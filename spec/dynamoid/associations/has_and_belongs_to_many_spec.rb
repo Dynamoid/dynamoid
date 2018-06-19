@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe Dynamoid::Associations::HasAndBelongsToMany do
-  let(:subscription) {Subscription.create}
-  let(:camel_case) {CamelCase.create}
+  let(:subscription) { Subscription.create }
+  let(:camel_case) { CamelCase.create }
 
   it 'determines equality from its records' do
     user = subscription.users.create
@@ -62,18 +64,18 @@ describe Dynamoid::Associations::HasAndBelongsToMany do
       subscription = Subscription.create
       user = subscription.users.create
 
-      expect {
+      expect do
         subscription.users.delete(user)
-      }.to change { subscription.users.target }.from([user]).to([])
+      end.to change { subscription.users.target }.from([user]).to([])
     end
 
     it 'persists changes on this side' do
       subscription = Subscription.create
       user = subscription.users.create
 
-      expect {
+      expect do
         subscription.users.delete(user)
-      }.to change { Subscription.find(subscription.id).users.target }.from([user]).to([])
+      end.to change { Subscription.find(subscription.id).users.target }.from([user]).to([])
     end
 
     context 'has and belongs to many' do
@@ -81,15 +83,15 @@ describe Dynamoid::Associations::HasAndBelongsToMany do
       let!(:user) { subscription.users.create }
 
       it 'clears association on that side' do
-        expect {
+        expect do
           subscription.users.delete(user)
-        }.to change { subscription.users.target }.from([user]).to([])
+        end.to change { subscription.users.target }.from([user]).to([])
       end
 
       it 'persists changes on that side' do
-        expect {
+        expect do
           subscription.users.delete(user)
-        }.to change { Subscription.find(subscription.id).users.target }.from([user]).to([])
+        end.to change { Subscription.find(subscription.id).users.target }.from([user]).to([])
       end
     end
   end

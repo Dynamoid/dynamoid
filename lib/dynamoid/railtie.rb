@@ -1,4 +1,6 @@
-if defined? (Rails)
+# frozen_string_literal: true
+
+if defined? Rails
 
   module Dynamoid
     class Railtie < Rails::Railtie

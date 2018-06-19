@@ -1,6 +1,6 @@
-# encoding: utf-8
-module Dynamoid #:nodoc:
+# frozen_string_literal: true
 
+module Dynamoid #:nodoc:
   # The base association module which all associations include. Every association has two very important components: the source and
   # the target. The source is the object which is calling the association information. It always has the target_ids inside of an attribute on itself.
   # The target is the object which is referencing by this association.
@@ -32,8 +32,7 @@ module Dynamoid #:nodoc:
         @loaded
       end
 
-      def find_target
-      end
+      def find_target; end
 
       def target
         unless loaded?
@@ -125,8 +124,6 @@ module Dynamoid #:nodoc:
       def build(attributes = {})
         target_class.build(attributes)
       end
-
     end
   end
-
 end

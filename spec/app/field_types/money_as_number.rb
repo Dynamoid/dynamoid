@@ -1,13 +1,13 @@
+# frozen_string_literal: true
+
 require_relative 'money_base'
 
 class MoneyAsNumber < MoneyBase
   def self.dynamoid_load(str)
-    if !str.nil?
-      self.new(BigDecimal.new(str))
-    end
+    new(BigDecimal(str)) unless str.nil?
   end
 
-  def self.load(str)
+  def self.load(_str)
     raise 'This should not have been called.'
   end
 
@@ -16,7 +16,7 @@ class MoneyAsNumber < MoneyBase
   end
 
   def dynamoid_dump
-    @v.to_f
+    @value.to_f
   end
 
   def dump

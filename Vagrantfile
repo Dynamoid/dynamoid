@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Vagrant.configure('2') do |config|
   # Choose base box
   config.vm.box = 'bento/ubuntu-16.04'
@@ -16,11 +18,11 @@ Vagrant.configure('2') do |config|
     salt.minion_config = '.dev/vagrant/minion'
 
     # Pillars
-    salt.pillar({
+    salt.pillar(
       'ruby' => {
-        'version' => '2.4.1',
+        'version' => '2.4.1'
       }
-    })
+    )
 
     salt.run_highstate = true
   end

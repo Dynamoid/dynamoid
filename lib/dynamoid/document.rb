@@ -1,6 +1,6 @@
-# encoding: utf-8
-module Dynamoid #:nodoc:
+# frozen_string_literal: true
 
+module Dynamoid #:nodoc:
   # This is the base module for all domain objects that need to be persisted to
   # the database as documents.
   module Document
@@ -114,31 +114,29 @@ module Dynamoid #:nodoc:
       # @since 0.2.0
       def exists?(id_or_conditions = {})
         case id_or_conditions
-          when Hash then where(id_or_conditions).first.present?
-          else !! find_by_id(id_or_conditions)
+        when Hash then where(id_or_conditions).first.present?
+        else !!find_by_id(id_or_conditions)
         end
       end
 
-      def update(hash_key, range_key_value=nil, attrs)
-        if range_key.present?
-          range_key_value = dump_field(range_key_value, attributes[self.range_key])
-        else
-          range_key_value = nil
-        end
+      def update(hash_key, range_key_value = nil, attrs)
+        range_key_value = if range_key.present?
+                            dump_field(range_key_value, attributes[range_key])
+                          end
 
         model = find(hash_key, range_key: range_key_value, consistent_read: true)
         model.update_attributes(attrs)
         model
       end
 
-      def update_fields(hash_key_value, range_key_value=nil, attrs={}, conditions={})
+      def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
           range_key_value = nil
-          attrs, conditions = optional_params[0 .. 1]
+          attrs, conditions = optional_params[0..1]
         else
           range_key_value = optional_params.first
-          attrs, conditions = optional_params[1 .. 2]
+          attrs, conditions = optional_params[1..2]
         end
 
         options = if range_key
@@ -161,14 +159,14 @@ module Dynamoid #:nodoc:
         end
       end
 
-      def upsert(hash_key_value, range_key_value=nil, attrs={}, conditions={})
+      def upsert(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
           range_key_value = nil
-          attrs, conditions = optional_params[0 .. 1]
+          attrs, conditions = optional_params[0..1]
         else
           range_key_value = optional_params.first
-          attrs, conditions = optional_params[1 .. 2]
+          attrs, conditions = optional_params[1..2]
         end
 
         options = if range_key
@@ -218,7 +216,7 @@ module Dynamoid #:nodoc:
 
     def load(attrs)
       self.class.undump(attrs).each do |key, value|
-        send("#{key}=", value) if self.respond_to?("#{key}=")
+        send("#{key}=", value) if respond_to?("#{key}=")
       end
     end
 
@@ -230,7 +228,7 @@ module Dynamoid #:nodoc:
         super
       else
         return false if other.nil?
-        other.is_a?(Dynamoid::Document) && self.hash_key == other.hash_key && self.range_value == other.range_value
+        other.is_a?(Dynamoid::Document) && hash_key == other.hash_key && range_value == other.range_value
       end
     end
 
@@ -259,24 +257,24 @@ module Dynamoid #:nodoc:
     #
     # @since 0.4.0
     def hash_key
-      self.send(self.class.hash_key)
+      send(self.class.hash_key)
     end
 
     # Assign an object's hash key, regardless of what it might be called to the object.
     #
     # @since 0.4.0
     def hash_key=(value)
-      self.send("#{self.class.hash_key}=", value)
+      send("#{self.class.hash_key}=", value)
     end
 
     def range_value
       if range_key = self.class.range_key
-        self.send(range_key)
+        send(range_key)
       end
     end
 
     def range_value=(value)
-      self.send("#{self.class.range_key}=", value)
+      send("#{self.class.range_key}=", value)
     end
 
     private

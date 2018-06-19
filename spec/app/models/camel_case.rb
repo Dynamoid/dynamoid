@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CamelCase
   include Dynamoid::Document
 
@@ -30,5 +32,4 @@ class CamelCase
   def doing_after_update
     true
   end
-
 end

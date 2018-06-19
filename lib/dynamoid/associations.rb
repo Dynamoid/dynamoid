@@ -1,4 +1,5 @@
-# encoding: utf-8
+# frozen_string_literal: true
+
 require 'dynamoid/associations/association'
 require 'dynamoid/associations/single_association'
 require 'dynamoid/associations/many_association'
@@ -8,7 +9,6 @@ require 'dynamoid/associations/has_one'
 require 'dynamoid/associations/has_and_belongs_to_many'
 
 module Dynamoid
-
   # Connects models together through the magic of associations. We enjoy four different kinds of associations presently:
   #   * belongs_to
   #   * has_and_belongs_to_many
@@ -25,7 +25,6 @@ module Dynamoid
     end
 
     module ClassMethods
-
       # create a has_many association for this document.
       #
       # @param [Symbol] name the name of the association
@@ -97,7 +96,7 @@ module Dynamoid
 
         field field_name.to_sym, field_type
 
-        self.associations[name] = options.merge(type: type)
+        associations[name] = options.merge(type: type)
 
         define_method(name) do
           @associations[:"#{name}_ids"] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
@@ -109,7 +108,5 @@ module Dynamoid
         end
       end
     end
-
   end
-
 end

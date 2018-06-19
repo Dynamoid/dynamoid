@@ -1,6 +1,6 @@
-# encoding: utf-8
-module Dynamoid #:nodoc:
+# frozen_string_literal: true
 
+module Dynamoid #:nodoc:
   module Associations
     module ManyAssociation
       include Association
@@ -34,9 +34,9 @@ module Dynamoid #:nodoc:
       end
 
       # Alias convenience methods for the associations.
-      alias :all :records
-      alias :count :size
-      alias :nil? :empty?
+      alias all records
+      alias count size
+      alias nil? empty?
 
       # Delegate include? to the records.
       def include?(object)
@@ -86,8 +86,8 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def setter(object)
-        target.each {|o| delete(o)}
-        self << (object)
+        target.each { |o| delete(o) }
+        self << object
         object
       end
 
@@ -152,7 +152,7 @@ module Dynamoid #:nodoc:
       def where(args)
         filtered = clone
         filtered.query = query.clone
-        args.each {|k, v| filtered.query[k] = v}
+        args.each { |k, v| filtered.query[k] = v }
         filtered
       end
 
@@ -200,7 +200,6 @@ module Dynamoid #:nodoc:
           end
         end
       end
-
     end
   end
 end

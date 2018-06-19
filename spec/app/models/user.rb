@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class User
   include Dynamoid::Document
 
@@ -19,5 +21,4 @@ class User
   has_and_belongs_to_many :following, class_name: 'User', inverse_of: :followers
 
   belongs_to :camel_case
-
 end

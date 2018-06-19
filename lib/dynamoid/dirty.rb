@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Dynamoid
   module Dirty
     extend ActiveSupport::Concern
@@ -34,14 +36,14 @@ module Dynamoid
     end
 
     def write_attribute(name, value)
-      attribute_will_change!(name) unless self.read_attribute(name) == value
+      attribute_will_change!(name) unless read_attribute(name) == value
       super
     end
 
     protected
 
     def attribute_method?(attr)
-      super || self.class.attributes.has_key?(attr.to_sym)
+      super || self.class.attributes.key?(attr.to_sym)
     end
 
     if ActiveModel::VERSION::STRING >= '5.2.0'
@@ -53,8 +55,7 @@ module Dynamoid
         @mutations_from_database ||= ActiveModel::NullMutationTracker.instance
       end
 
-      def forget_attribute_assignments
-      end
+      def forget_attribute_assignments; end
     end
 
     if ActiveModel::VERSION::STRING < '4.2.0'

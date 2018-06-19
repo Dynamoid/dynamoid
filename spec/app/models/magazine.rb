@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Magazine
   include Dynamoid::Document
   table key: :title

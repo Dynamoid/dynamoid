@@ -1,6 +1,6 @@
-# encoding: utf-8
-module Dynamoid #:nodoc:
+# frozen_string_literal: true
 
+module Dynamoid #:nodoc:
   # The has and belongs to many association.
   module Associations
     class HasAndBelongsToMany
@@ -20,5 +20,4 @@ module Dynamoid #:nodoc:
       end
     end
   end
-
 end

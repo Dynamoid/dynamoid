@@ -1,6 +1,6 @@
-# encoding: utf-8
-module Dynamoid
+# frozen_string_literal: true
 
+module Dynamoid
   # Provide ActiveModel validations to Dynamoid documents.
   module Validations
     extend ActiveSupport::Concern
@@ -13,7 +13,7 @@ module Dynamoid
     # @since 0.2.0
     def save(options = {})
       options.reverse_merge!(validate: true)
-      return false if options[:validate] and (not valid?)
+      return false if options[:validate] && !valid?
       super
     end
 
@@ -29,21 +29,18 @@ module Dynamoid
     #
     # @since 0.2.0
     def save!
-      raise Dynamoid::Errors::DocumentNotValid.new(self) unless valid?
+      raise Dynamoid::Errors::DocumentNotValid, self unless valid?
       save(validate: false)
       self
     end
 
     module ClassMethods
-
       # Override validates_presence_of to handle false values as present.
       #
       # @since 1.1.1
       def validates_presence_of(*attr_names)
         validates_with PresenceValidator, _merge_attributes(attr_names)
       end
-
-      private
 
       # Validates that the specified attributes are present (false or not blank).
       class PresenceValidator < ActiveModel::EachValidator

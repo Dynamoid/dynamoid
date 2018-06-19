@@ -1,17 +1,21 @@
+# frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Adapter do
   subject { described_class.new }
 
-  def test_table; 'dynamoid_tests_TestTable'; end
-  let(:single_id){'123'}
-  let(:many_ids){%w(1 2)}
+  def test_table
+    'dynamoid_tests_TestTable'
+  end
+  let(:single_id) { '123' }
+  let(:many_ids) { %w[1 2] }
 
   {
     1 => [:id],
     2 => [:id],
-    3 => [:id, {range_key: {range: :number}}],
-    4 => [:id, {range_key: {range: :number}}]
+    3 => [:id, { range_key: { range: :number } }],
+    4 => [:id, { range_key: { range: :number } }]
   }.each do |n, args|
     name = "dynamoid_tests_TestTable#{n}"
     let(:"test_table#{n}") do
@@ -64,11 +68,11 @@ describe Dynamoid::Adapter do
   end
 
   it 'raises NoMethodError if we try a method that is not on the child' do
-    expect {subject.foobar}.to raise_error(NoMethodError)
+    expect { subject.foobar }.to raise_error(NoMethodError)
   end
 
   it 'writes through the adapter' do
-    expect(subject).to receive(:put_item).with(test_table, {id: single_id}, nil).and_return(true)
+    expect(subject).to receive(:put_item).with(test_table, { id: single_id }, nil).and_return(true)
     subject.write(test_table, id: single_id)
   end
 
@@ -79,7 +83,7 @@ describe Dynamoid::Adapter do
     end
 
     it 'reads through the adapter for many IDs' do
-      expect(subject).to receive(:batch_get_item).with({test_table => many_ids}, {}).and_return(true)
+      expect(subject).to receive(:batch_get_item).with({ test_table => many_ids }, {}).and_return(true)
       subject.read(test_table, many_ids)
     end
 
@@ -89,7 +93,7 @@ describe Dynamoid::Adapter do
     end
 
     it 'reads through the adapter for many IDs and a range key' do
-      expect(subject).to receive(:batch_get_item).with({test_table => [['1', 2.0], ['2', 2.0]]}, {}).and_return(true)
+      expect(subject).to receive(:batch_get_item).with({ test_table => [['1', 2.0], ['2', 2.0]] }, {}).and_return(true)
       subject.read(test_table, many_ids, range_key: 2.0)
     end
   end
@@ -99,9 +103,9 @@ describe Dynamoid::Adapter do
       Dynamoid.adapter.put_item(test_table1, id: '1')
       Dynamoid.adapter.put_item(test_table1, id: '2')
 
-      expect {
+      expect do
         subject.delete(test_table1, '1')
-      }.to change {
+      end.to change {
         Dynamoid.adapter.scan(test_table1).to_a.size
       }.from(2).to(1)
 
@@ -113,9 +117,9 @@ describe Dynamoid::Adapter do
       Dynamoid.adapter.put_item(test_table1, id: '2')
       Dynamoid.adapter.put_item(test_table1, id: '3')
 
-      expect {
-        subject.delete(test_table1, ['1', '2'])
-      }.to change {
+      expect do
+        subject.delete(test_table1, %w[1 2])
+      end.to change {
         Dynamoid.adapter.scan(test_table1).to_a.size
       }.from(3).to(1)
 
@@ -127,9 +131,9 @@ describe Dynamoid::Adapter do
       Dynamoid.adapter.put_item(test_table3, id: '1', range: 1.0)
       Dynamoid.adapter.put_item(test_table3, id: '2', range: 2.0)
 
-      expect {
+      expect do
         subject.delete(test_table3, '1', range_key: 1.0)
-      }.to change {
+      end.to change {
         Dynamoid.adapter.scan(test_table3).to_a.size
       }.from(2).to(1)
 
@@ -144,9 +148,9 @@ describe Dynamoid::Adapter do
 
       expect(subject).to receive(:batch_delete_item).and_call_original
 
-      expect {
-        subject.delete(test_table3, ['1', '2'], range_key: 1.0)
-      }.to change {
+      expect do
+        subject.delete(test_table3, %w[1 2], range_key: 1.0)
+      end.to change {
         Dynamoid.adapter.scan(test_table3).to_a.size
       }.from(4).to(2)
 

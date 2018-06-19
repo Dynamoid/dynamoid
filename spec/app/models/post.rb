@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 class Post
   include Dynamoid::Document
 
-  table name: :posts, key: :post_id, read_capacity: 200, write_capacity:  200
+  table name: :posts, key: :post_id, read_capacity: 200, write_capacity: 200
 
   range :posted_at, :datetime
 

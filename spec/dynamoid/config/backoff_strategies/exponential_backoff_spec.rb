@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe Dynamoid::Config::BackoffStrategies::ExponentialBackoff do
@@ -63,10 +65,10 @@ RSpec.describe Dynamoid::Config::BackoffStrategies::ExponentialBackoff do
 
     4.times { backoff.call }
     expect(seconds).to eq([
-      0.5,
-      0.5 * 2,
-      0.5 * 4,
-      0.5 * 4
-    ])
+                            0.5,
+                            0.5 * 2,
+                            0.5 * 4,
+                            0.5 * 4
+                          ])
   end
 end

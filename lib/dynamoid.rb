@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-dynamodb'
 require 'delegate'
 require 'time'
@@ -30,9 +32,7 @@ require 'dynamoid/tasks/database'
 
 require 'dynamoid/middleware/identity_map'
 
-if defined?(Rails)
-  require 'dynamoid/railtie'
-end
+require 'dynamoid/railtie' if defined?(Rails)
 
 module Dynamoid
   extend self
@@ -40,7 +40,7 @@ module Dynamoid
   def configure
     block_given? ? yield(Dynamoid::Config) : Dynamoid::Config
   end
-  alias :config :configure
+  alias config configure
 
   def logger
     Dynamoid::Config.logger
