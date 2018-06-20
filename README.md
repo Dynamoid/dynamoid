@@ -59,7 +59,7 @@ Configure AWS access:
 
 For example, to configure AWS access:
 
-Create config/initializers/aws.rb as follows:
+Create `config/initializers/aws.rb` as follows:
 
 ```ruby
 
@@ -89,7 +89,7 @@ Then you need to initialize Dynamoid config to get it going. Put code similar to
 ```ruby
   require 'dynamoid'
   Dynamoid.configure do |config|
-    config.namespace = "dynamoid_app_development" # To namespace tables created by Dynamoid from other tables you might have. Set to nil to avoid namespacing.
+    config.namespace = 'dynamoid_app_development' # To namespace tables created by Dynamoid from other tables you might have. Set to nil to avoid namespacing.
     config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
   end
 ```
@@ -109,7 +109,7 @@ Its compatibility is tested in following way:
 
 ## Setup
 
-You *must* include ```Dynamoid::Document``` in every Dynamoid model.
+You *must* include `Dynamoid::Document` in every Dynamoid model.
 
 ```ruby
 class User
@@ -126,25 +126,25 @@ Dynamoid has some sensible defaults for you when you create a new table, includi
 class User
   include Dynamoid::Document
 
-  table :name => :awesome_users, :key => :user_id, :read_capacity => 5, :write_capacity => 5
+  table name: :awesome_users, key: :user_id, read_capacity: 5, write_capacity: 5
 end
 ```
 
-These fields will not change an existing table: so specifying a new read_capacity and write_capacity here only works correctly for entirely new tables. Similarly, while Dynamoid will look for a table named `awesome_users` in your namespace, it won't change any existing tables to use that name; and if it does find a table with the correct name, it won't change its hash key, which it expects will be user_id. If this table doesn't exist yet, however, Dynamoid will create it with these options.
+These fields will not change an existing table: so specifying a new read_capacity and write_capacity here only works correctly for entirely new tables. Similarly, while Dynamoid will look for a table named `awesome_users` in your namespace, it won't change any existing tables to use that name; and if it does find a table with the correct name, it won't change its hash key, which it expects will be `user_id`. If this table doesn't exist yet, however, Dynamoid will create it with these options.
 
 ### Fields
 
 You'll have to define all the fields on the model and the data type of each field. Every field on the object must be included here; if you miss any they'll be completely bypassed during DynamoDB's initialization and will not appear on the model objects.
 
-By default, fields are assumed to be of type ```:string```. Other built-in types are
-```:integer```, ```:number```, ```:set```, ```:array```, ```:datetime```, ```date```, ```:boolean```, ```:raw``` and ```:serialized```.
-```raw``` type means you can store Ruby Array, Hash, String and numbers.
+By default, fields are assumed to be of type `:string`. Other built-in types are
+`:integer`, `:number`, `:set`, `:array`, `:datetime`, `date`, `:boolean`, `:raw` and `:serialized`.
+`raw` type means you can store Ruby Array, Hash, String and numbers.
 If built-in types do not suit you, you can use a custom field type represented by an arbitrary class, provided that the class supports a compatible serialization interface.
 The primary use case for using a custom field type is to represent your business logic with high-level types, while ensuring portability or backward-compatibility of the serialized representation.
 
 #### Note on boolean type
 
-The boolean fields are stored as `"t", "f"` strings by default. DynamoDB
+The boolean fields are stored as `'t'` and `'f'` strings by default. DynamoDB
 supports boolean type natively. So if you want to use native boolean
 type or already have table with native boolean attribute you can easily
 achieve this with `store_as_native_boolean` option:
@@ -197,7 +197,7 @@ end
 
 #### Magic Columns
 
-You get magic columns of id (string), created_at (datetime), and updated_at (datetime) for free.
+You get magic columns of `id` (`string`), `created_at` (`datetime`), and `updated_at` (`datetime`) for free.
 
 ```ruby
 class User
@@ -218,8 +218,8 @@ end
 You can optionally set a default value on a field using either a plain value or a lambda:
 
 ```ruby
-  field :actions_taken, :integer, {default: 0}
-  field :joined_at, :datetime, {default: ->(){Time.now}}
+  field :actions_taken, :integer, default: 0
+  field :joined_at, :datetime, default: -> { Time.now }
 ```
 
 #### Custom Types
@@ -231,7 +231,7 @@ To use a custom type for a field, suppose you have a `Money` type.
     # ... your business logic ...
 
     def dynamoid_dump
-      "serialized representation as a string"
+      'serialized representation as a string'
     end
 
     def self.dynamoid_load(serialized_str)
@@ -275,7 +275,7 @@ add a level of indirection for serializing.)  Example:
 
 Lastly, you can control the data type of your custom-class-backed field at the DynamoDB level.
 This is especially important if you want to use your custom field as a numeric range or for
-number-oriented queries.  By default custom fields are persisted as a string attribute, but
+number-oriented queries. By default custom fields are persisted as a string attribute, but
 your custom class can override this with a `.dynamoid_field_type` class method, which would
 return either `:string` or `:number`.
 
@@ -300,7 +300,7 @@ Second argument, type, is optional. Default type is `string`.
 
 Just like in ActiveRecord (or your other favorite ORM), Dynamoid uses associations to create links between models.
 
-The only supported associations (so far) are ```has_many```, ```has_one```, ```has_and_belongs_to_many```, and ```belongs_to```. Associations are very simple to create: just specify the type, the name, and then any options you'd like to pass to the association. If there's an inverse association either inferred or specified directly, Dynamoid will update both objects to point at each other.
+The only supported associations (so far) are `has_many`, `has_one`, `has_and_belongs_to_many`, and `belongs_to`. Associations are very simple to create: just specify the type, the name, and then any options you'd like to pass to the association. If there's an inverse association either inferred or specified directly, Dynamoid will update both objects to point at each other.
 
 ```ruby
 class User
@@ -309,12 +309,12 @@ class User
   # ...
 
   has_many :addresses
-  has_many :students, :class => User
-  belongs_to :teacher, :class_name => :user
+  has_many :students, class: User
+  belongs_to :teacher, class_name: :user
   belongs_to :group
-  belongs_to :group, :foreign_key => :group_id
+  belongs_to :group, foreign_key: :group_id
   has_one :role
-  has_and_belongs_to_many :friends, :inverse_of => :friending_users
+  has_and_belongs_to_many :friends, inverse_of: :friending_users
 
 end
 
@@ -328,7 +328,7 @@ class Address
 end
 ```
 
-Contrary to what you'd expect, association information is always contained on the object specifying the association, even if it seems like the association has a foreign key. This is a side effect of DynamoDB's structure: it's very difficult to find foreign keys without an index. Usually you won't find this to be a problem, but it does mean that association methods that build new models will not work correctly -- for example, ```user.addresses.new``` returns an address that is not associated to the user. We'll be correcting this ~soon~ maybe someday, if we get a pull request.
+Contrary to what you'd expect, association information is always contained on the object specifying the association, even if it seems like the association has a foreign key. This is a side effect of DynamoDB's structure: it's very difficult to find foreign keys without an index. Usually you won't find this to be a problem, but it does mean that association methods that build new models will not work correctly -- for example, `user.addresses.new` returns an address that is not associated to the user. We'll be correcting this ~soon~ maybe someday, if we get a pull request.
 
 ### Validations
 
@@ -341,7 +341,7 @@ class User
   # ...
 
   validates_presence_of :name
-  validates_format_of :email, :with => /@/
+  validates_format_of :email, with: /@/
 end
 ```
 
@@ -389,7 +389,6 @@ cat = Cat.create(name: 'Morgan')
 animal = Animal.find(cat.id)
 animal.class
 #=>  Cat
-
 ```
 
 ## Usage
@@ -399,7 +398,7 @@ animal.class
 Dynamoid's syntax is generally very similar to ActiveRecord's. Making new objects is simple:
 
 ```ruby
-u = User.new(:name => 'Josh')
+u = User.new(name: 'Josh')
 u.email = 'josh@joshsymonds.com'
 u.save
 ```
@@ -407,7 +406,7 @@ u.save
 Save forces persistence to the datastore: a unique ID is also assigned, but it is a string and not an auto-incrementing number.
 
 ```ruby
-u.id # => "3a9f7216-4726-4aea-9fbc-8554ae9292cb"
+u.id # => '3a9f7216-4726-4aea-9fbc-8554ae9292cb'
 ```
 
 To use associations, you use association methods very similar to ActiveRecord's:
@@ -437,14 +436,14 @@ Querying can be done in one of three ways:
 
 ```ruby
 Address.find(address.id)              # Find directly by ID.
-Address.where(:city => 'Chicago').all # Find by any number of matching criteria... though presently only "where" is supported.
+Address.where(city: 'Chicago').all    # Find by any number of matching criteria... though presently only "where" is supported.
 Address.find_by_city('Chicago')       # The same as above, but using ActiveRecord's older syntax.
 ```
 
 And you can also query on associations:
 
 ```ruby
-u.addresses.where(:city => 'Chicago').all
+u.addresses.where(city: 'Chicago').all
 ```
 
 But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.
@@ -481,7 +480,7 @@ For large queries that return many rows, Dynamoid can use AWS' support for reque
 ```ruby
 # Do some maintenance on the entire table without flooding DynamoDB
 Address.all(batch_size: 100).each { |address| address.do_some_work; sleep(0.01) }
-Address.record_limit(10_000).batch(100). each { … } # Batch specified as part of a chain
+Address.record_limit(10_000).batch(100).each { … } # Batch specified as part of a chain
 ```
 
 The implication of batches is that the underlying requests are done in the batch sizes to make the request and responses
@@ -494,21 +493,21 @@ You are able to optimize query with condition for sort key. Following operators 
 
 ```ruby
 Address.where(latitude: 10212)
-Address.where('latitude.gt' => 10212)
-Address.where('latitude.lt' => 10212)
-Address.where('latitude.gte' => 10212)
-Address.where('latitude.lte' => 10212)
-Address.where('city.begins_with' => 'Lon')
-Address.where('latitude.between' => [10212, 20000])
+Address.where('latitude.gt': 10212)
+Address.where('latitude.lt': 10212)
+Address.where('latitude.gte': 10212)
+Address.where('latitude.lte': 10212)
+Address.where('city.begins_with': 'Lon')
+Address.where('latitude.between': [10212, 20000])
 ```
 
 You are able to filter results on the DynamoDB side and specify conditions for non-key fields.
 Following operators are available: `in`, `contains`, `not_contains`:
 
 ```ruby
-Address.where('city.in' => ['London', 'Edenburg', 'Birmingham'])
-Address.where('city.contains' => ['on'])
-Address.where('city.not_contains' => ['ing'])
+Address.where('city.in': ['London', 'Edenburg', 'Birmingham'])
+Address.where('city.contains': ['on'])
+Address.where('city.not_contains': ['ing'])
 ```
 
 ### Consistent Reads
@@ -516,8 +515,8 @@ Address.where('city.not_contains' => ['ing'])
 Querying supports consistent reading. By default, DynamoDB reads are eventually consistent: if you do a write and then a read immediately afterwards, the results of the previous write may not be reflected. If you need to do a consistent read (that is, you need to read the results of a write immediately) you can do so, but keep in mind that consistent reads are twice as expensive as regular reads for DynamoDB.
 
 ```ruby
-Address.find(address.id, :consistent_read => true)  # Find an address, ensure the read is consistent.
-Address.where(:city => 'Chicago').consistent.all    # Find all addresses where the city is Chicago, with a consistent read.
+Address.find(address.id, consistent_read: true)  # Find an address, ensure the read is consistent.
+Address.where(city: 'Chicago').consistent.all    # Find all addresses where the city is Chicago, with a consistent read.
 ```
 
 ### Range Finding
@@ -525,11 +524,11 @@ Address.where(:city => 'Chicago').consistent.all    # Find all addresses where t
 If you have a range index, Dynamoid provides a number of additional other convenience methods to make your life a little easier:
 
 ```ruby
-User.where("created_at.gt" => DateTime.now - 1.day).all
-User.where("created_at.lt" => DateTime.now - 1.day).all
+User.where("created_at.gt": DateTime.now - 1.day).all
+User.where("created_at.lt": DateTime.now - 1.day).all
 ```
 
-It also supports .gte and .lte. Turning those into symbols and allowing a Rails SQL-style string syntax is in the works. You can only have one range argument per query, because of DynamoDB's inherent limitations, so use it sensibly!
+It also supports `gte` and `lte`. Turning those into symbols and allowing a Rails SQL-style string syntax is in the works. You can only have one range argument per query, because of DynamoDB's inherent limitations, so use it sensibly!
 
 
 ### Updating
@@ -572,7 +571,7 @@ In order to delete some items `delete_all` method should be used.
 Any callback wont be called. Items delete in efficient way in batch.
 
 ```ruby
-Address.where(city: "London").delete_all
+Address.where(city: 'London').delete_all
 ```
 
 ### Global Secondary Indexes
@@ -619,7 +618,7 @@ find_all_by_secondary_index(
     },
     # false is the same as DESC in SQL (newest timestamp first)
     # true is the same as ASC in SQL (oldest timestamp first)
-    :scan_index_forward => false # or true
+    scan_index_forward: false # or true
 )
 ```
 
