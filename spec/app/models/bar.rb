@@ -5,10 +5,10 @@ class Bar
 
   table name: :bar,
         key: :bar_id,
-        range_key: :visited_at,
         read_capacity: 200,
         write_capacity:  200
 
+  range :visited_at, :datetime
   field :name
   field :visited_at, :integer
 

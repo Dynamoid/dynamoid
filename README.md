@@ -181,7 +181,7 @@ class Document
 end
 ```
 
-### Note on set type
+#### Note on set type
 
 There is `of` option to declare the type of set elements. You can use
 `:integer` value only
@@ -280,6 +280,21 @@ your custom class can override this with a `.dynamoid_field_type` class method, 
 return either `:string` or `:number`.
 
 DynamoDB may support some other attribute types that are not yet supported by Dynamoid.
+
+### Sort key
+
+Along with partition key table may have a sort key. In order to declare it in a model
+`range` class method should be used:
+
+```ruby
+class Post
+  include Dynamoid::Document
+
+  range :posted_at, :datetime
+end
+```
+
+Second argument, type, is optional. Default type is `string`.
 
 ### Associations
 
