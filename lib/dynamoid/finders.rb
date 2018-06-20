@@ -20,8 +20,22 @@ module Dynamoid
       # Find one or many objects, specified by one id or an array of ids.
       #
       # @param [Array/String] *id an array of ids or one single id
+      # @param [Hash] options
       #
       # @return [Dynamoid::Document] one object or an array of objects, depending on whether the input was an array or not
+      #
+      # @example Find by partition key
+      #   Document.find(101)
+      #
+      # @example Find by partition key and sort key
+      #   Document.find(101, range_key: 'archived')
+      #
+      # @example Find several documents by partition key
+      #   Document.find(101, 102, 103)
+      #   Document.find([101, 102, 103])
+      #
+      # @example Find several documents by partition key and sort key
+      #   Document.find([[101, 'archived'], [102, 'new'], [103, 'deleted']])
       #
       # @since 0.2.0
       def find(*ids)
@@ -93,6 +107,12 @@ module Dynamoid
       # @param [String] id the id of the object to find
       #
       # @return [Dynamoid::Document] the found object, or nil if nothing was found
+      #
+      # @example Find by partition key
+      #   Document.find_by_id(101)
+      #
+      # @example Find by partition key and sort key
+      #   Document.find_by_id(101, range_key: 'archived')
       #
       # @since 0.2.0
       def find_by_id(id, options = {})
