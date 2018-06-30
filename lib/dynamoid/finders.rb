@@ -150,7 +150,6 @@ module Dynamoid
       # @option options [Number] :range_lte find range keys less than or equal to this
       #
       # @return [Array] an array of all matching items
-      #
       def find_all_by_composite_key(hash_key, options = {})
         Dynamoid.adapter.query(table_name, options.merge(hash_value: hash_key)).collect do |item|
           from_database(item)

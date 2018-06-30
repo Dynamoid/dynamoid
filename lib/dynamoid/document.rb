@@ -130,7 +130,6 @@ module Dynamoid #:nodoc:
       #
       # @example Update document
       #   Post.update(101, read: true)
-
       def update(hash_key, range_key_value = nil, attrs)
         range_key_value = if range_key.present?
                             dump_field(range_key_value, attributes[range_key])
@@ -159,7 +158,6 @@ module Dynamoid #:nodoc:
       #
       # @example Update document with condition
       #   Post.update(101, { read: true }, if: { version: 1 })
-
       def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
@@ -211,7 +209,6 @@ module Dynamoid #:nodoc:
       #
       # @example Update document
       #   Post.upsert(101, read: true)
-
       def upsert(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
