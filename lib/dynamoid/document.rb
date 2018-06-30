@@ -119,6 +119,17 @@ module Dynamoid #:nodoc:
         end
       end
 
+      # Update document with provided values.
+      # Instantiates document and saves changes. Runs validations and callbacks.
+      #
+      # @param [Scalar value] partition key
+      # @param [Scalar value] sort key, optional
+      # @param [Hash] attributes
+      #
+      # @return [Dynamoid::Doument] updated document
+      #
+      # @example Update document
+      #   Post.update(101, read: true)
       def update(hash_key, range_key_value = nil, attrs)
         range_key_value = if range_key.present?
                             dump_field(range_key_value, attributes[range_key])
@@ -129,6 +140,24 @@ module Dynamoid #:nodoc:
         model
       end
 
+      # Update document.
+      # Uses efficient low-level `UpdateItem` API call.
+      # Changes attibutes and loads new document version with one API call.
+      # Doesn't run validations and callbacks. Can make conditional update.
+      # If a document doesn't exist or specified conditions failed - returns `nil`
+      #
+      # @param [Scalar value] partition key
+      # @param [Scalar value] sort key (optional)
+      # @param [Hash] attributes
+      # @param [Hash] conditions
+      #
+      # @return [Dynamoid::Document/nil] updated document
+      #
+      # @example Update document
+      #   Post.update(101, read: true)
+      #
+      # @example Update document with condition
+      #   Post.update(101, { read: true }, if: { version: 1 })
       def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
@@ -159,6 +188,27 @@ module Dynamoid #:nodoc:
         end
       end
 
+
+      # Update existing document or create new one.
+      # Similar to `.update_fields`. The only diffirence is creating new document.
+      #
+      # Uses efficient low-level `UpdateItem` API call.
+      # Changes attibutes and loads new document version with one API call.
+      # Doesn't run validations and callbacks. Can make conditional update.
+      # If specified conditions failed - returns `nil`
+      #
+      # @param [Scalar value] partition key
+      # @param [Scalar value] sort key (optional)
+      # @param [Hash] attributes
+      # @param [Hash] conditions
+      #
+      # @return [Dynamoid::Document/nil] updated document
+      #
+      # @example Update document
+      #   Post.update(101, read: true)
+      #
+      # @example Update document
+      #   Post.upsert(101, read: true)
       def upsert(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
