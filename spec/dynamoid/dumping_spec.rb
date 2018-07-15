@@ -17,20 +17,8 @@ describe 'Dumping' do
         expect(raw_attributes(obj)[:active]).to eql('f')
       end
 
-      it "saves 'f' as 'f'" do
-        obj = klass.create(active: 'f')
-        expect(reload(obj).active).to eql(false)
-        expect(raw_attributes(obj)[:active]).to eql('f')
-      end
-
       it "saves true as 't'" do
         obj = klass.create(active: true)
-        expect(reload(obj).active).to eql(true)
-        expect(raw_attributes(obj)[:active]).to eql('t')
-      end
-
-      it "saves 't' as 't'" do
-        obj = klass.create(active: 't')
         expect(reload(obj).active).to eql(true)
         expect(raw_attributes(obj)[:active]).to eql('t')
       end
@@ -67,18 +55,6 @@ describe 'Dumping' do
 
         obj = klass.create(active: false)
         expect(reload(obj).active).to eql false
-      end
-
-      it "saves 'f' as false" do
-        obj = klass.create(active: 'f')
-        expect(reload(obj).active).to eql(false)
-        expect(raw_attributes(obj)[:active]).to eql(false)
-      end
-
-      it "saves 't' as true" do
-        obj = klass.create(active: 't')
-        expect(reload(obj).active).to eql(true)
-        expect(raw_attributes(obj)[:active]).to eql(true)
       end
 
       it 'stores nil value' do

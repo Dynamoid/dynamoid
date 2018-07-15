@@ -220,33 +220,6 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context 'unknown fields' do
-    let(:clazz) do
-      Class.new do
-        include Dynamoid::Document
-        table name: :addresses
-
-        field :city
-        field :options, :serialized
-        field :deliverable, :bad_type_specifier
-      end
-    end
-
-    it 'raises when undumping a column with an unknown field type' do
-      expect do
-        clazz.new(deliverable: true) # undump is called here
-      end.to raise_error(ArgumentError)
-    end
-
-    it 'raises when dumping a column with an unknown field type' do
-      doc = clazz.new
-      doc.deliverable = true
-      expect do
-        doc.dump
-      end.to raise_error(ArgumentError)
-    end
-  end
-
   describe 'save' do
     it 'creates table if it does not exist' do
       klass = Class.new do
