@@ -171,7 +171,7 @@ module Dynamoid #:nodoc:
     end
 
     def set_type
-      self.type ||= self.class.to_s if self.class.attributes[:type]
+      self.type ||= self.class.name if self.class.attributes[:type]
     end
   end
 end
