@@ -230,6 +230,16 @@ describe Dynamoid::Persistence do
       expect { klass.create }.not_to raise_error(Aws::DynamoDB::Errors::ResourceNotFoundException)
       expect(klass.create.id).to be_present
     end
+
+    it 'dumps attribute values' do
+      klass = new_class do
+        field :active, :boolean
+      end
+
+      obj = klass.new(active: false)
+      obj.save!
+      expect(raw_attributes(obj)[:active]).to eql('f')
+    end
   end
 
   context 'update' do
@@ -295,14 +305,32 @@ describe Dynamoid::Persistence do
         address.save!
       end.to raise_error(Dynamoid::Errors::StaleObjectError)
     end
+
+    it 'uses dumped value of sort key to call UpdateItem' do
+      klass = new_class do
+        range :activated_at, :datetime
+        field :name
+      end
+      klass.create_table
+
+      obj = klass.create!(activated_at: Time.now, name: 'Old value')
+      obj.update! { |d| d.set(name: 'New value') }
+
+      expect(obj.reload.name).to eql('New value')
+    end
   end
 
   context 'delete' do
-    it 'deletes model with datetime range key' do
-      expect do
-        msg = Message.create!(message_id: 1, time: DateTime.now, text: 'Hell yeah')
-        msg.destroy
-      end.to_not raise_error
+    it 'uses dumped value of sort key to call DeleteItem' do
+      klass = new_class do
+        range :activated_at, :datetime
+      end
+
+      obj = klass.create!(activated_at: Time.now)
+
+      expect { obj.delete }.to change {
+        klass.where(id: obj.id, activated_at: obj.activated_at).first
+      }.to(nil)
     end
 
     context 'with lock version' do
@@ -463,6 +491,18 @@ describe Dynamoid::Persistence do
 
       user = User.find(users[0].id)
       expect(user.todo_list).to eq nil
+    end
+
+    it 'dumps attribute values' do
+      klass = new_class do
+        field :active, :boolean
+      end
+      klass.create_table
+
+      objects = klass.import([{ active: false }])
+      obj = objects[0]
+      obj.save!
+      expect(raw_attributes(obj)[:active]).to eql('f')
     end
 
     context 'backoff is specified' do

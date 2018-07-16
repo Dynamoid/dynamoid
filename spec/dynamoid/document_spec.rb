@@ -259,7 +259,7 @@ describe Dynamoid::Document do
       }.to('[Updated]')
     end
 
-    it 'converts range key value' do
+    it 'uses dumped value of sort key to call UpdateItem' do
       document_class_with_range = new_class do
         field :title
         range :published_on, :date
@@ -270,7 +270,7 @@ describe Dynamoid::Document do
       expect(obj.reload.title).to eq 'New'
     end
 
-    it 'converts attributes values' do
+    it 'dumps attributes values' do
       obj = document_class.create
       document_class.update_fields(obj.id, published_on: '2018-02-23'.to_date)
       attributes = Dynamoid.adapter.get_item(document_class.table_name, obj.id)
@@ -347,7 +347,7 @@ describe Dynamoid::Document do
       }.to('[Updated]')
     end
 
-    it 'converts range key value' do
+    it 'uses dumped value of sort key to call UpdateItem' do
       document_class_with_range = new_class do
         field :title
         range :published_on, :date
@@ -358,7 +358,7 @@ describe Dynamoid::Document do
       expect(obj.reload.title).to eq 'New'
     end
 
-    it 'converts attributes values' do
+    it 'dumps attributes values' do
       obj = document_class.create
       document_class.upsert(obj.id, published_on: '2018-02-23'.to_date)
       attributes = Dynamoid.adapter.get_item(document_class.table_name, obj.id)
@@ -385,8 +385,19 @@ describe Dynamoid::Document do
       expect(tweet.reload.group).to eq 'abc'
     end
 
-    it 'works with a :datetime range key' do
-      expect { message.reload }.to_not raise_error
+    it 'uses dumped value of sort key to load document' do
+      klass = new_class do
+        range :activated_at, :datetime
+        field :name
+      end
+
+      obj = klass.create!(activated_at: Time.now, name: 'Old value')
+      obj2 = klass.where(id: obj.id, activated_at: obj.activated_at).first
+      obj2.update_attributes(name: 'New value')
+
+      expect { obj.reload }.to change {
+        obj.name
+      }.from('Old value').to('New value')
     end
   end
 
