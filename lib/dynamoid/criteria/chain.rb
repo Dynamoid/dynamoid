@@ -40,7 +40,7 @@ module Dynamoid #:nodoc:
         args.each do |k, v|
           sym = k.to_sym
           query[sym] = if (field_options = source.attributes[sym]) && (type = field_options[:type]) && TYPES_TO_DUMP_FOR_QUERY.include?(type)
-                         source.dump_field(v, field_options)
+                         Dumping.dump_field(v, field_options)
                        else
                          v
                        end
@@ -264,9 +264,9 @@ module Dynamoid #:nodoc:
         return value if %i[array set].include?(source.attributes[key.to_sym][:type])
 
         if !value.respond_to?(:to_ary)
-          source.dump_field(value, source.attributes[key.to_sym])
+          Dumping.dump_field(value, source.attributes[key.to_sym])
         else
-          value.to_ary.map { |el| source.dump_field(el, source.attributes[key.to_sym]) }
+          value.to_ary.map { |el| Dumping.dump_field(el, source.attributes[key.to_sym]) }
         end
       end
 

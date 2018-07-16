@@ -59,136 +59,8 @@ module Dynamoid
 
       def from_database(attrs = {})
         clazz = attrs[:type] ? obj = attrs[:type].constantize : self
-        clazz.new(attrs).tap { |r| r.new_record = false }
-      end
-
-      # Undump an object into a hash, converting each type from a string representation of itself into the type specified by the field.
-      #
-      # @since 0.2.0
-      def undump(incoming = nil)
-        incoming = (incoming || {}).symbolize_keys
-        {}.tap do |hash|
-          attributes.each do |attribute, options|
-            hash[attribute] = if incoming.key?(attribute)
-                                undump_field(incoming[attribute], options)
-                              elsif options.key?(:default)
-                                evaluate_default_value(options[:default])
-                              end
-          end
-          incoming.each { |attribute, value| hash[attribute] = value unless hash.key? attribute }
-        end
-      end
-
-      # Undump a string value for a given type.
-      #
-      # @since 0.2.0
-      def undump_field(value, options)
-        if (field_class = options[:type]).is_a?(Class)
-          raise 'Dynamoid class-type fields do not support default values' if options[:default]
-
-          if field_class.respond_to?(:dynamoid_load)
-            field_class.dynamoid_load(value)
-          end
-        elsif options[:type] == :serialized
-          if value.is_a?(String)
-            options[:serializer] ? options[:serializer].load(value) : YAML.load(value)
-          else
-            value
-          end
-        else
-          unless value.nil?
-            case options[:type]
-            when :string
-              value.to_s
-            when :integer
-              Integer(value)
-            when :number
-              BigDecimal(value.to_s)
-            when :array
-              value.to_a
-            when :raw
-              if value.is_a?(Hash)
-                undump_hash(value)
-              else
-                value
-              end
-            when :set
-              undump_set(options, value)
-            when :datetime
-              parse_datetime(value, options)
-            when :date
-              if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
-                value.to_date
-              else
-                parse_date(value, options)
-              end
-            when :boolean
-              if ['t', true].include? value
-                true
-              elsif ['f', false].include? value
-                false
-              else
-                raise ArgumentError, 'Boolean column neither true nor false'
-              end
-            else
-              raise ArgumentError, "Unknown type #{options[:type]}"
-            end
-          end
-        end
-      end
-
-      def undump_set(options, value)
-        case options[:of]
-        when :integer
-          value.map { |v| Integer(v) }.to_set
-        when :number
-          value.map { |v| BigDecimal(v.to_s) }.to_set
-        else
-          value.is_a?(Set) ? value : Set.new(value)
-        end
-      end
-
-      def dump_field(value, options)
-        if (field_class = options[:type]).is_a?(Class)
-          if value.respond_to?(:dynamoid_dump)
-            value.dynamoid_dump
-          elsif field_class.respond_to?(:dynamoid_dump)
-            field_class.dynamoid_dump(value)
-          else
-            raise ArgumentError, "Neither #{field_class} nor #{value} support serialization for Dynamoid."
-          end
-        else
-          case options[:type]
-          when :string
-            !value.nil? ? value.to_s : nil
-          when :integer
-            !value.nil? ? Integer(value) : nil
-          when :number
-            !value.nil? ? value : nil
-          when :set
-            !value.nil? ? Set.new(value) : nil
-          when :array
-            !value.nil? ? value : nil
-          when :datetime
-            !value.nil? ? format_datetime(value, options) : nil
-          when :date
-            !value.nil? ? format_date(value, options) : nil
-          when :serialized
-            options[:serializer] ? options[:serializer].dump(value) : value.to_yaml
-          when :raw
-            !value.nil? ? value : nil
-          when :boolean
-            unless value.nil?
-              if options[:store_as_native_boolean]
-                !!value # native boolean type
-              else
-                value.to_s[0] # => "f" or "t"
-              end
-            end
-          else
-            raise ArgumentError, "Unknown type #{options[:type]}"
-          end
-        end
+        attrs_undumped = Undumping.undump_attributes(attrs, clazz.attributes)
+        clazz.new(attrs_undumped).tap { |r| r.new_record = false }
       end
 
       def dynamo_type(type)
@@ -227,7 +99,12 @@ module Dynamoid
 
         if Dynamoid.config.backoff
           backoff = nil
-          Dynamoid.adapter.batch_write_item(table_name, documents.map(&:dump)) do |has_unprocessed_items|
+
+          array = documents.map do |d|
+            Dumping.dump_attributes(d.attributes, attributes)
+          end
+
+          Dynamoid.adapter.batch_write_item(table_name, array) do |has_unprocessed_items|
             if has_unprocessed_items
               backoff ||= Dynamoid.config.build_backoff
               backoff.call
@@ -236,115 +113,15 @@ module Dynamoid
             end
           end
         else
-          Dynamoid.adapter.batch_write_item(table_name, documents.map(&:dump))
+          array = documents.map do |d|
+            Dumping.dump_attributes(d.attributes, attributes)
+          end
+
+          Dynamoid.adapter.batch_write_item(table_name, array)
         end
 
         documents.each { |d| d.new_record = false }
         documents
-      end
-
-      private
-
-      def undump_hash(hash)
-        {}.tap do |h|
-          hash.each { |key, value| h[key.to_sym] = undump_hash_value(value) }
-        end
-      end
-
-      def undump_hash_value(val)
-        case val
-        when BigDecimal
-          if Dynamoid::Config.convert_big_decimal
-            val.to_f
-          else
-            val
-          end
-        when Hash
-          undump_hash(val)
-        when Array
-          val.map { |v| undump_hash_value(v) }
-        else
-          val
-        end
-      end
-
-      def format_datetime(value, options)
-        use_string_format = if options[:store_as_string].nil?
-                              Dynamoid.config.store_datetime_as_string
-                            else
-                              options[:store_as_string]
-                            end
-
-        if use_string_format
-          value.to_time.iso8601
-        else
-          unless value.respond_to?(:to_i) && value.respond_to?(:nsec)
-            value = value.to_time
-          end
-          BigDecimal(format('%d.%09d', value.to_i, value.nsec))
-        end
-      end
-
-      def format_date(value, options)
-        use_string_format = if options[:store_as_string].nil?
-                              Dynamoid.config.store_date_as_string
-                            else
-                              options[:store_as_string]
-                            end
-
-        if use_string_format
-          value.to_date.iso8601
-        else
-          (value.to_date - UNIX_EPOCH_DATE).to_i
-        end
-      end
-
-      def parse_datetime(value, options)
-        return value if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
-
-        use_string_format = if options[:store_as_string].nil?
-                              Dynamoid.config.store_datetime_as_string
-                            else
-                              options[:store_as_string]
-                            end
-        value = DateTime.iso8601(value).to_time.to_i if use_string_format
-
-        case Dynamoid::Config.application_timezone
-        when :utc
-          ActiveSupport::TimeZone['UTC'].at(value).to_datetime
-        when :local
-          Time.at(value).to_datetime
-        when String
-          ActiveSupport::TimeZone[Dynamoid::Config.application_timezone].at(value).to_datetime
-        end
-      end
-
-      def parse_date(value, options)
-        use_string_format = if options[:store_as_string].nil?
-                              Dynamoid.config.store_date_as_string
-                            else
-                              options[:store_as_string]
-                            end
-
-        if use_string_format
-          Date.iso8601(value)
-        else
-          UNIX_EPOCH_DATE + value.to_i
-        end
-      end
-
-      # Evaluates the default value given, this is used by undump
-      # when determining the value of the default given for a field options.
-      #
-      # @param [Object] :value the attribute's default value
-      def evaluate_default_value(val)
-        if val.respond_to?(:call)
-          val.call
-        elsif val.duplicable?
-          val.dup
-        else
-          val
-        end
       end
     end
 
@@ -387,7 +164,7 @@ module Dynamoid
     #
     def update!(conditions = {})
       run_callbacks(:update) do
-        options = range_key ? { range_key: dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
+        options = range_key ? { range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
 
         begin
           new_attrs = Dynamoid.adapter.update_item(self.class.table_name, hash_key, options.merge(conditions: conditions)) do |t|
@@ -395,7 +172,7 @@ module Dynamoid
 
             yield t
           end
-          load(new_attrs)
+          load(Undumping.undump_attributes(new_attrs, self.class.attributes))
         rescue Dynamoid::Errors::ConditionalCheckFailedException
           raise Dynamoid::Errors::StaleObjectError.new(self, 'update')
         end
@@ -427,7 +204,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def delete
-      options = range_key ? { range_key: dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
+      options = range_key ? { range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
 
       # Add an optimistic locking check if the lock_version column exists
       if self.class.attributes[:lock_version]
@@ -445,26 +222,7 @@ module Dynamoid
       raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
     end
 
-    # Dump this object's attributes into hash form, fit to be persisted into the datastore.
-    #
-    # @since 0.2.0
-    def dump
-      {}.tap do |hash|
-        self.class.attributes.each do |attribute, options|
-          hash[attribute] = dump_field(read_attribute(attribute), options)
-        end
-      end
-    end
-
     private
-
-    # Determine how to dump this field. Given a value, it'll determine how to turn it into a value that can be
-    # persisted into the datastore.
-    #
-    # @since 0.2.0
-    def dump_field(value, options)
-      self.class.dump_field(value, options)
-    end
 
     # Persist the object into the datastore. Assign it an id first if it doesn't have one.
     #
@@ -487,8 +245,10 @@ module Dynamoid
           (conditions[:if] ||= {})[:lock_version] = changes[:lock_version][0] if changes[:lock_version][0]
         end
 
+        attributes_dumped = Dumping.dump_attributes(attributes, self.class.attributes)
+
         begin
-          Dynamoid.adapter.write(self.class.table_name, dump, conditions)
+          Dynamoid.adapter.write(self.class.table_name, attributes_dumped, conditions)
           @new_record = false
           true
         rescue Dynamoid::Errors::ConditionalCheckFailedException => e

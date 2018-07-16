@@ -136,7 +136,7 @@ describe Dynamoid::Criteria::Chain do
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(name: 'Bob', age: '10').all).to contain_exactly(customer1)
+      expect(chain.where(name: 'Bob', age: 10).all).to contain_exactly(customer1)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to eq(:age)
       expect(chain.index_name).to be_nil
@@ -215,7 +215,7 @@ describe Dynamoid::Criteria::Chain do
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(name: 'a', age: '10').all).to contain_exactly(customer1)
+      expect(chain.where(name: 'a', age: 10).all).to contain_exactly(customer1)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to be_nil
       expect(chain.index_name).to be_nil
@@ -227,12 +227,12 @@ describe Dynamoid::Criteria::Chain do
         field :set, :set
       end
 
-      document1 = klass.create(id: 1, last_name: 'a', set: [1, 2].to_set)
-      document2 = klass.create(id: 1, last_name: 'b', set: [3, 4].to_set)
+      document1 = klass.create(id: '1', last_name: 'a', set: [1, 2].to_set)
+      document2 = klass.create(id: '1', last_name: 'b', set: [3, 4].to_set)
 
       chain = Dynamoid::Criteria::Chain.new(klass)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(id: 1, set: [1, 2].to_set).all).to contain_exactly(document1)
+      expect(chain.where(id: '1', set: [1, 2].to_set).all).to contain_exactly(document1)
     end
 
     it 'supports eq for array' do
@@ -241,12 +241,12 @@ describe Dynamoid::Criteria::Chain do
         field :array, :array
       end
 
-      document1 = klass.create(id: 1, last_name: 'a', array: [1, 2])
-      document2 = klass.create(id: 1, last_name: 'b', array: [3, 4])
+      document1 = klass.create(id: '1', last_name: 'a', array: [1, 2])
+      document2 = klass.create(id: '1', last_name: 'b', array: [3, 4])
 
       chain = Dynamoid::Criteria::Chain.new(klass)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(id: 1, array: [1, 2]).all).to contain_exactly(document1)
+      expect(chain.where(id: '1', array: [1, 2]).all).to contain_exactly(document1)
     end
 
     it 'supports ne' do
@@ -371,7 +371,7 @@ describe Dynamoid::Criteria::Chain do
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_scan).and_call_original
-      expect(chain.where(age: '10').all).to contain_exactly(customer1)
+      expect(chain.where(age: 10).all).to contain_exactly(customer1)
       expect(chain.hash_key).to be_nil
       expect(chain.range_key).to be_nil
       expect(chain.index_name).to be_nil

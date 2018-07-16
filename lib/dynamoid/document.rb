@@ -132,7 +132,7 @@ module Dynamoid #:nodoc:
       #   Post.update(101, read: true)
       def update(hash_key, range_key_value = nil, attrs)
         range_key_value = if range_key.present?
-                            dump_field(range_key_value, attributes[range_key])
+                            Dumping.dump_field(range_key_value, attributes[range_key])
                           end
 
         model = find(hash_key, range_key: range_key_value, consistent_read: true)
@@ -169,7 +169,7 @@ module Dynamoid #:nodoc:
         end
 
         options = if range_key
-                    { range_key: dump_field(range_key_value, attributes[range_key]) }
+                    { range_key: Dumping.dump_field(range_key_value, attributes[range_key]) }
                   else
                     {}
                   end
@@ -180,10 +180,11 @@ module Dynamoid #:nodoc:
         begin
           new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
             attrs.symbolize_keys.each do |k, v|
-              t.set k => dump_field(v, attributes[k])
+              t.set k => Dumping.dump_field(v, attributes[k])
             end
           end
-          new(new_attrs)
+          attrs_undumped = Undumping.undump_attributes(new_attrs, attributes)
+          new(attrs_undumped)
         rescue Dynamoid::Errors::ConditionalCheckFailedException
         end
       end
@@ -220,7 +221,7 @@ module Dynamoid #:nodoc:
         end
 
         options = if range_key
-                    { range_key: dump_field(range_key_value, attributes[range_key]) }
+                    { range_key: Dumping.dump_field(range_key_value, attributes[range_key]) }
                   else
                     {}
                   end
@@ -230,10 +231,11 @@ module Dynamoid #:nodoc:
         begin
           new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
             attrs.symbolize_keys.each do |k, v|
-              t.set k => dump_field(v, attributes[k])
+              t.set k => Dumping.dump_field(v, attributes[k])
             end
           end
-          new(new_attrs)
+          attrs_undumped = Undumping.undump_attributes(new_attrs, attributes)
+          new(attrs_undumped)
         rescue Dynamoid::Errors::ConditionalCheckFailedException
         end
       end
@@ -260,12 +262,30 @@ module Dynamoid #:nodoc:
         @attributes ||= {}
         @associations ||= {}
 
-        load(attrs)
+        self.class.attributes.each do |_, options|
+          if options[:type].is_a?(Class) && options[:default]
+            raise 'Dynamoid class-type fields do not support default values'
+          end
+        end
+
+        attrs_casted = TypeCasting.cast_attributes(attrs, self.class.attributes)
+        attrs_virtual = attrs.slice(*(attrs.keys - self.class.attributes.keys))
+        attrs_with_defaults = {}
+
+        self.class.attributes.each do |attribute, options|
+          attrs_with_defaults[attribute] = if attrs_casted.key?(attribute)
+                                             attrs_casted[attribute]
+                                           elsif options.key?(:default)
+                                             evaluate_default_value(options[:default])
+                                           end
+        end
+
+        load(attrs_with_defaults.merge(attrs_virtual))
       end
     end
 
     def load(attrs)
-      self.class.undump(attrs).each do |key, value|
+      attrs.each do |key, value|
         send("#{key}=", value) if respond_to?("#{key}=")
       end
     end
@@ -330,7 +350,21 @@ module Dynamoid #:nodoc:
     private
 
     def dumped_range_value
-      dump_field(range_value, self.class.attributes[self.class.range_key])
+      Dumping.dump_field(range_value, self.class.attributes[self.class.range_key])
+    end
+
+    # Evaluates the default value given, this is used by undump
+    # when determining the value of the default given for a field options.
+    #
+    # @param [Object] :value the attribute's default value
+    def evaluate_default_value(val)
+      if val.respond_to?(:call)
+        val.call
+      elsif val.duplicable?
+        val.dup
+      else
+        val
+      end
     end
   end
 end

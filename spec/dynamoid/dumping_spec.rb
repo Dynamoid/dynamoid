@@ -97,12 +97,12 @@ describe 'Dumping' do
 
         models = (1..100).map { klass.create(expired_at: Time.now) }
         loaded_models = models.map do |m|
-          klass.find(m.id, range_key: klass.dump_field(m.expired_at, klass.attributes[:expired_at]))
+          klass.find(m.id, range_key: Dynamoid::Dumping.dump_field(m.expired_at, klass.attributes[:expired_at]))
         end
 
         expect do
           loaded_models.map do |m|
-            klass.find(m.id, range_key: klass.dump_field(m.expired_at, klass.attributes[:expired_at]))
+            klass.find(m.id, range_key: Dynamoid::Dumping.dump_field(m.expired_at, klass.attributes[:expired_at]))
           end
         end.not_to raise_error
       end
