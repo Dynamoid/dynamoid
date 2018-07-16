@@ -665,10 +665,6 @@ describe 'Dumping' do
             name == other.name
           end
 
-          def to_s
-            name
-          end
-
           def self.dynamoid_load(string)
             new(string.to_s)
           end
@@ -702,10 +698,6 @@ describe 'Dumping' do
 
           def eql?(other)
             name == other.name
-          end
-
-          def to_s
-            name
           end
         end
       end
@@ -753,10 +745,6 @@ describe 'Dumping' do
 
           def eql?(other)
             name == other.name
-          end
-
-          def to_s
-            name
           end
         end
       end
