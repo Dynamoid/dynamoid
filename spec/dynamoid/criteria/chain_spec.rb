@@ -734,7 +734,38 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe 'type casting in `where` clause' do
-    it 'casts datetime' do
+    let(:klass) do
+      new_class do
+        field :count, :integer
+      end
+    end
+
+    it 'type casts condition values' do
+      obj1 = klass.create(count: 1)
+      obj2 = klass.create(count: 2)
+
+      expect(klass.where(count: '1').all.to_a).to eql([obj1])
+    end
+
+    it 'type casts condition values with predicates' do
+      obj1 = klass.create(count: 1)
+      obj2 = klass.create(count: 2)
+      obj3 = klass.create(count: 3)
+
+      expect(klass.where('count.gt': '1').all).to match_array([obj2, obj3])
+    end
+
+    it 'type casts collection of condition values' do
+      obj1 = klass.create(count: 1)
+      obj2 = klass.create(count: 2)
+      obj3 = klass.create(count: 3)
+
+      expect(klass.where('count.in': %w[1 2]).all).to match_array([obj1, obj2])
+    end
+  end
+
+  describe 'dumping in `where` clause' do
+    it 'dumps datetime' do
       model = Class.new do
         include Dynamoid::Document
         table name: :customers
@@ -751,7 +782,7 @@ describe Dynamoid::Criteria::Chain do
       ).to contain_exactly(customer1, customer2)
     end
 
-    it 'casts date' do
+    it 'dumps date' do
       model = Class.new do
         include Dynamoid::Document
         table name: :customers
@@ -768,7 +799,7 @@ describe Dynamoid::Criteria::Chain do
       ).to contain_exactly(customer1, customer2)
     end
 
-    it 'casts array elements' do
+    it 'dumps array elements' do
       model = Class.new do
         include Dynamoid::Document
         table name: :customers
@@ -786,7 +817,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     context 'Query' do
-      it 'casts partition key `equal` condition' do
+      it 'dumps partition key `equal` condition' do
         model = Class.new do
           include Dynamoid::Document
           table name: :customers, key: :registered_on
@@ -802,7 +833,7 @@ describe Dynamoid::Criteria::Chain do
         ).to contain_exactly(customer1)
       end
 
-      it 'casts sort key `equal` condition' do
+      it 'dumps sort key `equal` condition' do
         model = Class.new do
           include Dynamoid::Document
           table name: :customers, key: :first_name
@@ -819,7 +850,7 @@ describe Dynamoid::Criteria::Chain do
         ).to contain_exactly(customer1)
       end
 
-      it 'casts sort key `range` condition' do
+      it 'dumps sort key `range` condition' do
         model = Class.new do
           include Dynamoid::Document
           table name: :customers, key: :first_name
@@ -837,7 +868,7 @@ describe Dynamoid::Criteria::Chain do
         ).to contain_exactly(customer1, customer2)
       end
 
-      it 'casts non-key field `equal` condition' do
+      it 'dumps non-key field `equal` condition' do
         model = Class.new do
           include Dynamoid::Document
           table name: :customers, key: :first_name
@@ -855,7 +886,7 @@ describe Dynamoid::Criteria::Chain do
         ).to contain_exactly(customer1)
       end
 
-      it 'casts non-key field `range` condition' do
+      it 'dumps non-key field `range` condition' do
         model = Class.new do
           include Dynamoid::Document
           table name: :customers, key: :first_name
@@ -876,7 +907,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     context 'Scan' do
-      it 'casts field for `equal` condition' do
+      it 'dumps field for `equal` condition' do
         model = Class.new do
           include Dynamoid::Document
           table name: :customers
@@ -890,7 +921,7 @@ describe Dynamoid::Criteria::Chain do
         expect(model.where(birthday: '1978-08-21').all).to contain_exactly(customer1)
       end
 
-      it 'casts field for `range` condition' do
+      it 'dumps field for `range` condition' do
         model = Class.new do
           include Dynamoid::Document
           table name: :customers

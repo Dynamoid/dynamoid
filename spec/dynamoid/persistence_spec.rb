@@ -360,38 +360,68 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context 'single table inheritance' do
-    let(:vehicle) { Vehicle.create }
-    let(:car) { Car.create(power_locks: false) }
-    let(:sub) { NuclearSubmarine.create(torpedoes: 5) }
-
-    it 'saves subclass objects in the parent table' do
-      c = car
-      expect(Vehicle.find(c.id)).to eq c
-    end
-
-    it 'loads subclass item when querying the parent table' do
-      c = car
-      s = sub
-
-      Vehicle.all.to_a.tap do |v|
-        expect(v).to include(c)
-        expect(v).to include(s)
+  context 'single table inheritance (STI)' do
+    let!(:class_a) do
+      new_class do
+        field :type
       end
     end
 
-    it 'does not load parent item when quering the child table' do
-      vehicle && car
+    let!(:class_b) do
+      Class.new(class_a) do
+      end
+    end
 
-      expect(Car.all).to contain_exactly(car)
-      expect(Car.all).not_to include(vehicle)
+    let!(:class_c) do
+      Class.new(class_a) do
+      end
+    end
+
+    let!(:class_d) do
+      Class.new(class_b) do
+      end
+    end
+
+    before do
+      A = class_a
+      B = class_b
+      C = class_c
+      D = class_d
+    end
+
+    after do
+      Object.send(:remove_const, :A)
+      Object.send(:remove_const, :B)
+      Object.send(:remove_const, :C)
+      Object.send(:remove_const, :D)
+    end
+
+    it 'saves subclass objects in the parent table' do
+      b = class_b.create
+      expect(class_a.find(b.id)).to eql b
+    end
+
+    it 'loads subclass item when querying the parent table' do
+      b = class_b.create!
+      c = class_c.create!
+      d = class_d.create!
+
+      expect(class_a.all.to_a).to contain_exactly(b, c, d)
+    end
+
+    it 'does not load parent item when quering the child table' do
+      a = class_a.create!
+      b = class_b.create!
+
+      expect(class_b.all.to_a).to eql([b])
     end
 
     it 'does not load items of sibling class' do
-      car && sub
+      b = class_b.create!
+      c = class_c.create!
 
-      expect(Car.all).to contain_exactly(car)
-      expect(Car.all).not_to include(sub)
+      expect(class_b.all.to_a).to eql([b])
+      expect(class_c.all.to_a).to eql([c])
     end
   end
 
@@ -503,6 +533,18 @@ describe Dynamoid::Persistence do
       obj = objects[0]
       obj.save!
       expect(raw_attributes(obj)[:active]).to eql('f')
+    end
+
+    it 'type casts attributes' do
+      klass = new_class do
+        field :count, :integer
+      end
+      klass.create_table
+
+      objects = klass.import([{ count: '101' }])
+      obj = objects[0]
+      expect(obj.attributes[:count]).to eql(101)
+      expect(raw_attributes(obj)[:count]).to eql(101)
     end
 
     context 'backoff is specified' do

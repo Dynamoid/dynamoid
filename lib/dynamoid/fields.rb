@@ -113,11 +113,14 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def write_attribute(name, value)
+      name = name.to_sym
+
       if association = @associations[name]
         association.reset
       end
 
-      attributes[name.to_sym] = value
+      value_casted = TypeCasting.cast_field(value, self.class.attributes[name])
+      attributes[name] = value_casted
     end
     alias []= write_attribute
 

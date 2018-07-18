@@ -154,10 +154,10 @@ module Dynamoid #:nodoc:
       # @return [Dynamoid::Document/nil] updated document
       #
       # @example Update document
-      #   Post.update(101, read: true)
+      #   Post.update_fields(101, read: true)
       #
       # @example Update document with condition
-      #   Post.update(101, { read: true }, if: { version: 1 })
+      #   Post.update_fields(101, { read: true }, if: { version: 1 })
       def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
@@ -169,7 +169,9 @@ module Dynamoid #:nodoc:
         end
 
         options = if range_key
-                    { range_key: Dumping.dump_field(range_key_value, attributes[range_key]) }
+                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
+                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
+                    { range_key: value_dumped }
                   else
                     {}
                   end
@@ -180,7 +182,9 @@ module Dynamoid #:nodoc:
         begin
           new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
             attrs.symbolize_keys.each do |k, v|
-              t.set k => Dumping.dump_field(v, attributes[k])
+              value_casted = TypeCasting.cast_field(v, attributes[k])
+              value_dumped = Dumping.dump_field(value_casted, attributes[k])
+              t.set(k => value_dumped)
             end
           end
           attrs_undumped = Undumping.undump_attributes(new_attrs, attributes)
@@ -221,7 +225,9 @@ module Dynamoid #:nodoc:
         end
 
         options = if range_key
-                    { range_key: Dumping.dump_field(range_key_value, attributes[range_key]) }
+                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
+                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
+                    { range_key: value_dumped }
                   else
                     {}
                   end
@@ -231,7 +237,9 @@ module Dynamoid #:nodoc:
         begin
           new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
             attrs.symbolize_keys.each do |k, v|
-              t.set k => Dumping.dump_field(v, attributes[k])
+              value_casted = TypeCasting.cast_field(v, attributes[k])
+              value_dumped = Dumping.dump_field(value_casted, attributes[k])
+              t.set(k => value_dumped)
             end
           end
           attrs_undumped = Undumping.undump_attributes(new_attrs, attributes)
@@ -268,17 +276,16 @@ module Dynamoid #:nodoc:
           end
         end
 
-        attrs_casted = TypeCasting.cast_attributes(attrs, self.class.attributes)
-        attrs_virtual = attrs.slice(*(attrs.keys - self.class.attributes.keys))
         attrs_with_defaults = {}
-
         self.class.attributes.each do |attribute, options|
-          attrs_with_defaults[attribute] = if attrs_casted.key?(attribute)
-                                             attrs_casted[attribute]
+          attrs_with_defaults[attribute] = if attrs.key?(attribute)
+                                             attrs[attribute]
                                            elsif options.key?(:default)
                                              evaluate_default_value(options[:default])
                                            end
         end
+
+        attrs_virtual = attrs.slice(*(attrs.keys - self.class.attributes.keys))
 
         load(attrs_with_defaults.merge(attrs_virtual))
       end

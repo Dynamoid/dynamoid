@@ -102,9 +102,9 @@ module Dynamoid
 
     class BooleanTypeCaster < Base
       def process(value)
-        if ['t', true].include? value
+        if ['t', 'true', true].include? value
           true
-        elsif ['f', false].include? value
+        elsif ['f', 'false', false].include? value
           false
         else
           nil
