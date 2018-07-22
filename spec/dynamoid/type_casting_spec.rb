@@ -230,11 +230,11 @@ describe 'Type casting' do
 
     it 'converts to Set with #to_set method' do
       obj = klass.new(items: ['milk'])
-      expect(obj.attributes[:items]).to eql(Set.new(['milk']))
+      expect(obj.items).to eql(Set.new(['milk']))
 
       struct = Struct.new(:name, :address, :zip)
       obj = klass.new(items: struct.new('Joe Smith', '123 Maple, Anytown NC', 12_345))
-      expect(obj.attributes[:items]).to eql(Set.new(['Joe Smith', '123 Maple, Anytown NC', 12_345]))
+      expect(obj.items).to eql(Set.new(['Joe Smith', '123 Maple, Anytown NC', 12_345]))
     end
 
     it 'converts any random object to nil' do
@@ -266,14 +266,14 @@ describe 'Type casting' do
 
     it 'converts to Array with #to_a method' do
       obj = klass.new(items: Set.new(['milk']))
-      expect(obj.attributes[:items]).to eql(['milk'])
+      expect(obj.items).to eql(['milk'])
 
       obj = klass.new(items: { 'milk' => 13.60 })
-      expect(obj.attributes[:items]).to eql([['milk', 13.6]])
+      expect(obj.items).to eql([['milk', 13.6]])
 
       struct = Struct.new(:name, :address, :zip)
       obj = klass.new(items: struct.new('Joe Smith', '123 Maple, Anytown NC', 12_345))
-      expect(obj.attributes[:items]).to eql(['Joe Smith', '123 Maple, Anytown NC', 12_345])
+      expect(obj.items).to eql(['Joe Smith', '123 Maple, Anytown NC', 12_345])
     end
 
     it 'converts any random object to nil' do
