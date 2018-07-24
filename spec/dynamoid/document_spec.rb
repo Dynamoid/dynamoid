@@ -150,9 +150,6 @@ describe Dynamoid::Document do
         field :name
 
         validates :name, presence: true, length: { minimum: 5 }
-        def self.name
-          'Document'
-        end
       end
     end
 
