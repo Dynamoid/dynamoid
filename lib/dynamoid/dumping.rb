@@ -86,7 +86,7 @@ module Dynamoid
                             end
 
         if use_string_format
-          value.to_time.iso8601
+          value.iso8601
         else
           unless value.respond_to?(:to_i) && value.respond_to?(:nsec)
             value = value.to_time

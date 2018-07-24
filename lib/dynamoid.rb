@@ -14,6 +14,7 @@ require 'active_model'
 
 require 'dynamoid/version'
 require 'dynamoid/errors'
+require 'dynamoid/application_time_zone'
 require 'dynamoid/fields'
 require 'dynamoid/indexes'
 require 'dynamoid/associations'
