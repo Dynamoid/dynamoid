@@ -228,13 +228,32 @@ describe 'Type casting' do
       end
     end
 
-    it 'converts Enumerable to Set' do
+    it 'converts to Set with #to_set method' do
       obj = klass.new(items: ['milk'])
       expect(obj.attributes[:items]).to eql(Set.new(['milk']))
 
       struct = Struct.new(:name, :address, :zip)
       obj = klass.new(items: struct.new('Joe Smith', '123 Maple, Anytown NC', 12_345))
       expect(obj.attributes[:items]).to eql(Set.new(['Joe Smith', '123 Maple, Anytown NC', 12_345]))
+    end
+
+    it 'converts any random object to nil' do
+      obj = klass.new(items: 'a')
+      expect(obj.items).to eql(nil)
+
+      obj = klass.new(items: 13)
+      expect(obj.items).to eql(nil)
+
+      obj = klass.new(items: Time.now)
+      expect(obj.items).to eql(nil)
+    end
+
+    it 'dups Set' do
+      set = Set.new(['milk'])
+      obj = klass.new(items: set)
+
+      expect(obj.items).to eql(set)
+      expect(obj.items).not_to equal(set)
     end
   end
 
@@ -245,7 +264,7 @@ describe 'Type casting' do
       end
     end
 
-    it 'converts to array with #to_a method' do
+    it 'converts to Array with #to_a method' do
       obj = klass.new(items: Set.new(['milk']))
       expect(obj.attributes[:items]).to eql(['milk'])
 
@@ -255,6 +274,25 @@ describe 'Type casting' do
       struct = Struct.new(:name, :address, :zip)
       obj = klass.new(items: struct.new('Joe Smith', '123 Maple, Anytown NC', 12_345))
       expect(obj.attributes[:items]).to eql(['Joe Smith', '123 Maple, Anytown NC', 12_345])
+    end
+
+    it 'converts any random object to nil' do
+      obj = klass.new(items: 'a')
+      expect(obj.items).to eql(nil)
+
+      obj = klass.new(items: 13)
+      expect(obj.items).to eql(nil)
+
+      obj = klass.new(items: Mutex.new)
+      expect(obj.items).to eql(nil)
+    end
+
+    it 'dups Array' do
+      array = ['milk']
+      obj = klass.new(items: array)
+
+      expect(obj.items).to eql(array)
+      expect(obj.items).not_to equal(array)
     end
   end
 

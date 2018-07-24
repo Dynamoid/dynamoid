@@ -106,13 +106,25 @@ module Dynamoid
 
     class SetTypeCaster < Base
       def process(value)
-        value.is_a?(Set) ? value : Set.new(value)
+        if value.is_a?(Set)
+          value.dup
+        elsif value.respond_to?(:to_set)
+          value.to_set
+        else
+          nil
+        end
       end
     end
 
     class ArrayTypeCaster < Base
       def process(value)
-        value.to_a
+        if value.is_a?(Array)
+          value.dup
+        elsif value.respond_to?(:to_a)
+          value.to_a
+        else
+          nil
+        end
       end
     end
 
