@@ -48,7 +48,12 @@ module Dynamoid
 
         ids = Array(ids.flatten(1).uniq)
         if ids.count == 1
-          result = find_by_id(ids.first, options)
+          result = if ids.first.is_a? Array
+                     id, range_key = ids.first
+                     find_by_id(id, options.merge(range_key: range_key))
+                   else
+                     find_by_id(ids.first, options)
+                   end
           if result.nil?
             message = "Couldn't find #{name} with '#{hash_key}'=#{ids[0]}"
             raise Errors::RecordNotFound, message
