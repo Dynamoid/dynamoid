@@ -30,7 +30,7 @@ module Dynamoid
     option :sync_retry_wait_seconds, default: 2
     option :convert_big_decimal, default: false
     option :models_dir, default: './app/models' # perhaps you keep your dynamoid models in a different directory?
-    option :application_timezone, default: :local # available values - :utc, :local, time zone names
+    option :application_timezone, default: :utc # available values - :utc, :local, time zone name like "Hawaii"
     option :store_datetime_as_string, default: false # store Time fields in ISO 8601 string format
     option :store_date_as_string, default: false # store Date fields in ISO 8601 string format
     option :backoff, default: nil # callable object to handle exceeding of table throughput limit
