@@ -46,7 +46,7 @@ module Dynamoid
                   end
         expects_array = ids.first.is_a?(Array)
 
-        ids = Array(ids.flatten.uniq)
+        ids = Array(ids.flatten(1).uniq)
         if ids.count == 1
           result = find_by_id(ids.first, options)
           if result.nil?
