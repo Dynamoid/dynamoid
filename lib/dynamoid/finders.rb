@@ -85,6 +85,15 @@ module Dynamoid
       #   find all the tweets using hash key and range key with consistent read
       #   Tweet.find_all([['1', 'red'], ['1', 'green']], :consistent_read => true)
       def find_all(ids, options = {})
+        if range_key
+          ids = ids.map do |pk, sk|
+            sk_casted = TypeCasting.cast_field(sk, attributes[range_key])
+            sk_dumped = Dumping.dump_field(sk_casted, attributes[range_key])
+
+            [pk, sk_dumped]
+          end
+        end
+
         results = if Dynamoid.config.backoff
                     items = []
                     backoff = nil
@@ -121,6 +130,14 @@ module Dynamoid
       #
       # @since 0.2.0
       def find_by_id(id, options = {})
+        if range_key
+          key = options[:range_key]
+          key_casted = TypeCasting.cast_field(key, attributes[range_key])
+          key_dumped = Dumping.dump_field(key_casted, attributes[range_key])
+
+          options[:range_key] = key_dumped
+        end
+
         if item = Dynamoid.adapter.read(table_name, id, options)
           from_database(item)
         end

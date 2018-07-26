@@ -361,32 +361,19 @@ describe Dynamoid::Persistence do
   end
 
   context 'single table inheritance (STI)' do
-    let!(:class_a) do
-      new_class do
+    before do
+      A = new_class class_name: 'A' do
         field :type
       end
-    end
-
-    let!(:class_b) do
-      Class.new(class_a) do
+      B = Class.new(A) do
+        def self.name; 'B'; end
       end
-    end
-
-    let!(:class_c) do
-      Class.new(class_a) do
+      C = Class.new(A) do
+        def self.name; 'C'; end
       end
-    end
-
-    let!(:class_d) do
-      Class.new(class_b) do
+      D = Class.new(B) do
+        def self.name; 'D'; end
       end
-    end
-
-    before do
-      A = class_a
-      B = class_b
-      C = class_c
-      D = class_d
     end
 
     after do
@@ -397,31 +384,31 @@ describe Dynamoid::Persistence do
     end
 
     it 'saves subclass objects in the parent table' do
-      b = class_b.create
-      expect(class_a.find(b.id)).to eql b
+      b = B.create
+      expect(A.find(b.id)).to eql b
     end
 
     it 'loads subclass item when querying the parent table' do
-      b = class_b.create!
-      c = class_c.create!
-      d = class_d.create!
+      b = B.create!
+      c = C.create!
+      d = D.create!
 
-      expect(class_a.all.to_a).to contain_exactly(b, c, d)
+      expect(A.all.to_a).to contain_exactly(b, c, d)
     end
 
     it 'does not load parent item when quering the child table' do
-      a = class_a.create!
-      b = class_b.create!
+      a = A.create!
+      b = B.create!
 
-      expect(class_b.all.to_a).to eql([b])
+      expect(B.all.to_a).to eql([b])
     end
 
     it 'does not load items of sibling class' do
-      b = class_b.create!
-      c = class_c.create!
+      b = B.create!
+      c = C.create!
 
-      expect(class_b.all.to_a).to eql([b])
-      expect(class_c.all.to_a).to eql([c])
+      expect(B.all.to_a).to eql([b])
+      expect(C.all.to_a).to eql([c])
     end
   end
 

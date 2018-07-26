@@ -43,6 +43,21 @@ describe Dynamoid::Finders do
             klass_with_composite_key.find('wrong-id', range_key: 100500)
           }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Document with 'id'=wrong-id")
         end
+
+        it 'type casts a sort key value' do
+          obj = klass_with_composite_key.create(age: 12)
+          expect(klass_with_composite_key.find(obj.id, range_key: '12.333')).to eql(obj)
+        end
+
+        it 'dumps a sort key value' do
+          klass_with_date = new_class do
+            range :published_on, :date
+          end
+
+          date = '2018/07/26'.to_date
+          obj = klass_with_date.create(published_on: date)
+          expect(klass_with_date.find(obj.id, range_key: date)).to eql(obj)
+        end
       end
 
       it 'returns persisted? object' do
@@ -136,6 +151,25 @@ describe Dynamoid::Finders do
           objects = (1 .. 2).map { |i| klass_with_composite_key.create(age: i) }
           obj1, obj2 = objects
           expect(klass_with_composite_key.find([obj1.id, obj1.age], [obj2.id, obj2.age])).to match_array(objects)
+        end
+
+        it 'type casts a sort key value' do
+          objects = (1 .. 2).map { |i| klass_with_composite_key.create(age: i) }
+          obj1, obj2 = objects
+          expect(klass_with_composite_key.find([[obj1.id, '1'], [obj2.id, '2']])).to match_array(objects)
+        end
+
+        it 'dumps a sort key value' do
+          klass_with_date = new_class do
+            range :published_on, :date
+          end
+
+          obj1 = klass_with_date.create(published_on: '2018/07/26'.to_date)
+          obj2 = klass_with_date.create(published_on: '2018/07/27'.to_date)
+
+          expect(
+            klass_with_date.find([[obj1.id, obj1.published_on], [obj2.id, obj2.published_on]])
+          ).to match_array([obj1, obj2])
         end
       end
 
