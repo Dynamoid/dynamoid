@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 module NewClassHelper
-  def new_class(table_name: nil, &blk)
+  def new_class(options = {}, &blk)
+    table_name = options[:table_name] || :documents
+
     klass = Class.new do
       include Dynamoid::Document
-      table name: (table_name || :documents)
+      table name: table_name
     end
-    klass.class_eval(&blk) if block_given?
+    klass.class_exec(options, &blk) if block_given?
     klass
   end
 end

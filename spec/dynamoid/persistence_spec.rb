@@ -179,426 +179,6 @@ describe Dynamoid::Persistence do
     expect(Dynamoid.adapter.read('dynamoid_tests_users', @user.id)).to be_nil
   end
 
-  it 'keeps string attributes as strings' do
-    @user = User.new(name: 'Josh')
-    expect(@user.send(:dump)[:name]).to eq 'Josh'
-  end
-
-  it 'keeps raw Hash attributes as a Hash' do
-    config = { acres: 5, trees: { cyprus: 30, poplar: 10, joshua: 1 }, horses: %w[Lucky Dummy], lake: 1, tennis_court: 1 }
-    @addr = Address.new(config: config)
-    expect(@addr.send(:dump)[:config]).to eq config
-  end
-
-  it 'keeps raw Array attributes as an Array' do
-    config = %w[windows roof doors]
-    @addr = Address.new(config: config)
-    expect(@addr.send(:dump)[:config]).to eq config
-  end
-
-  it 'keeps raw String attributes as a String' do
-    config = 'Configy'
-    @addr = Address.new(config: config)
-    expect(@addr.send(:dump)[:config]).to eq config
-  end
-
-  it 'keeps raw Number attributes as a Number' do
-    config = 100
-    @addr = Address.new(config: config)
-    expect(@addr.send(:dump)[:config]).to eq config
-  end
-
-  context 'transforms booleans' do
-    it 'handles true' do
-      deliverable = true
-      @addr = Address.new(deliverable: deliverable)
-      expect(@addr.send(:dump)[:deliverable]).to eq 't'
-    end
-
-    it 'handles false' do
-      deliverable = false
-      @addr = Address.new(deliverable: deliverable)
-      expect(@addr.send(:dump)[:deliverable]).to eq 'f'
-    end
-
-    it 'handles t' do
-      deliverable = 't'
-      @addr = Address.new(deliverable: deliverable)
-      expect(@addr.send(:dump)[:deliverable]).to eq 't'
-    end
-
-    it 'handles f' do
-      deliverable = 'f'
-      @addr = Address.new(deliverable: deliverable)
-      expect(@addr.send(:dump)[:deliverable]).to eq 'f'
-    end
-  end
-
-  context 'when dumps datetime attribute' do
-    it 'loads time in local time zone if config.application_timezone == :local', application_timezone: :local do
-      time = Time.now
-      user = User.create(last_logged_in_at: time)
-      user = User.find(user.id)
-      expect(user.last_logged_in_at).to be_a(DateTime)
-      # we can't compare objects directly because lose precision of milliseconds in conversions
-      expect(user.last_logged_in_at.to_s).to eq time.to_datetime.to_s
-    end
-
-    it 'loads time in specified time zone if config.application_timezone == time zone name', application_timezone: 'Hawaii' do
-      time = '2017-06-20 08:00:00 +0300'.to_time
-      user = User.create(last_logged_in_at: time)
-      user = User.find(user.id)
-      expect(user.last_logged_in_at).to eq '2017-06-19 19:00:00 -1000'.to_datetime # Hawaii UTC-10
-    end
-
-    it 'loads time in UTC if config.application_timezone = :utc', application_timezone: :utc do
-      time = '2017-06-20 08:00:00 +0300'.to_time
-      user = User.create(last_logged_in_at: time)
-      user = User.find(user.id)
-      expect(user.last_logged_in_at).to eq '2017-06-20 05:00:00 +0000'.to_datetime
-    end
-
-    it 'can be used as sort key' do
-      klass = new_class do
-        range :expired_at, :datetime
-      end
-
-      models = (1..100).map { klass.create(expired_at: Time.now) }
-      loaded_models = models.map do |m|
-        klass.find(m.id, range_key: klass.dump_field(m.expired_at, klass.attributes[:expired_at]))
-      end
-
-      expect do
-        loaded_models.map do |m|
-          klass.find(m.id, range_key: klass.dump_field(m.expired_at, klass.attributes[:expired_at]))
-        end
-      end.not_to raise_error
-    end
-  end
-
-  it 'dumps date attributes' do
-    address = Address.create(registered_on: '2017-06-18'.to_date)
-    expect(Address.find(address.id).registered_on).to eq '2017-06-18'.to_date
-
-    # check internal format - days since 1970-01-01
-    expect(Address.find(address.id).send(:dump)[:registered_on])
-      .to eq(('2017-06-18'.to_date - Date.new(1970, 1, 1)).to_i)
-  end
-
-  it 'dumps integer attributes' do
-    @subscription = Subscription.create(length: 10)
-    expect(@subscription.send(:dump)[:length]).to eq 10
-  end
-
-  it 'dumps set attributes' do
-    @subscription = Subscription.create(length: 10)
-    @magazine = @subscription.magazine.create
-
-    expect(@subscription.send(:dump)[:magazine_ids]).to eq Set[@magazine.hash_key]
-  end
-
-  it 'handles nil attributes properly' do
-    expect(Address.undump(nil)).to be_a(Hash)
-  end
-
-  it 'dumps and undump a serialized field' do
-    address.options = (hash = { :x => [1, 2], 'foobar' => 3.14 })
-    expect(Address.undump(address.send(:dump))[:options]).to eq hash
-  end
-
-  it 'dumps and undumps an integer in number field' do
-    expect(Address.undump(Address.new(latitude: 123).send(:dump))[:latitude]).to eq 123
-  end
-
-  it 'dumps and undumps a float in number field' do
-    expect(Address.undump(Address.new(latitude: 123.45).send(:dump))[:latitude]).to eq 123.45
-  end
-
-  it 'dumps and undumps a BigDecimal in number field' do
-    expect(Address.undump(Address.new(latitude: BigDecimal(123.45, 3)).send(:dump))[:latitude]).to eq 123
-  end
-
-  it 'dumps and undumps a date' do
-    date = '2017-06-18'.to_date
-    expect(
-      Address.undump(Address.new(registered_on: date).send(:dump))[:registered_on]
-    ).to eq date
-  end
-
-  it 'supports empty containers in `serialized` fields' do
-    u = User.create(name: 'Philip')
-    u.favorite_colors = Set.new
-    u.save!
-
-    u = User.find(u.id)
-    expect(u.favorite_colors).to eq Set.new
-  end
-
-  it 'supports array being empty' do
-    user = User.create(todo_list: [])
-    expect(User.find(user.id).todo_list).to eq []
-  end
-
-  it 'saves empty set as nil' do
-    tweet = Tweet.create(group: 'one', tags: [])
-    expect(Tweet.find_by_tweet_id(tweet.tweet_id).tags).to eq nil
-  end
-
-  it 'saves empty string as nil' do
-    user = User.create(name: '')
-    expect(User.find(user.id).name).to eq nil
-  end
-
-  it 'saves attributes with nil value' do
-    user = User.create(name: nil)
-    expect(User.find(user.id).name).to eq nil
-  end
-
-  it 'supports container types being nil' do
-    u = User.create(name: 'Philip')
-    u.todo_list = nil
-    u.save!
-
-    u = User.find(u.id)
-    expect(u.todo_list).to be_nil
-  end
-
-  [true, false].each do |bool|
-    it "dumps a #{bool} boolean field" do
-      address.deliverable = bool
-      expect(Address.undump(address.send(:dump))[:deliverable]).to eq bool
-    end
-  end
-
-  describe 'Boolean field' do
-    context 'stored in string format' do
-      let(:klass) do
-        new_class do
-          field :active, :boolean
-        end
-      end
-
-      it "saves false as 'f'" do
-        obj = klass.create(active: false)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:active]).to eq 'f'
-      end
-
-      it "saves 'f' as 'f'" do
-        obj = klass.create(active: 'f')
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:active]).to eq 'f'
-      end
-
-      it "saves true as 't'" do
-        obj = klass.create(active: true)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:active]).to eq 't'
-      end
-
-      it "saves 't' as 't'" do
-        obj = klass.create(active: 't')
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:active]).to eq 't'
-      end
-    end
-
-    context 'stored in boolean format' do
-      let(:klass) do
-        new_class do
-          field :active, :boolean, store_as_native_boolean: true
-        end
-      end
-
-      it 'saves false as false' do
-        obj = klass.create(active: false)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:active]).to eq false
-      end
-
-      it 'saves true as true' do
-        obj = klass.create(active: true)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:active]).to eq true
-      end
-
-      it 'saves and loads boolean field correctly' do
-        obj = klass.create(active: true)
-        expect(klass.find(obj.hash_key).active).to eq true
-
-        obj = klass.create(active: false)
-        expect(klass.find(obj.hash_key).active).to eq false
-      end
-    end
-  end
-
-  describe 'Datetime field' do
-    context 'Stored in :number format' do
-      let(:klass) do
-        new_class do
-          field :sent_at, :datetime
-        end
-      end
-
-      it 'saves time as :number' do
-        time = Time.now
-        obj = klass.create(sent_at: time)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq BigDecimal(format('%d.%09d', time.to_i, time.nsec))
-      end
-
-      it 'saves date as :number' do
-        date = Date.today
-        obj = klass.create(sent_at: date)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq BigDecimal(format('%d.%09d', date.to_time.to_i, date.to_time.nsec))
-      end
-    end
-
-    context 'Stored in :string format' do
-      let(:klass) do
-        new_class do
-          field :sent_at, :datetime, store_as_string: true
-        end
-      end
-
-      it 'saves time as a :string' do
-        time = Time.now
-        obj = klass.create(sent_at: time)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq time.iso8601
-      end
-
-      it 'saves date as :string' do
-        date = Date.today
-        obj = klass.create(sent_at: date)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq date.to_time.iso8601
-      end
-
-      it 'saves as :string if global option :store_date_time_as_string is true' do
-        klass2 = new_class do
-          field :sent_at, :datetime
-        end
-
-        store_datetime_as_string = Dynamoid.config.store_datetime_as_string
-        Dynamoid.config.store_datetime_as_string = true
-
-        time = Time.now
-        obj = klass2.create(sent_at: time)
-        attributes = Dynamoid.adapter.get_item(klass2.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq time.iso8601
-
-        Dynamoid.config.store_datetime_as_string = store_datetime_as_string
-      end
-
-      it 'prioritize field option over global one' do
-        store_datetime_as_string = Dynamoid.config.store_datetime_as_string
-        Dynamoid.config.store_datetime_as_string = false
-
-        time = Time.now
-        obj = klass.create(sent_at: time)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eq time.iso8601
-
-        Dynamoid.config.store_datetime_as_string = store_datetime_as_string
-      end
-    end
-  end
-
-  describe 'Date field' do
-    context 'stored in :string format' do
-      it 'stores in ISO 8601 format' do
-        klass = new_class do
-          field :signed_up_on, :date, store_as_string: true
-        end
-
-        model = klass.create(signed_up_on: '25-09-2017'.to_date)
-        expect(klass.find(model.id).signed_up_on).to eq('25-09-2017'.to_date)
-
-        attributes = Dynamoid.adapter.get_item(klass.table_name, model.id)
-        expect(attributes[:signed_up_on]).to eq '2017-09-25'
-      end
-
-      it 'stores in string format when global option :store_date_as_string is true' do
-        klass = new_class do
-          field :signed_up_on, :date
-        end
-
-        store_date_as_string = Dynamoid.config.store_date_as_string
-        Dynamoid.config.store_date_as_string = true
-
-        model = klass.create(signed_up_on: '25-09-2017'.to_date)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, model.id)
-        expect(attributes[:signed_up_on]).to eq '2017-09-25'
-
-        Dynamoid.config.store_date_as_string = store_date_as_string
-      end
-
-      it 'prioritize field option over global one' do
-        klass = new_class do
-          field :signed_up_on, :date, store_as_string: true
-        end
-
-        store_date_as_string = Dynamoid.config.store_date_as_string
-        Dynamoid.config.store_date_as_string = false
-
-        model = klass.create(signed_up_on: '25-09-2017'.to_date)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, model.id)
-        expect(attributes[:signed_up_on]).to eq '2017-09-25'
-
-        Dynamoid.config.store_date_as_string = store_date_as_string
-      end
-    end
-  end
-
-  describe 'Set field' do
-    let(:klass) do
-      new_class do
-        field :string_set, :set
-        field :integer_set, :set, of: :integer
-        field :number_set, :set, of: :number
-      end
-    end
-
-    it 'stored a string set' do
-      obj = klass.create(string_set: Set.new(%w[a b]))
-      expect(obj.reload[:string_set]).to eq(Set.new(%w[a b]))
-    end
-
-    it 'stored an integer set' do
-      obj = klass.create(integer_set: Set.new([1, 2]))
-      expect(obj.reload[:integer_set]).to eq(Set.new([1, 2]))
-    end
-
-    it 'stored a number set' do
-      obj = klass.create(number_set: Set.new([1, 2]))
-      expect(obj.reload[:number_set]).to eq(Set.new([BigDecimal(1), BigDecimal(2)]))
-    end
-  end
-
-  it 'raises on an invalid boolean value' do
-    expect do
-      address.deliverable = true
-      data = address.send(:dump)
-      data[:deliverable] = 'foo'
-      Address.undump(data)
-    end.to raise_error(ArgumentError)
-  end
-
-  it 'loads a hash into a serialized field' do
-    hash = { foo: :bar }
-    expect(Address.new(options: hash).options).to eq hash
-  end
-
-  it 'loads attributes from a hash' do
-    @time = DateTime.now
-    @hash = { name: 'Josh', created_at: BigDecimal(format('%d.%09d', @time.to_i, @time.nsec)) }
-
-    expect(User.undump(@hash)[:name]).to eq 'Josh'
-    expect(User.undump(@hash)[:created_at]).to eq @time
-  end
-
   it 'runs the before_create callback only once' do
     expect_any_instance_of(CamelCase).to receive(:doing_before_create).once.and_return(true)
 
@@ -640,33 +220,6 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context 'unknown fields' do
-    let(:clazz) do
-      Class.new do
-        include Dynamoid::Document
-        table name: :addresses
-
-        field :city
-        field :options, :serialized
-        field :deliverable, :bad_type_specifier
-      end
-    end
-
-    it 'raises when undumping a column with an unknown field type' do
-      expect do
-        clazz.new(deliverable: true) # undump is called here
-      end.to raise_error(ArgumentError)
-    end
-
-    it 'raises when dumping a column with an unknown field type' do
-      doc = clazz.new
-      doc.deliverable = true
-      expect do
-        doc.dump
-      end.to raise_error(ArgumentError)
-    end
-  end
-
   describe 'save' do
     it 'creates table if it does not exist' do
       klass = Class.new do
@@ -676,6 +229,16 @@ describe Dynamoid::Persistence do
 
       expect { klass.create }.not_to raise_error(Aws::DynamoDB::Errors::ResourceNotFoundException)
       expect(klass.create.id).to be_present
+    end
+
+    it 'dumps attribute values' do
+      klass = new_class do
+        field :active, :boolean
+      end
+
+      obj = klass.new(active: false)
+      obj.save!
+      expect(raw_attributes(obj)[:active]).to eql('f')
     end
   end
 
@@ -742,14 +305,32 @@ describe Dynamoid::Persistence do
         address.save!
       end.to raise_error(Dynamoid::Errors::StaleObjectError)
     end
+
+    it 'uses dumped value of sort key to call UpdateItem' do
+      klass = new_class do
+        range :activated_at, :datetime
+        field :name
+      end
+      klass.create_table
+
+      obj = klass.create!(activated_at: Time.now, name: 'Old value')
+      obj.update! { |d| d.set(name: 'New value') }
+
+      expect(obj.reload.name).to eql('New value')
+    end
   end
 
   context 'delete' do
-    it 'deletes model with datetime range key' do
-      expect do
-        msg = Message.create!(message_id: 1, time: DateTime.now, text: 'Hell yeah')
-        msg.destroy
-      end.to_not raise_error
+    it 'uses dumped value of sort key to call DeleteItem' do
+      klass = new_class do
+        range :activated_at, :datetime
+      end
+
+      obj = klass.create!(activated_at: Time.now)
+
+      expect { obj.delete }.to change {
+        klass.where(id: obj.id, activated_at: obj.activated_at).first
+      }.to(nil)
     end
 
     context 'with lock version' do
@@ -779,182 +360,68 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context 'single table inheritance' do
-    let(:vehicle) { Vehicle.create }
-    let(:car) { Car.create(power_locks: false) }
-    let(:sub) { NuclearSubmarine.create(torpedoes: 5) }
+  context 'single table inheritance (STI)' do
+    let!(:class_a) do
+      new_class do
+        field :type
+      end
+    end
+
+    let!(:class_b) do
+      Class.new(class_a) do
+      end
+    end
+
+    let!(:class_c) do
+      Class.new(class_a) do
+      end
+    end
+
+    let!(:class_d) do
+      Class.new(class_b) do
+      end
+    end
+
+    before do
+      A = class_a
+      B = class_b
+      C = class_c
+      D = class_d
+    end
+
+    after do
+      Object.send(:remove_const, :A)
+      Object.send(:remove_const, :B)
+      Object.send(:remove_const, :C)
+      Object.send(:remove_const, :D)
+    end
 
     it 'saves subclass objects in the parent table' do
-      c = car
-      expect(Vehicle.find(c.id)).to eq c
+      b = class_b.create
+      expect(class_a.find(b.id)).to eql b
     end
 
     it 'loads subclass item when querying the parent table' do
-      c = car
-      s = sub
+      b = class_b.create!
+      c = class_c.create!
+      d = class_d.create!
 
-      Vehicle.all.to_a.tap do |v|
-        expect(v).to include(c)
-        expect(v).to include(s)
-      end
+      expect(class_a.all.to_a).to contain_exactly(b, c, d)
     end
 
     it 'does not load parent item when quering the child table' do
-      vehicle && car
+      a = class_a.create!
+      b = class_b.create!
 
-      expect(Car.all).to contain_exactly(car)
-      expect(Car.all).not_to include(vehicle)
+      expect(class_b.all.to_a).to eql([b])
     end
 
     it 'does not load items of sibling class' do
-      car && sub
+      b = class_b.create!
+      c = class_c.create!
 
-      expect(Car.all).to contain_exactly(car)
-      expect(Car.all).not_to include(sub)
-    end
-  end
-
-  describe ':raw datatype persistence' do
-    subject { Address.new }
-
-    it 'it persists raw Hash and reads the same back' do
-      config = { acres: 5, trees: { cyprus: 30, poplar: 10, joshua: 1 }, horses: %w[Lucky Dummy], lake: 1, tennis_court: 1 }
-      subject.config = config
-      subject.save!
-      subject.reload
-      expect(subject.config).to eq config
-    end
-
-    it 'it persists raw Array and reads the same back' do
-      config = %w[windows doors roof]
-      subject.config = config
-      subject.save!
-      subject.reload
-      expect(subject.config).to eq config
-    end
-
-    it 'it persists raw Number and reads the same back' do
-      config = 100
-      subject.config = config
-      subject.save!
-      subject.reload
-      expect(subject.config).to eq config
-    end
-
-    it 'it persists raw String and reads the same back' do
-      config = 'Configy'
-      subject.config = config
-      subject.save!
-      subject.reload
-      expect(subject.config).to eq config
-    end
-
-    it 'it persists raw value, then reads back, then deletes the value by setting to nil, persists and reads the nil back' do
-      config = 'To become nil'
-      subject.config = config
-      subject.save!
-      subject.reload
-      expect(subject.config).to eq config
-
-      subject.config = nil
-      subject.save!
-      subject.reload
-      expect(subject.config).to be_nil
-    end
-  end
-
-  describe 'class-type fields' do
-    subject { doc_class.new }
-
-    context 'when Money can load itself and Money instances can dump themselves with Dynamoid-specific methods' do
-      let(:doc_class) do
-        Class.new do
-          def self.name
-            'Doc'
-          end
-
-          include Dynamoid::Document
-
-          field :price, MoneyInstanceDump
-        end
-      end
-
-      before(:each) do
-        subject.price = MoneyInstanceDump.new(BigDecimal('5'))
-        subject.save!
-      end
-
-      it 'round-trips using Dynamoid-specific methods' do
-        expect(doc_class.all.first).to eq subject
-      end
-
-      it 'is findable as a string' do
-        pending 'casting to declared type is not supported yet'
-        expect(doc_class.where(price: '5.0').first).to eq subject
-      end
-    end
-
-    context 'when MoneyAdapter dumps/loads a class that does not directly support Dynamoid\'s interface' do
-      let(:doc_class) do
-        Class.new do
-          def self.name
-            'Doc'
-          end
-
-          include Dynamoid::Document
-
-          field :price, MoneyAdapter
-        end
-      end
-
-      before(:each) do
-        subject.price = Money.new(BigDecimal('5'))
-        subject.save!
-        subject.reload
-      end
-
-      it 'round-trips using Dynamoid-specific methods' do
-        expect(doc_class.all.first.price).to eq subject.price
-      end
-
-      it 'is findable as a string' do
-        pending 'casting to declared type is not supported yet'
-        expect(doc_class.where(price: '5.0').first).to eq subject
-      end
-
-      it 'is a Money object' do
-        expect(subject.price).to be_a Money
-      end
-    end
-
-    context 'when Money has Dynamoid-specific serialization methods and is a range' do
-      let(:doc_class) do
-        Class.new do
-          def self.name
-            'Doc'
-          end
-
-          include Dynamoid::Document
-
-          range :price, MoneyAsNumber
-        end
-      end
-
-      before(:each) do
-        subject.price = MoneyAsNumber.new(BigDecimal('5'))
-        subject.save!
-      end
-
-      it 'round-trips using Dynamoid-specific methods' do
-        expect(doc_class.all.first.price).to eq subject.price
-      end
-
-      it 'is findable with number semantics' do
-        pending 'casting to declared type is not supported yet'
-        # With the primary key, we're forcing a Query rather than a Scan because of https://github.com/Dynamoid/Dynamoid/issues/6
-        primary_key = subject.id
-        expect(doc_class.where(id: primary_key).where('price.gt': 4).first).to_not be_nil
-      end
+      expect(class_b.all.to_a).to eql([b])
+      expect(class_c.all.to_a).to eql([c])
     end
   end
 
@@ -1054,6 +521,30 @@ describe Dynamoid::Persistence do
 
       user = User.find(users[0].id)
       expect(user.todo_list).to eq nil
+    end
+
+    it 'dumps attribute values' do
+      klass = new_class do
+        field :active, :boolean
+      end
+      klass.create_table
+
+      objects = klass.import([{ active: false }])
+      obj = objects[0]
+      obj.save!
+      expect(raw_attributes(obj)[:active]).to eql('f')
+    end
+
+    it 'type casts attributes' do
+      klass = new_class do
+        field :count, :integer
+      end
+      klass.create_table
+
+      objects = klass.import([{ count: '101' }])
+      obj = objects[0]
+      expect(obj.attributes[:count]).to eql(101)
+      expect(raw_attributes(obj)[:count]).to eql(101)
     end
 
     context 'backoff is specified' do

@@ -18,20 +18,6 @@ describe Dynamoid::Criteria do
     expect(User.where(name: 'Josh').all.to_a).to eq [user1]
   end
 
-  context 'transforms booleans' do
-    it 'accepts native' do
-      expect(User.where(admin: 't').all.to_a).to eq [user1]
-    end
-
-    it 'accepts string' do
-      expect(User.where(admin: 'true').all.to_a).to eq [user1]
-    end
-
-    it 'accepts boolean' do
-      expect(User.where(admin: true).all.to_a).to eq [user1]
-    end
-  end
-
   it 'returns all records' do
     expect(Set.new(User.all)).to eq Set.new([user1, user2])
     expect(User.all.first.new_record).to be_falsey

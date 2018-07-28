@@ -285,14 +285,34 @@ describe Dynamoid::Fields do
     end
   end
 
-  context 'single table inheritance' do
-    it 'has only base class fields on the base class' do
-      expect(Vehicle.attributes.keys.to_set).to eq Set.new(%i[type description created_at updated_at id])
+  context 'single table inheritance (STI)' do
+    let!(:class_a) do
+      new_class do
+        field :type
+        field :a
+      end
     end
 
-    it 'has only the base and derived fields on a sub-class' do
-      # Only NuclearSubmarines have torpedoes
-      expect(Car.attributes).to_not have_key(:torpedoes)
+    let!(:class_b) do
+      Class.new(class_a) do
+        field :b
+      end
+    end
+
+    let!(:class_c) do
+      Class.new(class_a) do
+        field :c
+      end
+    end
+
+    it 'enables only own attributes in a base class ' do
+      expect(class_a.attributes.keys).to match_array(%i[id type a created_at updated_at])
+    end
+
+    it 'enabled only own attributes and inherited in a child class' do
+      expect(class_b.attributes.keys).to include(:a)
+      expect(class_b.attributes.keys).to include(:b)
+      expect(class_b.attributes.keys).not_to include(:c)
     end
   end
 
@@ -326,6 +346,50 @@ describe Dynamoid::Fields do
       address = klass.new
       address.name = 'ABcd'
       expect(address.name).to eq('ABCD')
+    end
+  end
+
+  describe '#write_attribute' do
+    describe 'type casting' do
+      it 'type casts attributes' do
+        klass = new_class do
+          field :count, :integer
+        end
+
+        obj = klass.new
+        obj.write_attribute(:count, '101')
+        expect(obj.attributes[:count]).to eql(101)
+      end
+    end
+  end
+
+  describe '#update_attribute' do
+    describe 'type casting' do
+      it 'type casts attributes' do
+        klass = new_class do
+          field :count, :integer
+        end
+
+        obj = klass.create
+        obj.update_attribute(:count, '101')
+        expect(obj.attributes[:count]).to eql(101)
+        expect(raw_attributes(obj)[:count]).to eql(101)
+      end
+    end
+  end
+
+  describe '#update_attributes' do
+    describe 'type casting' do
+      it 'type casts attributes' do
+        klass = new_class do
+          field :count, :integer
+        end
+
+        obj = klass.create
+        obj.update_attributes(count: '101')
+        expect(obj.attributes[:count]).to eql(101)
+        expect(raw_attributes(obj)[:count]).to eql(101)
+      end
     end
   end
 end

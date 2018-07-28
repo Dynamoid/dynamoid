@@ -5,8 +5,6 @@ module Dynamoid #:nodoc:
     # The criteria chain is equivalent to an ActiveRecord relation (and realistically I should change the name from
     # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
     class Chain
-      # TODO: Should we transform any other types of query values?
-      TYPES_TO_DUMP_FOR_QUERY = %i[string integer boolean serialized].freeze
       attr_accessor :query, :source, :values, :consistent_read
       attr_reader :hash_key, :range_key, :index_name
       include Enumerable
@@ -37,14 +35,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def where(args)
-        args.each do |k, v|
-          sym = k.to_sym
-          query[sym] = if (field_options = source.attributes[sym]) && (type = field_options[:type]) && TYPES_TO_DUMP_FOR_QUERY.include?(type)
-                         source.dump_field(v, field_options)
-                       else
-                         v
-                       end
-        end
+        query.update(args.dup.symbolize_keys)
         self
       end
 
@@ -264,9 +255,15 @@ module Dynamoid #:nodoc:
         return value if %i[array set].include?(source.attributes[key.to_sym][:type])
 
         if !value.respond_to?(:to_ary)
-          source.dump_field(value, source.attributes[key.to_sym])
+          options = source.attributes[key.to_sym]
+          value_casted = TypeCasting.cast_field(value, options)
+          Dumping.dump_field(value_casted, options)
         else
-          value.to_ary.map { |el| source.dump_field(el, source.attributes[key.to_sym]) }
+          value.to_ary.map do |el|
+            options = source.attributes[key.to_sym]
+            value_casted = TypeCasting.cast_field(el, options)
+            Dumping.dump_field(value_casted, options)
+          end
         end
       end
 
