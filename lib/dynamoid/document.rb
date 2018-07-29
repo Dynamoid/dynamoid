@@ -115,7 +115,11 @@ module Dynamoid #:nodoc:
       def exists?(id_or_conditions = {})
         case id_or_conditions
         when Hash then where(id_or_conditions).first.present?
-        else !!find_by_id(id_or_conditions)
+        else
+          begin
+            find_by_id(id_or_conditions)
+          rescue Dynamoid::Errors::RecordNotFound
+          end
         end
       end
 

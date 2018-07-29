@@ -97,11 +97,14 @@ describe Dynamoid::Finders do
           )
         end
 
-        it 'raises RecordNotFound for single object if only one primary key provided and no result found' do
+        it 'raises RecordNotFound if only one primary key provided and no result found' do
           klass.create_table
           expect {
             klass.find(['wrong-id'])
-          }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Document with 'id'=wrong-id")
+          }.to raise_error(
+            Dynamoid::Errors::RecordNotFound,
+            "Couldn't find all Documents with 'id': (wrong-id) (found 0 results, but was looking for 1)"
+          )
         end
 
         it 'finds with a list of keys' do
@@ -134,15 +137,17 @@ describe Dynamoid::Finders do
             klass_with_composite_key.find([[obj.id, obj.age], ['wrong-id', 100500]])
           }.to raise_error(
             Dynamoid::Errors::RecordNotFound,
-            "Couldn't find all Documents with 'id': (#{obj.id}, 12, wrong-id, 100500) " \
-            '(found 1 results, but was looking for 2)')
+            "Couldn't find all Documents with 'id': (#{obj.id}, 12, wrong-id, 100500) (found 1 results, but was looking for 2)")
         end
 
-        it 'raises RecordNotFound for single object if only one primary key provided and no result found' do
+        it 'raises RecordNotFound if only one primary key provided and no result found' do
           klass_with_composite_key.create_table
           expect {
             klass_with_composite_key.find([['wrong-id', 100500]])
-          }.to raise_error(Dynamoid::Errors::RecordNotFound, %Q{Couldn't find Document with 'id'=["wrong-id", 100500]})
+          }.to raise_error(
+            Dynamoid::Errors::RecordNotFound,
+            "Couldn't find all Documents with 'id': (wrong-id, 100500) (found 0 results, but was looking for 1)"
+          )
         end
 
         it 'finds with a list of keys' do
@@ -202,13 +207,16 @@ describe Dynamoid::Finders do
         it 'returns items' do
           users = (1..10).map { User.create }
 
-          results = User.find_all(users.map(&:id))
+          results = User.find(users.map(&:id))
           expect(results).to match_array(users)
         end
 
-        it 'returns empty array when there are no results' do
+        it 'raise RecordNotFound error when there are no results' do
           User.create_table
-          expect(User.find_all(['some-fake-id'])).to eq []
+
+          expect {
+            User.find(['some-fake-id'])
+          }.to raise_error(Dynamoid::Errors::RecordNotFound)
         end
 
         it 'uses specified backoff when some items are not processed' do
@@ -226,7 +234,7 @@ describe Dynamoid::Finders do
             User.create(id: id, name: name)
           end
 
-          results = User.find_all(users.map(&:id))
+          results = User.find(users.map(&:id))
           expect(results).to match_array(users)
 
           expect(@counter).to eq 2

@@ -38,35 +38,11 @@ module Dynamoid
       #   Document.find([[101, 'archived'], [102, 'new'], [103, 'deleted']])
       #
       # @since 0.2.0
-      def find(*ids)
-        options = if ids.last.is_a? Hash
-                    ids.slice!(-1)
-                  else
-                    {}
-                  end
-        expects_array = ids.first.is_a?(Array)
-
-        ids = Array(ids.flatten(1).uniq)
-        if ids.count == 1
-          result = if ids.first.is_a? Array
-                     id, range_key = ids.first
-                     find_by_id(id, options.merge(range_key: range_key))
-                   else
-                     find_by_id(ids.first, options)
-                   end
-          if result.nil?
-            message = "Couldn't find #{name} with '#{hash_key}'=#{ids[0]}"
-            raise Errors::RecordNotFound, message
-          end
-          expects_array ? Array(result) : result
+      def find(*ids, **options)
+        if ids.size == 1 && !ids[0].is_a?(Array)
+          find_by_id(ids[0], options)
         else
-          result = find_all(ids)
-          if result.size != ids.size
-            message = "Couldn't find all #{name.pluralize} with '#{hash_key}': (#{ids.join(', ')}) "
-            message += "(found #{result.size} results, but was looking for #{ids.size})"
-            raise Errors::RecordNotFound, message
-          end
-          result
+          find_all(ids.flatten(1))
         end
       end
 
@@ -94,26 +70,32 @@ module Dynamoid
           end
         end
 
-        results = if Dynamoid.config.backoff
-                    items = []
-                    backoff = nil
-                    Dynamoid.adapter.read(table_name, ids, options) do |hash, has_unprocessed_items|
-                      items += hash[table_name]
+        items = if Dynamoid.config.backoff
+                  items = []
+                  backoff = nil
+                  Dynamoid.adapter.read(table_name, ids, options) do |hash, has_unprocessed_items|
+                    items += hash[table_name]
 
-                      if has_unprocessed_items
-                        backoff ||= Dynamoid.config.build_backoff
-                        backoff.call
-                      else
-                        backoff = nil
-                      end
+                    if has_unprocessed_items
+                      backoff ||= Dynamoid.config.build_backoff
+                      backoff.call
+                    else
+                      backoff = nil
                     end
-                    items
-                  else
-                    items = Dynamoid.adapter.read(table_name, ids, options)
-                    items ? items[table_name] : []
                   end
+                  items
+                else
+                  items = Dynamoid.adapter.read(table_name, ids, options)
+                  items ? items[table_name] : []
+                end
 
-        results ? results.map { |i| from_database(i) } : []
+        if items.size == ids.size
+          items ? items.map { |i| from_database(i) } : []
+        else
+          message = "Couldn't find all #{name.pluralize} with '#{hash_key}': (#{ids.join(', ')}) "
+          message += "(found #{items.size} results, but was looking for #{ids.size})"
+          raise Errors::RecordNotFound, message
+        end
       end
 
       # Find one object directly by id.
@@ -140,6 +122,9 @@ module Dynamoid
 
         if item = Dynamoid.adapter.read(table_name, id, options)
           from_database(item)
+        else
+          message = "Couldn't find #{name} with '#{hash_key}'=#{id}"
+          raise Errors::RecordNotFound, message
         end
       end
 
