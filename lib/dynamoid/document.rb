@@ -118,7 +118,9 @@ module Dynamoid #:nodoc:
         else
           begin
             find_by_id(id_or_conditions)
+            true
           rescue Dynamoid::Errors::RecordNotFound
+            false
           end
         end
       end
