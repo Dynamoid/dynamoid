@@ -89,15 +89,7 @@ module Dynamoid
                               @options[:store_as_string]
                             end
         value = DateTime.iso8601(value).to_time.to_i if use_string_format
-
-        case Dynamoid::Config.application_timezone
-        when :utc
-          ActiveSupport::TimeZone['UTC'].at(value).to_datetime
-        when :local
-          Time.at(value).to_datetime
-        when String
-          ActiveSupport::TimeZone[Dynamoid::Config.application_timezone].at(value).to_datetime
-        end
+        ApplicationTimeZone.at(value)
       end
     end
 

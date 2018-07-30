@@ -74,20 +74,16 @@ describe 'Dumping' do
       end
 
       it 'saves time as :number' do
-        time = Time.now
+        time = Time.utc(2018, 7, 24, 22, 4, 30, 1).to_datetime
         obj = klass.create(sent_at: time)
-        expect(reload(obj).sent_at).to eq(time)
-        expect(raw_attributes(obj)[:sent_at]).to eql(BigDecimal(format('%d.%09d', time.to_i, time.nsec)))
+        expect(reload(obj).sent_at).to eql(time)
+        expect(raw_attributes(obj)[:sent_at]).to eql(BigDecimal('1532469870.000001'))
       end
 
       it 'saves date as :number' do
-        date = Date.today
-        obj = klass.create(sent_at: date)
-        attributes = Dynamoid.adapter.get_item(klass.table_name, obj.hash_key)
-        expect(attributes[:sent_at]).to eql BigDecimal(format('%d.%09d', date.to_time.to_i, date.to_time.nsec))
-
-        expect(reload(obj).sent_at).to eq(date.to_time)
-        expect(raw_attributes(obj)[:sent_at]).to eql(BigDecimal(format('%d.%09d', date.to_time.to_i, date.to_time.nsec)))
+        obj = klass.create(sent_at: Date.new(2018, 7, 21))
+        expect(reload(obj).sent_at).to eq(DateTime.new(2018, 7, 21, 0, 0, 0))
+        expect(raw_attributes(obj)[:sent_at]).to eql(BigDecimal('1532131200.0'))
       end
 
       it 'does not loose precision and can be used as sort key', :bugfix do
@@ -114,7 +110,7 @@ describe 'Dumping' do
       end
     end
 
-    context 'Stored in :string format' do
+    context 'Stored in :string ISO-8601 format' do
       let(:klass) do
         new_class do
           field :sent_at, :datetime, store_as_string: true
@@ -122,19 +118,19 @@ describe 'Dumping' do
       end
 
       it 'saves time as a :string and looses milliseconds' do
-        time = Time.now
+        time = DateTime.new(2018, 7, 24, 22, 4, 30)
         obj = klass.create(sent_at: time)
 
         expect(reload(obj).sent_at).to eq(time.change(usec: 0))
-        expect(raw_attributes(obj)[:sent_at]).to eql(time.iso8601)
+        expect(raw_attributes(obj)[:sent_at]).to eql('2018-07-24T22:04:30+00:00')
       end
 
-      it 'saves date as :string' do
-        date = Date.today
+      it 'saves date as :string', application_timezone: :utc do
+        date = Date.new(2018, 7, 21)
         obj = klass.create(sent_at: date)
 
-        expect(reload(obj).sent_at).to eq(date.to_time)
-        expect(raw_attributes(obj)[:sent_at]).to eql(date.to_time.iso8601)
+        expect(reload(obj).sent_at).to eq(DateTime.new(2018, 7, 21, 0, 0, 0, '+00:00'))
+        expect(raw_attributes(obj)[:sent_at]).to eql('2018-07-21T00:00:00+00:00')
       end
 
       it 'saves as :string if global option :store_date_time_as_string is true' do
@@ -213,8 +209,8 @@ describe 'Dumping' do
           field :signed_up_on, :date, store_as_string: true
         end
 
-        obj = klass.create(signed_up_on: '25-09-2017'.to_date)
-        expect(reload(obj).signed_up_on).to eql('25-09-2017'.to_date)
+        obj = klass.create(signed_up_on: '2017-09-25'.to_date)
+        expect(reload(obj).signed_up_on).to eql('2017-09-25'.to_date)
         expect(raw_attributes(obj)[:signed_up_on]).to eql('2017-09-25')
       end
 
@@ -226,7 +222,7 @@ describe 'Dumping' do
         store_date_as_string = Dynamoid.config.store_date_as_string
         Dynamoid.config.store_date_as_string = true
 
-        obj = klass.create(signed_up_on: '25-09-2017'.to_date)
+        obj = klass.create(signed_up_on: '2017-09-25'.to_date)
         expect(raw_attributes(obj)[:signed_up_on]).to eql('2017-09-25')
 
         Dynamoid.config.store_date_as_string = store_date_as_string
@@ -240,7 +236,7 @@ describe 'Dumping' do
         store_date_as_string = Dynamoid.config.store_date_as_string
         Dynamoid.config.store_date_as_string = false
 
-        obj = klass.create(signed_up_on: '25-09-2017'.to_date)
+        obj = klass.create(signed_up_on: '2017-09-25'.to_date)
         expect(raw_attributes(obj)[:signed_up_on]).to eql('2017-09-25')
 
         Dynamoid.config.store_date_as_string = store_date_as_string
@@ -263,8 +259,8 @@ describe 'Dumping' do
           field :signed_up_on, :date, store_as_string: false
         end
 
-        obj = klass.create(signed_up_on: '25-09-2017'.to_date)
-        expect(reload(obj).signed_up_on).to eql('25-09-2017'.to_date)
+        obj = klass.create(signed_up_on: '2017-09-25'.to_date)
+        expect(reload(obj).signed_up_on).to eql('2017-09-25'.to_date)
         expect(raw_attributes(obj)[:signed_up_on]).to eql(17_434)
       end
 
@@ -276,7 +272,7 @@ describe 'Dumping' do
         store_date_as_string = Dynamoid.config.store_date_as_string
         Dynamoid.config.store_date_as_string = false
 
-        obj = klass.create(signed_up_on: '25-09-2017'.to_date)
+        obj = klass.create(signed_up_on: '2017-09-25'.to_date)
         expect(raw_attributes(obj)[:signed_up_on]).to eql(17_434)
 
         Dynamoid.config.store_date_as_string = store_date_as_string
@@ -290,7 +286,7 @@ describe 'Dumping' do
         store_date_as_string = Dynamoid.config.store_date_as_string
         Dynamoid.config.store_date_as_string = true
 
-        obj = klass.create(signed_up_on: '25-09-2017'.to_date)
+        obj = klass.create(signed_up_on: '2017-09-25'.to_date)
         expect(raw_attributes(obj)[:signed_up_on]).to eql(17_434)
 
         Dynamoid.config.store_date_as_string = store_date_as_string
@@ -526,30 +522,6 @@ describe 'Dumping' do
 
     it 'stores integer value as Integer' do
       obj = klass.create(count: 10)
-      expect(reload(obj).count).to eql(10)
-      expect(raw_attributes(obj)[:count]).to eql(10)
-    end
-
-    it 'casts string value to integer' do
-      obj = klass.create(count: '10')
-      expect(reload(obj).count).to eql(10)
-      expect(raw_attributes(obj)[:count]).to eql(10)
-
-      expect do
-        klass.create(count: 'abc')
-      end.to raise_error(ArgumentError)
-    end
-
-    it 'casts numeric value to integer' do
-      obj = klass.create(count: 10.001)
-      expect(reload(obj).count).to eql(10)
-      expect(raw_attributes(obj)[:count]).to eql(10)
-
-      obj = klass.create(count: Rational(3, 2))
-      expect(reload(obj).count).to eql(1)
-      expect(raw_attributes(obj)[:count]).to eql(1)
-
-      obj = klass.create(count: BigDecimal('10'))
       expect(reload(obj).count).to eql(10)
       expect(raw_attributes(obj)[:count]).to eql(10)
     end
