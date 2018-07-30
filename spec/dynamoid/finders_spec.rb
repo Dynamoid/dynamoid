@@ -1,65 +1,252 @@
 # frozen_string_literal: true
 
-require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+require 'spec_helper'
 
 describe Dynamoid::Finders do
   let!(:address) { Address.create(city: 'Chicago') }
 
-  it 'finds an existing address' do
-    found = Address.find(address.id)
+  describe '.find' do
+    let(:klass) do
+      new_class
+    end
 
-    expect(found).to eq address
-    expect(found.city).to eq 'Chicago'
+    let(:klass_with_composite_key) do
+      new_class do
+        range :age, :integer
+      end
+    end
+
+    context 'one primary key provided' do
+      context 'simple primary key' do
+        it 'finds' do
+          obj = klass.create
+          expect(klass.find(obj.id)).to eql(obj)
+        end
+
+        it 'raises RecordNotFound error when found nothing' do
+          klass.create_table
+          expect {
+            klass.find('wrong-id')
+          }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Document with 'id'=wrong-id")
+        end
+      end
+
+      context 'composite primary key' do
+        it 'finds' do
+          obj = klass_with_composite_key.create(age: 12)
+          expect(klass_with_composite_key.find(obj.id, range_key: 12)).to eql(obj)
+        end
+
+        it 'raises RecordNotFound error when found nothing' do
+          klass_with_composite_key.create_table
+          expect {
+            klass_with_composite_key.find('wrong-id', range_key: 100500)
+          }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Document with 'id'=wrong-id")
+        end
+
+        it 'type casts a sort key value' do
+          obj = klass_with_composite_key.create(age: 12)
+          expect(klass_with_composite_key.find(obj.id, range_key: '12.333')).to eql(obj)
+        end
+
+        it 'dumps a sort key value' do
+          klass_with_date = new_class do
+            range :published_on, :date
+          end
+
+          date = '2018/07/26'.to_date
+          obj = klass_with_date.create(published_on: date)
+          expect(klass_with_date.find(obj.id, range_key: date)).to eql(obj)
+        end
+      end
+
+      it 'returns persisted? object' do
+        obj = klass.create
+        expect(klass.find(obj.id)).to be_persisted
+      end
+    end
+
+    context 'multiple primary keys provided' do
+      context 'simple primary key' do
+        it 'finds with an array of keys' do
+          objects = (1 .. 2).map { klass.create }
+          obj1, obj2 = objects
+          expect(klass.find([obj1.id, obj2.id])).to match_array(objects)
+        end
+
+        it 'finds with one key' do
+          obj = klass_with_composite_key.create(age: 12)
+          expect(klass_with_composite_key.find([[obj.id, obj.age]])).to eq([obj])
+        end
+
+        it 'returns an empty array if an empty array passed' do
+          klass.create_table
+          expect(klass.find([])).to eql([])
+        end
+
+        it 'raises RecordNotFound error when some objects are not found' do
+          objects = (1 .. 2).map { klass.create }
+          obj1, obj2 = objects
+
+          expect {
+            klass.find([obj1.id, obj2.id, 'wrong-id'])
+          }.to raise_error(
+            Dynamoid::Errors::RecordNotFound,
+            "Couldn't find all Documents with 'id': (#{obj1.id}, #{obj2.id}, wrong-id) " \
+            '(found 2 results, but was looking for 3)'
+          )
+        end
+
+        it 'raises RecordNotFound if only one primary key provided and no result found' do
+          klass.create_table
+          expect {
+            klass.find(['wrong-id'])
+          }.to raise_error(
+            Dynamoid::Errors::RecordNotFound,
+            "Couldn't find all Documents with 'id': (wrong-id) (found 0 results, but was looking for 1)"
+          )
+        end
+
+        it 'finds with a list of keys' do
+          objects = (1 .. 2).map { klass.create }
+          obj1, obj2 = objects
+          expect(klass.find(obj1.id, obj2.id)).to match_array(objects)
+        end
+      end
+
+      context 'composite primary key' do
+        it 'finds with an array of keys' do
+          objects = (1 .. 2).map { |i| klass_with_composite_key.create(age: i) }
+          obj1, obj2 = objects
+          expect(klass_with_composite_key.find([[obj1.id, obj1.age], [obj2.id, obj2.age]])).to match_array(objects)
+        end
+
+        it 'finds with one key' do
+          obj = klass_with_composite_key.create(age: 12)
+          expect(klass_with_composite_key.find([[obj.id, obj.age]])).to eq([obj])
+        end
+
+        it 'returns an empty array if an empty array passed' do
+          klass_with_composite_key.create_table
+          expect(klass_with_composite_key.find([])).to eql([])
+        end
+
+        it 'raises RecordNotFound error when some objects are not found' do
+          obj = klass_with_composite_key.create(age: 12)
+          expect {
+            klass_with_composite_key.find([[obj.id, obj.age], ['wrong-id', 100500]])
+          }.to raise_error(
+            Dynamoid::Errors::RecordNotFound,
+            "Couldn't find all Documents with 'id': (#{obj.id}, 12, wrong-id, 100500) (found 1 results, but was looking for 2)")
+        end
+
+        it 'raises RecordNotFound if only one primary key provided and no result found' do
+          klass_with_composite_key.create_table
+          expect {
+            klass_with_composite_key.find([['wrong-id', 100500]])
+          }.to raise_error(
+            Dynamoid::Errors::RecordNotFound,
+            "Couldn't find all Documents with 'id': (wrong-id, 100500) (found 0 results, but was looking for 1)"
+          )
+        end
+
+        it 'finds with a list of keys' do
+          pending 'still is not implemented'
+
+          objects = (1 .. 2).map { |i| klass_with_composite_key.create(age: i) }
+          obj1, obj2 = objects
+          expect(klass_with_composite_key.find([obj1.id, obj1.age], [obj2.id, obj2.age])).to match_array(objects)
+        end
+
+        it 'type casts a sort key value' do
+          objects = (1 .. 2).map { |i| klass_with_composite_key.create(age: i) }
+          obj1, obj2 = objects
+          expect(klass_with_composite_key.find([[obj1.id, '1'], [obj2.id, '2']])).to match_array(objects)
+        end
+
+        it 'dumps a sort key value' do
+          klass_with_date = new_class do
+            range :published_on, :date
+          end
+
+          obj1 = klass_with_date.create(published_on: '2018/07/26'.to_date)
+          obj2 = klass_with_date.create(published_on: '2018/07/27'.to_date)
+
+          expect(
+            klass_with_date.find([[obj1.id, obj1.published_on], [obj2.id, obj2.published_on]])
+          ).to match_array([obj1, obj2])
+        end
+      end
+
+      it 'returns persisted? objects' do
+        objects = (1 .. 2).map { |i| klass_with_composite_key.create(age: i) }
+        obj1, obj2 = objects
+
+        objects = klass_with_composite_key.find([[obj1.id, obj1.age], [obj2.id, obj2.age]])
+        obj1, obj2 = objects
+
+        expect(obj1).to be_persisted
+        expect(obj2).to be_persisted
+      end
+
+      context 'backoff is specified' do
+        before do
+          @old_backoff = Dynamoid.config.backoff
+          @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
+
+          @counter = 0
+          Dynamoid.config.backoff_strategies[:simple] = ->(_) { -> { @counter += 1 } }
+          Dynamoid.config.backoff = { simple: nil }
+        end
+
+        after do
+          Dynamoid.config.backoff = @old_backoff
+          Dynamoid.config.backoff_strategies = @old_backoff_strategies
+        end
+
+        it 'returns items' do
+          users = (1..10).map { User.create }
+
+          results = User.find(users.map(&:id))
+          expect(results).to match_array(users)
+        end
+
+        it 'raise RecordNotFound error when there are no results' do
+          User.create_table
+
+          expect {
+            User.find(['some-fake-id'])
+          }.to raise_error(Dynamoid::Errors::RecordNotFound)
+        end
+
+        it 'uses specified backoff when some items are not processed' do
+          # batch_get_item has following limitations:
+          # * up to 100 items at once
+          # * up to 16 MB at once
+          #
+          # So we write data as large as possible and read it back
+          # 100 * 400 KB (limit for item) = ~40 MB
+          # 40 MB / 16 MB = 3 times
+
+          ids = (1..100).map(&:to_s)
+          users = ids.map do |id|
+            name = ' ' * (400.kilobytes - 120) # 400KB - length(attribute names)
+            User.create(id: id, name: name)
+          end
+
+          results = User.find(users.map(&:id))
+          expect(results).to match_array(users)
+
+          expect(@counter).to eq 2
+        end
+
+        it 'uses new backoff after successful call without unprocessed items' do
+          skip 'it is difficult to test'
+        end
+      end
+    end
   end
 
-  it 'is not a new object' do
-    found = Address.find(address.id)
-
-    expect(found.new_record).to be_falsey
-  end
-
-  it 'raises error when nothing is found' do
-    expect { Address.find('1234') }.to raise_error(
-      Dynamoid::Errors::RecordNotFound, "Couldn't find Address with 'id'=1234"
-    )
-  end
-
-  it 'finds multiple ids' do
-    address2 = Address.create(city: 'Illinois')
-
-    expect(Set.new(Address.find(address.id, address2.id))).to eq Set.new([address, address2])
-  end
-
-  it 'raises error when passed several ids and some models were not found' do
-    a1 = Address.create
-    a2 = Address.create
-    expect { Address.find(a1.id, a2.id, 'fake-id') }.to raise_error(
-      Dynamoid::Errors::RecordNotFound,
-      "Couldn't find all Addresses with 'id': (#{a1.id}, #{a2.id}, fake-id) " \
-      '(found 2 results, but was looking for 3)'
-    )
-  end
-
-  it 'returns array if passed in array' do
-    expect(Address.find([address.id])).to eq [address]
-  end
-
-  it 'returns object if non array id is passed in' do
-    expect(Address.find(address.id)).to eq address
-  end
-
-  it 'raises error if non-array id is passed in and no result found' do
-    expect { Address.find('not-existing-id') }.to raise_error(
-      Dynamoid::Errors::RecordNotFound,
-      "Couldn't find Address with 'id'=not-existing-id"
-    )
-  end
-
-  it 'raises error if array of ids is passed in and no result found' do
-    expect { Address.find(['not-existing-id']) }.to raise_error(
-      Dynamoid::Errors::RecordNotFound, "Couldn't find Address with 'id'=not-existing-id"
-    )
-  end
 
   # TODO: ATM, adapter sets consistent read to be true for all query. Provide option for setting consistent_read option
   # it 'sends consistent option to the adapter' do
@@ -147,82 +334,11 @@ describe Dynamoid::Finders do
   end
 
   context 'find_all' do
-    it 'should return a array of users' do
-      users = (1..10).map { User.create }
-      expect(User.find_all(users.map(&:id))).to match_array(users)
-    end
-
-    it 'should return a array of tweets' do
-      tweets = (1..10).map { |i| Tweet.create(tweet_id: i.to_s, group: "group_#{i}") }
-      expect(Tweet.find_all(tweets.map { |t| [t.tweet_id, t.group] })).to match_array(tweets)
-    end
-
-    it 'should return an empty array' do
-      expect(User.find_all([])).to eq([])
-    end
-
-    it 'returns empty array when there are no results' do
-      expect(Address.find_all('bad' + address.id.to_s)).to eq []
-    end
-
     it 'passes options to the adapter' do
       pending 'This test is broken as we are overriding the consistent_read option to true inside the adapter'
       user_ids = [%w[1 red], %w[1 green]]
       Dynamoid.adapter.expects(:read).with(anything, user_ids, consistent_read: true)
       User.find_all(user_ids, consistent_read: true)
-    end
-
-    context 'backoff is specified' do
-      before do
-        @old_backoff = Dynamoid.config.backoff
-        @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
-
-        @counter = 0
-        Dynamoid.config.backoff_strategies[:simple] = ->(_) { -> { @counter += 1 } }
-        Dynamoid.config.backoff = { simple: nil }
-      end
-
-      after do
-        Dynamoid.config.backoff = @old_backoff
-        Dynamoid.config.backoff_strategies = @old_backoff_strategies
-      end
-
-      it 'returns items' do
-        users = (1..10).map { User.create }
-
-        results = User.find_all(users.map(&:id))
-        expect(results).to match_array(users)
-      end
-
-      it 'returns empty array when there are no results' do
-        User.create_table
-        expect(User.find_all(['some-fake-id'])).to eq []
-      end
-
-      it 'uses specified backoff when some items are not processed' do
-        # batch_get_item has following limitations:
-        # * up to 100 items at once
-        # * up to 16 MB at once
-        #
-        # So we write data as large as possible and read it back
-        # 100 * 400 KB (limit for item) = ~40 MB
-        # 40 MB / 16 MB = 3 times
-
-        ids = (1..100).map(&:to_s)
-        users = ids.map do |id|
-          name = ' ' * (400.kilobytes - 120) # 400KB - length(attribute names)
-          User.create(id: id, name: name)
-        end
-
-        results = User.find_all(users.map(&:id))
-        expect(results).to match_array(users)
-
-        expect(@counter).to eq 2
-      end
-
-      it 'uses new backoff after successful call without unprocessed items' do
-        skip 'it is difficult to test'
-      end
     end
   end
 

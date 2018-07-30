@@ -91,11 +91,6 @@ describe Dynamoid::Adapter do
       expect(subject).to receive(:get_item).with(test_table, single_id, range_key: 2.0).and_return(true)
       subject.read(test_table, single_id, range_key: 2.0)
     end
-
-    it 'reads through the adapter for many IDs and a range key' do
-      expect(subject).to receive(:batch_get_item).with({ test_table => [['1', 2.0], ['2', 2.0]] }, {}).and_return(true)
-      subject.read(test_table, many_ids, range_key: 2.0)
-    end
   end
 
   describe '#delete' do

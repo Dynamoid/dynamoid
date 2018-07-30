@@ -38,30 +38,11 @@ module Dynamoid
       #   Document.find([[101, 'archived'], [102, 'new'], [103, 'deleted']])
       #
       # @since 0.2.0
-      def find(*ids)
-        options = if ids.last.is_a? Hash
-                    ids.slice!(-1)
-                  else
-                    {}
-                  end
-        expects_array = ids.first.is_a?(Array)
-
-        ids = Array(ids.flatten.uniq)
-        if ids.count == 1
-          result = find_by_id(ids.first, options)
-          if result.nil?
-            message = "Couldn't find #{name} with '#{hash_key}'=#{ids[0]}"
-            raise Errors::RecordNotFound, message
-          end
-          expects_array ? Array(result) : result
+      def find(*ids, **options)
+        if ids.size == 1 && !ids[0].is_a?(Array)
+          find_by_id(ids[0], options)
         else
-          result = find_all(ids)
-          if result.size != ids.size
-            message = "Couldn't find all #{name.pluralize} with '#{hash_key}': (#{ids.join(', ')}) "
-            message += "(found #{result.size} results, but was looking for #{ids.size})"
-            raise Errors::RecordNotFound, message
-          end
-          result
+          find_all(ids.flatten(1))
         end
       end
 
@@ -80,26 +61,41 @@ module Dynamoid
       #   find all the tweets using hash key and range key with consistent read
       #   Tweet.find_all([['1', 'red'], ['1', 'green']], :consistent_read => true)
       def find_all(ids, options = {})
-        results = if Dynamoid.config.backoff
-                    items = []
-                    backoff = nil
-                    Dynamoid.adapter.read(table_name, ids, options) do |hash, has_unprocessed_items|
-                      items += hash[table_name]
+        if range_key
+          ids = ids.map do |pk, sk|
+            sk_casted = TypeCasting.cast_field(sk, attributes[range_key])
+            sk_dumped = Dumping.dump_field(sk_casted, attributes[range_key])
 
-                      if has_unprocessed_items
-                        backoff ||= Dynamoid.config.build_backoff
-                        backoff.call
-                      else
-                        backoff = nil
-                      end
+            [pk, sk_dumped]
+          end
+        end
+
+        items = if Dynamoid.config.backoff
+                  items = []
+                  backoff = nil
+                  Dynamoid.adapter.read(table_name, ids, options) do |hash, has_unprocessed_items|
+                    items += hash[table_name]
+
+                    if has_unprocessed_items
+                      backoff ||= Dynamoid.config.build_backoff
+                      backoff.call
+                    else
+                      backoff = nil
                     end
-                    items
-                  else
-                    items = Dynamoid.adapter.read(table_name, ids, options)
-                    items ? items[table_name] : []
                   end
+                  items
+                else
+                  items = Dynamoid.adapter.read(table_name, ids, options)
+                  items ? items[table_name] : []
+                end
 
-        results ? results.map { |i| from_database(i) } : []
+        if items.size == ids.size
+          items ? items.map { |i| from_database(i) } : []
+        else
+          message = "Couldn't find all #{name.pluralize} with '#{hash_key}': (#{ids.join(', ')}) "
+          message += "(found #{items.size} results, but was looking for #{ids.size})"
+          raise Errors::RecordNotFound, message
+        end
       end
 
       # Find one object directly by id.
@@ -116,8 +112,19 @@ module Dynamoid
       #
       # @since 0.2.0
       def find_by_id(id, options = {})
+        if range_key
+          key = options[:range_key]
+          key_casted = TypeCasting.cast_field(key, attributes[range_key])
+          key_dumped = Dumping.dump_field(key_casted, attributes[range_key])
+
+          options[:range_key] = key_dumped
+        end
+
         if item = Dynamoid.adapter.read(table_name, id, options)
           from_database(item)
+        else
+          message = "Couldn't find #{name} with '#{hash_key}'=#{id}"
+          raise Errors::RecordNotFound, message
         end
       end
 

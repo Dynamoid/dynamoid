@@ -150,9 +150,6 @@ describe Dynamoid::Document do
         field :name
 
         validates :name, presence: true, length: { minimum: 5 }
-        def self.name
-          'Document'
-        end
       end
     end
 
@@ -209,7 +206,6 @@ describe Dynamoid::Document do
 
     describe 'type casting' do
       it 'uses type casted value of sort key to call UpdateItem' do
-        skip 'blocked by missing type casting in finders'
         document_class_with_range = new_class do
           range :count, :integer
           field :title

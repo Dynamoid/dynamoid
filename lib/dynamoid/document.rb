@@ -115,7 +115,13 @@ module Dynamoid #:nodoc:
       def exists?(id_or_conditions = {})
         case id_or_conditions
         when Hash then where(id_or_conditions).first.present?
-        else !!find_by_id(id_or_conditions)
+        else
+          begin
+            find_by_id(id_or_conditions)
+            true
+          rescue Dynamoid::Errors::RecordNotFound
+            false
+          end
         end
       end
 
@@ -131,10 +137,6 @@ module Dynamoid #:nodoc:
       # @example Update document
       #   Post.update(101, read: true)
       def update(hash_key, range_key_value = nil, attrs)
-        range_key_value = if range_key.present?
-                            Dumping.dump_field(range_key_value, attributes[range_key])
-                          end
-
         model = find(hash_key, range_key: range_key_value, consistent_read: true)
         model.update_attributes(attrs)
         model
@@ -324,8 +326,13 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def reload
-      range_key_value = range_value ? dumped_range_value : nil
-      self.attributes = self.class.find(hash_key, range_key: range_key_value, consistent_read: true).attributes
+      options = { consistent_read: true }
+
+      if self.class.range_key
+        options[:range_key] = range_value
+      end
+
+      self.attributes = self.class.find(hash_key, options).attributes
       @associations.values.each(&:reset)
       self
     end
