@@ -117,7 +117,7 @@ module Dynamoid #:nodoc:
         when Hash then where(id_or_conditions).first.present?
         else
           begin
-            find_by_id(id_or_conditions)
+            find(id_or_conditions)
             true
           rescue Dynamoid::Errors::RecordNotFound
             false

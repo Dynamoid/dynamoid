@@ -40,9 +40,9 @@ module Dynamoid
       # @since 0.2.0
       def find(*ids, **options)
         if ids.size == 1 && !ids[0].is_a?(Array)
-          find_by_id(ids[0], options)
+          _find_by_id(ids[0], options)
         else
-          find_all(ids.flatten(1))
+          _find_all(ids.flatten(1))
         end
       end
 
@@ -61,6 +61,31 @@ module Dynamoid
       #   find all the tweets using hash key and range key with consistent read
       #   Tweet.find_all([['1', 'red'], ['1', 'green']], :consistent_read => true)
       def find_all(ids, options = {})
+        ActiveSupport::Deprecation.warn('[Dynamoid] .find_all is deprecated! Call .find instead of')
+
+        _find_all(ids, options)
+      end
+
+      # Find one object directly by id.
+      #
+      # @param [String] id the id of the object to find
+      #
+      # @return [Dynamoid::Document] the found object, or nil if nothing was found
+      #
+      # @example Find by partition key
+      #   Document.find_by_id(101)
+      #
+      # @example Find by partition key and sort key
+      #   Document.find_by_id(101, range_key: 'archived')
+      #
+      # @since 0.2.0
+      def find_by_id(id, options = {})
+        ActiveSupport::Deprecation.warn('[Dynamoid] .find_by_id is deprecated! Call .find instead of', caller[1..-1])
+
+        _find_by_id(id, options)
+      end
+
+      def _find_all(ids, options = {})
         if range_key
           ids = ids.map do |pk, sk|
             sk_casted = TypeCasting.cast_field(sk, attributes[range_key])
@@ -98,20 +123,7 @@ module Dynamoid
         end
       end
 
-      # Find one object directly by id.
-      #
-      # @param [String] id the id of the object to find
-      #
-      # @return [Dynamoid::Document] the found object, or nil if nothing was found
-      #
-      # @example Find by partition key
-      #   Document.find_by_id(101)
-      #
-      # @example Find by partition key and sort key
-      #   Document.find_by_id(101, range_key: 'archived')
-      #
-      # @since 0.2.0
-      def find_by_id(id, options = {})
+      def _find_by_id(id, options = {})
         if range_key
           key = options[:range_key]
           key_casted = TypeCasting.cast_field(key, attributes[range_key])
@@ -134,7 +146,9 @@ module Dynamoid
       # @param [String/Number] range_key of the object to find
       #
       def find_by_composite_key(hash_key, range_key, options = {})
-        find_by_id(hash_key, options.merge(range_key: range_key))
+        ActiveSupport::Deprecation.warn('[Dynamoid] .find_by_composite_key is deprecated! Call .find instead of')
+
+        _find_by_id(hash_key, options.merge(range_key: range_key))
       end
 
       # Find all objects by hash and range keys.
@@ -158,6 +172,8 @@ module Dynamoid
       #
       # @return [Array] an array of all matching items
       def find_all_by_composite_key(hash_key, options = {})
+        ActiveSupport::Deprecation.warn('[Dynamoid] .find_all_composite_key is deprecated! Call .where instead of')
+
         Dynamoid.adapter.query(table_name, options.merge(hash_value: hash_key)).collect do |item|
           from_database(item)
         end
@@ -184,6 +200,8 @@ module Dynamoid
       # @param [Hash] options - query filter, projected keys, scan_index_forward etc
       # @return [Array] an array of all matching items
       def find_all_by_secondary_index(hash, options = {})
+        ActiveSupport::Deprecation.warn('[Dynamoid] .find_all_by_secondary_index is deprecated! Call .where instead of')
+
         range = options[:range] || {}
         hash_key_field, hash_key_value = hash.first
         range_key_field, range_key_value = range.first
@@ -231,6 +249,8 @@ module Dynamoid
       # @since 0.2.0
       def method_missing(method, *args)
         if method =~ /find/
+          ActiveSupport::Deprecation.warn("[Dynamoid] .#{method} is deprecated! Call .where instead of")
+
           finder = method.to_s.split('_by_').first
           attributes = method.to_s.split('_by_').last.split('_and_')
 
