@@ -683,8 +683,8 @@ Listed below are all configuration options.
 * `models_dir` - `dynamoid:create_tables` rake task loads DynamoDb models from this directory. Default is `./app/models`.
 * `application_timezone` - Dynamoid converts all `datetime` fields to specified time zone when loads data from the storage.
   Acceptable values - `utc`, `local` (to use system time zone) and time zone name e.g. `Eastern Time (US & Canada)`. Default is `utc`
-* `store_datetime_as_string` - if `true` then Dynamoid stores :datetime fields in ISO 8601 string format. Default is `false`
-* `store_date_as_string` - if `true` then Dynamoid stores :date fields in ISO 8601 string format. Default is `false`
+* `store_datetime_as_string` - if `true` then Dynamoid stores :datetime fields in ISO 8601 string format. Otherwise Unix epoch time is used. Default is `true`
+* `store_date_as_string` - if `true` then Dynamoid stores :date fields in ISO 8601 string format. Otherwise date is stored as number of days since 1 January 1970. Default is `true`
 * `backoff` - is a hash: key is a backoff strategy (symbol), value is parameters for the strategy. Is used in batch operations. Default id `nil`
 * `backoff_strategies`: is a hash and contains all available strategies. Default is { constant: ..., exponential: ...}
 
