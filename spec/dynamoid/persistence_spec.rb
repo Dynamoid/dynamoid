@@ -26,6 +26,208 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe '.create_table' do
+    let(:user_class) do
+      Class.new do
+        attr_accessor :name
+
+        def initialize(name)
+          self.name = name
+        end
+
+        def dynamoid_dump
+          name
+        end
+
+        def eql?(other)
+          name == other.name
+        end
+
+        def self.dynamoid_load(string)
+          new(string.to_s)
+        end
+      end
+    end
+
+    let(:user_class_with_type) do
+      Class.new do
+        attr_accessor :age
+
+        def initialize(age)
+          self.age = age
+        end
+
+        def dynamoid_dump
+          age
+        end
+
+        def eql?(other)
+          age == other.age
+        end
+
+        def self.dynamoid_load(string)
+          new(string.to_i)
+        end
+
+        def self.dynamoid_field_type
+          :number
+        end
+      end
+    end
+
+    describe 'partition key attribute type' do
+      it 'maps :string to String' do
+        klass = new_class_with_partion_key(name: :id, type: :string)
+        klass.create_table
+        expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+      end
+
+      it 'maps :integer to Number' do
+        klass = new_class_with_partion_key(name: :id, type: :integer)
+        klass.create_table
+        expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+      end
+
+      it 'maps :number to Number' do
+        klass = new_class_with_partion_key(name: :id, type: :number)
+        klass.create_table
+        expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+      end
+
+      describe ':datetime' do
+        it 'maps :datetime to Number' do
+          klass = new_class_with_partion_key(name: :id, type: :datetime)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+        end
+      end
+
+      describe ':date' do
+        it 'maps :date to Number' do
+          klass = new_class_with_partion_key(name: :id, type: :date)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+        end
+      end
+
+      it 'maps :serialized to String' do
+        klass = new_class_with_partion_key(name: :id, type: :serialized)
+        klass.create_table
+        expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+      end
+
+      describe 'custom type' do
+        it 'maps custom type to String by default' do
+          klass = new_class_with_partion_key(name: :id, type: user_class)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+        end
+
+        it 'uses specified type if .dynamoid_field_type method declared' do
+          klass = new_class_with_partion_key(name: :id, type: user_class_with_type)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+        end
+      end
+
+      it 'does not support :array' do
+        klass = new_class_with_partion_key(name: :id, type: :array)
+        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+      end
+
+      it 'does not support :set' do
+        klass = new_class_with_partion_key(name: :id, type: :set)
+        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+      end
+
+      it 'does not support :raw' do
+        klass = new_class_with_partion_key(name: :id, type: :raw)
+        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+      end
+
+      it 'does not support :boolean' do
+        klass = new_class_with_partion_key(name: :id, type: :boolean)
+        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+      end
+    end
+
+    describe 'partition key attribute type' do
+      it 'maps :string to String' do
+        klass = new_class_with_sort_key(name: :prop, type: :string)
+        klass.create_table
+        expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+      end
+
+      it 'maps :integer to Number' do
+        klass = new_class_with_sort_key(name: :prop, type: :integer)
+        klass.create_table
+        expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+      end
+
+      it 'maps :number to Number' do
+        klass = new_class_with_sort_key(name: :prop, type: :number)
+        klass.create_table
+        expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+      end
+
+      describe ':datetime' do
+        it 'maps :datetime to Number' do
+          klass = new_class_with_sort_key(name: :prop, type: :datetime)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+        end
+      end
+
+      describe ':date' do
+        it 'maps :date to Number' do
+          klass = new_class_with_sort_key(name: :prop, type: :date)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+        end
+      end
+
+      it 'maps :serialized to String' do
+        klass = new_class_with_sort_key(name: :prop, type: :serialized)
+        klass.create_table
+        expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+      end
+
+      describe 'custom type' do
+        it 'maps custom type to String by default' do
+          klass = new_class_with_sort_key(name: :prop, type: user_class)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+        end
+
+        it 'uses specified type if .dynamoid_field_type method declared' do
+          klass = new_class_with_sort_key(name: :prop, type: user_class_with_type)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+        end
+      end
+
+      it 'does not support :array' do
+        klass = new_class_with_sort_key(name: :prop, type: :array)
+        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+      end
+
+      it 'does not support :set' do
+        klass = new_class_with_sort_key(name: :prop, type: :set)
+        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+      end
+
+      it 'does not support :raw' do
+        klass = new_class_with_sort_key(name: :prop, type: :raw)
+        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+      end
+
+      it 'does not support :boolean' do
+        klass = new_class_with_sort_key(name: :prop, type: :boolean)
+        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+      end
+    end
+  end
+
   describe 'delete_table' do
     it 'deletes the table' do
       Address.create_table

@@ -46,6 +46,7 @@ RSpec.configure do |config|
 
   config.include NewClassHelper
   config.include DumpingHelper
+  config.include PersictenseHelper
 
   config.before(:each) do
     DynamoDBLocal.delete_all_specified_tables!
