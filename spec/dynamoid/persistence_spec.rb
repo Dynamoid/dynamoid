@@ -100,6 +100,32 @@ describe Dynamoid::Persistence do
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
         end
+
+        it 'maps :datetime to String if field option :store_as_string is true' do
+          klass = new_class_with_partion_key(name: :id, type: :datetime, store_as_string: true)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+        end
+
+        it 'maps :datetime to Number if field option :store_as_string is false' do
+          klass = new_class_with_partion_key(name: :id, type: :datetime, store_as_string: false)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+        end
+
+        context 'field option :store_as_string is nil' do
+          it 'maps :datetime to String if :store_datetime_as_string is true', config: { store_datetime_as_string: true } do
+            klass = new_class_with_partion_key(name: :id, type: :datetime, store_as_string: nil)
+            klass.create_table
+            expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+          end
+
+          it 'maps :datetime to Number if :store_datetime_as_string is false', config: { store_datetime_as_string: false } do
+            klass = new_class_with_partion_key(name: :id, type: :datetime, store_as_string: nil)
+            klass.create_table
+            expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+          end
+        end
       end
 
       describe ':date' do
@@ -107,6 +133,32 @@ describe Dynamoid::Persistence do
           klass = new_class_with_partion_key(name: :id, type: :date)
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+        end
+
+        it 'maps :date to String if field option :store_as_string is true' do
+          klass = new_class_with_partion_key(name: :id, type: :date, store_as_string: true)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+        end
+
+        it 'maps :date to Number if field option :store_as_string is false' do
+          klass = new_class_with_partion_key(name: :id, type: :date, store_as_string: false)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+        end
+
+        context 'field option :store_as_string is nil' do
+          it 'maps :date to String if :store_date_as_string is true', config: { store_date_as_string: true } do
+            klass = new_class_with_partion_key(name: :id, type: :date, store_as_string: nil)
+            klass.create_table
+            expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+          end
+
+          it 'maps :date to Number if :store_date_as_string is false', config: { store_date_as_string: false } do
+            klass = new_class_with_partion_key(name: :id, type: :date, store_as_string: nil)
+            klass.create_table
+            expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+          end
         end
       end
 
@@ -176,6 +228,32 @@ describe Dynamoid::Persistence do
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
         end
+
+        it 'maps :datetime to String if field option :store_as_string is true' do
+          klass = new_class_with_sort_key(name: :prop, type: :datetime, store_as_string: true)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+        end
+
+        it 'maps :datetime to Number if field option :store_as_string is false' do
+          klass = new_class_with_sort_key(name: :prop, type: :datetime, store_as_string: false)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+        end
+
+        context 'field option :store_as_string is nil' do
+          it 'maps :datetime to String if :store_datetime_as_string is true', config: { store_datetime_as_string: true } do
+            klass = new_class_with_sort_key(name: :prop, type: :datetime, store_as_string: nil)
+            klass.create_table
+            expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+          end
+
+          it 'maps :datetime to Number if :store_datetime_as_string is false', config: { store_datetime_as_string: false } do
+            klass = new_class_with_sort_key(name: :prop, type: :datetime, store_as_string: nil)
+            klass.create_table
+            expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+          end
+        end
       end
 
       describe ':date' do
@@ -183,6 +261,32 @@ describe Dynamoid::Persistence do
           klass = new_class_with_sort_key(name: :prop, type: :date)
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+        end
+
+        it 'maps :date to String if field option :store_as_string is true' do
+          klass = new_class_with_sort_key(name: :prop, type: :date, store_as_string: true)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+        end
+
+        it 'maps :date to Number if field option :store_as_string is false' do
+          klass = new_class_with_sort_key(name: :prop, type: :date, store_as_string: false)
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+        end
+
+        context 'field option :store_as_string is nil' do
+          it 'maps :date to String if :store_date_as_string is true', config: { store_date_as_string: true } do
+            klass = new_class_with_sort_key(name: :prop, type: :date, store_as_string: nil)
+            klass.create_table
+            expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+          end
+
+          it 'maps :date to Number if :store_date_as_string is false', config: { store_date_as_string: false } do
+            klass = new_class_with_sort_key(name: :prop, type: :date, store_as_string: nil)
+            klass.create_table
+            expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+          end
         end
       end
 

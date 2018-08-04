@@ -228,7 +228,7 @@ module Dynamoid
             range_key_type = range_field_attributes[:type]
             if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(range_key_type)
               @range_key_schema = {
-                @range_key => @dynamoid_class.dynamo_type(range_key_type)
+                @range_key => PrimaryKeyTypeMapping.dynamodb_type(range_key_type, range_field_attributes)
               }
             else
               errors.add(:range_key, 'Index :range_key is not a valid key type')
@@ -245,7 +245,7 @@ module Dynamoid
           hash_field_type = hash_field_attributes[:type]
           if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(hash_field_type)
             @hash_key_schema = {
-              @hash_key => @dynamoid_class.dynamo_type(hash_field_type)
+              @hash_key => PrimaryKeyTypeMapping.dynamodb_type(hash_field_type, hash_field_attributes)
             }
           else
             errors.add(:hash_key, 'Index :hash_key is not a valid key type')

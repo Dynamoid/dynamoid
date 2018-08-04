@@ -112,7 +112,7 @@ describe 'Type casting' do
       expect(obj.created_at).to eql(DateTime.new(2007, 11, 1, 15, 25, 0, "+09:00"))
     end
 
-    it 'converts string with well formatted date or datetime to DateTime', application_timezone: :utc do
+    it 'converts string with well formatted date or datetime to DateTime', config: { application_timezone: :utc } do
       obj = klass.new(created_at: '2018-08-21')
       expect(obj.created_at).to eql(DateTime.new(2018, 8, 21, 0, 0, 0, '+00:00'))
 
@@ -120,12 +120,12 @@ describe 'Type casting' do
       expect(obj.created_at).to eql(DateTime.new(2018, 8, 21, 21, 55, 30, '+1'))
     end
 
-    it 'preserves time zone specified in a string', application_timezone: 'Hawaii' do
+    it 'preserves time zone specified in a string', config: { application_timezone: 'Hawaii' } do
       obj = klass.new(created_at: '2018-08-21T21:55:30+01:00')
       expect(obj.created_at).to eql(DateTime.new(2018, 8, 21, 21, 55, 30, '+1'))
     end
 
-    it 'uses config.application_timezone if time zone is not specified in a string', application_timezone: 'Hawaii' do
+    it 'uses config.application_timezone if time zone is not specified in a string', config: { application_timezone: 'Hawaii' } do
       obj = klass.new(created_at: '2018-08-21T21:55:30')
       expect(obj.created_at).to eql(DateTime.new(2018, 8, 21, 21, 55, 30, '-10:00'))
     end

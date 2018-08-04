@@ -51,13 +51,4 @@ RSpec.configure do |config|
   config.before(:each) do
     DynamoDBLocal.delete_all_specified_tables!
   end
-
-  config.around :each, :application_timezone do |example|
-    application_timezone_old = Dynamoid::Config.application_timezone
-    Dynamoid::Config.application_timezone = example.metadata[:application_timezone]
-
-    example.run
-
-    Dynamoid::Config.application_timezone = application_timezone_old
-  end
 end
