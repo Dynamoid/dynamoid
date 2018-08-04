@@ -25,7 +25,7 @@ module Dynamoid
       when Class
         type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
       else
-        raise 'unknown type'
+        raise Errors::UnsupportedKeyType, "#{type} cannot be used as a type of table key attribute"
       end
     end
   end

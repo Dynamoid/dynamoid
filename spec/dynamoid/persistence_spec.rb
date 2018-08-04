@@ -184,22 +184,26 @@ describe Dynamoid::Persistence do
 
       it 'does not support :array' do
         klass = new_class_with_partion_key(name: :id, type: :array)
-        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+        expect { klass.create_table }.to raise_error(
+          Dynamoid::Errors::UnsupportedKeyType, "array cannot be used as a type of table key attribute")
       end
 
       it 'does not support :set' do
         klass = new_class_with_partion_key(name: :id, type: :set)
-        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+        expect { klass.create_table }.to raise_error(
+          Dynamoid::Errors::UnsupportedKeyType, "set cannot be used as a type of table key attribute")
       end
 
       it 'does not support :raw' do
         klass = new_class_with_partion_key(name: :id, type: :raw)
-        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+        expect { klass.create_table }.to raise_error(
+          Dynamoid::Errors::UnsupportedKeyType, "raw cannot be used as a type of table key attribute")
       end
 
       it 'does not support :boolean' do
         klass = new_class_with_partion_key(name: :id, type: :boolean)
-        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+        expect { klass.create_table }.to raise_error(
+          Dynamoid::Errors::UnsupportedKeyType, "boolean cannot be used as a type of table key attribute")
       end
     end
 
@@ -312,22 +316,26 @@ describe Dynamoid::Persistence do
 
       it 'does not support :array' do
         klass = new_class_with_sort_key(name: :prop, type: :array)
-        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+        expect { klass.create_table }.to raise_error(
+          Dynamoid::Errors::UnsupportedKeyType, "array cannot be used as a type of table key attribute")
       end
 
       it 'does not support :set' do
         klass = new_class_with_sort_key(name: :prop, type: :set)
-        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+        expect { klass.create_table }.to raise_error(
+          Dynamoid::Errors::UnsupportedKeyType, "set cannot be used as a type of table key attribute")
       end
 
       it 'does not support :raw' do
         klass = new_class_with_sort_key(name: :prop, type: :raw)
-        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+        expect { klass.create_table }.to raise_error(
+          Dynamoid::Errors::UnsupportedKeyType, "raw cannot be used as a type of table key attribute")
       end
 
       it 'does not support :boolean' do
         klass = new_class_with_sort_key(name: :prop, type: :boolean)
-        expect { klass.create_table }.to raise_error(RuntimeError, 'unknown type')
+        expect { klass.create_table }.to raise_error(
+          Dynamoid::Errors::UnsupportedKeyType, "boolean cannot be used as a type of table key attribute")
       end
     end
   end
