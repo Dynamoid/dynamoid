@@ -3,6 +3,10 @@
 module Dynamoid
   class PrimaryKeyTypeMapping
     def self.dynamodb_type(type, options)
+      if Class === type
+        type = type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
+      end
+
       case type
       when :string, :serialized
         :string
@@ -22,8 +26,6 @@ module Dynamoid
                           options[:store_as_string]
                         end
         string_format ? :string : :number
-      when Class
-        type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
       else
         raise Errors::UnsupportedKeyType, "#{type} cannot be used as a type of table key attribute"
       end
