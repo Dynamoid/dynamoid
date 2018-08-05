@@ -173,7 +173,7 @@ describe 'Dumping' do
         end
       end
 
-      it 'loads time in local time zone if config.application_timezone == :local', application_timezone: :local do
+      it 'loads time in local time zone if config.application_timezone == :local', config: { application_timezone: :local } do
         time = Time.now
         obj = klass.create(last_logged_in_at: time)
         obj = klass.find(obj.id)
@@ -182,14 +182,14 @@ describe 'Dumping' do
         expect(obj.last_logged_in_at.to_s).to eql time.to_datetime.to_s
       end
 
-      it 'loads time in specified time zone if config.application_timezone == time zone name', application_timezone: 'Hawaii' do
+      it 'loads time in specified time zone if config.application_timezone == time zone name', config: { application_timezone: 'Hawaii' } do
         time = '2017-06-20 08:00:00 +0300'.to_time
         obj = klass.create(last_logged_in_at: time)
         obj = klass.find(obj.id)
         expect(obj.last_logged_in_at).to eql '2017-06-19 19:00:00 -1000'.to_datetime # Hawaii UTC-10
       end
 
-      it 'loads time in UTC if config.application_timezone = :utc', application_timezone: :utc do
+      it 'loads time in UTC if config.application_timezone = :utc', config: { application_timezone: :utc } do
         time = '2017-06-20 08:00:00 +0300'.to_time
         obj = klass.create(last_logged_in_at: time)
         obj = klass.find(obj.id)

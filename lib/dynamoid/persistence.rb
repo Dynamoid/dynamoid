@@ -36,15 +36,16 @@ module Dynamoid
       # @since 0.4.0
       def create_table(options = {})
         range_key_hash = if range_key
-                           { range_key => dynamo_type(attributes[range_key][:type]) }
+                           { range_key => PrimaryKeyTypeMapping.dynamodb_type(attributes[range_key][:type], attributes[range_key]) }
                          end
+
         options = {
           id: hash_key,
           table_name: table_name,
           write_capacity: write_capacity,
           read_capacity: read_capacity,
           range_key: range_key_hash,
-          hash_key_type: dynamo_type(attributes[hash_key][:type]),
+          hash_key_type: PrimaryKeyTypeMapping.dynamodb_type(attributes[hash_key][:type], attributes[hash_key]),
           local_secondary_indexes: local_secondary_indexes.values,
           global_secondary_indexes: global_secondary_indexes.values
         }.merge(options)
@@ -61,21 +62,6 @@ module Dynamoid
         clazz = attrs[:type] ? obj = attrs[:type].constantize : self
         attrs_undumped = Undumping.undump_attributes(attrs, clazz.attributes)
         clazz.new(attrs_undumped).tap { |r| r.new_record = false }
-      end
-
-      def dynamo_type(type)
-        if type.is_a?(Class)
-          type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
-        else
-          case type
-          when :integer, :number, :datetime, :date
-            :number
-          when :string, :serialized
-            :string
-          else
-            raise 'unknown type'
-          end
-        end
       end
 
       # Creates several models at once.
