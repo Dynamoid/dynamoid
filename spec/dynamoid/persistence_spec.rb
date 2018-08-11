@@ -824,6 +824,44 @@ describe Dynamoid::Persistence do
       expect(user.todo_list).to eq nil
     end
 
+    describe 'timestamps' do
+      let(:klass) do
+        new_class
+      end
+
+      before do
+        klass.create_table
+      end
+
+      it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        travel 1.hour do
+          time_now = Time.now
+          obj, = klass.import([{}])
+
+          expect(obj.created_at.to_i).to eql(time_now.to_i)
+          expect(obj.updated_at.to_i).to eql(time_now.to_i)
+        end
+      end
+
+      it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        travel 1.hour do
+          created_at = updated_at = Time.now
+          obj, = klass.import([{ created_at: created_at, updated_at: updated_at }])
+
+          expect(obj.created_at.to_i).to eql(created_at.to_i)
+          expect(obj.updated_at.to_i).to eql(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        created_at = updated_at = Time.now
+        obj, = klass.import([{}])
+
+        expect(obj.created_at).to eql(nil)
+        expect(obj.updated_at).to eql(nil)
+      end
+    end
+
     it 'dumps attribute values' do
       klass = new_class do
         field :active, :boolean

@@ -78,6 +78,14 @@ module Dynamoid
       #   User.import([{ name: 'a' }, { name: 'b' }])
       def import(objects)
         documents = objects.map do |attrs|
+          attrs = attrs.symbolize_keys
+
+          if Dynamoid::Config.timestamps
+            time_now = DateTime.now.in_time_zone(Time.zone)
+            attrs[:created_at] ||= time_now
+            attrs[:updated_at] ||= time_now
+          end
+
           build(attrs).tap do |item|
             item.hash_key = SecureRandom.uuid if item.hash_key.blank?
           end
