@@ -632,6 +632,49 @@ describe Dynamoid::Persistence do
 
       expect(obj.reload.name).to eql('New value')
     end
+
+    describe 'timestamps' do
+      let(:klass) do
+        new_class do
+          field :title
+        end
+      end
+
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create(title: 'Old title')
+
+        travel 1.hour do
+          time_now = Time.now
+
+          expect {
+            obj.update { |d| d.set(title: 'New title') }
+          }.to change { obj.reload.updated_at.to_i }.to(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value of updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create(title: 'Old title')
+
+        travel 1.hour do
+          updated_at = Time.now + 1.hour
+
+          expect {
+            obj.update do |d|
+              d.set(title: 'New title')
+              d.set(updated_at: updated_at.to_i)
+            end
+          }.to change { obj.reload.updated_at.to_i }.to(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        obj = klass.create(title: 'Old title')
+        obj.update { |d| d.set(title: 'New title') }
+
+        expect(obj.reload.title).to eql('New title')
+        expect(obj.reload.updated_at).to eql(nil)
+      end
+    end
   end
 
   context 'delete' do
