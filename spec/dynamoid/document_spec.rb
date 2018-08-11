@@ -313,6 +313,39 @@ describe Dynamoid::Document do
       expect(attributes[:published_on]).to eq 17_585
     end
 
+    describe 'timestamps' do
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = document_class.create(title: 'Old title')
+
+        travel 1.hour do
+          time_now = Time.now
+
+          expect {
+            document_class.update_fields(obj.id, title: 'New title')
+          }.to change { obj.reload.updated_at.to_i }.to(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value of updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = document_class.create(title: 'Old title')
+
+        travel 1.hour do
+          updated_at = Time.now + 1.hour
+
+          expect {
+            document_class.update_fields(obj.id, title: 'New title', updated_at: updated_at)
+          }.to change { obj.reload.updated_at.to_i }.to(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        obj = document_class.create(title: 'Old title')
+        document_class.update_fields(obj.id, title: 'New title')
+        expect(obj.reload.title).to eql('New title')
+        expect(obj.reload.updated_at).to eql(nil)
+      end
+    end
+
     describe 'type casting' do
       it 'uses casted value of sort key to call UpdateItem' do
         document_class_with_range = new_class do
