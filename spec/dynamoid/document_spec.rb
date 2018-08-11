@@ -97,6 +97,42 @@ describe Dynamoid::Document do
     end
   end
 
+  describe '.create' do
+    describe 'timestamps' do
+      let(:klass) do
+        new_class
+      end
+
+      it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        travel 1.hour do
+          time_now = Time.now
+          obj = klass.create
+
+          expect(obj.created_at.to_i).to eql(time_now.to_i)
+          expect(obj.updated_at.to_i).to eql(time_now.to_i)
+        end
+      end
+
+      it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        travel 1.hour do
+          created_at = updated_at = Time.now
+          obj = klass.create(created_at: created_at, updated_at: updated_at)
+
+          expect(obj.created_at.to_i).to eql(created_at.to_i)
+          expect(obj.updated_at.to_i).to eql(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        created_at = updated_at = Time.now
+        obj = klass.create
+
+        expect(obj.created_at).to eql(nil)
+        expect(obj.updated_at).to eql(nil)
+      end
+    end
+  end
+
   it 'creates a new document' do
     address = Address.create(city: 'Chicago')
 
@@ -202,6 +238,39 @@ describe Dynamoid::Document do
       expect do
         klass.update(d.id, '2018-01-14'.to_date, name: '[Updated]')
       end.to change { d.reload.name }.to('[Updated]')
+    end
+
+    describe 'timestamps' do
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        d = document_class.create(name: 'Document#1')
+
+        travel 1.hour do
+          time_now = Time.now
+
+          expect {
+            document_class.update(d.id, name: '[Updated]')
+          }.to change { d.reload.updated_at.to_i }.to(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value of updated_at if Config.timestamps=true', config: { timestamps: true } do
+        d = document_class.create(name: 'Document#1')
+
+        travel 1.hour do
+          updated_at = Time.now + 1.hour
+
+          expect {
+            document_class.update(d.id, name: '[Updated]', updated_at: updated_at)
+          }.to change { d.reload.updated_at.to_i }.to(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        d = document_class.create(name: 'Document#1')
+        document_class.update(d.id, name: '[Updated]')
+        expect(d.reload.name).to eql('[Updated]')
+        expect(d.reload.updated_at).to eql(nil)
+      end
     end
 
     describe 'type casting' do
