@@ -108,45 +108,6 @@ describe Dynamoid::Fields do
       expect(address.id).to eq original_id
     end
 
-    it 'should update only updated_at when no params are passed' do
-      initial_updated_at = address.updated_at
-      address.update_attributes([])
-      expect(address.updated_at).to_not eq initial_updated_at
-    end
-
-    context 'when timestamps are specified' do
-      it 'uses specified created_at at creation' do
-        time = Time.now - 1.day
-        address = Address.create!(created_at: time)
-        expect(address.created_at).to eq(time)
-      end
-
-      it 'uses specified updated_at at creation' do
-        time = Time.now - 1.day
-        address = Address.create!(updated_at: time)
-        expect(address.updated_at).to eq(time)
-      end
-
-      it 'uses specified updated_at at updating' do
-        time = Time.now - 1.day
-
-        expect do
-          address.city = 'foobar'
-          address.updated_at = time
-          address.save!
-        end.to change { address.updated_at }.to(time)
-      end
-
-      it 'changes updated_at at updating' do
-        expect do
-          address.city = 'foobar'
-          address.save!
-        end.to change { address.updated_at }
-
-        expect(address.updated_at).to be_present
-      end
-    end
-
     it 'adds in dirty methods for attributes' do
       address.city = 'Chicago'
       address.save
@@ -376,6 +337,43 @@ describe Dynamoid::Fields do
         expect(raw_attributes(obj)[:count]).to eql(101)
       end
     end
+
+    describe 'timestamps' do
+      let(:klass) do
+        new_class do
+          field :title
+        end
+      end
+
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create(title: 'Old title')
+
+        travel 1.hour do
+          time_now = Time.now
+          obj.update_attribute(:title, 'New title')
+
+          expect(obj.updated_at.to_i).to eql(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create(title: 'Old title')
+
+        travel 1.hour do
+          updated_at = Time.now
+          obj.update_attribute(:updated_at, updated_at)
+
+          expect(obj.updated_at.to_i).to eql(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        obj = klass.create(title: 'Old title')
+        obj.update_attribute(:title, 'New title')
+
+        expect(obj.updated_at).to eql(nil)
+      end
+    end
   end
 
   describe '#update_attributes' do
@@ -389,6 +387,43 @@ describe Dynamoid::Fields do
         obj.update_attributes(count: '101')
         expect(obj.attributes[:count]).to eql(101)
         expect(raw_attributes(obj)[:count]).to eql(101)
+      end
+    end
+
+    describe 'timestamps' do
+      let(:klass) do
+        new_class do
+          field :title
+        end
+      end
+
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create(title: 'Old title')
+
+        travel 1.hour do
+          time_now = Time.now
+          obj.update_attributes(title: 'New title')
+
+          expect(obj.updated_at.to_i).to eql(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create(title: 'Old title')
+
+        travel 1.hour do
+          updated_at = Time.now
+          obj.update_attributes(updated_at: updated_at, title: 'New title')
+
+          expect(obj.updated_at.to_i).to eql(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        obj = klass.create(title: 'Old title')
+        obj.update_attributes(title: 'New title')
+
+        expect(obj.updated_at).to eql(nil)
       end
     end
   end

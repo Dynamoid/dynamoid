@@ -181,9 +181,14 @@ module Dynamoid #:nodoc:
         (conditions[:if_exists] ||= {})[hash_key] = hash_key_value
         options[:conditions] = conditions
 
+        attrs = attrs.symbolize_keys
+        if Dynamoid::Config.timestamps
+          attrs[:updated_at] ||= DateTime.now.in_time_zone(Time.zone)
+        end
+
         begin
           new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
-            attrs.symbolize_keys.each do |k, v|
+            attrs.each do |k, v|
               value_casted = TypeCasting.cast_field(v, attributes[k])
               value_dumped = Dumping.dump_field(value_casted, attributes[k])
               t.set(k => value_dumped)
@@ -236,9 +241,14 @@ module Dynamoid #:nodoc:
 
         options[:conditions] = conditions
 
+        attrs = attrs.symbolize_keys
+        if Dynamoid::Config.timestamps
+          attrs[:updated_at] ||= DateTime.now.in_time_zone(Time.zone)
+        end
+
         begin
           new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
-            attrs.symbolize_keys.each do |k, v|
+            attrs.each do |k, v|
               value_casted = TypeCasting.cast_field(v, attributes[k])
               value_dumped = Dumping.dump_field(value_casted, attributes[k])
               t.set(k => value_dumped)

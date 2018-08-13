@@ -457,35 +457,6 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context 'with timestamps set to false' do
-    def reload_address
-      Object.send(:remove_const, 'Address')
-      load 'app/models/address.rb'
-    end
-
-    timestamps = Dynamoid::Config.timestamps
-
-    before do
-      reload_address
-      Dynamoid.configure do |config|
-        config.timestamps = false
-      end
-    end
-
-    after do
-      reload_address
-      Dynamoid.configure do |config|
-        config.timestamps = timestamps
-      end
-    end
-
-    it 'sets nil to created_at and updated_at' do
-      address = Address.create
-      expect(address.created_at).to be_nil
-      expect(address.updated_at).to be_nil
-    end
-  end
-
   it 'deletes an item completely' do
     @user = User.create(name: 'Josh')
     @user.destroy
@@ -534,7 +505,7 @@ describe Dynamoid::Persistence do
     end
   end
 
-  describe 'save' do
+  describe '.save' do
     it 'creates table if it does not exist' do
       klass = Class.new do
         include Dynamoid::Document
@@ -553,6 +524,94 @@ describe Dynamoid::Persistence do
       obj = klass.new(active: false)
       obj.save!
       expect(raw_attributes(obj)[:active]).to eql('f')
+    end
+
+    describe 'timestamps' do
+      let(:klass) do
+        new_class do
+          field :title
+        end
+      end
+
+      context 'new record' do
+        it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+          travel 1.hour do
+            time_now = Time.now
+            obj = klass.new
+            obj.save
+
+            expect(obj.created_at.to_i).to eql(time_now.to_i)
+            expect(obj.updated_at.to_i).to eql(time_now.to_i)
+          end
+        end
+
+        it 'uses provided values of created_at and of updated_at if Config.timestamps=true', config: { timestamps: true } do
+          travel 1.hour do
+            created_at = updated_at = Time.now
+            obj = klass.new(created_at: created_at, updated_at: updated_at)
+            obj.save
+
+            expect(obj.created_at.to_i).to eql(created_at.to_i)
+            expect(obj.updated_at.to_i).to eql(updated_at.to_i)
+          end
+        end
+
+        it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+          created_at = updated_at = Time.now
+          obj = klass.new
+          obj.save
+
+          expect(obj.created_at).to eql(nil)
+          expect(obj.updated_at).to eql(nil)
+        end
+      end
+
+      context 'persisted record' do
+        it 'does not change created_at if Config.timestamps=true', config: { timestamps: true } do
+          time_now_old = DateTime.now
+          obj = klass.create(title: 'Old title')
+
+          travel 1.hour do
+            obj.title = 'New title'
+            obj.save
+
+            expect(obj.created_at.to_s).to eql(time_now_old.to_s)
+          end
+        end
+
+        it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+          obj = klass.create(title: 'Old title')
+
+          travel 1.hour do
+            time_now = Time.now
+            obj.title = 'New title'
+            obj.save
+
+            expect(obj.updated_at.to_i).to eql(time_now.to_i)
+          end
+        end
+
+        it 'uses provided value updated_at if Config.timestamps=true', config: { timestamps: true } do
+          obj = klass.create(title: 'Old title')
+
+          travel 1.hour do
+            updated_at = Time.now
+            obj.title = 'New title'
+            obj.updated_at = updated_at
+            obj.save
+
+            expect(obj.updated_at.to_i).to eql(updated_at.to_i)
+          end
+        end
+
+        it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+          obj = klass.create(title: 'Old title')
+          obj.title = 'New title'
+          obj.save
+
+          expect(obj.updated_at).to eql(nil)
+        end
+      end
     end
   end
 
@@ -631,6 +690,49 @@ describe Dynamoid::Persistence do
       obj.update! { |d| d.set(name: 'New value') }
 
       expect(obj.reload.name).to eql('New value')
+    end
+
+    describe 'timestamps' do
+      let(:klass) do
+        new_class do
+          field :title
+        end
+      end
+
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create(title: 'Old title')
+
+        travel 1.hour do
+          time_now = Time.now
+
+          expect {
+            obj.update { |d| d.set(title: 'New title') }
+          }.to change { obj.reload.updated_at.to_i }.to(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value of updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create(title: 'Old title')
+
+        travel 1.hour do
+          updated_at = Time.now + 1.hour
+
+          expect {
+            obj.update do |d|
+              d.set(title: 'New title')
+              d.set(updated_at: updated_at.to_i)
+            end
+          }.to change { obj.reload.updated_at.to_i }.to(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        obj = klass.create(title: 'Old title')
+        obj.update { |d| d.set(title: 'New title') }
+
+        expect(obj.reload.title).to eql('New title')
+        expect(obj.reload.updated_at).to eql(nil)
+      end
     end
   end
 
@@ -822,6 +924,44 @@ describe Dynamoid::Persistence do
 
       user = User.find(users[0].id)
       expect(user.todo_list).to eq nil
+    end
+
+    describe 'timestamps' do
+      let(:klass) do
+        new_class
+      end
+
+      before do
+        klass.create_table
+      end
+
+      it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        travel 1.hour do
+          time_now = Time.now
+          obj, = klass.import([{}])
+
+          expect(obj.created_at.to_i).to eql(time_now.to_i)
+          expect(obj.updated_at.to_i).to eql(time_now.to_i)
+        end
+      end
+
+      it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        travel 1.hour do
+          created_at = updated_at = Time.now
+          obj, = klass.import([{ created_at: created_at, updated_at: updated_at }])
+
+          expect(obj.created_at.to_i).to eql(created_at.to_i)
+          expect(obj.updated_at.to_i).to eql(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        created_at = updated_at = Time.now
+        obj, = klass.import([{}])
+
+        expect(obj.created_at).to eql(nil)
+        expect(obj.updated_at).to eql(nil)
+      end
     end
 
     it 'dumps attribute values' do

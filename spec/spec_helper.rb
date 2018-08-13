@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'coveralls'
+require 'active_support/testing/time_helpers.rb'
+
 Coveralls.wear!
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
@@ -47,6 +49,7 @@ RSpec.configure do |config|
   config.include NewClassHelper
   config.include DumpingHelper
   config.include PersictenseHelper
+  config.include ActiveSupport::Testing::TimeHelpers
 
   config.before(:each) do
     DynamoDBLocal.delete_all_specified_tables!
