@@ -148,7 +148,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def records_via_scan
-        if Dynamoid::Config.warn_on_scan
+        if Dynamoid::Config.warn_on_scan && query.present?
           Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
           Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.downcase}.rb:"
           Dynamoid.logger.warn "* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'"

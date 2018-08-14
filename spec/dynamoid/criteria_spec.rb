@@ -77,7 +77,7 @@ describe Dynamoid::Criteria do
     end.not_to raise_error(Dynamoid::Errors::InvalidQuery)
   end
 
-  context 'when scans and warn_on_scan config option is true' do
+  context 'when scans using non-indexed fields and warn_on_scan config option is true' do
     before do
       @warn_on_scan = Dynamoid::Config.warn_on_scan
       Dynamoid::Config.warn_on_scan = true
@@ -94,6 +94,21 @@ describe Dynamoid::Criteria do
       expect(Dynamoid.logger).to receive(:warn).with('Not indexed attributes: :name, :password')
 
       User.where(name: 'x', password: 'password').all
+    end
+  end
+  context 'when doing intentional, full-table scan (query is empty) and warn_on_scan config option is true' do
+    before do
+      @warn_on_scan = Dynamoid::Config.warn_on_scan
+      Dynamoid::Config.warn_on_scan = true
+    end
+    after do
+      Dynamoid::Config.warn_on_scan = @warn_on_scan
+    end
+
+    it 'does not log any warnings' do
+      expect(Dynamoid.logger).not_to receive(:warn)
+
+      User.all
     end
   end
 end
