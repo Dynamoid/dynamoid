@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe 'Dumping' do
   describe 'Boolean field' do
-    context 'stored in string format' do
+    context 'string format' do
       let(:klass) do
         new_class do
           field :active, :boolean
@@ -30,7 +30,7 @@ describe 'Dumping' do
       end
     end
 
-    context 'stored in boolean format' do
+    context 'boolean format' do
       let(:klass) do
         new_class do
           field :active, :boolean, store_as_native_boolean: true
@@ -61,6 +61,94 @@ describe 'Dumping' do
         obj = klass.create(active: nil)
         expect(reload(obj).active).to eql(nil)
         expect(raw_attributes(obj)[:active]).to eql(nil)
+      end
+    end
+
+    describe '"store_boolean_as_native" global config option' do
+      it 'is stored as boolean by default' do
+        klass = new_class do
+          field :active, :boolean
+        end
+        obj = klass.create(active: true)
+
+        expect(raw_attributes(obj)[:active]).to eql(true)
+        expect(reload(obj).active).to eql(true)
+      end
+
+      context 'store_boolean_as_native=true' do
+        it 'is stored as boolean if field option store_as_native_boolean is not set',
+          config: { store_boolean_as_native: true } do
+
+          klass = new_class do
+            field :active, :boolean
+          end
+          obj = klass.create(active: true)
+
+          expect(raw_attributes(obj)[:active]).to eql(true)
+          expect(reload(obj).active).to eql(true)
+        end
+
+        it 'is stored as boolean if field option store_as_native_boolean=true',
+          config: { store_boolean_as_native: true } do
+
+          klass = new_class do
+            field :active, :boolean, store_as_native_boolean: true
+          end
+          obj = klass.create(active: true)
+
+          expect(raw_attributes(obj)[:active]).to eql(true)
+          expect(reload(obj).active).to eql(true)
+        end
+
+        it 'is stored as string if field option store_as_native_boolean=false',
+          config: { store_boolean_as_native: true } do
+
+          klass = new_class do
+            field :active, :boolean, store_as_native_boolean: false
+          end
+          obj = klass.create(active: true)
+
+          expect(raw_attributes(obj)[:active]).to eql('t')
+          expect(reload(obj).active).to eql(true)
+        end
+      end
+
+      context 'store_boolean_as_native=false' do
+        it 'is stored as string if field option store_as_native_boolean is not set',
+          config: { store_boolean_as_native: false } do
+
+          klass = new_class do
+            field :active, :boolean
+          end
+          obj = klass.create(active: true)
+
+          expect(raw_attributes(obj)[:active]).to eql('t')
+          expect(reload(obj).active).to eql(true)
+        end
+
+        it 'is stored as boolean if field option store_as_native_boolean=true',
+          config: { store_boolean_as_native: false } do
+
+          klass = new_class do
+            field :active, :boolean, store_as_native_boolean: true
+          end
+          obj = klass.create(active: true)
+
+          expect(raw_attributes(obj)[:active]).to eql(true)
+          expect(reload(obj).active).to eql(true)
+        end
+
+        it 'is stored as string if field option store_as_native_boolean=false',
+          config: { store_boolean_as_native: false } do
+
+          klass = new_class do
+            field :active, :boolean, store_as_native_boolean: false
+          end
+          obj = klass.create(active: true)
+
+          expect(raw_attributes(obj)[:active]).to eql('t')
+          expect(reload(obj).active).to eql(true)
+        end
       end
     end
   end
