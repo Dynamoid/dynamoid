@@ -7,7 +7,7 @@ describe 'Dumping' do
     context 'string format' do
       let(:klass) do
         new_class do
-          field :active, :boolean
+          field :active, :boolean, store_as_native_boolean: false
         end
       end
 

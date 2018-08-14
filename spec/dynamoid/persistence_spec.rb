@@ -518,7 +518,7 @@ describe Dynamoid::Persistence do
 
     it 'dumps attribute values' do
       klass = new_class do
-        field :active, :boolean
+        field :active, :boolean, store_as_native_boolean: false
       end
 
       obj = klass.new(active: false)
@@ -966,7 +966,7 @@ describe Dynamoid::Persistence do
 
     it 'dumps attribute values' do
       klass = new_class do
-        field :active, :boolean
+        field :active, :boolean, store_as_native_boolean: false
       end
       klass.create_table
 
