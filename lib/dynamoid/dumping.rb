@@ -134,8 +134,13 @@ module Dynamoid
     class BooleanDumper < Base
       def process(value)
         unless value.nil?
-          if @options[:store_as_native_boolean]
-            !!value # native boolean type
+          store_as_boolean = if @options[:store_as_native_boolean].nil?
+                               Dynamoid.config.store_boolean_as_native
+                             else
+                               @options[:store_as_native_boolean]
+                             end
+          if store_as_boolean
+            !!value
           else
             value.to_s[0] # => "f" or "t"
           end

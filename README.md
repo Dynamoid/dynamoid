@@ -144,16 +144,16 @@ The primary use case for using a custom field type is to represent your business
 
 #### Note on boolean type
 
-The boolean fields are stored as `'t'` and `'f'` strings by default. DynamoDB
-supports boolean type natively. So if you want to use native boolean
-type or already have table with native boolean attribute you can easily
-achieve this with `store_as_native_boolean` option:
+The boolean fields are stored as DynamoDB boolean values by default.
+Dynamoid can store boolean values as strings as well - `'t'` and `'f'`.
+So if you want to change default format of boolean field you can easily
+achieve this with `store_as_native_boolean` field option:
 
 ```ruby
 class Document
   include DynamoId::Document
 
-  field :active, :boolean, store_as_native_boolean: true
+  field :active, :boolean, store_as_native_boolean: false
 end
 ```
 
@@ -685,6 +685,9 @@ Listed below are all configuration options.
   Acceptable values - `utc`, `local` (to use system time zone) and time zone name e.g. `Eastern Time (US & Canada)`. Default is `utc`
 * `store_datetime_as_string` - if `true` then Dynamoid stores :datetime fields in ISO 8601 string format. Default is `false`
 * `store_date_as_string` - if `true` then Dynamoid stores :date fields in ISO 8601 string format. Default is `false`
+* `store_boolean_as_native` - if `true` Dynamoid stores boolean fields as native DynamoDB
+  boolean values. Otherwise boolean fields are stored as string values
+`'t'` and `'f'`. Default is true
 * `backoff` - is a hash: key is a backoff strategy (symbol), value is parameters for the strategy. Is used in batch operations. Default id `nil`
 * `backoff_strategies`: is a hash and contains all available strategies. Default is { constant: ..., exponential: ...}
 
