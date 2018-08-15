@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'uri'
+require 'logger'
 require 'dynamoid/config/options'
 require 'dynamoid/config/backoff_strategies/constant_backoff'
 require 'dynamoid/config/backoff_strategies/exponential_backoff'
@@ -58,7 +59,7 @@ module Dynamoid
     # @since 0.2.0
     def logger=(logger)
       case logger
-      when false, nil then @logger = nil
+      when false, nil then @logger = Logger.new('/dev/null')
       when true then @logger = default_logger
       else
         @logger = logger if logger.respond_to?(:info)
