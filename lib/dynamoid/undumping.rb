@@ -155,6 +155,8 @@ module Dynamoid
     end
 
     class BooleanUndumper < Base
+      STRING_VALUES = ['t', 'f']
+
       def process(value)
         store_as_boolean = if @options[:store_as_native_boolean].nil?
                              Dynamoid.config.store_boolean_as_native
@@ -163,7 +165,7 @@ module Dynamoid
                            end
         if store_as_boolean
           !!value
-        elsif ['t', 'f'].include?(value)
+        elsif STRING_VALUES.include?(value)
           value == 't'
         else
           raise ArgumentError, 'Boolean column neither true nor false'
