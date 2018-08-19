@@ -86,7 +86,8 @@ module Dynamoid
                             end
 
         if use_string_format
-          value.iso8601
+          value_in_time_zone = Dynamoid::DynamodbTimeZone.in_time_zone(value)
+          value_in_time_zone.iso8601
         else
           unless value.respond_to?(:to_i) && value.respond_to?(:nsec)
             value = value.to_time
