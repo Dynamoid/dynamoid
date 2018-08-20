@@ -32,6 +32,7 @@ module Dynamoid
     option :convert_big_decimal, default: false
     option :models_dir, default: './app/models' # perhaps you keep your dynamoid models in a different directory?
     option :application_timezone, default: :utc # available values - :utc, :local, time zone name like "Hawaii"
+    option :dynamodb_timezone, default: :utc # available values - :utc, :local, time zone name like "Hawaii"
     option :store_datetime_as_string, default: false # store Time fields in ISO 8601 string format
     option :store_date_as_string, default: false # store Date fields in ISO 8601 string format
     option :store_boolean_as_native, default: true

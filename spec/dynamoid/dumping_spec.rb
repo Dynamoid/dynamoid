@@ -194,7 +194,9 @@ describe 'Dumping' do
       end
     end
 
-    context 'Stored in :string ISO-8601 format' do
+    context 'Stored in :string ISO-8601 format',
+      config: { application_timezone: :utc, dynamodb_timezone: :utc } do
+
       let(:klass) do
         new_class do
           field :sent_at, :datetime, store_as_string: true
@@ -202,14 +204,14 @@ describe 'Dumping' do
       end
 
       it 'saves time as a :string and looses milliseconds' do
-        time = DateTime.new(2018, 7, 24, 22, 4, 30)
+        time = '2018-07-24 22:04:30.001 +03:00'.to_datetime
         obj = klass.create(sent_at: time)
 
-        expect(reload(obj).sent_at).to eq(time.change(usec: 0))
-        expect(raw_attributes(obj)[:sent_at]).to eql('2018-07-24T22:04:30+00:00')
+        expect(reload(obj).sent_at).to eql('2018-07-24 19:04:30 +00:00'.to_datetime)
+        expect(raw_attributes(obj)[:sent_at]).to eql('2018-07-24T19:04:30+00:00')
       end
 
-      it 'saves date as :string', application_timezone: :utc do
+      it 'saves date as :string' do
         date = Date.new(2018, 7, 21)
         obj = klass.create(sent_at: date)
 
@@ -225,11 +227,11 @@ describe 'Dumping' do
         store_datetime_as_string = Dynamoid.config.store_datetime_as_string
         Dynamoid.config.store_datetime_as_string = true
 
-        time = Time.now
+        time = '2018-07-24 22:04:30.001 +03:00'.to_datetime
         obj = klass2.create(sent_at: time)
 
-        expect(reload(obj).sent_at).to eq(time.change(usec: 0))
-        expect(raw_attributes(obj)[:sent_at]).to eql(time.iso8601)
+        expect(reload(obj).sent_at).to eql('2018-07-24 19:04:30 +00:00'.to_datetime)
+        expect(raw_attributes(obj)[:sent_at]).to eql('2018-07-24T19:04:30+00:00')
 
         Dynamoid.config.store_datetime_as_string = store_datetime_as_string
       end
@@ -238,11 +240,11 @@ describe 'Dumping' do
         store_datetime_as_string = Dynamoid.config.store_datetime_as_string
         Dynamoid.config.store_datetime_as_string = false
 
-        time = Time.now
+        time = '2018-07-24 22:04:30.001 +03:00'.to_datetime
         obj = klass.create(sent_at: time)
 
-        expect(reload(obj).sent_at).to eq(time.change(usec: 0))
-        expect(raw_attributes(obj)[:sent_at]).to eql(time.iso8601)
+        expect(reload(obj).sent_at).to eql('2018-07-24 19:04:30 +00:00'.to_datetime)
+        expect(raw_attributes(obj)[:sent_at]).to eql('2018-07-24T19:04:30+00:00')
 
         Dynamoid.config.store_datetime_as_string = store_datetime_as_string
       end
@@ -254,34 +256,90 @@ describe 'Dumping' do
       end
     end
 
-    describe 'config.application_timezone option' do
+    describe '"application_timezone" global config option' do
       let(:klass) do
         new_class do
           field :last_logged_in_at, :datetime
         end
       end
 
-      it 'loads time in local time zone if config.application_timezone == :local', config: { application_timezone: :local } do
-        time = Time.now
+      it 'loads time in local time zone if config.application_timezone = :local',
+        config: { application_timezone: :local } do
+        time = DateTime.now
         obj = klass.create(last_logged_in_at: time)
         obj = klass.find(obj.id)
-        expect(obj.last_logged_in_at).to be_a(DateTime)
+
         # we can't compare objects directly because lose precision of milliseconds in conversions
+        expect(obj.last_logged_in_at).to be_a(DateTime)
         expect(obj.last_logged_in_at.to_s).to eql time.to_datetime.to_s
       end
 
-      it 'loads time in specified time zone if config.application_timezone == time zone name', config: { application_timezone: 'Hawaii' } do
-        time = '2017-06-20 08:00:00 +0300'.to_time
+      it 'loads time in specified time zone if config.application_timezone = time zone name',
+        config: { application_timezone: 'Hawaii' } do
+        # Hawaii UTC-10
+        time = '2017-06-20 08:00:00 +0300'.to_datetime
         obj = klass.create(last_logged_in_at: time)
-        obj = klass.find(obj.id)
-        expect(obj.last_logged_in_at).to eql '2017-06-19 19:00:00 -1000'.to_datetime # Hawaii UTC-10
+
+        expect(reload(obj).last_logged_in_at).to eql '2017-06-19 19:00:00 -1000'.to_datetime
       end
 
-      it 'loads time in UTC if config.application_timezone = :utc', config: { application_timezone: :utc } do
-        time = '2017-06-20 08:00:00 +0300'.to_time
+      it 'loads time in UTC if config.application_timezone = :utc',
+        config: { application_timezone: :utc } do
+        time = '2017-06-20 08:00:00 +0300'.to_datetime
         obj = klass.create(last_logged_in_at: time)
-        obj = klass.find(obj.id)
-        expect(obj.last_logged_in_at).to eql '2017-06-20 05:00:00 +0000'.to_datetime
+
+        expect(reload(obj).last_logged_in_at).to eql '2017-06-20 05:00:00 +0000'.to_datetime
+      end
+    end
+
+    describe '"dynamodb_timezone" global config option' do
+      let(:klass) do
+        new_class do
+          field :last_logged_in_at, :datetime
+        end
+      end
+
+      it 'stores time in local time zone',
+        config: { dynamodb_timezone: :local, store_datetime_as_string: true } do
+        time = DateTime.now
+        obj = klass.create(last_logged_in_at: time)
+
+        expect(raw_attributes(obj)[:last_logged_in_at]).to eql time.to_s
+      end
+
+      it 'stores time in specified time zone',
+        config: { dynamodb_timezone: 'Hawaii', store_datetime_as_string: true } do
+        time = '2017-06-20 08:00:00 +0300'.to_datetime
+        obj = klass.create(last_logged_in_at: time)
+
+        expect(raw_attributes(obj)[:last_logged_in_at]).to eql('2017-06-19T19:00:00-10:00')
+      end
+
+      it 'stores time in UTC',
+        config: { dynamodb_timezone: :utc, store_datetime_as_string: true } do
+        time = '2017-06-20 08:00:00 +0300'.to_datetime
+        obj = klass.create(last_logged_in_at: time)
+
+        expect(raw_attributes(obj)[:last_logged_in_at]).to eql('2017-06-20T05:00:00+00:00')
+      end
+
+      it 'uses UTC by default',
+        config: { store_datetime_as_string: true } do
+        time = '2017-06-20 08:00:00 +0300'.to_datetime
+        obj = klass.create(last_logged_in_at: time)
+
+        expect(raw_attributes(obj)[:last_logged_in_at]).to eql('2017-06-20T05:00:00+00:00')
+      end
+
+      it 'converts time between application time zone and dynamodb time zone correctly',
+        config: { application_timezone: 'Hong Kong', dynamodb_timezone: 'Hawaii', store_datetime_as_string: true } do
+        # Hong Kong +8
+        # Hawaii -10
+        time = '2017-06-20 08:00:00 +0300'.to_datetime
+        obj = klass.create(last_logged_in_at: time)
+
+        expect(raw_attributes(obj)[:last_logged_in_at]).to eql('2017-06-19T19:00:00-10:00')
+        expect(reload(obj).last_logged_in_at.to_s).to eql('2017-06-20T13:00:00+08:00')
       end
     end
   end
