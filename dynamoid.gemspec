@@ -41,7 +41,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_runtime_dependency 'activemodel', '>=4'
-  spec.add_runtime_dependency 'aws-sdk-dynamodb', '~> 1'
+  spec.add_runtime_dependency 'aws-sdk-dynamodb', '1.11.0'
   spec.add_runtime_dependency 'concurrent-ruby', '>= 1.0'
 
   spec.add_development_dependency 'appraisal'
