@@ -26,7 +26,7 @@
 * Improvement: [#278](https://github.com/Dynamoid/Dynamoid/pull/278) Add Rails-like type casting (@andrykonchin)
 * Maintenance: [#281](https://github.com/Dynamoid/Dynamoid/pull/281) Deprecate dynamic finders, `find_all`, `find_by_id`, `find_by_composite_key`, `find_all_by_composite_key` and `find_all_by_secondary_index` (@andrykonchin)
 * Improvement: [#285](https://github.com/Dynamoid/Dynamoid/pull/285) Set timestamps (`created_at` and `updated_at`) in `upsert`, `update_fields`, `import` and `update` methods (@andrykonchin)
-* Improvement: [#286](https://github.com/Dynamoid/Dynamoid/pull/286) Disable scan warning when intentionally loading all items from a collectio (@knovoselic)
+* Improvement: [#286](https://github.com/Dynamoid/Dynamoid/pull/286) Disable scan warning when intentionally loading all items from a collection (@knovoselic)
 
 ## Fixes
 
