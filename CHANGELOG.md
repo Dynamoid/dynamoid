@@ -2,16 +2,38 @@
 
 ## Breaking
 
-* Maintenace: [#267](https://github.com/Dynamoid/Dynamoid/pull/267) Upgrade AWS SDK to V3 (@andrykonchin)
-* Maintenace: [#268](https://github.com/Dynamoid/Dynamoid/pull/268) Drop support of old Ruby and Rails versions (@andrykonchin)
-
 ## Improvements
-
-* N/A
 
 ## Fixes
 
-* N/A
+
+# 3.0.0
+
+## Breaking
+
+* Maintenance: [#267](https://github.com/Dynamoid/dynamoid/pull/267) Upgrade AWS SDK to V3 (@andrykonchin)
+* Maintenance: [#268](https://github.com/Dynamoid/dynamoid/pull/268) Drop support of old Ruby versions. Support Ruby since 2.3 version (@andrykonchin)
+* Maintenance: [#268](https://github.com/Dynamoid/dynamoid/pull/268) Drop support of old Rails versions. Support Rails since 4.2 version (@andrykonchin)
+* Improvement: [#278](https://github.com/Dynamoid/dynamoid/pull/278) Add type casting for finders (`find`, `find_by_id` and `find_all`) (@andrykonchin)
+* Improvement: [#279](https://github.com/Dynamoid/dynamoid/pull/279) Change default value of `application_timezone` config option from `:local` to `:utc` (@andrykonchin)
+* Feature: [#288](https://github.com/Dynamoid/dynamoid/pull/288) Add `store_boolean_as_native` config option and set it to `true` by default. So all boolean fields are stored not as string `'t'` and `'f'` but as native boolean values now (@andrykonchin)
+* Feature: [#289](https://github.com/Dynamoid/dynamoid/pull/289) Add `dynamodb_timezone` config option and set it to `:utc` by default. So now all `date` and `datetime` fields stored in string format will be converted to UTC time zone by default (@andrykonchin)
+
+## Improvements
+
+* Improvement: [#261](https://github.com/Dynamoid/Dynamoid/pull/261) Improve documentation (@walkersumida)
+* Improvement: [#264](https://github.com/Dynamoid/Dynamoid/pull/264) Improve documentation (@xbx)
+* Improvement: [#278](https://github.com/Dynamoid/Dynamoid/pull/278) Add Rails-like type casting (@andrykonchin)
+* Maintenance: [#281](https://github.com/Dynamoid/Dynamoid/pull/281) Deprecate dynamic finders, `find_all`, `find_by_id`, `find_by_composite_key`, `find_all_by_composite_key` and `find_all_by_secondary_index` (@andrykonchin)
+* Improvement: [#285](https://github.com/Dynamoid/Dynamoid/pull/285) Set timestamps (`created_at` and `updated_at`) in `upsert`, `update_fields`, `import` and `update` methods (@andrykonchin)
+* Improvement: [#286](https://github.com/Dynamoid/Dynamoid/pull/286) Disable scan warning when intentionally loading all items from a collection (@knovoselic)
+
+## Fixes
+
+* Bug: [#275](https://github.com/Dynamoid/Dynamoid/pull/275) Fix custom type serialization/deserialization (@andrykonchin)
+* Bug: [#283](https://github.com/Dynamoid/Dynamoid/pull/283) Fix using string formats for partition and sort keys of `date`/`datetime` type (@andrykonchin)
+* Bug: [#283](https://github.com/Dynamoid/Dynamoid/pull/283) Fix type declaration of custom type fields. Returned by `.dynamoid_field_type` value is treated as Dynamoid's type now (@andrykonchin)
+* Bug: [#287](https://github.com/Dynamoid/Dynamoid/pull/287) Fix logging disabling (@ghiculescu)
 
 # 2.2.0
 
