@@ -40,9 +40,9 @@ module Dynamoid
       # @since 0.2.0
       def find(*ids, **options)
         if ids.size == 1 && !ids[0].is_a?(Array)
-          _find_by_id(ids[0], options)
+          _find_by_id(ids[0], options.merge(raise_error: true))
         else
-          _find_all(ids.flatten(1))
+          _find_all(ids.flatten(1), raise_error: true)
         end
       end
 
@@ -114,7 +114,7 @@ module Dynamoid
                   items ? items[table_name] : []
                 end
 
-        if items.size == ids.size
+        if items.size == ids.size || !options[:raise_error]
           items ? items.map { |i| from_database(i) } : []
         else
           message = "Couldn't find all #{name.pluralize} with '#{hash_key}': (#{ids.join(', ')}) "
@@ -134,7 +134,7 @@ module Dynamoid
 
         if item = Dynamoid.adapter.read(table_name, id, options)
           from_database(item)
-        else
+        elsif options[:raise_error]
           message = "Couldn't find #{name} with '#{hash_key}'=#{id}"
           raise Errors::RecordNotFound, message
         end

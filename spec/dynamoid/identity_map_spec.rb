@@ -30,7 +30,7 @@ describe Dynamoid::IdentityMap do
     it 'clears cache on delete' do
       tweet = Tweet.create(tweet_id: 'x', group: 'one')
       tweet.delete
-      expect { Tweet.find_by_id('x', range_key: 'one') }.to raise_error(Dynamoid::Errors::RecordNotFound)
+      expect(Tweet.find_by_id('x', range_key: 'one')).to be nil
     end
   end
 
