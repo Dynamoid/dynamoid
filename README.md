@@ -184,9 +184,9 @@ end
 WARNING: Fields in numeric format are stored with nanoseconds as a fraction part and precision could be lost.
 That's why `datetime` field in numeric format shouldn't be used as a range key.
 
-There are following options if you need to use `datetime` field as a range key:
-* to use string format
-* to store `datetime` values without milliseconds e.g. cut them
+You have two options if you need to use a `datetime` field as a range key:
+* string format
+* store `datetime` values without milliseconds e.g. cut them
   manually with `change` method - `Time.now.change(usec: 0)`
 
 #### Note on set type
