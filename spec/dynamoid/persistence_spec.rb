@@ -568,14 +568,13 @@ describe Dynamoid::Persistence do
 
       context 'persisted record' do
         it 'does not change created_at if Config.timestamps=true', config: { timestamps: true } do
-          time_now_old = DateTime.now
           obj = klass.create(title: 'Old title')
 
           travel 1.hour do
-            obj.title = 'New title'
-            obj.save
-
-            expect(obj.created_at.to_s).to eql(time_now_old.to_s)
+            expect do
+              obj.title = 'New title'
+              obj.save
+            end.not_to change { obj.created_at.to_s }
           end
         end
 
