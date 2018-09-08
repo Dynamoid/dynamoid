@@ -606,12 +606,12 @@ describe Dynamoid::Document do
 
     it 'uses dumped value of sort key to load document' do
       klass = new_class do
-        range :activated_at, :datetime
+        range :activated_on, :date
         field :name
       end
 
-      obj = klass.create!(activated_at: Time.now, name: 'Old value')
-      obj2 = klass.where(id: obj.id, activated_at: obj.activated_at).first
+      obj = klass.create!(activated_on: Date.today, name: 'Old value')
+      obj2 = klass.where(id: obj.id, activated_on: obj.activated_on).first
       obj2.update_attributes(name: 'New value')
 
       expect { obj.reload }.to change {
