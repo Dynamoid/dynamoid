@@ -171,7 +171,7 @@ end
 
 #### Note on datetime type
 
-By default datetime fields are persisted as UNIX timestamps with millisecond precission in DynamoDB. If you prefer datetimes to be stored as ISO-8601 formatted strings instead then set `store_as_string` to `true`
+By default datetime fields are persisted as UNIX timestamps with millisecond precision in DynamoDB. If you prefer datetimes to be stored as ISO-8601 formatted strings instead then set `store_as_string` to `true`
 
 ```ruby
 class Document
