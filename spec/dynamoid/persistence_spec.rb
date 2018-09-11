@@ -568,14 +568,13 @@ describe Dynamoid::Persistence do
 
       context 'persisted record' do
         it 'does not change created_at if Config.timestamps=true', config: { timestamps: true } do
-          time_now_old = DateTime.now
           obj = klass.create(title: 'Old title')
 
           travel 1.hour do
-            obj.title = 'New title'
-            obj.save
-
-            expect(obj.created_at.to_s).to eql(time_now_old.to_s)
+            expect do
+              obj.title = 'New title'
+              obj.save
+            end.not_to change { obj.created_at.to_s }
           end
         end
 
@@ -681,12 +680,12 @@ describe Dynamoid::Persistence do
 
     it 'uses dumped value of sort key to call UpdateItem' do
       klass = new_class do
-        range :activated_at, :datetime
+        range :activated_on, :date
         field :name
       end
       klass.create_table
 
-      obj = klass.create!(activated_at: Time.now, name: 'Old value')
+      obj = klass.create!(activated_on: Date.today, name: 'Old value')
       obj.update! { |d| d.set(name: 'New value') }
 
       expect(obj.reload.name).to eql('New value')
@@ -739,13 +738,13 @@ describe Dynamoid::Persistence do
   context 'delete' do
     it 'uses dumped value of sort key to call DeleteItem' do
       klass = new_class do
-        range :activated_at, :datetime
+        range :activated_on, :date
       end
 
-      obj = klass.create!(activated_at: Time.now)
+      obj = klass.create!(activated_on: Date.today)
 
       expect { obj.delete }.to change {
-        klass.where(id: obj.id, activated_at: obj.activated_at).first
+        klass.where(id: obj.id, activated_on: obj.activated_on).first
       }.to(nil)
     end
 

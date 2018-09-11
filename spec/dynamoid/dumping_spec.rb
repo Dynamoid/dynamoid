@@ -174,19 +174,6 @@ describe 'Dumping' do
         expect(raw_attributes(obj)[:sent_at]).to eql(BigDecimal('1532131200.0'))
       end
 
-      it 'does not loose precision and can be used as sort key', :bugfix do
-        klass = new_class do
-          range :expired_at, :datetime
-        end
-
-        models = (1..100).map { klass.create(expired_at: Time.now) }
-        loaded_models = models.map { |m| klass.find(m.id, range_key: m.expired_at) }
-
-        expect do
-          loaded_models.map { |m| klass.find(m.id, range_key: m.expired_at) }
-        end.not_to raise_error
-      end
-
       it 'stores nil value' do
         obj = klass.create(sent_at: nil)
         expect(reload(obj).sent_at).to eql(nil)

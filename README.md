@@ -165,13 +165,13 @@ By default date fields are persisted as days count since 1 January 1970 like UNI
 class Document
   include DynamoId::Document
 
-  field :sent_at, :datetime, store_as_string: true
+  field :sent_on, :date, store_as_string: true
 end
 ```
 
 #### Note on datetime type
 
-By default datetime fields are persisted as UNIX timestamps with milisecond precission in DynamoDB. If you prefer datetimes to be stored as ISO-8601 formatted strings instead then set `store_as_string` to `true`
+By default datetime fields are persisted as UNIX timestamps with millisecond precision in DynamoDB. If you prefer datetimes to be stored as ISO-8601 formatted strings instead then set `store_as_string` to `true`
 
 ```ruby
 class Document
@@ -180,6 +180,14 @@ class Document
   field :sent_at, :datetime, store_as_string: true
 end
 ```
+
+WARNING: Fields in numeric format are stored with nanoseconds as a fraction part and precision could be lost.
+That's why `datetime` field in numeric format shouldn't be used as a range key.
+
+You have two options if you need to use a `datetime` field as a range key:
+* string format
+* store `datetime` values without milliseconds e.g. cut them
+  manually with `change` method - `Time.now.change(usec: 0)`
 
 #### Note on set type
 
