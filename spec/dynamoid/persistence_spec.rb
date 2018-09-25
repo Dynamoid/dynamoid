@@ -506,6 +506,24 @@ describe Dynamoid::Persistence do
   end
 
   describe '.save' do
+    context ':raw field' do
+      let(:klass) do
+        new_class do
+          field :hash, :raw
+        end
+      end
+
+      it 'works well with hash keys of any type' do
+        a = nil
+        expect {
+          a = klass.new(hash: {1 => :b})
+          a.save!
+        }.not_to raise_error
+
+        expect(klass.find(a.id)[:hash]).to eql('1': 'b')
+      end
+    end
+
     it 'creates table if it does not exist' do
       klass = Class.new do
         include Dynamoid::Document
@@ -731,6 +749,24 @@ describe Dynamoid::Persistence do
 
         expect(obj.reload.title).to eql('New title')
         expect(obj.reload.updated_at).to eql(nil)
+      end
+    end
+
+    context ':raw field' do
+      let(:klass) do
+        new_class do
+          field :hash, :raw
+        end
+      end
+
+      it 'works well with hash keys of any type' do
+        a = klass.create
+
+        expect {
+          a.update { |d| d.set(hash: {1 => :b}) }
+        }.not_to raise_error
+
+        expect(klass.find(a.id)[:hash]).to eql('1': 'b')
       end
     end
   end
@@ -1060,6 +1096,27 @@ describe Dynamoid::Persistence do
         expect(backoff_strategy).to receive(:call).exactly(2).times.and_call_original
         klass.import(items)
         expect(@counter).to eq 2
+      end
+    end
+
+    context ':raw field' do
+      let(:klass) do
+        new_class do
+          field :hash, :raw
+        end
+      end
+
+      before do
+        klass.create_table
+      end
+
+      it 'works well with hash keys of any type' do
+        a = nil
+        expect {
+          a, = klass.import([hash: {1 => :b}])
+        }.not_to raise_error
+
+        expect(klass.find(a.id)[:hash]).to eql('1': 'b')
       end
     end
   end

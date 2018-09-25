@@ -438,6 +438,24 @@ describe Dynamoid::Document do
         expect(raw_attributes(obj2)[:count]).to eql(101)
       end
     end
+
+    context ':raw field' do
+      let(:klass) do
+        new_class do
+          field :hash, :raw
+        end
+      end
+
+      it 'works well with hash keys of any type' do
+        a = klass.create
+
+        expect {
+          klass.update_fields(a.id, hash: {1 => :b})
+        }.not_to raise_error
+
+        expect(klass.find(a.id)[:hash]).to eql('1': 'b')
+      end
+    end
   end
 
   describe '.upsert' do
@@ -581,6 +599,24 @@ describe Dynamoid::Document do
         obj2 = klass.upsert(obj.id, count: '101')
         expect(obj2.attributes[:count]).to eql(101)
         expect(raw_attributes(obj2)[:count]).to eql(101)
+      end
+    end
+
+    context ':raw field' do
+      let(:klass) do
+        new_class do
+          field :hash, :raw
+        end
+      end
+
+      it 'works well with hash keys of any type' do
+        a = klass.create
+
+        expect {
+          klass.upsert(a.id, hash: {1 => :b})
+        }.not_to raise_error
+
+        expect(klass.find(a.id)[:hash]).to eql('1': 'b')
       end
     end
   end
