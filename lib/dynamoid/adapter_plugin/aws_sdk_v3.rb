@@ -1043,7 +1043,7 @@ module Dynamoid
         #               add. values must be a Set, Array, or Numeric
         #
         def add(values)
-          @additions.merge!(values)
+          @additions.merge!(sanitize_attributes(values))
         end
 
         #
@@ -1053,14 +1053,14 @@ module Dynamoid
         #               to remove
         #
         def delete(values)
-          @deletions.merge!(values)
+          @deletions.merge!(sanitize_attributes(values))
         end
 
         #
         # Replaces the values of one or more attributes
         #
         def set(values)
-          @updates.merge!(values)
+          @updates.merge!(sanitize_attributes(values))
         end
 
         #
@@ -1091,6 +1091,14 @@ module Dynamoid
           ret
         end
 
+        private
+
+        def sanitize_attributes(attributes)
+          attributes.transform_values do |v|
+            v.is_a?(Hash) ? v.stringify_keys : v
+          end
+        end
+
         ADD    = 'ADD'
         DELETE = 'DELETE'
         PUT    = 'PUT'
@@ -1099,6 +1107,8 @@ module Dynamoid
       def sanitize_item(attributes)
         attributes.reject do |_k, v|
           v.nil? || ((v.is_a?(Set) || v.is_a?(String)) && v.empty?)
+        end.transform_values do |v|
+          v.is_a?(Hash) ? v.stringify_keys : v
         end
       end
     end
