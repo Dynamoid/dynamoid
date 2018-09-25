@@ -640,6 +640,43 @@ describe 'Dumping' do
         )
       end
     end
+
+    describe 'sanitizing' do
+      it 'replaces empty set with nil in Hash' do
+        config = { 'foo' => [].to_set }
+        obj = klass.create(config: config)
+
+        expect(reload(obj).config).to eql(foo: nil)
+      end
+
+      it 'replaces empty string with nil in Hash' do
+        config = { 'foo' => '' }
+        obj = klass.create(config: config)
+
+        expect(reload(obj).config).to eql(foo: nil)
+      end
+
+      it 'replaces empty set with nil in Array' do
+        config = [1, 2, [].to_set]
+        obj = klass.create(config: config)
+
+        expect(reload(obj).config).to eql([1, 2, nil])
+      end
+
+      it 'replaces empty string with nil in Array' do
+        config = [1, 2, '']
+        obj = klass.create(config: config)
+
+        expect(reload(obj).config).to eql([1, 2, nil])
+      end
+
+      it 'processes nested Hash and Array' do
+        config = { a: 1, b: '', c: [1, 2, '', { d: 3, e: '' }]}
+        obj = klass.create(config: config)
+
+        expect(reload(obj).config).to eql({ a: 1, b: nil, c: [1, 2, nil, { d: 3, e: nil }] })
+      end
+    end
   end
 
   describe 'Integer field' do
