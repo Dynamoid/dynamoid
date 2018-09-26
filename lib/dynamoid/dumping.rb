@@ -122,6 +122,34 @@ module Dynamoid
 
     # any standard Ruby object -> self
     class RawDumper < Base
+      def process(value)
+        deep_sanitize(value)
+      end
+
+      private
+
+      def deep_sanitize(el)
+        case el
+        when Hash
+          sanitize_hash(el).transform_values { |v| deep_sanitize(v) }
+        when Array
+          sanitize_array(el).map { |v| deep_sanitize(v) }
+        else
+          el
+        end
+      end
+
+      def sanitize_hash(h)
+        h.transform_values { |v| invalid_value?(v) ? nil : v }
+      end
+
+      def sanitize_array(a)
+        a.map { |v| invalid_value?(v) ? nil : v }
+      end
+
+      def invalid_value?(v)
+        (v.is_a?(Set) || v.is_a?(String)) && v.empty?
+      end
     end
 
     # object -> string
