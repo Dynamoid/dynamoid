@@ -64,6 +64,7 @@ module Dynamoid #:nodoc:
             end
           end
           define_method("#{named}=") { |value| write_attribute(named, value) }
+          define_method("#{named}_before_type_cast") { read_attribute_before_type_cast(named) }
         end
       end
 
@@ -88,6 +89,7 @@ module Dynamoid #:nodoc:
           remove_method field
           remove_method :"#{field}="
           remove_method :"#{field}?"
+          remove_method:"#{field}_before_type_cast"
         end
       end
 
@@ -118,6 +120,8 @@ module Dynamoid #:nodoc:
       if association = @associations[name]
         association.reset
       end
+
+      @attributes_before_type_cast[name] = value
 
       value_casted = TypeCasting.cast_field(value, self.class.attributes[name])
       attributes[name] = value_casted
@@ -153,6 +157,19 @@ module Dynamoid #:nodoc:
     def update_attribute(attribute, value)
       write_attribute(attribute, value)
       save
+    end
+
+    # Returns a hash of attributes before typecasting
+    def attributes_before_type_cast
+      @attributes_before_type_cast
+    end
+
+    # Returns the value of the attribute identified by name before typecasting
+    #
+    # @param [Symbol] attribute name
+    def read_attribute_before_type_cast(name)
+      return nil unless name.respond_to?(:to_sym)
+      @attributes_before_type_cast[name.to_sym]
     end
 
     private

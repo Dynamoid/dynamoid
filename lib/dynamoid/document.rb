@@ -281,6 +281,7 @@ module Dynamoid #:nodoc:
         @new_record = true
         @attributes ||= {}
         @associations ||= {}
+        @attributes_before_type_cast ||= {}
 
         self.class.attributes.each do |_, options|
           if options[:type].is_a?(Class) && options[:default]
