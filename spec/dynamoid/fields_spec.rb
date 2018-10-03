@@ -458,4 +458,96 @@ describe Dynamoid::Fields do
       end
     end
   end
+
+  describe '#update_attributes!' do
+    let(:klass) do
+      new_class do
+        field :name
+        field :age, :integer
+      end
+    end
+
+    it 'saves changed attributes' do
+      obj = klass.create!(name: 'Mike', age: 26)
+      obj.update_attributes!(age: 27)
+
+      expect(obj.age).to eql 27
+      expect(klass.find(obj.id).age).to eql 27
+    end
+
+    it 'saves document if it is not persisted yet' do
+      obj = klass.new(name: 'Mike', age: 26)
+      obj.update_attributes!(age: 27)
+
+      expect(obj).to be_persisted
+      expect(obj.age).to eql 27
+      expect(klass.find(obj.id).age).to eql 27
+    end
+
+    it 'raises DocumentNotValid error if validaton fails' do
+      klass = new_class do
+        field :age, :integer
+        validates :age, numericality: { greater_than: 16 }
+      end
+      obj = klass.create!(name: 'Mike', age: 26)
+
+      expect {
+        obj.update_attributes!(age: 11)
+      }.to raise_error(Dynamoid::Errors::DocumentNotValid)
+
+      expect(obj.age).to eql 11
+      expect(klass.find(obj.id).age).to eql 26
+    end
+
+    describe 'type casting' do
+      it 'type casts attributes' do
+        klass = new_class do
+          field :count, :integer
+        end
+
+        obj = klass.create
+        obj.update_attributes!(count: '101')
+
+        expect(obj.attributes[:count]).to eql(101)
+        expect(raw_attributes(obj)[:count]).to eql(101)
+      end
+    end
+
+    describe 'timestamps' do
+      let(:klass) do
+        new_class do
+          field :title
+        end
+      end
+
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create(title: 'Old title')
+
+        travel 1.hour do
+          time_now = Time.now
+          obj.update_attributes!(title: 'New title')
+
+          expect(obj.updated_at.to_i).to eql(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create(title: 'Old title')
+
+        travel 1.hour do
+          updated_at = Time.now
+          obj.update_attributes!(updated_at: updated_at, title: 'New title')
+
+          expect(obj.updated_at.to_i).to eql(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        obj = klass.create(title: 'Old title')
+        obj.update_attributes!(title: 'New title')
+
+        expect(obj.updated_at).to eql(nil)
+      end
+    end
+  end
 end

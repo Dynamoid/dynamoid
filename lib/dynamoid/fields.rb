@@ -148,6 +148,15 @@ module Dynamoid #:nodoc:
       save
     end
 
+    # Updates multiple attibutes at once, saving the object once the updates are complete.
+    # Raises a Dynamoid::Errors::DocumentNotValid exception if there is vaidation and it fails.
+    #
+    # @param [Hash] attributes a hash of attributes to update
+    def update_attributes!(attributes)
+      attributes.each { |attribute, value| write_attribute(attribute, value) } unless attributes.nil? || attributes.empty?
+      save!
+    end
+
     # Update a single attribute, saving the object afterwards.
     #
     # @param [Symbol] attribute the attribute to update
