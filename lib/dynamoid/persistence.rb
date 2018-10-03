@@ -151,6 +151,36 @@ module Dynamoid
       end
     end
 
+    # Updates multiple attibutes at once, saving the object once the updates are complete.
+    #
+    # @param [Hash] attributes a hash of attributes to update
+    #
+    # @since 0.2.0
+    def update_attributes(attributes)
+      attributes.each { |attribute, value| write_attribute(attribute, value) } unless attributes.nil? || attributes.empty?
+      save
+    end
+
+    # Updates multiple attibutes at once, saving the object once the updates are complete.
+    # Raises a Dynamoid::Errors::DocumentNotValid exception if there is vaidation and it fails.
+    #
+    # @param [Hash] attributes a hash of attributes to update
+    def update_attributes!(attributes)
+      attributes.each { |attribute, value| write_attribute(attribute, value) } unless attributes.nil? || attributes.empty?
+      save!
+    end
+
+    # Update a single attribute, saving the object afterwards.
+    #
+    # @param [Symbol] attribute the attribute to update
+    # @param [Object] value the value to assign it
+    #
+    # @since 0.2.0
+    def update_attribute(attribute, value)
+      write_attribute(attribute, value)
+      save
+    end
+
     #
     # update!() will increment the lock_version if the table has the column, but will not check it. Thus, a concurrent save will
     # never cause an update! to fail, but an update! may cause a concurrent save to fail.
