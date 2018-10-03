@@ -370,6 +370,43 @@ describe Dynamoid::Fields do
   end
 
   describe '#update_attributes' do
+    let(:klass) do
+      new_class do
+        field :name
+        field :age, :integer
+      end
+    end
+
+    it 'saves changed attributes' do
+      obj = klass.create!(name: 'Mike', age: 26)
+      obj.update_attributes(age: 27)
+
+      expect(obj.age).to eql 27
+      expect(klass.find(obj.id).age).to eql 27
+    end
+
+    it 'saves document if it is not persisted yet' do
+      obj = klass.new(name: 'Mike', age: 26)
+      obj.update_attributes(age: 27)
+
+      expect(obj).to be_persisted
+      expect(obj.age).to eql 27
+      expect(klass.find(obj.id).age).to eql 27
+    end
+
+    it 'does not save document if validaton fails' do
+      klass = new_class do
+        field :age, :integer
+        validates :age, numericality: { greater_than: 16 }
+      end
+
+      obj = klass.create!(name: 'Mike', age: 26)
+      obj.update_attributes(age: 11)
+
+      expect(obj.age).to eql 11
+      expect(klass.find(obj.id).age).to eql 26
+    end
+
     describe 'type casting' do
       it 'type casts attributes' do
         klass = new_class do
@@ -378,6 +415,7 @@ describe Dynamoid::Fields do
 
         obj = klass.create
         obj.update_attributes(count: '101')
+
         expect(obj.attributes[:count]).to eql(101)
         expect(raw_attributes(obj)[:count]).to eql(101)
       end
