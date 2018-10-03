@@ -94,13 +94,6 @@ describe Dynamoid::Fields do
       expect(address[:city]).to eq 'Chicago'
     end
 
-    it 'should update all attributes' do
-      expect(address).to receive(:save).once.and_return(true)
-      address.update_attributes(city: 'Chicago')
-      expect(address[:city]).to eq 'Chicago'
-      expect(address.id).to eq original_id
-    end
-
     it 'should update one attribute' do
       expect(address).to receive(:save).once.and_return(true)
       address.update_attribute(:city, 'Chicago')
