@@ -138,27 +138,6 @@ module Dynamoid #:nodoc:
     end
     alias [] read_attribute
 
-    # Updates multiple attibutes at once, saving the object once the updates are complete.
-    #
-    # @param [Hash] attributes a hash of attributes to update
-    #
-    # @since 0.2.0
-    def update_attributes(attributes)
-      attributes.each { |attribute, value| write_attribute(attribute, value) } unless attributes.nil? || attributes.empty?
-      save
-    end
-
-    # Update a single attribute, saving the object afterwards.
-    #
-    # @param [Symbol] attribute the attribute to update
-    # @param [Object] value the value to assign it
-    #
-    # @since 0.2.0
-    def update_attribute(attribute, value)
-      write_attribute(attribute, value)
-      save
-    end
-
     # Returns a hash of attributes before typecasting
     def attributes_before_type_cast
       @attributes_before_type_cast
