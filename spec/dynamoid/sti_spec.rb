@@ -114,4 +114,40 @@ RSpec.describe 'STI' do
       end
     end
   end
+
+  describe '`inheritance_field` document option' do
+    before do
+      A = new_class class_name: 'A' do
+        table inheritance_field: :type_new
+
+        field :type
+        field :type_new
+      end
+
+      B = Class.new(A) do
+        def self.name; 'B'; end
+      end
+    end
+
+    after do
+      Object.send(:remove_const, :A)
+      Object.send(:remove_const, :B)
+    end
+
+    it 'allows to switch from `type` field to another one to store class name' do
+      b = B.create!
+
+      expect(A.find(b.id)).to eql b
+      expect(b.type_new).to eql('B')
+    end
+
+    it 'ignores `type` field at all' do
+      b = B.create!
+      expect(b.type).to eql(nil)
+
+      b = B.create!(type: 'Integer')
+      expect(A.find(b.id)).to eql b
+      expect(b.type).to eql('Integer')
+    end
+  end
 end

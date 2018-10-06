@@ -664,6 +664,7 @@ describe Dynamoid::Document do
     expect(Address.hash_key).to eq :id
     expect(Address.read_capacity).to eq 100
     expect(Address.write_capacity).to eq 20
+    expect(Address.inheritance_field).to eq :type
   end
 
   it 'follows any table options provided to it' do

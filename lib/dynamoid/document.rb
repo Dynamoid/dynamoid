@@ -50,6 +50,11 @@ module Dynamoid #:nodoc:
         options[:write_capacity] || Dynamoid::Config.write_capacity
       end
 
+      # Returns the field name used to support STI for this table.
+      def inheritance_field
+        options[:inheritance_field] || :type
+      end
+
       # Returns the id field for this class.
       #
       # @since 0.4.0
@@ -265,7 +270,7 @@ module Dynamoid #:nodoc:
       end
 
       def choose_right_class(attrs)
-        attrs[:type] ? attrs[:type].constantize : self
+        attrs[inheritance_field] ? attrs[inheritance_field].constantize : self
       end
     end
 
