@@ -59,7 +59,7 @@ module Dynamoid
       end
 
       def from_database(attrs = {})
-        clazz = attrs[:type] ? obj = attrs[:type].constantize : self
+        clazz = choose_right_class(attrs)
         attrs_undumped = Undumping.undump_attributes(attrs, clazz.attributes)
         clazz.new(attrs_undumped).tap { |r| r.new_record = false }
       end

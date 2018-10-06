@@ -102,7 +102,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def build(attrs = {})
-        attrs[:type] ? attrs[:type].constantize.new(attrs) : new(attrs)
+        choose_right_class(attrs).new(attrs)
       end
 
       # Does this object exist?
@@ -262,6 +262,10 @@ module Dynamoid #:nodoc:
 
       def deep_subclasses
         subclasses + subclasses.map(&:deep_subclasses).flatten
+      end
+
+      def choose_right_class(attrs)
+        attrs[:type] ? attrs[:type].constantize : self
       end
     end
 
