@@ -1045,58 +1045,6 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context 'single table inheritance (STI)' do
-    before do
-      A = new_class class_name: 'A' do
-        field :type
-      end
-      B = Class.new(A) do
-        def self.name; 'B'; end
-      end
-      C = Class.new(A) do
-        def self.name; 'C'; end
-      end
-      D = Class.new(B) do
-        def self.name; 'D'; end
-      end
-    end
-
-    after do
-      Object.send(:remove_const, :A)
-      Object.send(:remove_const, :B)
-      Object.send(:remove_const, :C)
-      Object.send(:remove_const, :D)
-    end
-
-    it 'saves subclass objects in the parent table' do
-      b = B.create
-      expect(A.find(b.id)).to eql b
-    end
-
-    it 'loads subclass item when querying the parent table' do
-      b = B.create!
-      c = C.create!
-      d = D.create!
-
-      expect(A.all.to_a).to contain_exactly(b, c, d)
-    end
-
-    it 'does not load parent item when quering the child table' do
-      a = A.create!
-      b = B.create!
-
-      expect(B.all.to_a).to eql([b])
-    end
-
-    it 'does not load items of sibling class' do
-      b = B.create!
-      c = C.create!
-
-      expect(B.all.to_a).to eql([b])
-      expect(C.all.to_a).to eql([c])
-    end
-  end
-
   describe '.import' do
     before do
       Address.create_table

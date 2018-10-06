@@ -726,17 +726,6 @@ describe Dynamoid::Document do
     end
   end
 
-  context 'single table inheritance' do
-    it 'should have a type' do
-      expect(Vehicle.new.type).to eq 'Vehicle'
-    end
-
-    it 'reports the same table name for both base and derived classes' do
-      expect(Vehicle.table_name).to eq Car.table_name
-      expect(Vehicle.table_name).to eq NuclearSubmarine.table_name
-    end
-  end
-
   context '#count' do
     it 'returns the number of documents in the table' do
       document = Tweet.create(tweet_id: 'x', group: 'abc')
