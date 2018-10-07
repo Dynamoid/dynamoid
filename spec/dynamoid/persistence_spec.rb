@@ -866,6 +866,45 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe '#increment' do
+    let(:document_class) do
+      new_class do
+        field :age, :integer
+      end
+    end
+
+    it 'increments specified attribute' do
+      obj = document_class.new(age: 21)
+
+      expect { obj.increment(:age) }.to change { obj.age }.from(21).to(22)
+    end
+
+    it 'initializes the attribute with zero if nil' do
+      obj = document_class.new(age: nil)
+
+      expect { obj.increment(:age) }.to change { obj.age }.from(nil).to(1)
+    end
+
+    it 'adds specified optional value' do
+      obj = document_class.new(age: 21)
+
+      expect { obj.increment(:age, 10) }.to change { obj.age }.from(21).to(31)
+    end
+
+    it 'returns self' do
+      obj = document_class.new(age: 21)
+
+      expect(obj.increment(:age)).to eql(obj)
+    end
+
+    it 'does not save changes' do
+      obj = document_class.new(age: 21)
+      obj.increment(:age)
+
+      expect(obj).to be_new_record
+    end
+  end
+
   context 'update' do
     before :each do
       @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'john')

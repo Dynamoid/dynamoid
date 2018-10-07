@@ -216,6 +216,14 @@ module Dynamoid
       false
     end
 
+    # Initializes attribute to zero if nil and adds the value passed as by (default is 1).
+    # Only makes sense for number-based attributes. Returns self.
+    def increment(attribute, by = 1)
+      self[attribute] ||= 0
+      self[attribute] += by
+      self
+    end
+
     # Delete this object, but only after running callbacks for it.
     #
     # @since 0.2.0
