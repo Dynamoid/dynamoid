@@ -251,12 +251,33 @@ module Dynamoid #:nodoc:
             attrs.each do |k, v|
               value_casted = TypeCasting.cast_field(v, attributes[k])
               value_dumped = Dumping.dump_field(value_casted, attributes[k])
+
               t.set(k => value_dumped)
             end
           end
+
           attrs_undumped = Undumping.undump_attributes(new_attrs, attributes)
           new(attrs_undumped)
         rescue Dynamoid::Errors::ConditionalCheckFailedException
+        end
+      end
+
+      def inc(hash_key_value, range_key_value=nil, counters)
+        options = if range_key
+                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
+                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
+                    { range_key: value_dumped }
+                  else
+                    {}
+                  end
+
+        Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
+          counters.each do |k, v|
+            value_casted = TypeCasting.cast_field(v, attributes[k])
+            value_dumped = Dumping.dump_field(value_casted, attributes[k])
+
+            t.add(k => value_dumped)
+          end
         end
       end
 
