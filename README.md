@@ -1,6 +1,6 @@
 # Dynamoid
 
-You are viewing the README for version 2 of Dynamoid.  See the [CHANGELOG](https://github.com/Dynamoid/Dynamoid/blob/master/CHANGELOG.md#200) for details on breaking changes since 1.3.x.
+You are viewing the README for version 3 of Dynamoid.  See the [CHANGELOG](https://github.com/Dynamoid/Dynamoid/blob/master/CHANGELOG.md#200) for details on breaking changes since 1.3.x.
 
 For version 1.3.x use the [1-3-stable branch](https://github.com/Dynamoid/Dynamoid/blob/1-3-stable/README.md).
 
