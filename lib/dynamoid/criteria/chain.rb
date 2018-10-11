@@ -18,8 +18,9 @@ module Dynamoid #:nodoc:
         @scan_index_forward = true
 
         # Honor STI and :type field if it presents
-        if @source.attributes.key?(:type)
-          @query[:'type.in'] = @source.deep_subclasses.map(&:name) << @source.name
+        type = @source.inheritance_field
+        if @source.attributes.key?(type)
+          @query[:"#{type}.in"] = @source.deep_subclasses.map(&:name) << @source.name
         end
       end
 

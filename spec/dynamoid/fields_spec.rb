@@ -239,37 +239,6 @@ describe Dynamoid::Fields do
     end
   end
 
-  context 'single table inheritance (STI)' do
-    let!(:class_a) do
-      new_class do
-        field :type
-        field :a
-      end
-    end
-
-    let!(:class_b) do
-      Class.new(class_a) do
-        field :b
-      end
-    end
-
-    let!(:class_c) do
-      Class.new(class_a) do
-        field :c
-      end
-    end
-
-    it 'enables only own attributes in a base class ' do
-      expect(class_a.attributes.keys).to match_array(%i[id type a created_at updated_at])
-    end
-
-    it 'enabled only own attributes and inherited in a child class' do
-      expect(class_b.attributes.keys).to include(:a)
-      expect(class_b.attributes.keys).to include(:b)
-      expect(class_b.attributes.keys).not_to include(:c)
-    end
-  end
-
   context 'extention overides field accessors' do
     let(:klass) do
       extention = Module.new do

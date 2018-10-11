@@ -937,26 +937,6 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
-  context 'single table inheritance' do
-    describe 'where' do
-      it 'honors STI' do
-        Vehicle.create(description: 'Description')
-        car = Car.create(description: 'Description')
-
-        expect(Car.where(description: 'Description').all.to_a).to eq [car]
-      end
-    end
-
-    describe 'all' do
-      it 'honors STI' do
-        Vehicle.create(description: 'Description')
-        car = Car.create
-
-        expect(Car.all.to_a).to eq [car]
-      end
-    end
-  end
-
   describe '#delete_all' do
     it 'deletes in batch' do
       klass = new_class

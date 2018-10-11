@@ -399,6 +399,23 @@ animal.class
 #=>  Cat
 ```
 
+If you already have DynamoDB tables and `type` field already exists and has its own semantic it leads to conflict.
+It's possible to tell Dynamoid to use another field (even not existing)
+instead of `type` one with `inheritance_field` table option:
+
+```ruby
+class Car
+  include Dynamoid::Document
+  table inheritance_field: :my_new_type
+
+  field :my_new_type
+end
+
+c = Car.create
+c.my_new_type
+#=> "Car"
+```
+
 ### Type casting
 
 Dynamid supports type casting and tryes to do it in the most convinient way.

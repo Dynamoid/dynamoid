@@ -664,6 +664,7 @@ describe Dynamoid::Document do
     expect(Address.hash_key).to eq :id
     expect(Address.read_capacity).to eq 100
     expect(Address.write_capacity).to eq 20
+    expect(Address.inheritance_field).to eq :type
   end
 
   it 'follows any table options provided to it' do
@@ -723,17 +724,6 @@ describe Dynamoid::Document do
       different = Tweet.create(tweet_id: 'x', group: 'xyz')
 
       expect(document).to_not eq different
-    end
-  end
-
-  context 'single table inheritance' do
-    it 'should have a type' do
-      expect(Vehicle.new.type).to eq 'Vehicle'
-    end
-
-    it 'reports the same table name for both base and derived classes' do
-      expect(Vehicle.table_name).to eq Car.table_name
-      expect(Vehicle.table_name).to eq NuclearSubmarine.table_name
     end
   end
 

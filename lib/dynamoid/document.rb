@@ -50,6 +50,11 @@ module Dynamoid #:nodoc:
         options[:write_capacity] || Dynamoid::Config.write_capacity
       end
 
+      # Returns the field name used to support STI for this table.
+      def inheritance_field
+        options[:inheritance_field] || :type
+      end
+
       # Returns the id field for this class.
       #
       # @since 0.4.0
@@ -102,7 +107,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def build(attrs = {})
-        attrs[:type] ? attrs[:type].constantize.new(attrs) : new(attrs)
+        choose_right_class(attrs).new(attrs)
       end
 
       # Does this object exist?
@@ -262,6 +267,10 @@ module Dynamoid #:nodoc:
 
       def deep_subclasses
         subclasses + subclasses.map(&:deep_subclasses).flatten
+      end
+
+      def choose_right_class(attrs)
+        attrs[inheritance_field] ? attrs[inheritance_field].constantize : self
       end
     end
 

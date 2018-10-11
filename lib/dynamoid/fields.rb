@@ -169,8 +169,14 @@ module Dynamoid #:nodoc:
       end
     end
 
-    def set_type
-      self.type ||= self.class.name if self.class.attributes[:type]
+    def set_inheritance_field
+      # actually it does only following logic:
+      # self.type ||= self.class.name if self.class.attributes[:type]
+
+      type = self.class.inheritance_field
+      if self.class.attributes[type] && self.send(type).nil?
+        self.send("#{type}=", self.class.name)
+      end
     end
   end
 end
