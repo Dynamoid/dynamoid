@@ -224,6 +224,13 @@ module Dynamoid
       self
     end
 
+    # Wrapper around increment that saves the record.
+    # Returns true if the record could be saved.
+    def increment!(attribute, by = 1)
+      increment(attribute, by)
+      save
+    end
+
     # Delete this object, but only after running callbacks for it.
     #
     # @since 0.2.0
