@@ -239,6 +239,13 @@ module Dynamoid
       self
     end
 
+    # Wrapper around decrement that saves the record.
+    # Returns true if the record could be saved.
+    def decrement!(attribute, by = 1)
+      decrement(attribute, by)
+      save
+    end
+
     # Delete this object, but only after running callbacks for it.
     #
     # @since 0.2.0

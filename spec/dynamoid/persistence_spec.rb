@@ -997,6 +997,59 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe '#decrement' do
+    let(:document_class) do
+      new_class do
+        field :age, :integer
+      end
+    end
+
+    it 'decrements specified attribute' do
+      obj = document_class.new(age: 21)
+
+      expect { obj.decrement!(:age) }.to change { obj.age }.from(21).to(20)
+    end
+
+    it 'initializes the attribute with zero if nil' do
+      obj = document_class.new(age: nil)
+
+      expect { obj.decrement!(:age) }.to change { obj.age }.from(nil).to(-1)
+    end
+
+    it 'adds specified optional value' do
+      obj = document_class.new(age: 21)
+
+      expect { obj.decrement!(:age, 10) }.to change { obj.age }.from(21).to(11)
+    end
+
+    it 'returns true if document is valid' do
+      class_with_validation = new_class do
+        field :age, :integer
+        validates :age, numericality: { greater_than: 16 }
+      end
+      obj = class_with_validation.new(age: 20)
+
+      expect(obj.decrement!(:age, 1)).to eql(true)
+    end
+
+    it 'returns false if document is invalid' do
+      class_with_validation = new_class do
+        field :age, :integer
+        validates :age, numericality: { greater_than: 16 }
+      end
+      obj = class_with_validation.new(age: 20)
+
+      expect(obj.decrement!(:age, 10)).to eql(false)
+    end
+
+    it 'saves changes' do
+      obj = document_class.new(age: 21)
+      obj.decrement!(:age)
+
+      expect(obj).to be_persisted
+    end
+  end
+
   context 'update' do
     before :each do
       @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'john')
