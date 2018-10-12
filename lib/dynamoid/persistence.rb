@@ -216,6 +216,36 @@ module Dynamoid
       false
     end
 
+    # Initializes attribute to zero if nil and adds the value passed as by (default is 1).
+    # Only makes sense for number-based attributes. Returns self.
+    def increment(attribute, by = 1)
+      self[attribute] ||= 0
+      self[attribute] += by
+      self
+    end
+
+    # Wrapper around increment that saves the record.
+    # Returns true if the record could be saved.
+    def increment!(attribute, by = 1)
+      increment(attribute, by)
+      save
+    end
+
+    # Initializes attribute to zero if nil and subtracts the value passed as by (default is 1).
+    # Only makes sense for number-based attributes. Returns self.
+    def decrement(attribute, by = 1)
+      self[attribute] ||= 0
+      self[attribute] -= by
+      self
+    end
+
+    # Wrapper around decrement that saves the record.
+    # Returns true if the record could be saved.
+    def decrement!(attribute, by = 1)
+      decrement(attribute, by)
+      save
+    end
+
     # Delete this object, but only after running callbacks for it.
     #
     # @since 0.2.0
