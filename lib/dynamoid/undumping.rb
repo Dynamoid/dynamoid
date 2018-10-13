@@ -11,13 +11,14 @@ module Dynamoid
     end
 
     def self.undump_field(value, options)
+      return nil if value.nil?
+
       undumper = find_undumper(options)
 
       if undumper.nil?
         raise ArgumentError, "Unknown type #{options[:type]}"
       end
 
-      return nil if value.nil?
       undumper.process(value)
     end
 
@@ -64,14 +65,46 @@ module Dynamoid
     end
 
     class SetUndumper < Base
-      def process(value)
-        case @options[:of]
-        when :integer
-          value.map { |v| Integer(v) }.to_set
-        when :number
-          value.map { |v| BigDecimal(v.to_s) }.to_set
+      ALLOWED_TYPES = [:string, :integer, :number, :date, :datetime, :serialized]
+
+      def process(set)
+        if @options.key?(:of)
+          process_typed_collection(set)
         else
-          value.is_a?(Set) ? value : Set.new(value)
+          set.is_a?(Set) ? set : Set.new(set)
+        end
+      end
+
+      private
+
+      def process_typed_collection(set)
+        if allowed_type?
+          undumper = Undumping.find_undumper(element_options)
+          set.map { |el| undumper.process(el) }.to_set
+        else
+          raise ArgumentError, "Set element type #{element_type} isn't supported"
+        end
+      end
+
+      def allowed_type?
+        ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Class)
+      end
+
+      def element_type
+        unless @options[:of].is_a?(Hash)
+          @options[:of]
+        else
+          @options[:of].keys.first
+        end
+      end
+
+      def element_options
+        unless @options[:of].is_a?(Hash)
+          { type: element_type }
+        else
+          @options[:of][element_type].dup.tap do |options|
+            options[:type] = element_type
+          end
         end
       end
     end

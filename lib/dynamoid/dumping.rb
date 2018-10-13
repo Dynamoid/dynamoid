@@ -11,6 +11,8 @@ module Dynamoid
     end
 
     def self.dump_field(value, options)
+      return nil if value.nil?
+
       dumper = field_dumper(options)
 
       if dumper.nil?
@@ -64,6 +66,54 @@ module Dynamoid
 
     # set -> set
     class SetDumper < Base
+      ALLOWED_TYPES = [:string, :integer, :number, :date, :datetime, :serialized]
+
+      def process(set)
+        if @options.key?(:of)
+          process_typed_collection(set)
+        else
+          set
+        end
+      end
+
+      private
+
+      def process_typed_collection(set)
+        if allowed_type?
+          dumper = Dumping.field_dumper(element_options)
+          result = set.map { |el| dumper.process(el) }
+
+          if element_type == :string
+            result.reject!(&:empty?)
+          end
+
+          result.to_set
+        else
+          raise ArgumentError, "Set element type #{element_type} isn't supported"
+        end
+      end
+
+      def allowed_type?
+        ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Class)
+      end
+
+      def element_type
+        unless @options[:of].is_a?(Hash)
+          @options[:of]
+        else
+          @options[:of].keys.first
+        end
+      end
+
+      def element_options
+        unless @options[:of].is_a?(Hash)
+          { type: element_type }
+        else
+          @options[:of][element_type].dup.tap do |options|
+            options[:type] = element_type
+          end
+        end
+      end
     end
 
     # array -> array

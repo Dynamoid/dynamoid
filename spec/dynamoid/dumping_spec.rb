@@ -436,43 +436,257 @@ describe 'Dumping' do
   describe 'Set field' do
     let(:klass) do
       new_class do
-        field :string_set, :set
-        field :integer_set, :set, of: :integer
-        field :number_set, :set, of: :number
+        field :set_value, :set
       end
     end
 
-    it 'stored a string set' do
+    it 'stores a set of strings' do
       set = Set.new(%w[a b])
-      obj = klass.create(string_set: set)
+      obj = klass.create(set_value: set)
 
-      expect(reload(obj).string_set).to eql(set)
-      expect(raw_attributes(obj)[:string_set]).to eql(set)
+      expect(reload(obj).set_value).to eql(set)
+      expect(raw_attributes(obj)[:set_value]).to eql(set)
     end
 
-    it 'stored an integer set' do
+    it 'stores a set of integers' do
       set = Set.new([1, 2])
-      obj = klass.create(integer_set: Set.new([1, 2]))
-      expect(reload(obj).integer_set).to eql(Set.new([1, 2]))
-      expect(raw_attributes(obj)[:integer_set]).to eql(Set.new([BigDecimal(1), BigDecimal(2)]))
+      obj = klass.create(set_value: Set.new([1, 2]))
+      expect(reload(obj).set_value).to eql(Set.new(['1'.to_d, '2'.to_d]))
+      expect(raw_attributes(obj)[:set_value]).to eql(Set.new(['1'.to_d, '2'.to_d]))
     end
 
-    it 'stored a number set' do
-      obj = klass.create(number_set: Set.new([1, 2]))
-      expect(reload(obj).number_set).to eql(Set.new([BigDecimal(1), BigDecimal(2)]))
-      expect(raw_attributes(obj)[:number_set]).to eql(Set.new([BigDecimal(1), BigDecimal(2)]))
+    it 'stores a set of numbers' do
+      obj = klass.create(set_value: Set.new([1.5, '2'.to_d]))
+      expect(reload(obj).set_value).to eql(Set.new(['1.5'.to_d, '2'.to_d]))
+      expect(raw_attributes(obj)[:set_value]).to eql(Set.new(['1.5'.to_d, '2'.to_d]))
     end
 
     it 'stores empty set as nil' do
-      obj = klass.create(integer_set: Set.new)
-      expect(reload(obj).integer_set).to eql(nil)
-      expect(raw_attributes(obj)[:integer_set]).to eql(nil)
+      obj = klass.create(set_value: Set.new)
+      expect(reload(obj).set_value).to eql(nil)
+      expect(raw_attributes(obj)[:set_value]).to eql(nil)
     end
 
     it 'stores nil value' do
-      obj = klass.create(string_set: nil)
-      expect(reload(obj).string_set).to eql(nil)
-      expect(raw_attributes(obj)[:string_set]).to eql(nil)
+      obj = klass.create(set_value: nil)
+      expect(reload(obj).set_value).to eql(nil)
+      expect(raw_attributes(obj)[:set_value]).to eql(nil)
+    end
+
+    describe 'typed set' do
+      context 'set of string' do
+        let(:class_with_typed_set) do
+          new_class do
+            field :values, :set, of: :string
+          end
+        end
+
+        it 'stores elements as strings' do
+          obj = class_with_typed_set.create(values: Set.new(['a', 'b', 'c']))
+
+          expect(reload(obj).values).to eql(Set.new(['a', 'b', 'c']))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['a', 'b', 'c']))
+        end
+
+        it 'removes empty strings' do
+          obj = class_with_typed_set.create(values: Set.new(['a', '', 'c']))
+
+          expect(reload(obj).values).to eql(Set.new(['a', 'c']))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['a', 'c']))
+        end
+      end
+
+      context 'set of number' do
+        let(:class_with_typed_set) do
+          new_class do
+            field :values, :set, of: :number
+          end
+        end
+
+        it 'stores elements as BigDecimal' do
+          obj = class_with_typed_set.create(values: Set.new([1, 2.5, '3'.to_d]))
+
+          expect(reload(obj).values).to eql(Set.new(['1'.to_d, '2.5'.to_d, '3'.to_d]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['1'.to_d, '2.5'.to_d, '3'.to_d]))
+        end
+      end
+
+      context 'set of integer' do
+        let(:class_with_typed_set) do
+          new_class do
+            field :values, :set, of: :integer
+          end
+        end
+
+        it 'stores elements as Integer' do
+          obj = class_with_typed_set.create(values: Set.new([1, 2]))
+
+          expect(reload(obj).values).to eql(Set.new([1, 2]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['1'.to_d, '2'.to_d]))
+        end
+      end
+
+      context 'set of date' do
+        let(:class_with_typed_set) do
+          new_class do
+            field :values, :set, of: :date
+          end
+        end
+
+        it 'stores elements as Date' do
+          date = '2018-10-13'.to_date
+          obj = class_with_typed_set.create(values: Set.new([date]))
+
+          expect(reload(obj).values).to eql(Set.new([date]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['17817'.to_d]))
+        end
+
+        it 'uses numeric format if store_as_string is false' do
+          class_with_numeric_format = new_class do
+            field :values, :set, of: { date: { store_as_string: false } }
+          end
+
+          date = '2018-10-13'.to_date
+          obj = class_with_numeric_format.create(values: Set.new([date]))
+
+          expect(reload(obj).values).to eql(Set.new([date]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['17817'.to_d]))
+        end
+
+        it 'uses string format if store_as_string is true' do
+          class_with_string_format = new_class do
+            field :values, :set, of: { date: { store_as_string: true } }
+          end
+
+          date = '2018-10-13'.to_date
+          obj = class_with_string_format.create(values: Set.new([date]))
+
+          expect(reload(obj).values).to eql(Set.new([date]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['2018-10-13']))
+        end
+      end
+
+      context 'set of datetime' do
+        let(:class_with_typed_set) do
+          new_class do
+            field :values, :set, of: :datetime
+          end
+        end
+
+        it 'stores elements as DateTime' do
+          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          obj = class_with_typed_set.create(values: Set.new([datetime]))
+
+          expect(reload(obj).values).to eql(Set.new([datetime]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['1532459070'.to_d]))
+        end
+
+        it 'uses numeric format if store_as_string is false' do
+          class_with_numeric_format = new_class do
+            field :values, :set, of: { datetime: { store_as_string: false } }
+          end
+
+          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          obj = class_with_numeric_format.create(values: Set.new([datetime]))
+
+          expect(reload(obj).values).to eql(Set.new([datetime]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['1532459070'.to_d]))
+        end
+
+        it 'uses string format if store_as_string is true' do
+          class_with_string_format = new_class do
+            field :values, :set, of: { datetime: { store_as_string: true } }
+          end
+
+          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          obj = class_with_string_format.create(values: Set.new([datetime]))
+
+          expect(reload(obj).values).to eql(Set.new([datetime]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['2018-07-24T19:04:30+00:00']))
+        end
+      end
+
+      context 'set of serialized' do
+        it 'serializes elements' do
+          class_with_typed_set = new_class do
+            field :values, :set, of: :serialized
+          end
+
+          hash = { 'foo' => 'bar' }
+          obj = class_with_typed_set.create(values: Set.new([hash]))
+
+          expect(reload(obj).values).to eql(Set.new([hash]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new([hash.to_yaml]))
+        end
+
+        it 'uses provided serializer' do
+          class_with_typed_set = new_class do
+            field :values, :set, of: { serialized: { serializer: JSON } }
+          end
+
+          hash = { 'foo' => 'bar' }
+          obj = class_with_typed_set.create(values: Set.new([hash]))
+
+          expect(reload(obj).values).to eql(Set.new([hash]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new([hash.to_json]))
+        end
+      end
+
+      context 'set of custom type' do
+        let(:user_class) do
+          Class.new do
+            attr_accessor :name
+
+            def initialize(name)
+              self.name = name
+            end
+
+            def dynamoid_dump
+              name
+            end
+
+            def eql?(other)
+              name == other.name
+            end
+
+            def hash
+              name.hash
+            end
+
+            def self.dynamoid_load(string)
+              new(string.to_s)
+            end
+          end
+        end
+
+        let(:class_with_typed_set) do
+          new_class(user_class: user_class) do |options|
+            field :values, :set, of: options[:user_class]
+          end
+        end
+
+        it 'uses custom dumping mechanizm' do
+          user = user_class.new('John')
+          obj = class_with_typed_set.create(values: Set.new([user]))
+
+          expect(reload(obj).values).to eql(Set.new([user]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['John']))
+        end
+      end
+
+      context 'specified type is not supported' do
+        let(:class_with_typed_set) do
+          new_class do
+            field :values, :set, of: :boolean
+          end
+        end
+
+        it 'raises ArgumentError' do
+          expect {
+            class_with_typed_set.create(values: Set.new([true]))
+          }.to raise_error(ArgumentError, "Set element type boolean isn't supported")
+        end
+      end
     end
   end
 
@@ -774,14 +988,14 @@ describe 'Dumping' do
       expect(raw_attributes(obj)[:options]).to eql("--- !ruby/object:Set\nhash: {}\n")
     end
 
-    it 'stores nil value' do
+    it 'does not store nil value' do
       klass = new_class do
         field :options, :serialized
       end
 
       obj = klass.create(options: nil)
       expect(reload(obj).options).to eql(nil)
-      expect(raw_attributes(obj)[:options]).to eql(nil.to_yaml)
+      expect(raw_attributes(obj)[:options]).to eql(nil)
     end
   end
 
