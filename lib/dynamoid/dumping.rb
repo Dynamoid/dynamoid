@@ -13,7 +13,7 @@ module Dynamoid
     def self.dump_field(value, options)
       return nil if value.nil?
 
-      dumper = field_dumper(options)
+      dumper = find_dumper(options)
 
       if dumper.nil?
         raise ArgumentError, "Unknown type #{options[:type]}"
@@ -22,7 +22,7 @@ module Dynamoid
       dumper.process(value)
     end
 
-    def self.field_dumper(options)
+    def self.find_dumper(options)
       dumper_class = case options[:type]
                      when :string     then StringDumper
                      when :integer    then IntegerDumper
@@ -80,7 +80,7 @@ module Dynamoid
 
       def process_typed_collection(set)
         if allowed_type?
-          dumper = Dumping.field_dumper(element_options)
+          dumper = Dumping.find_dumper(element_options)
           result = set.map { |el| dumper.process(el) }
 
           if element_type == :string
@@ -132,7 +132,7 @@ module Dynamoid
 
       def process_typed_collection(array)
         if allowed_type?
-          dumper = Dumping.field_dumper(element_options)
+          dumper = Dumping.find_dumper(element_options)
           result = array.map { |el| dumper.process(el) }
 
           if element_type == :string
