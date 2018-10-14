@@ -106,12 +106,52 @@ module Dynamoid
 
     class SetTypeCaster < Base
       def process(value)
+        set = type_cast_to_set(value)
+
+        if set.present? && @options[:of].present?
+          process_typed_set(set)
+        else
+          set
+        end
+      end
+
+      private
+
+      def type_cast_to_set(value)
         if value.is_a?(Set)
           value.dup
         elsif value.respond_to?(:to_set)
           value.to_set
         else
           nil
+        end
+      end
+
+      def process_typed_set(set)
+        type_caster = TypeCasting.find_type_caster(element_options)
+
+        if type_caster.nil?
+          raise ArgumentError, "Set element type #{element_type} isn't supported"
+        end
+
+        set.map { |el| type_caster.process(el) }.to_set
+      end
+
+      def element_type
+        unless @options[:of].is_a?(Hash)
+          @options[:of]
+        else
+          @options[:of].keys.first
+        end
+      end
+
+      def element_options
+        unless @options[:of].is_a?(Hash)
+          { type: element_type }
+        else
+          @options[:of][element_type].dup.tap do |options|
+            options[:type] = element_type
+          end
         end
       end
     end
