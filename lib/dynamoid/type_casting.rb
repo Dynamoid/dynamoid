@@ -158,12 +158,52 @@ module Dynamoid
 
     class ArrayTypeCaster < Base
       def process(value)
+        array = type_cast_to_array(value)
+
+        if array.present? && @options[:of].present?
+          process_typed_array(array)
+        else
+          array
+        end
+      end
+
+      private
+
+      def type_cast_to_array(value)
         if value.is_a?(Array)
           value.dup
         elsif value.respond_to?(:to_a)
           value.to_a
         else
           nil
+        end
+      end
+
+      def process_typed_array(array)
+        type_caster = TypeCasting.find_type_caster(element_options)
+
+        if type_caster.nil?
+          raise ArgumentError, "Set element type #{element_type} isn't supported"
+        end
+
+        array.map { |el| type_caster.process(el) }
+      end
+
+      def element_type
+        unless @options[:of].is_a?(Hash)
+          @options[:of]
+        else
+          @options[:of].keys.first
+        end
+      end
+
+      def element_options
+        unless @options[:of].is_a?(Hash)
+          { type: element_type }
+        else
+          @options[:of][element_type].dup.tap do |options|
+            options[:type] = element_type
+          end
         end
       end
     end
