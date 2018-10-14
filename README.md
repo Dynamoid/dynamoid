@@ -191,8 +191,12 @@ You have two options if you need to use a `datetime` field as a range key:
 
 #### Note on set type
 
-There is `of` option to declare the type of set elements. You can use
-`:integer` value only
+DynamoDB supports only set of strings, numbers and binary.
+In order to use some other `Dynamoid`'s types you can specify `of` option
+to declare the type of set elements.
+
+Only scalar types are supported (except `boolean`):
+`integer`, `number`, `date`, `datetime`, `serializable` and custom types.
 
 ```ruby
 class Document
@@ -202,6 +206,31 @@ class Document
 end
 ```
 
+Some type declaration have options like `store_as_string` for `datetime`
+or `serializer` for `serializable`. It's possible to specify them for elements type:
+
+```ruby
+class Document
+  include DynamoId::Document
+
+  field :values, :set, of: { serialized: { serializer: JSON } }
+end
+```
+
+As far as DynamoDB doesn't allow storing empty strings in Set
+when `Dynamoid` saves a document it removes all empty strings in `set` fields.
+
+#### Note on array type
+
+`array` field declaration supports `of` option as well:
+
+```ruby
+class Document
+  include DynamoId::Document
+
+  field :dates, :array, of: :date
+end
+```
 
 #### Magic Columns
 
