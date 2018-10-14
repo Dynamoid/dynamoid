@@ -13,18 +13,21 @@ describe 'Dumping' do
 
       it "saves false as 'f'" do
         obj = klass.create(active: false)
+
         expect(reload(obj).active).to eql(false)
         expect(raw_attributes(obj)[:active]).to eql('f')
       end
 
       it "saves true as 't'" do
         obj = klass.create(active: true)
+
         expect(reload(obj).active).to eql(true)
         expect(raw_attributes(obj)[:active]).to eql('t')
       end
 
       it 'stores nil value' do
         obj = klass.create(active: nil)
+
         expect(reload(obj).active).to eql(nil)
         expect(raw_attributes(obj)[:active]).to eql(nil)
       end
@@ -39,12 +42,14 @@ describe 'Dumping' do
 
       it 'saves false as false' do
         obj = klass.create(active: false)
+
         expect(reload(obj).active).to eql(false)
         expect(raw_attributes(obj)[:active]).to eql(false)
       end
 
       it 'saves true as true' do
         obj = klass.create(active: true)
+
         expect(reload(obj).active).to eql(true)
         expect(raw_attributes(obj)[:active]).to eql(true)
       end
@@ -59,6 +64,7 @@ describe 'Dumping' do
 
       it 'stores nil value' do
         obj = klass.create(active: nil)
+
         expect(reload(obj).active).to eql(nil)
         expect(raw_attributes(obj)[:active]).to eql(nil)
       end
@@ -69,6 +75,7 @@ describe 'Dumping' do
         klass = new_class do
           field :active, :boolean
         end
+
         obj = klass.create(active: true)
 
         expect(raw_attributes(obj)[:active]).to eql(true)
@@ -82,6 +89,7 @@ describe 'Dumping' do
           klass = new_class do
             field :active, :boolean
           end
+
           obj = klass.create(active: true)
 
           expect(raw_attributes(obj)[:active]).to eql(true)
@@ -94,6 +102,7 @@ describe 'Dumping' do
           klass = new_class do
             field :active, :boolean, store_as_native_boolean: true
           end
+
           obj = klass.create(active: true)
 
           expect(raw_attributes(obj)[:active]).to eql(true)
@@ -106,6 +115,7 @@ describe 'Dumping' do
           klass = new_class do
             field :active, :boolean, store_as_native_boolean: false
           end
+
           obj = klass.create(active: true)
 
           expect(raw_attributes(obj)[:active]).to eql('t')
@@ -120,6 +130,7 @@ describe 'Dumping' do
           klass = new_class do
             field :active, :boolean
           end
+
           obj = klass.create(active: true)
 
           expect(raw_attributes(obj)[:active]).to eql('t')
@@ -132,6 +143,7 @@ describe 'Dumping' do
           klass = new_class do
             field :active, :boolean, store_as_native_boolean: true
           end
+
           obj = klass.create(active: true)
 
           expect(raw_attributes(obj)[:active]).to eql(true)
@@ -144,6 +156,7 @@ describe 'Dumping' do
           klass = new_class do
             field :active, :boolean, store_as_native_boolean: false
           end
+
           obj = klass.create(active: true)
 
           expect(raw_attributes(obj)[:active]).to eql('t')
@@ -164,18 +177,21 @@ describe 'Dumping' do
       it 'saves time as :number' do
         time = Time.utc(2018, 7, 24, 22, 4, 30, 1).to_datetime
         obj = klass.create(sent_at: time)
+
         expect(reload(obj).sent_at).to eql(time)
         expect(raw_attributes(obj)[:sent_at]).to eql(BigDecimal('1532469870.000001'))
       end
 
       it 'saves date as :number' do
         obj = klass.create(sent_at: Date.new(2018, 7, 21))
+
         expect(reload(obj).sent_at).to eq(DateTime.new(2018, 7, 21, 0, 0, 0))
         expect(raw_attributes(obj)[:sent_at]).to eql(BigDecimal('1532131200.0'))
       end
 
       it 'stores nil value' do
         obj = klass.create(sent_at: nil)
+
         expect(reload(obj).sent_at).to eql(nil)
         expect(raw_attributes(obj)[:sent_at]).to eql(nil)
       end
@@ -238,6 +254,7 @@ describe 'Dumping' do
 
       it 'stores nil value' do
         obj = klass.create(sent_at: nil)
+
         expect(reload(obj).sent_at).to eq(nil)
         expect(raw_attributes(obj)[:sent_at]).to eql(nil)
       end
@@ -252,6 +269,7 @@ describe 'Dumping' do
 
       it 'loads time in local time zone if config.application_timezone = :local',
         config: { application_timezone: :local } do
+
         time = DateTime.now
         obj = klass.create(last_logged_in_at: time)
         obj = klass.find(obj.id)
@@ -263,6 +281,7 @@ describe 'Dumping' do
 
       it 'loads time in specified time zone if config.application_timezone = time zone name',
         config: { application_timezone: 'Hawaii' } do
+
         # Hawaii UTC-10
         time = '2017-06-20 08:00:00 +0300'.to_datetime
         obj = klass.create(last_logged_in_at: time)
@@ -272,6 +291,7 @@ describe 'Dumping' do
 
       it 'loads time in UTC if config.application_timezone = :utc',
         config: { application_timezone: :utc } do
+
         time = '2017-06-20 08:00:00 +0300'.to_datetime
         obj = klass.create(last_logged_in_at: time)
 
@@ -288,6 +308,7 @@ describe 'Dumping' do
 
       it 'stores time in local time zone',
         config: { dynamodb_timezone: :local, store_datetime_as_string: true } do
+
         time = DateTime.now
         obj = klass.create(last_logged_in_at: time)
 
@@ -296,22 +317,21 @@ describe 'Dumping' do
 
       it 'stores time in specified time zone',
         config: { dynamodb_timezone: 'Hawaii', store_datetime_as_string: true } do
+
         time = '2017-06-20 08:00:00 +0300'.to_datetime
         obj = klass.create(last_logged_in_at: time)
 
         expect(raw_attributes(obj)[:last_logged_in_at]).to eql('2017-06-19T19:00:00-10:00')
       end
 
-      it 'stores time in UTC',
-        config: { dynamodb_timezone: :utc, store_datetime_as_string: true } do
+      it 'stores time in UTC', config: { dynamodb_timezone: :utc, store_datetime_as_string: true } do
         time = '2017-06-20 08:00:00 +0300'.to_datetime
         obj = klass.create(last_logged_in_at: time)
 
         expect(raw_attributes(obj)[:last_logged_in_at]).to eql('2017-06-20T05:00:00+00:00')
       end
 
-      it 'uses UTC by default',
-        config: { store_datetime_as_string: true } do
+      it 'uses UTC by default', config: { store_datetime_as_string: true } do
         time = '2017-06-20 08:00:00 +0300'.to_datetime
         obj = klass.create(last_logged_in_at: time)
 
@@ -319,7 +339,9 @@ describe 'Dumping' do
       end
 
       it 'converts time between application time zone and dynamodb time zone correctly',
-        config: { application_timezone: 'Hong Kong', dynamodb_timezone: 'Hawaii', store_datetime_as_string: true } do
+        config: { application_timezone: 'Hong Kong', dynamodb_timezone: 'Hawaii',
+                  store_datetime_as_string: true } do
+
         # Hong Kong +8
         # Hawaii -10
         time = '2017-06-20 08:00:00 +0300'.to_datetime
@@ -339,6 +361,7 @@ describe 'Dumping' do
         end
 
         obj = klass.create(signed_up_on: '2017-09-25'.to_date)
+
         expect(reload(obj).signed_up_on).to eql('2017-09-25'.to_date)
         expect(raw_attributes(obj)[:signed_up_on]).to eql('2017-09-25')
       end
@@ -377,6 +400,7 @@ describe 'Dumping' do
         end
 
         obj = klass.create(signed_up_on: nil)
+
         expect(reload(obj).signed_up_on).to eql(nil)
         expect(raw_attributes(obj)[:signed_up_on]).to eql(nil)
       end
@@ -389,6 +413,7 @@ describe 'Dumping' do
         end
 
         obj = klass.create(signed_up_on: '2017-09-25'.to_date)
+
         expect(reload(obj).signed_up_on).to eql('2017-09-25'.to_date)
         expect(raw_attributes(obj)[:signed_up_on]).to eql(17_434)
       end
@@ -427,6 +452,7 @@ describe 'Dumping' do
         end
 
         obj = klass.create(signed_up_on: nil)
+
         expect(reload(obj).signed_up_on).to eql(nil)
         expect(raw_attributes(obj)[:signed_up_on]).to eql(nil)
       end
@@ -451,24 +477,28 @@ describe 'Dumping' do
     it 'stores a set of integers' do
       set = Set.new([1, 2])
       obj = klass.create(set_value: Set.new([1, 2]))
+
       expect(reload(obj).set_value).to eql(Set.new(['1'.to_d, '2'.to_d]))
       expect(raw_attributes(obj)[:set_value]).to eql(Set.new(['1'.to_d, '2'.to_d]))
     end
 
     it 'stores a set of numbers' do
       obj = klass.create(set_value: Set.new([1.5, '2'.to_d]))
+
       expect(reload(obj).set_value).to eql(Set.new(['1.5'.to_d, '2'.to_d]))
       expect(raw_attributes(obj)[:set_value]).to eql(Set.new(['1.5'.to_d, '2'.to_d]))
     end
 
     it 'stores empty set as nil' do
       obj = klass.create(set_value: Set.new)
+
       expect(reload(obj).set_value).to eql(nil)
       expect(raw_attributes(obj)[:set_value]).to eql(nil)
     end
 
     it 'stores nil value' do
       obj = klass.create(set_value: nil)
+
       expect(reload(obj).set_value).to eql(nil)
       expect(raw_attributes(obj)[:set_value]).to eql(nil)
     end
@@ -707,6 +737,7 @@ describe 'Dumping' do
 
     it 'can store empty array' do
       obj = klass.create(tags: [])
+
       expect(reload(obj).tags).to eql([])
       expect(raw_attributes(obj)[:tags]).to eql([])
     end
@@ -721,11 +752,13 @@ describe 'Dumping' do
 
     it 'stores document as an array element' do
       obj = klass.create(tags: [{ foo: 'bar' }])
+
       expect(reload(obj).tags).to eql([{ 'foo' => 'bar' }])
       expect(raw_attributes(obj)[:tags]).to eql([{ 'foo' => 'bar' }])
 
       array = %w[foo bar]
       obj = klass.create(tags: [array])
+
       expect(reload(obj).tags).to eql([array])
       expect(raw_attributes(obj)[:tags]).to eql([array])
     end
@@ -748,6 +781,7 @@ describe 'Dumping' do
 
     it 'stores nil value' do
       obj = klass.create(tags: nil)
+
       expect(reload(obj).tags).to eql(nil)
       expect(raw_attributes(obj)[:tags]).to eql(nil)
     end
@@ -976,6 +1010,7 @@ describe 'Dumping' do
       end
 
       obj = klass.create(name: 'Matthew')
+
       expect(reload(obj).name).to eql('Matthew')
       expect(raw_attributes(obj)[:name]).to eql('Matthew')
     end
@@ -986,6 +1021,7 @@ describe 'Dumping' do
       end
 
       obj = klass.create(name: '')
+
       expect(reload(obj).name).to eql(nil)
       expect(raw_attributes(obj)[:name]).to eql(nil)
     end
@@ -996,6 +1032,7 @@ describe 'Dumping' do
       end
 
       obj = klass.create(name: 'Matthew')
+
       expect(reload(obj).name).to eql('Matthew')
       expect(raw_attributes(obj)[:name]).to eql('Matthew')
     end
@@ -1006,6 +1043,7 @@ describe 'Dumping' do
       end
 
       obj = klass.create(name: nil)
+
       expect(reload(obj).name).to eql(nil)
       expect(raw_attributes(obj)[:name]).to eql(nil)
     end
@@ -1064,6 +1102,7 @@ describe 'Dumping' do
 
     it 'stores nil value' do
       obj = klass.create(config: nil)
+
       expect(reload(obj).config).to eql(nil)
       expect(raw_attributes(obj)[:config]).to eql(nil)
     end
@@ -1073,9 +1112,7 @@ describe 'Dumping' do
         config = { 'foo' => { 'bar' => 1 }, 'baz' => [{ 'foobar' => 2 }] }
         obj = klass.create(config: config)
 
-        expect(reload(obj).config).to eql(
-          foo: { bar: 1 }, baz: [{ foobar: 2 }]
-        )
+        expect(reload(obj).config).to eql(foo: { bar: 1 }, baz: [{ foobar: 2 }])
       end
     end
 
@@ -1126,12 +1163,14 @@ describe 'Dumping' do
 
     it 'stores integer value as Integer' do
       obj = klass.create(count: 10)
+
       expect(reload(obj).count).to eql(10)
       expect(raw_attributes(obj)[:count]).to eql(10)
     end
 
     it 'stores nil value' do
       obj = klass.create(count: nil)
+
       expect(reload(obj).count).to eql(nil)
       expect(raw_attributes(obj)[:count]).to eql(nil)
     end
@@ -1146,24 +1185,28 @@ describe 'Dumping' do
 
     it 'stores integer value as Number' do
       obj = klass.create(count: 10)
+
       expect(reload(obj).count).to eql(BigDecimal(10))
       expect(raw_attributes(obj)[:count]).to eql(BigDecimal(10))
     end
 
     it 'stores float value Number' do
       obj = klass.create(count: 10.001)
+
       expect(reload(obj).count).to eql(BigDecimal('10.001'))
       expect(raw_attributes(obj)[:count]).to eql(BigDecimal('10.001'))
     end
 
     it 'stores BigDecimal value as Number' do
       obj = klass.create(count: BigDecimal('10.001'))
+
       expect(reload(obj).count).to eql(BigDecimal('10.001'))
       expect(raw_attributes(obj)[:count]).to eql(BigDecimal('10.001'))
     end
 
     it 'stores nil value' do
       obj = klass.create(count: nil)
+
       expect(reload(obj).count).to eql(nil)
       expect(raw_attributes(obj)[:count]).to eql(nil)
     end
@@ -1198,6 +1241,7 @@ describe 'Dumping' do
       end
 
       obj = klass.create(options: { foo: 'bar' })
+
       expect(reload(obj).options).to eql('foo' => 'bar')
       expect(raw_attributes(obj)[:options]).to eql('{"foo":"bar"}')
     end
@@ -1208,6 +1252,7 @@ describe 'Dumping' do
       end
 
       obj = klass.create(options: Set.new)
+
       expect(reload(obj).options).to eql(Set.new)
       expect(raw_attributes(obj)[:options]).to eql("--- !ruby/object:Set\nhash: {}\n")
     end
@@ -1218,6 +1263,7 @@ describe 'Dumping' do
       end
 
       obj = klass.create(options: nil)
+
       expect(reload(obj).options).to eql(nil)
       expect(raw_attributes(obj)[:options]).to eql(nil)
     end
