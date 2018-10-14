@@ -110,6 +110,48 @@ module Dynamoid
     end
 
     class ArrayUndumper < Base
+      ALLOWED_TYPES = [:string, :integer, :number, :date, :datetime, :serialized]
+
+      def process(array)
+        if @options.key?(:of)
+          process_typed_collection(array)
+        else
+          array.is_a?(Array) ? array : Array(array)
+        end
+      end
+
+      private
+
+      def process_typed_collection(array)
+        if allowed_type?
+          undumper = Undumping.find_undumper(element_options)
+          array.map { |el| undumper.process(el) }
+        else
+          raise ArgumentError, "Array element type #{element_type} isn't supported"
+        end
+      end
+
+      def allowed_type?
+        ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Class)
+      end
+
+      def element_type
+        unless @options[:of].is_a?(Hash)
+          @options[:of]
+        else
+          @options[:of].keys.first
+        end
+      end
+
+      def element_options
+        unless @options[:of].is_a?(Hash)
+          { type: element_type }
+        else
+          @options[:of][element_type].dup.tap do |options|
+            options[:type] = element_type
+          end
+        end
+      end
     end
 
     class DateTimeUndumper < Base

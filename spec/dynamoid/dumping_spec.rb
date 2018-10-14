@@ -738,10 +738,234 @@ describe 'Dumping' do
       expect(raw_attributes(obj)[:tags]).to eql([set])
     end
 
+    it 'stores nil as an array element' do
+      array = ['1', nil]
+      obj = klass.create(tags: array)
+
+      expect(reload(obj).tags).to eql(array)
+      expect(raw_attributes(obj)[:tags]).to eql(array)
+    end
+
     it 'stores nil value' do
       obj = klass.create(tags: nil)
       expect(reload(obj).tags).to eql(nil)
       expect(raw_attributes(obj)[:tags]).to eql(nil)
+    end
+
+    describe 'typed array' do
+      context 'array of string' do
+        let(:class_with_typed_array) do
+          new_class do
+            field :values, :array, of: :string
+          end
+        end
+
+        it 'stores elements as strings' do
+          obj = class_with_typed_array.create(values: ['a', 'b', 'c'])
+
+          expect(reload(obj).values).to eql(['a', 'b', 'c'])
+          expect(raw_attributes(obj)[:values]).to eql(['a', 'b', 'c'])
+        end
+
+        it 'removes empty strings' do
+          obj = class_with_typed_array.create(values: ['a', '', 'c'])
+
+          expect(reload(obj).values).to eql(['a', 'c'])
+          expect(raw_attributes(obj)[:values]).to eql(['a', 'c'])
+        end
+      end
+
+      context 'array of number' do
+        let(:class_with_typed_array) do
+          new_class do
+            field :values, :array, of: :number
+          end
+        end
+
+        it 'stores elements as BigDecimal' do
+          obj = class_with_typed_array.create(values: [1, 2.5, '3'.to_d])
+
+          expect(reload(obj).values).to eql(['1'.to_d, '2.5'.to_d, '3'.to_d])
+          expect(raw_attributes(obj)[:values]).to eql(['1'.to_d, '2.5'.to_d, '3'.to_d])
+        end
+      end
+
+      context 'array of integer' do
+        let(:class_with_typed_array) do
+          new_class do
+            field :values, :array, of: :integer
+          end
+        end
+
+        it 'stores elements as Integer' do
+          obj = class_with_typed_array.create(values: [1, 2])
+
+          expect(reload(obj).values).to eql([1, 2])
+          expect(raw_attributes(obj)[:values]).to eql(['1'.to_d, '2'.to_d])
+        end
+      end
+
+      context 'array of date' do
+        let(:class_with_typed_array) do
+          new_class do
+            field :values, :array, of: :date
+          end
+        end
+
+        it 'stores elements as Date' do
+          date = '2018-10-13'.to_date
+          obj = class_with_typed_array.create(values: [date])
+
+          expect(reload(obj).values).to eql([date])
+          expect(raw_attributes(obj)[:values]).to eql(['17817'.to_d])
+        end
+
+        it 'uses numeric format if store_as_string is false' do
+          class_with_numeric_format = new_class do
+            field :values, :array, of: { date: { store_as_string: false } }
+          end
+
+          date = '2018-10-13'.to_date
+          obj = class_with_numeric_format.create(values: [date])
+
+          expect(reload(obj).values).to eql([date])
+          expect(raw_attributes(obj)[:values]).to eql(['17817'.to_d])
+        end
+
+        it 'uses string format if store_as_string is true' do
+          class_with_string_format = new_class do
+            field :values, :array, of: { date: { store_as_string: true } }
+          end
+
+          date = '2018-10-13'.to_date
+          obj = class_with_string_format.create(values: [date])
+
+          expect(reload(obj).values).to eql([date])
+          expect(raw_attributes(obj)[:values]).to eql(['2018-10-13'])
+        end
+      end
+
+      context 'array of datetime' do
+        let(:class_with_typed_array) do
+          new_class do
+            field :values, :array, of: :datetime
+          end
+        end
+
+        it 'stores elements as DateTime' do
+          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          obj = class_with_typed_array.create(values: [datetime])
+
+          expect(reload(obj).values).to eql([datetime])
+          expect(raw_attributes(obj)[:values]).to eql(['1532459070'.to_d])
+        end
+
+        it 'uses numeric format if store_as_string is false' do
+          class_with_numeric_format = new_class do
+            field :values, :array, of: { datetime: { store_as_string: false } }
+          end
+
+          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          obj = class_with_numeric_format.create(values: [datetime])
+
+          expect(reload(obj).values).to eql([datetime])
+          expect(raw_attributes(obj)[:values]).to eql(['1532459070'.to_d])
+        end
+
+        it 'uses string format if store_as_string is true' do
+          class_with_string_format = new_class do
+            field :values, :array, of: { datetime: { store_as_string: true } }
+          end
+
+          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          obj = class_with_string_format.create(values: [datetime])
+
+          expect(reload(obj).values).to eql([datetime])
+          expect(raw_attributes(obj)[:values]).to eql(['2018-07-24T19:04:30+00:00'])
+        end
+      end
+
+      context 'array of serialized' do
+        it 'serializes elements' do
+          class_with_typed_array = new_class do
+            field :values, :array, of: :serialized
+          end
+
+          hash = { 'foo' => 'bar' }
+          obj = class_with_typed_array.create(values: [hash])
+
+          expect(reload(obj).values).to eql([hash])
+          expect(raw_attributes(obj)[:values]).to eql([hash.to_yaml])
+        end
+
+        it 'uses provided serializer' do
+          class_with_typed_array = new_class do
+            field :values, :array, of: { serialized: { serializer: JSON } }
+          end
+
+          hash = { 'foo' => 'bar' }
+          obj = class_with_typed_array.create(values: [hash])
+
+          expect(reload(obj).values).to eql([hash])
+          expect(raw_attributes(obj)[:values]).to eql([hash.to_json])
+        end
+      end
+
+      context 'array of custom type' do
+        let(:user_class) do
+          Class.new do
+            attr_accessor :name
+
+            def initialize(name)
+              self.name = name
+            end
+
+            def dynamoid_dump
+              name
+            end
+
+            def eql?(other)
+              name == other.name
+            end
+
+            def hash
+              name.hash
+            end
+
+            def self.dynamoid_load(string)
+              new(string.to_s)
+            end
+          end
+        end
+
+        let(:class_with_typed_array) do
+          new_class(user_class: user_class) do |options|
+            field :values, :array, of: options[:user_class]
+          end
+        end
+
+        it 'uses custom dumping mechanizm' do
+          user = user_class.new('John')
+          obj = class_with_typed_array.create(values: [user])
+
+          expect(reload(obj).values).to eql([user])
+          expect(raw_attributes(obj)[:values]).to eql(['John'])
+        end
+      end
+
+      context 'specified type is not supported' do
+        let(:class_with_typed_array) do
+          new_class do
+            field :values, :array, of: :boolean
+          end
+        end
+
+        it 'raises ArgumentError' do
+          expect {
+            class_with_typed_array.create(values: [true])
+          }.to raise_error(ArgumentError, "Array element type boolean isn't supported")
+        end
+      end
     end
   end
 

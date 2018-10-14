@@ -118,6 +118,54 @@ module Dynamoid
 
     # array -> array
     class ArrayDumper < Base
+      ALLOWED_TYPES = [:string, :integer, :number, :date, :datetime, :serialized]
+
+      def process(array)
+        if @options.key?(:of)
+          process_typed_collection(array)
+        else
+          array
+        end
+      end
+
+      private
+
+      def process_typed_collection(array)
+        if allowed_type?
+          dumper = Dumping.field_dumper(element_options)
+          result = array.map { |el| dumper.process(el) }
+
+          if element_type == :string
+            result.reject!(&:empty?)
+          end
+
+          result
+        else
+          raise ArgumentError, "Array element type #{element_type} isn't supported"
+        end
+      end
+
+      def allowed_type?
+        ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Class)
+      end
+
+      def element_type
+        unless @options[:of].is_a?(Hash)
+          @options[:of]
+        else
+          @options[:of].keys.first
+        end
+      end
+
+      def element_options
+        unless @options[:of].is_a?(Hash)
+          { type: element_type }
+        else
+          @options[:of][element_type].dup.tap do |options|
+            options[:type] = element_type
+          end
+        end
+      end
     end
 
     # datetime -> integer/string
