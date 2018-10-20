@@ -255,6 +255,61 @@ describe 'Type casting' do
       expect(obj.items).to eql(set)
       expect(obj.items).not_to equal(set)
     end
+
+    describe 'typed set' do
+      it 'type casts strings' do
+        klass = new_class do
+          field :values, :set, of: :string
+        end
+
+        obj = klass.new(values: Set.new([{ name: 'John' }]))
+
+        expect(obj.values).to eql(Set.new(['{:name=>"John"}']))
+      end
+
+      it 'type casts integers' do
+        klass = new_class do
+          field :values, :set, of: :integer
+        end
+
+        obj = klass.new(values: Set.new([1, 1.5, '2'.to_d]))
+
+        expect(obj.values).to eql(Set.new([1, 1, 2]))
+      end
+
+      it 'type casts numbers' do
+        klass = new_class do
+          field :values, :set, of: :number
+        end
+
+        obj = klass.new(values: Set.new([1, 1.5, '2'.to_d]))
+
+        expect(obj.values).to eql(Set.new(['1'.to_d, '1.5'.to_d, '2'.to_d]))
+      end
+
+      it 'type casts dates' do
+        klass = new_class do
+          field :values, :set, of: :date
+        end
+
+        obj = klass.new(values: Set.new(['2018-08-21']))
+
+        expect(obj.values).to eql(Set.new(['2018-08-21'.to_date]))
+      end
+
+      it 'type casts datetimes' do
+        klass = new_class do
+          field :values, :set, of: :datetime
+        end
+
+        obj = klass.new(values: Set.new(['2018-08-21T21:55:30+01:00']))
+
+        expect(obj.values).to eql(Set.new(['2018-08-21T21:55:30+01:00'.to_datetime]))
+      end
+
+      it 'does not change serialized'
+      it 'does not change custom types'
+    end
   end
 
   describe 'Array field' do
@@ -293,6 +348,61 @@ describe 'Type casting' do
 
       expect(obj.items).to eql(array)
       expect(obj.items).not_to equal(array)
+    end
+
+    describe 'typed array' do
+      it 'type casts strings' do
+        klass = new_class do
+          field :values, :array, of: :string
+        end
+
+        obj = klass.new(values: [{ name: 'John' }])
+
+        expect(obj.values).to eql(['{:name=>"John"}'])
+      end
+
+      it 'type casts integers' do
+        klass = new_class do
+          field :values, :array, of: :integer
+        end
+
+        obj = klass.new(values: [1, 1.5, '2'.to_d])
+
+        expect(obj.values).to eql([1, 1, 2])
+      end
+
+      it 'type casts numbers' do
+        klass = new_class do
+          field :values, :array, of: :number
+        end
+
+        obj = klass.new(values: [1, 1.5, '2'.to_d])
+
+        expect(obj.values).to eql(['1'.to_d, '1.5'.to_d, '2'.to_d])
+      end
+
+      it 'type casts dates' do
+        klass = new_class do
+          field :values, :array, of: :date
+        end
+
+        obj = klass.new(values: ['2018-08-21'])
+
+        expect(obj.values).to eql(['2018-08-21'.to_date])
+      end
+
+      it 'type casts datetimes' do
+        klass = new_class do
+          field :values, :array, of: :datetime
+        end
+
+        obj = klass.new(values: ['2018-08-21T21:55:30+01:00'])
+
+        expect(obj.values).to eql(['2018-08-21T21:55:30+01:00'.to_datetime])
+      end
+
+      it 'does not change serialized'
+      it 'does not change custom types'
     end
   end
 
