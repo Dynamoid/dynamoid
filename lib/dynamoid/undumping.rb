@@ -4,8 +4,11 @@ module Dynamoid
   module Undumping
     def self.undump_attributes(attributes, attributes_options)
       {}.tap do |h|
-        attributes.symbolize_keys.each do |attribute, value|
-          h[attribute] = undump_field(value, attributes_options[attribute])
+        # ignore existing attributes not declared in document class
+        attributes.symbolize_keys
+          .select { |attribute| attributes_options.key?(attribute) }
+          .each do |attribute, value|
+            h[attribute] = undump_field(value, attributes_options[attribute])
         end
       end
     end

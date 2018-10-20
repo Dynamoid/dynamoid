@@ -64,6 +64,25 @@ describe Dynamoid::Finders do
         obj = klass.create
         expect(klass.find(obj.id)).to be_persisted
       end
+
+      context 'field is not declared in document' do
+        let(:class_with_not_declared_field) do
+          new_class do
+            field :name
+          end
+        end
+
+        before do
+          class_with_not_declared_field.create_table
+        end
+
+        it 'ignores it without exceptions' do
+          Dynamoid.adapter.put_item(class_with_not_declared_field.table_name, id: '1', bod: '1996-12-21')
+          obj = class_with_not_declared_field.find('1')
+
+          expect(obj.id).to eql('1')
+        end
+      end
     end
 
     context 'multiple primary keys provided' do
@@ -187,6 +206,28 @@ describe Dynamoid::Finders do
 
         expect(obj1).to be_persisted
         expect(obj2).to be_persisted
+      end
+
+      context 'field is not declared in document' do
+        let(:class_with_not_declared_field) do
+          new_class do
+            field :name
+          end
+        end
+
+        before do
+          class_with_not_declared_field.create_table
+        end
+
+        it 'ignores it without exceptions' do
+          Dynamoid.adapter.put_item(class_with_not_declared_field.table_name, id: '1', dob: '1996-12-21')
+          Dynamoid.adapter.put_item(class_with_not_declared_field.table_name, id: '2', dob: '2001-03-14')
+
+          objects = class_with_not_declared_field.find(['1', '2'])
+
+          expect(objects.size).to eql 2
+          expect(objects.map(&:id)).to contain_exactly('1', '2')
+        end
       end
 
       context 'backoff is specified' do

@@ -937,6 +937,46 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  context 'field is not declared in document' do
+    context 'Query' do
+      let(:class_with_not_declared_field) do
+        new_class do
+          field :name
+        end
+      end
+
+      before do
+        class_with_not_declared_field.create_table
+      end
+
+      it 'ignores it without exceptions' do
+        Dynamoid.adapter.put_item(class_with_not_declared_field.table_name, id: '1', name: 'Mike', bod: '1996-12-21')
+        objects = class_with_not_declared_field.where(id: '1', name: 'Mike').to_a
+
+        expect(objects.map(&:id)).to eql(['1'])
+      end
+    end
+
+    context 'Scan' do
+      let(:class_with_not_declared_field) do
+        new_class do
+          range :name
+        end
+      end
+
+      before do
+        class_with_not_declared_field.create_table
+      end
+
+      it 'ignores it without exceptions' do
+        Dynamoid.adapter.put_item(class_with_not_declared_field.table_name, id: '1', name: 'Mike', bod: '1996-12-21')
+        objects = class_with_not_declared_field.where(id: '1', name: 'Mike').to_a
+
+        expect(objects.map(&:id)).to eql(['1'])
+      end
+    end
+  end
+
   describe '#delete_all' do
     it 'deletes in batch' do
       klass = new_class
