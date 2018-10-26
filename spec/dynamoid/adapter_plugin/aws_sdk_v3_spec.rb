@@ -761,6 +761,25 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(Dynamoid.adapter.list_tables).to include test_table2
     end
 
+    context 'when calling ListTables with more than 200 tables' do
+      before do
+        201.times do |n|
+          Dynamoid.adapter.create_table("dynamoid_tests_ALotOfTables#{n}", [:id])
+        end
+      end
+      after do
+        201.times do |n|
+          Dynamoid.adapter.delete_table("dynamoid_tests_ALotOfTables#{n}")
+        end
+      end
+
+      it 'automatically pages through all results' do
+        expect(Dynamoid.adapter.list_tables).to include "dynamoid_tests_ALotOfTables44"
+        expect(Dynamoid.adapter.list_tables).to include "dynamoid_tests_ALotOfTables200"
+        expect(Dynamoid.adapter.list_tables.size).to eq 204
+      end
+    end
+
     # Query
     it 'performs query on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
