@@ -762,6 +762,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     context 'when calling ListTables with more than 200 tables' do
+      let!(:count_before) { Dynamoid.adapter.list_tables.size }
       before do
         201.times do |n|
           Dynamoid.adapter.create_table("dynamoid_tests_ALotOfTables#{n}", [:id])
@@ -776,7 +777,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       it 'automatically pages through all results' do
         expect(Dynamoid.adapter.list_tables).to include "dynamoid_tests_ALotOfTables44"
         expect(Dynamoid.adapter.list_tables).to include "dynamoid_tests_ALotOfTables200"
-        expect(Dynamoid.adapter.list_tables.size).to eq 204
+        expect(Dynamoid.adapter.list_tables.size).to eq 201 + count_before
       end
     end
 
