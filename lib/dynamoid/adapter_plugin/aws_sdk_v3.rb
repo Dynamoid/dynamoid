@@ -467,10 +467,16 @@ module Dynamoid
       # List all tables on DynamoDB.
       #
       # @since 1.0.0
-      #
-      # @todo Provide limit support http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#update_item-instance_method
       def list_tables
-        client.list_tables[:table_names]
+        [].tap do |result|
+          start_table_name = nil
+          loop do
+            result_page = client.list_tables exclusive_start_table_name: start_table_name
+            start_table_name = result_page.last_evaluated_table_name
+            result.concat result_page.table_names
+            break unless start_table_name
+          end
+        end
       end
 
       # Persists an item on DynamoDB.
