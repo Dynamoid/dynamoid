@@ -288,12 +288,12 @@ describe Dynamoid::Finders do
     end
   end
 
-
-  # TODO: ATM, adapter sets consistent read to be true for all query. Provide option for setting consistent_read option
-  # it 'sends consistent option to the adapter' do
-  #  expects(Dynamoid::Adapter).to receive(:get_item).with { |table_name, key, options| options[:consistent_read] == true }
-  #  Address.find('x', :consistent_read => true)
-  # end
+  it 'sends consistent option to the adapter' do
+    expect(Dynamoid.adapter).to receive(:get_item)
+      .with(anything, anything, hash_including(consistent_read: true))
+      .and_call_original
+    Address.find(address.id, consistent_read: true)
+  end
 
   context 'with users' do
     it 'finds using method_missing for attributes' do

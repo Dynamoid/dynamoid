@@ -406,6 +406,11 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
   context 'with a preexisting table' do
     # GetItem, PutItem and DeleteItem
+    it 'passes options to underlying GetItem call' do
+      expect(Dynamoid.adapter.client).to receive(:get_item).with(hash_including(consistent_read: true)).and_call_original
+      expect(Dynamoid.adapter.get_item(test_table1, '1', consistent_read: true)).to be_nil
+    end
+
     it 'performs GetItem for an item that does not exist' do
       expect(Dynamoid.adapter.get_item(test_table1, '1')).to be_nil
     end

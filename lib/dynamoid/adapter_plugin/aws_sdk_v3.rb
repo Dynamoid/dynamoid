@@ -429,9 +429,11 @@ module Dynamoid
         options ||= {}
         table = describe_table(table_name)
         range_key = options.delete(:range_key)
+        consistent_read = options.delete(:consistent_read)
 
         item = client.get_item(table_name: table_name,
-                               key: key_stanza(table, key, range_key))[:item]
+                               key: key_stanza(table, key, range_key),
+                               consistent_read: consistent_read)[:item]
         item ? result_item_to_hash(item) : nil
       end
 
