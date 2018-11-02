@@ -42,6 +42,10 @@ module Dynamoid
       constant: BackoffStrategies::ConstantBackoff,
       exponential: BackoffStrategies::ExponentialBackoff
     }
+    option :http_continue_timeout, default: nil # specify if you'd like to overwrite Aws Configure - default: 1
+    option :http_idle_timeout, default: nil     #                                                  - default: 5
+    option :http_open_timeout, default: nil     #                                                  - default: 15
+    option :http_read_timeout, default: nil     #                                                  - default: 60
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #

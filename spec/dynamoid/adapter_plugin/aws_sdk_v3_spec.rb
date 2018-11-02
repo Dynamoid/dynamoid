@@ -892,4 +892,18 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   # UpdateItem
 
   # UpdateTable
+
+  # connection_config
+  context '#connectin_config' do
+    subject { described_class.new.connection_config }
+
+    before do
+      Dynamoid.configure.http_open_timeout = 30
+    end
+
+    it 'not nil options entried' do
+      expect(subject.keys).to contain_exactly(:endpoint, :log_formatter, :log_level, :logger, :http_open_timeout)
+      expect(subject[:http_open_timeout]).to eq 30
+    end
+  end
 end

@@ -74,6 +74,18 @@ module Dynamoid
         if Dynamoid::Config.region?
           @connection_hash[:region] = Dynamoid::Config.region
         end
+        if Dynamoid::Config.http_continue_timeout?
+          @connection_hash[:http_continue_timeout] = Dynamoid::Config.http_continue_timeout
+        end
+        if Dynamoid::Config.http_idle_timeout?
+          @connection_hash[:http_idle_timeout] = Dynamoid::Config.http_idle_timeout
+        end
+        if Dynamoid::Config.http_open_timeout?
+          @connection_hash[:http_open_timeout] = Dynamoid::Config.http_open_timeout
+        end
+        if Dynamoid::Config.http_read_timeout?
+          @connection_hash[:http_read_timeout] = Dynamoid::Config.http_read_timeout
+        end
 
         # https://github.com/aws/aws-sdk-ruby/blob/master/gems/aws-sdk-core/lib/aws-sdk-core/plugins/logging.rb
         # https://github.com/aws/aws-sdk-ruby/blob/master/gems/aws-sdk-core/lib/aws-sdk-core/log/formatter.rb
