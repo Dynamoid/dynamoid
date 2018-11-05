@@ -49,6 +49,8 @@ module Dynamoid
       }
       BATCH_WRITE_ITEM_REQUESTS_LIMIT = 25
 
+      CONNECTION_CONFIG_OPTIONS = %i[endpoint region http_continue_timeout http_idle_timeout http_open_timeout http_read_timeout].freeze
+
       attr_reader :table_cache
 
       # Establish the connection to DynamoDB.
@@ -62,17 +64,14 @@ module Dynamoid
       def connection_config
         @connection_hash = {}
 
-        if Dynamoid::Config.endpoint?
-          @connection_hash[:endpoint] = Dynamoid::Config.endpoint
+        (Dynamoid::Config.settings.compact.keys & CONNECTION_CONFIG_OPTIONS).each do |option|
+          @connection_hash[option] = Dynamoid::Config.send(option)
         end
         if Dynamoid::Config.access_key?
           @connection_hash[:access_key_id] = Dynamoid::Config.access_key
         end
         if Dynamoid::Config.secret_key?
           @connection_hash[:secret_access_key] = Dynamoid::Config.secret_key
-        end
-        if Dynamoid::Config.region?
-          @connection_hash[:region] = Dynamoid::Config.region
         end
 
         # https://github.com/aws/aws-sdk-ruby/blob/master/gems/aws-sdk-core/lib/aws-sdk-core/plugins/logging.rb
