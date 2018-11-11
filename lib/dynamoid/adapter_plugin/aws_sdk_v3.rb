@@ -605,7 +605,7 @@ module Dynamoid
             results = client.query(q)
             results.items.each { |row| y << result_item_to_hash(row) }
 
-            record_count += results.items.size
+            record_count += results.count
             break if record_limit && record_count >= record_limit
 
             scan_count += results.scanned_count
@@ -685,7 +685,7 @@ module Dynamoid
             results = client.scan(request)
             results.items.each { |row| y << result_item_to_hash(row) }
 
-            record_count += results.items.size
+            record_count += results.count
             break if record_limit && record_count >= record_limit
 
             scan_count += results.scanned_count
