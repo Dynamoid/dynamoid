@@ -536,6 +536,15 @@ module Dynamoid
         end
       end
 
+      def query_count(table_name, opts = {})
+        table = describe_table(table_name)
+        opts[:select] = 'COUNT'
+
+        Query.new.call(client, table, opts)
+          .map(&:count)
+          .reduce(:+)
+      end
+
       # Scan the DynamoDB table. This is usually a very slow operation as it naively filters all data on
       # the DynamoDB servers.
       #
@@ -555,6 +564,15 @@ module Dynamoid
             page.items.each { |row| yielder << result_item_to_hash(row) }
           end
         end
+      end
+
+      def scan_count(table_name, scan_hash = {}, select_opts = {})
+        table = describe_table(table_name)
+        select_opts[:select] = 'COUNT'
+
+        Scan.new.call(client, table, scan_hash, select_opts)
+          .map(&:count)
+          .reduce(:+)
       end
 
       #

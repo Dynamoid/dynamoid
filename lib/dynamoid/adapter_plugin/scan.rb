@@ -9,10 +9,12 @@ module Dynamoid
         record_limit = select_opts.delete(:record_limit)
         scan_limit = select_opts.delete(:scan_limit)
         batch_size = select_opts.delete(:batch_size)
+        select = select_opts.delete(:select)
         exclusive_start_key = select_opts.delete(:exclusive_start_key)
         request_limit = [record_limit, scan_limit, batch_size].compact.min
         request[:limit] = request_limit if request_limit
         request[:exclusive_start_key] = exclusive_start_key if exclusive_start_key
+        request[:select] = select if select
 
         if scan_hash.present?
           request[:scan_filter] = scan_hash.reduce({}) do |memo, (attr, cond)|

@@ -52,6 +52,14 @@ module Dynamoid #:nodoc:
         records
       end
 
+      def count
+        if key_present?
+          count_via_query
+        else
+          count_via_scan
+        end
+      end
+
       # Returns the last fetched record matched the criteria
       # Enumerable doesn't implement `last`, only `first`
       # So we have to implement it ourselves
@@ -162,6 +170,14 @@ module Dynamoid #:nodoc:
             yielder.yield source.from_database(hash)
           end
         end
+      end
+
+      def count_via_query
+        Dynamoid.adapter.query_count(source.table_name, range_query)
+      end
+
+      def count_via_scan
+        Dynamoid.adapter.scan_count(source.table_name, scan_query, scan_opts)
       end
 
       def range_hash(key)

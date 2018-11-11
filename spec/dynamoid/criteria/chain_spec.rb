@@ -539,7 +539,7 @@ describe Dynamoid::Criteria::Chain do
     it 'supports query on local secondary index but always defaults to table range key' do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(name: 'Bob', 'range.lt': 3, 'range2.gt': 15).count).to eq(1)
+      expect(chain.where(name: 'Bob', 'range.lt': 3, 'range2.gt': 15).to_a.size).to eq(1)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to eq(:range)
       expect(chain.index_name).to be_nil
@@ -548,14 +548,14 @@ describe Dynamoid::Criteria::Chain do
     it 'supports query on local secondary index' do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(name: 'Bob', 'range2.gt': 15).count).to eq(2)
+      expect(chain.where(name: 'Bob', 'range2.gt': 15).to_a.size).to eq(2)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to eq(:range2)
       expect(chain.index_name).to eq(:range2index)
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(name: 'Bob', 'range3.lt': 200).count).to eq(1)
+      expect(chain.where(name: 'Bob', 'range3.lt': 200).to_a.size).to eq(1)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to eq(:range3)
       expect(chain.index_name).to eq(:range3index)
@@ -564,7 +564,7 @@ describe Dynamoid::Criteria::Chain do
     it 'supports query on local secondary index with start' do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_query).and_call_original
-      expect(chain.where(name: 'Bob', 'range2.gt': 15).count).to eq(2)
+      expect(chain.where(name: 'Bob', 'range2.gt': 15).to_a.size).to eq(2)
       expect(chain.hash_key).to eq(:name)
       expect(chain.range_key).to eq(:range2)
       expect(chain.index_name).to eq(:range2index)
@@ -596,7 +596,7 @@ describe Dynamoid::Criteria::Chain do
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:records_via_scan).and_call_original
-      expect(chain.where(city: 'San Francisco').count).to eq(2)
+      expect(chain.where(city: 'San Francisco').to_a.size).to eq(2)
       # Does not use GSI since not projecting all attributes
       expect(chain.hash_key).to be_nil
       expect(chain.range_key).to be_nil
@@ -633,7 +633,7 @@ describe Dynamoid::Criteria::Chain do
       it 'supports query on global secondary index but always defaults to table hash key' do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_query).and_call_original
-        expect(chain.where(name: 'Bob').count).to eq(1)
+        expect(chain.where(name: 'Bob').to_a.size).to eq(1)
         expect(chain.hash_key).to eq(:name)
         expect(chain.range_key).to be_nil
         expect(chain.index_name).to be_nil
@@ -642,28 +642,28 @@ describe Dynamoid::Criteria::Chain do
       it 'supports query on global secondary index' do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco').count).to eq(3)
+        expect(chain.where(city: 'San Francisco').to_a.size).to eq(3)
         expect(chain.hash_key).to eq(:city)
         expect(chain.range_key).to eq(:age)
         expect(chain.index_name).to eq(:cityage)
 
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco', 'age.gt': 12).count).to eq(2)
+        expect(chain.where(city: 'San Francisco', 'age.gt': 12).to_a.size).to eq(2)
         expect(chain.hash_key).to eq(:city)
         expect(chain.range_key).to eq(:age)
         expect(chain.index_name).to eq(:cityage)
 
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_query).and_call_original
-        expect(chain.where(email: 'greg@test.com').count).to eq(1)
+        expect(chain.where(email: 'greg@test.com').to_a.size).to eq(1)
         expect(chain.hash_key).to eq(:email)
         expect(chain.range_key).to eq(:age)
         expect(chain.index_name).to eq(:emailage)
 
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_query).and_call_original
-        expect(chain.where(email: 'greg@test.com', 'age.gt': 12).count).to eq(1)
+        expect(chain.where(email: 'greg@test.com', 'age.gt': 12).to_a.size).to eq(1)
         expect(chain.hash_key).to eq(:email)
         expect(chain.range_key).to eq(:age)
         expect(chain.index_name).to eq(:emailage)
@@ -672,7 +672,7 @@ describe Dynamoid::Criteria::Chain do
       it 'supports scan when no global secondary index available' do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_scan).and_call_original
-        expect(chain.where(gender: 'male').count).to eq(4)
+        expect(chain.where(gender: 'male').to_a.size).to eq(4)
         expect(chain.hash_key).to be_nil
         expect(chain.range_key).to be_nil
         expect(chain.index_name).to be_nil
@@ -681,7 +681,7 @@ describe Dynamoid::Criteria::Chain do
       it 'supports query on global secondary index with start' do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco').count).to eq(3)
+        expect(chain.where(city: 'San Francisco').to_a.size).to eq(3)
         expect(chain.hash_key).to eq(:city)
         expect(chain.range_key).to eq(:age)
         expect(chain.index_name).to eq(:cityage)
@@ -707,7 +707,7 @@ describe Dynamoid::Criteria::Chain do
       it "does not use index if a condition for index hash key is other than 'equal'" do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_scan).and_call_original
-        expect(chain.where('city.begins_with': 'San').count).to eq(3)
+        expect(chain.where('city.begins_with': 'San').to_a.size).to eq(3)
         expect(chain.hash_key).to be_nil
         expect(chain.range_key).to be_nil
         expect(chain.index_name).to be_nil
@@ -1124,6 +1124,90 @@ describe Dynamoid::Criteria::Chain do
           chain = Dynamoid::Criteria::Chain.new(klass)
           expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
+      end
+    end
+  end
+
+  describe '#count' do
+    describe 'Query vs Scan' do
+      it 'Scans when query is empty' do
+        chain = Dynamoid::Criteria::Chain.new(Address)
+        chain.query = {}
+        expect(chain).to receive(:count_via_scan)
+        chain.count
+      end
+
+      it 'Queries when query is only ID' do
+        chain = Dynamoid::Criteria::Chain.new(Address)
+        chain.query = { id: 'test' }
+        expect(chain).to receive(:count_via_query)
+        chain.count
+      end
+
+      it 'Queries when query contains ID' do
+        chain = Dynamoid::Criteria::Chain.new(Address)
+        chain.query = { id: 'test', city: 'Bucharest' }
+        expect(chain).to receive(:count_via_query)
+        chain.count
+      end
+
+      it 'Scans when query includes keys that are neither a hash nor a range' do
+        chain = Dynamoid::Criteria::Chain.new(Address)
+        chain.query = { city: 'Bucharest' }
+        expect(chain).to receive(:count_via_scan)
+        chain.count
+      end
+
+      it 'Scans when query is only a range' do
+        chain = Dynamoid::Criteria::Chain.new(Tweet)
+        chain.query = { group: 'xx' }
+        expect(chain).to receive(:count_via_scan)
+        chain.count
+      end
+
+      it 'Scans when there is only not-equal operator for hash key' do
+        chain = Dynamoid::Criteria::Chain.new(Address)
+        chain.query = { 'id.in': ['test'] }
+        expect(chain).to receive(:count_via_scan)
+        chain.count
+      end
+    end
+
+    context 'Query' do
+      let(:model) do
+        Class.new do
+          include Dynamoid::Document
+
+          table name: :customer, key: :name
+          range :age, :integer
+        end
+      end
+
+      it 'returns count of filtered documents' do
+        customer1 = model.create(name: 'Bob', age: 5)
+        customer2 = model.create(name: 'Bob', age: 9)
+        customer3 = model.create(name: 'Bob', age: 12)
+
+        expect(model.where(name: 'Bob', 'age.lt': 10).count).to eql(2)
+      end
+    end
+
+    context 'Scan' do
+      let(:model) do
+        Class.new do
+          include Dynamoid::Document
+
+          table name: :customer
+          field :age, :integer
+        end
+      end
+
+      it 'returns count of filtered documents' do
+        customer1 = model.create(age: 5)
+        customer2 = model.create(age: 9)
+        customer3 = model.create(age: 12)
+
+        expect(model.where('age.lt': 10).count).to eql(2)
       end
     end
   end
