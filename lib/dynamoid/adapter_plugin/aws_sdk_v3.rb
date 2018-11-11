@@ -513,34 +513,34 @@ module Dynamoid
       # one range key to the hash.
       #
       # @param [String] table_name the name of the table
-      # @param [Hash] opts the options to query the table with
-      # @option opts [String] :hash_value the value of the hash key to find
-      # @option opts [Number, Number] :range_between find the range key within this range
-      # @option opts [Number] :range_greater_than find range keys greater than this
-      # @option opts [Number] :range_less_than find range keys less than this
-      # @option opts [Number] :range_gte find range keys greater than or equal to this
-      # @option opts [Number] :range_lte find range keys less than or equal to this
+      # @param [Hash] options the options to query the table with
+      # @option options [String] :hash_value the value of the hash key to find
+      # @option options [Number, Number] :range_between find the range key within this range
+      # @option options [Number] :range_greater_than find range keys greater than this
+      # @option options [Number] :range_less_than find range keys less than this
+      # @option options [Number] :range_gte find range keys greater than or equal to this
+      # @option options [Number] :range_lte find range keys less than or equal to this
       #
       # @return [Enumerable] matching items
       #
       # @since 1.0.0
       #
       # @todo Provide support for various other options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#query-instance_method
-      def query(table_name, opts = {})
+      def query(table_name, options = {})
         table = describe_table(table_name)
 
         Enumerator.new do |yielder|
-          Query.new.call(client, table, opts).each do |page|
+          Query.new(client, table, options).call.each do |page|
             page.items.each { |row| yielder << result_item_to_hash(row) }
           end
         end
       end
 
-      def query_count(table_name, opts = {})
+      def query_count(table_name, options = {})
         table = describe_table(table_name)
-        opts[:select] = 'COUNT'
+        options[:select] = 'COUNT'
 
-        Query.new.call(client, table, opts)
+        Query.new(client, table, options).call
           .map(&:count)
           .reduce(:+)
       end
@@ -549,28 +549,28 @@ module Dynamoid
       # the DynamoDB servers.
       #
       # @param [String] table_name the name of the table
-      # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
+      # @param [Hash] conditions a hash of attributes: matching records will be returned by the scan
       #
       # @return [Enumerable] matching items
       #
       # @since 1.0.0
       #
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#scan-instance_method
-      def scan(table_name, scan_hash = {}, select_opts = {})
+      def scan(table_name, conditions = {}, options = {})
         table = describe_table(table_name)
 
         Enumerator.new do |yielder|
-          Scan.new.call(client, table, scan_hash, select_opts).each do |page|
+          Scan.new(client, table, conditions, options).call.each do |page|
             page.items.each { |row| yielder << result_item_to_hash(row) }
           end
         end
       end
 
-      def scan_count(table_name, scan_hash = {}, select_opts = {})
+      def scan_count(table_name, conditions = {}, options = {})
         table = describe_table(table_name)
-        select_opts[:select] = 'COUNT'
+        options[:select] = 'COUNT'
 
-        Scan.new.call(client, table, scan_hash, select_opts)
+        Scan.new(client, table, conditions, options).call
           .map(&:count)
           .reduce(:+)
       end

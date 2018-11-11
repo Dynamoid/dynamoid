@@ -1,31 +1,19 @@
 module Dynamoid
   module AdapterPlugin
     class Scan
-      def call(client, table, scan_hash = {}, select_opts = {})
-        request = { table_name: table.name }
-        request[:consistent_read] = true if select_opts.delete(:consistent_read)
+      attr_reader :client, :table, :conditions, :options
 
-        # Deal with various limits and batching
-        record_limit = select_opts.delete(:record_limit)
-        scan_limit = select_opts.delete(:scan_limit)
-        batch_size = select_opts.delete(:batch_size)
-        select = select_opts.delete(:select)
-        exclusive_start_key = select_opts.delete(:exclusive_start_key)
-        request_limit = [record_limit, scan_limit, batch_size].compact.min
-        request[:limit] = request_limit if request_limit
-        request[:exclusive_start_key] = exclusive_start_key if exclusive_start_key
-        request[:select] = select if select
+      def initialize(client, table, conditions = {}, options = {})
+        @client = client
+        @table = table
+        @conditions = conditions
+        @options = options
+      end
 
-        if scan_hash.present?
-          request[:scan_filter] = scan_hash.reduce({}) do |memo, (attr, cond)|
-            memo.merge(attr.to_s => {
-            comparison_operator: AwsSdkV3::FIELD_MAP[cond.keys[0]],
-            attribute_value_list: AwsSdkV3.attribute_value_list(AwsSdkV3::FIELD_MAP[cond.keys[0]], cond.values[0].freeze)
-          })
-          end
-        end
+      def call
+        request = build_request
 
-        Enumerator.new do |y|
+        Enumerator.new do |yielder|
           record_count = 0
           scan_count = 0
 
@@ -54,24 +42,64 @@ module Dynamoid
               request[:limit] = scan_limit - scan_count
             end
 
-            results = client.scan(request)
-            y << results
+            response = client.scan(request)
 
-            record_count += results.count
+            yielder << response
+
+            record_count += response.count
             break if record_limit && record_count >= record_limit
 
-            scan_count += results.scanned_count
+            scan_count += response.scanned_count
             break if scan_limit && scan_count >= scan_limit
 
             # Keep pulling if we haven't finished paging in all data
-            if (lk = results[:last_evaluated_key])
-              request[:exclusive_start_key] = lk
+            if response.last_evaluated_key
+              request[:exclusive_start_key] = response.last_evaluated_key
             else
               break
             end
 
             backoff.call if backoff
           end
+        end
+      end
+
+      private
+
+      def build_request
+        request = options.slice(
+          :consistent_read,
+          :exclusive_start_key,
+          :select
+        ).compact
+
+        # Deal with various limits and batching
+        batch_size = options.delete(:batch_size)
+        limit = [record_limit, scan_limit, batch_size].compact.min
+
+        request[:limit]       = limit if limit
+        request[:table_name]  = table.name
+        request[:scan_filter] = scan_filter
+
+        request
+      end
+
+      def record_limit
+        options[:record_limit]
+      end
+
+      def scan_limit
+        options[:scan_limit]
+      end
+
+      def scan_filter
+        conditions.reduce({}) do |result, (attr, cond)|
+          condition = {
+            comparison_operator: AwsSdkV3::FIELD_MAP[cond.keys[0]],
+            attribute_value_list: AwsSdkV3.attribute_value_list(AwsSdkV3::FIELD_MAP[cond.keys[0]], cond.values[0].freeze)
+          }
+          result[attr] = condition
+          result
         end
       end
     end
