@@ -800,6 +800,30 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(Dynamoid.adapter.query(test_table1, hash_value: '1').first).to eq(id: '1', name: 'Josh')
     end
 
+    context 'backoff is specified' do
+      before do
+        @old_backoff = Dynamoid.config.backoff
+        @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
+
+        @counter = 0
+        Dynamoid.config.backoff_strategies[:simple] = ->(_) { -> { @counter += 1 } }
+        Dynamoid.config.backoff = { simple: nil }
+      end
+
+      after do
+        Dynamoid.config.backoff = @old_backoff
+        Dynamoid.config.backoff_strategies = @old_backoff_strategies
+      end
+
+      it 'uses specified backoff' do
+        Dynamoid.adapter.put_item(test_table3, id: '1', range: 1)
+        Dynamoid.adapter.put_item(test_table3, id: '1', range: 2)
+
+        expect(Dynamoid.adapter.query(test_table3, hash_value: '1', batch_size: 1).count).to eq 2
+        expect(@counter).to eq 2
+      end
+    end
+
     it_behaves_like 'range queries'
 
     describe 'query' do
@@ -859,6 +883,32 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
 
       expect(Dynamoid.adapter.scan(test_table1, {}, record_limit: 1, batch_size: 1).count).to eq(1)
+    end
+
+    context 'backoff is specified' do
+      before do
+        @old_backoff = Dynamoid.config.backoff
+        @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
+
+        @counter = 0
+        Dynamoid.config.backoff_strategies[:simple] = ->(_) { -> { @counter += 1 } }
+        Dynamoid.config.backoff = { simple: nil }
+      end
+
+      after do
+        Dynamoid.config.backoff = @old_backoff
+        Dynamoid.config.backoff_strategies = @old_backoff_strategies
+      end
+
+      it 'uses specified backoff' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
+
+        expect(Dynamoid.adapter.scan(test_table1, {}, batch_size: 1).count).to eq 4
+        expect(@counter).to eq 4
+      end
     end
 
     describe 'scans' do

@@ -578,6 +578,7 @@ module Dynamoid
         Enumerator.new do |y|
           record_count = 0
           scan_count = 0
+          backoff = Dynamoid.config.backoff ? Dynamoid.config.build_backoff : nil
           loop do
             # Adjust the limit down if the remaining record and/or scan limit are
             # lower to obey limits. We can assume the difference won't be
@@ -615,6 +616,8 @@ module Dynamoid
             else
               break
             end
+
+            backoff.call if backoff
           end
         end
       end
@@ -655,6 +658,7 @@ module Dynamoid
         Enumerator.new do |y|
           record_count = 0
           scan_count = 0
+          backoff = Dynamoid.config.backoff ? Dynamoid.config.build_backoff : nil
           loop do
             # Adjust the limit down if the remaining record and/or scan limit are
             # lower to obey limits. We can assume the difference won't be
@@ -693,6 +697,8 @@ module Dynamoid
             else
               break
             end
+
+            backoff.call if backoff
           end
         end
       end
