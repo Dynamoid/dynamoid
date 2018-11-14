@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative 'query'
+require_relative 'scan'
+
 module Dynamoid
   module AdapterPlugin
     # The AwsSdkV3 adapter provides support for the aws-sdk version 2 for ruby.
@@ -510,197 +513,66 @@ module Dynamoid
       # one range key to the hash.
       #
       # @param [String] table_name the name of the table
-      # @param [Hash] opts the options to query the table with
-      # @option opts [String] :hash_value the value of the hash key to find
-      # @option opts [Number, Number] :range_between find the range key within this range
-      # @option opts [Number] :range_greater_than find range keys greater than this
-      # @option opts [Number] :range_less_than find range keys less than this
-      # @option opts [Number] :range_gte find range keys greater than or equal to this
-      # @option opts [Number] :range_lte find range keys less than or equal to this
+      # @param [Hash] options the options to query the table with
+      # @option options [String] :hash_value the value of the hash key to find
+      # @option options [Number, Number] :range_between find the range key within this range
+      # @option options [Number] :range_greater_than find range keys greater than this
+      # @option options [Number] :range_less_than find range keys less than this
+      # @option options [Number] :range_gte find range keys greater than or equal to this
+      # @option options [Number] :range_lte find range keys less than or equal to this
       #
       # @return [Enumerable] matching items
       #
       # @since 1.0.0
       #
       # @todo Provide support for various other options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#query-instance_method
-      def query(table_name, opts = {})
+      def query(table_name, options = {})
         table = describe_table(table_name)
-        hk    = (opts[:hash_key].present? ? opts.delete(:hash_key) : table.hash_key).to_s
-        rng   = (opts[:range_key].present? ? opts.delete(:range_key) : table.range_key).to_s
-        q     = opts.slice(
-          :consistent_read,
-          :scan_index_forward,
-          :select,
-          :index_name
-        )
 
-        opts.delete(:consistent_read)
-        opts.delete(:scan_index_forward)
-        opts.delete(:select)
-        opts.delete(:index_name)
-
-        # Deal with various limits and batching
-        record_limit = opts.delete(:record_limit)
-        scan_limit = opts.delete(:scan_limit)
-        batch_size = opts.delete(:batch_size)
-        exclusive_start_key = opts.delete(:exclusive_start_key)
-        limit = [record_limit, scan_limit, batch_size].compact.min
-
-        key_conditions = {
-          hk => {
-            comparison_operator: EQ,
-            attribute_value_list: attribute_value_list(EQ, opts.delete(:hash_value).freeze)
-          }
-        }
-
-        opts.each_pair do |k, _v|
-          next unless (op = RANGE_MAP[k])
-          key_conditions[rng] = {
-            comparison_operator: op,
-            attribute_value_list: attribute_value_list(op, opts.delete(k).freeze)
-          }
-        end
-
-        query_filter = {}
-        opts.reject { |k, _| k.in? RANGE_MAP.keys }.each do |attr, hash|
-          query_filter[attr] = {
-            comparison_operator: FIELD_MAP[hash.keys[0]],
-            attribute_value_list: attribute_value_list(FIELD_MAP[hash.keys[0]], hash.values[0].freeze)
-          }
-        end
-
-        q[:limit] = limit if limit
-        q[:exclusive_start_key] = exclusive_start_key if exclusive_start_key
-        q[:table_name]     = table_name
-        q[:key_conditions] = key_conditions
-        q[:query_filter]   = query_filter
-
-        Enumerator.new do |y|
-          record_count = 0
-          scan_count = 0
-          backoff = Dynamoid.config.backoff ? Dynamoid.config.build_backoff : nil
-          loop do
-            # Adjust the limit down if the remaining record and/or scan limit are
-            # lower to obey limits. We can assume the difference won't be
-            # negative due to break statements below but choose smaller limit
-            # which is why we have 2 separate if statements.
-            # NOTE: Adjusting based on record_limit can cause many HTTP requests
-            # being made. We may want to change this behavior, but it affects
-            # filtering on data with potentially large gaps.
-            # Example:
-            #    User.where('created_at.gte' => 1.day.ago).record_limit(1000)
-            #    Records 1-999 User's that fit criteria
-            #    Records 1000-2000 Users's that do not fit criteria
-            #    Record 2001 fits criteria
-            # The underlying implementation will have 1 page for records 1-999
-            # then will request with limit 1 for records 1000-2000 (making 1000
-            # requests of limit 1) until hit record 2001.
-            if q[:limit] && record_limit && record_limit - record_count < q[:limit]
-              q[:limit] = record_limit - record_count
-            end
-            if q[:limit] && scan_limit && scan_limit - scan_count < q[:limit]
-              q[:limit] = scan_limit - scan_count
-            end
-
-            results = client.query(q)
-            results.items.each { |row| y << result_item_to_hash(row) }
-
-            record_count += results.items.size
-            break if record_limit && record_count >= record_limit
-
-            scan_count += results.scanned_count
-            break if scan_limit && scan_count >= scan_limit
-
-            if (lk = results.last_evaluated_key)
-              q[:exclusive_start_key] = lk
-            else
-              break
-            end
-
-            backoff.call if backoff
+        Enumerator.new do |yielder|
+          Query.new(client, table, options).call.each do |page|
+            page.items.each { |row| yielder << result_item_to_hash(row) }
           end
         end
+      end
+
+      def query_count(table_name, options = {})
+        table = describe_table(table_name)
+        options[:select] = 'COUNT'
+
+        Query.new(client, table, options).call
+          .map(&:count)
+          .reduce(:+)
       end
 
       # Scan the DynamoDB table. This is usually a very slow operation as it naively filters all data on
       # the DynamoDB servers.
       #
       # @param [String] table_name the name of the table
-      # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
+      # @param [Hash] conditions a hash of attributes: matching records will be returned by the scan
       #
       # @return [Enumerable] matching items
       #
       # @since 1.0.0
       #
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#scan-instance_method
-      def scan(table_name, scan_hash = {}, select_opts = {})
-        request = { table_name: table_name }
-        request[:consistent_read] = true if select_opts.delete(:consistent_read)
+      def scan(table_name, conditions = {}, options = {})
+        table = describe_table(table_name)
 
-        # Deal with various limits and batching
-        record_limit = select_opts.delete(:record_limit)
-        scan_limit = select_opts.delete(:scan_limit)
-        batch_size = select_opts.delete(:batch_size)
-        exclusive_start_key = select_opts.delete(:exclusive_start_key)
-        request_limit = [record_limit, scan_limit, batch_size].compact.min
-        request[:limit] = request_limit if request_limit
-        request[:exclusive_start_key] = exclusive_start_key if exclusive_start_key
-
-        if scan_hash.present?
-          request[:scan_filter] = scan_hash.reduce({}) do |memo, (attr, cond)|
-            memo.merge(attr.to_s => {
-                         comparison_operator: FIELD_MAP[cond.keys[0]],
-                         attribute_value_list: attribute_value_list(FIELD_MAP[cond.keys[0]], cond.values[0].freeze)
-                       })
+        Enumerator.new do |yielder|
+          Scan.new(client, table, conditions, options).call.each do |page|
+            page.items.each { |row| yielder << result_item_to_hash(row) }
           end
         end
+      end
 
-        Enumerator.new do |y|
-          record_count = 0
-          scan_count = 0
-          backoff = Dynamoid.config.backoff ? Dynamoid.config.build_backoff : nil
-          loop do
-            # Adjust the limit down if the remaining record and/or scan limit are
-            # lower to obey limits. We can assume the difference won't be
-            # negative due to break statements below but choose smaller limit
-            # which is why we have 2 separate if statements.
-            # NOTE: Adjusting based on record_limit can cause many HTTP requests
-            # being made. We may want to change this behavior, but it affects
-            # filtering on data with potentially large gaps.
-            # Example:
-            #    User.where('created_at.gte' => 1.day.ago).record_limit(1000)
-            #    Records 1-999 User's that fit criteria
-            #    Records 1000-2000 Users's that do not fit criteria
-            #    Record 2001 fits criteria
-            # The underlying implementation will have 1 page for records 1-999
-            # then will request with limit 1 for records 1000-2000 (making 1000
-            # requests of limit 1) until hit record 2001.
-            if request[:limit] && record_limit && record_limit - record_count < request[:limit]
-              request[:limit] = record_limit - record_count
-            end
-            if request[:limit] && scan_limit && scan_limit - scan_count < request[:limit]
-              request[:limit] = scan_limit - scan_count
-            end
+      def scan_count(table_name, conditions = {}, options = {})
+        table = describe_table(table_name)
+        options[:select] = 'COUNT'
 
-            results = client.scan(request)
-            results.items.each { |row| y << result_item_to_hash(row) }
-
-            record_count += results.items.size
-            break if record_limit && record_count >= record_limit
-
-            scan_count += results.scanned_count
-            break if scan_limit && scan_count >= scan_limit
-
-            # Keep pulling if we haven't finished paging in all data
-            if (lk = results[:last_evaluated_key])
-              request[:exclusive_start_key] = lk
-            else
-              break
-            end
-
-            backoff.call if backoff
-          end
-        end
+        Scan.new(client, table, conditions, options).call
+          .map(&:count)
+          .reduce(:+)
       end
 
       #
@@ -981,6 +853,10 @@ module Dynamoid
       # @params [String] operator: value of RANGE_MAP or FIELD_MAP hash, e.g. "EQ", "LT" etc
       # @params [Object] value: scalar value or array/set
       def attribute_value_list(operator, value)
+        self.class.attribute_value_list(operator, value)
+      end
+
+      def self.attribute_value_list(operator, value)
         # For BETWEEN and IN operators we should keep value as is (it should be already an array)
         # For all the other operators we wrap the value with array
         if %w[BETWEEN IN].include?(operator)
@@ -1030,6 +906,10 @@ module Dynamoid
 
         def item_count
           schema[:item_count]
+        end
+
+        def name
+          schema[:table_name]
         end
       end
 
