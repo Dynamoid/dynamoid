@@ -117,7 +117,8 @@ module Dynamoid
         if items.size == ids.size || !options[:raise_error]
           items ? items.map { |i| from_database(i) } : []
         else
-          message = "Couldn't find all #{name.pluralize} with '#{hash_key}': (#{ids.join(', ')}) "
+          ids_list = range_key ? ids.map { |pk, sk| "(#{pk},#{sk})" } : ids.map(&:to_s)
+          message = "Couldn't find all #{name.pluralize} with primary keys [#{ids_list.join(', ')}] "
           message += "(found #{items.size} results, but was looking for #{ids.size})"
           raise Errors::RecordNotFound, message
         end
@@ -131,11 +132,11 @@ module Dynamoid
 
           options[:range_key] = key_dumped
         end
-
         if item = Dynamoid.adapter.read(table_name, id, options)
           from_database(item)
         elsif options[:raise_error]
-          message = "Couldn't find #{name} with '#{hash_key}'=#{id}"
+          primary_key = range_key ? "(#{id},#{options[:range_key]})" : id
+          message = "Couldn't find #{name} with primary key #{primary_key}"
           raise Errors::RecordNotFound, message
         end
       end
