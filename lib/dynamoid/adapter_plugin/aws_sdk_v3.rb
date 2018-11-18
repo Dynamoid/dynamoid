@@ -179,7 +179,7 @@ module Dynamoid
       # @since 1.0.0
       #
       # @todo: Provide support for passing options to underlying batch_get_item
-      def batch_get_item(table_ids, _options = {})
+      def batch_get_item(table_ids, options = {})
         request_items = Hash.new { |h, k| h[k] = [] }
         return request_items if table_ids.all? { |_k, v| v.blank? }
 
@@ -208,7 +208,8 @@ module Dynamoid
                    end
 
             request_items[t] = {
-              keys: keys
+              keys: keys,
+              consistent_read: options[:consistent_read]
             }
 
             results = client.batch_get_item(

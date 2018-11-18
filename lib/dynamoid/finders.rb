@@ -37,12 +37,17 @@ module Dynamoid
       # @example Find several documents by partition key and sort key
       #   Document.find([[101, 'archived'], [102, 'new'], [103, 'deleted']])
       #
+      # @example Perform strong consistent reads
+      #   Document.find(101, consistent_read: true)
+      #   Document.find(101, 102, 103, consistent_read: true)
+      #   Document.find(101, range_key: 'archived', consistent_read: true)
+      #
       # @since 0.2.0
       def find(*ids, **options)
         if ids.size == 1 && !ids[0].is_a?(Array)
           _find_by_id(ids[0], options.merge(raise_error: true))
         else
-          _find_all(ids.flatten(1), raise_error: true)
+          _find_all(ids.flatten(1), options.merge(raise_error: true))
         end
       end
 
@@ -95,10 +100,12 @@ module Dynamoid
           end
         end
 
+        read_options = options.slice(:consistent_read)
+
         items = if Dynamoid.config.backoff
                   items = []
                   backoff = nil
-                  Dynamoid.adapter.read(table_name, ids, options) do |hash, has_unprocessed_items|
+                  Dynamoid.adapter.read(table_name, ids, read_options) do |hash, has_unprocessed_items|
                     items += hash[table_name]
 
                     if has_unprocessed_items
@@ -110,7 +117,7 @@ module Dynamoid
                   end
                   items
                 else
-                  items = Dynamoid.adapter.read(table_name, ids, options)
+                  items = Dynamoid.adapter.read(table_name, ids, read_options)
                   items ? items[table_name] : []
                 end
 
@@ -132,7 +139,8 @@ module Dynamoid
 
           options[:range_key] = key_dumped
         end
-        if item = Dynamoid.adapter.read(table_name, id, options)
+
+        if item = Dynamoid.adapter.read(table_name, id, options.slice(:range_key, :consistent_read))
           from_database(item)
         elsif options[:raise_error]
           primary_key = range_key ? "(#{id},#{options[:range_key]})" : id
