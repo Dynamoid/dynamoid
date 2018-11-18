@@ -815,7 +815,7 @@ Calls to `update` and `update!` also increment the `lock_version`, however they 
 ### Backoff strategies
 
 
-You can use several methods that run efficiently in batch mode like `.find_all` and `.import`.
+You can use several methods that run efficiently in batch mode like `.find_all` and `.import`. It affects `Query` and `Scan` operations as well.
 
 The backoff strategy will be used when, for any reason, some items could not be processed as part of a batch mode command.
 Operations will be re-run to process these items.
