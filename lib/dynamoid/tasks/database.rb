@@ -14,7 +14,7 @@ module Dynamoid
           if Dynamoid.adapter.list_tables.include? model.table_name
             results[:existing] << model.table_name
           else
-            model.create_table
+            model.create_table(sync: true)
             results[:created] << model.table_name
           end
         end
