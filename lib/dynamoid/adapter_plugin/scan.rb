@@ -74,7 +74,7 @@ module Dynamoid
         ).compact
 
         # Deal with various limits and batching
-        batch_size = options.delete(:batch_size)
+        batch_size = options[:batch_size]
         limit = [record_limit, scan_limit, batch_size].compact.min
 
         request[:limit]       = limit if limit

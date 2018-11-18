@@ -428,7 +428,9 @@ module Dynamoid
       #
       # @todo Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#get_item-instance_method
       def get_item(table_name, key, options = {})
+        options = options.dup
         options ||= {}
+
         table = describe_table(table_name)
         range_key = options.delete(:range_key)
         consistent_read = options.delete(:consistent_read)
@@ -449,6 +451,8 @@ module Dynamoid
       #
       # @todo Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#update_item-instance_method
       def update_item(table_name, key, options = {})
+        options = options.dup
+
         range_key = options.delete(:range_key)
         conditions = options.delete(:conditions)
         table = describe_table(table_name)
