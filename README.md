@@ -877,7 +877,7 @@ module DynamoidReset
     end
     Dynamoid.adapter.tables.clear
     # Recreate all tables to avoid unexpected errors
-    Dynamoid.included_models.each(&:create_table)
+    Dynamoid.included_models.each { |m| m.create_table(sync: true) }
   end
 end
 
