@@ -34,7 +34,7 @@ But if you want a fast, scalable, simple, easy-to-use database (and a Gem that s
 Installing Dynamoid is pretty simple. First include the Gem in your Gemfile:
 
 ```ruby
-gem 'dynamoid', '~> 2'
+gem 'dynamoid'
 ```
 ## Prerequisities
 
