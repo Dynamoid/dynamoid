@@ -6,6 +6,40 @@
 
 ## Fixes
 
+---
+
+
+
+# 3.1.0
+
+## Improvements
+* Feature: [#302](https://github.com/Dynamoid/dynamoid/pull/302) Add methods similar to `ActiveRecord::AttributeMethods::BeforeTypeCast`:
+  * method `attributes_before_type_cast`
+  * method `read_attribte_before_type_cast`
+  * methods `<name>_before_type_cast`
+* Feature: [#303](https://github.com/Dynamoid/dynamoid/pull/303) Add `#update_attributes!` method
+* Feature: [#304](https://github.com/Dynamoid/dynamoid/pull/304) Add `inheritance_field` option for `Document.table` method to specify column name for supporting STI and storing class name
+* Feature: [#305](https://github.com/Dynamoid/dynamoid/pull/305) Add increment/decrement methods:
+  * `#increment`
+  * `#increment!`
+  * `#decrement`
+  * `#decrement!`
+  * `.inc`
+* Feature: [#307](https://github.com/Dynamoid/dynamoid/pull/307) Allow to declare type of elements in `array`/`set` fields with `of` option. Only scalar types are supported as well as custom types
+* Feature: [#312](https://github.com/Dynamoid/dynamoid/pull/312) Add Ability to specify network timeout connection settings (@lulu-ulul)
+* Feature: [#313](https://github.com/Dynamoid/dynamoid/pull/313) Add support for backoff in scan and query (@bonty)
+* Improvement: [#314](https://github.com/Dynamoid/dynamoid/pull/314) Re-implement `count` for `where`-chain query efficiently. So now  `where(...).count` doesn't load all the documents, just statistics
+
+## Fixes
+* Bug: [#298](https://github.com/Dynamoid/dynamoid/pull/298) Fix `raw` field storing when value is a Hash with non-string keys
+* Bug: [#299](https://github.com/Dynamoid/dynamoid/pull/299) Fix `raw` fields - skip empty strings and sets
+* Bug: [#309](https://github.com/Dynamoid/dynamoid/pull/309) Fix loading of a document that contains not declared in model class fields
+* Bug: [#310](https://github.com/Dynamoid/dynamoid/pull/310) Fix `Adapter#list_tables` method to return names of all tables, not just first page (@knovoselic)
+* Bug: [#311](https://github.com/Dynamoid/dynamoid/pull/311) Fix `consistent_read` option of `.find` (@kokuyouwind)
+* Bug: [#319](https://github.com/Dynamoid/dynamoid/pull/319) Repair consistent reading for `find_all`
+* Bug: [#317](https://github.com/Dynamoid/dynamoid/pull/317) Fix `create_tables` rake task
+
+
 
 # 3.0.0
 
