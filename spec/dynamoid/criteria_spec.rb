@@ -90,7 +90,7 @@ describe Dynamoid::Criteria do
       expect(Dynamoid.logger).to receive(:warn).with('Queries without an index are forced to use scan and are generally much slower than indexed queries!')
       expect(Dynamoid.logger).to receive(:warn).with('You can index this query by adding index declaration to user.rb:')
       expect(Dynamoid.logger).to receive(:warn).with("* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'")
-      expect(Dynamoid.logger).to receive(:warn).with("* local_secondary_indexe range_key: 'some-name'")
+      expect(Dynamoid.logger).to receive(:warn).with("* local_secondary_index range_key: 'some-name'")
       expect(Dynamoid.logger).to receive(:warn).with('Not indexed attributes: :name, :password')
 
       User.where(name: 'x', password: 'password').all
