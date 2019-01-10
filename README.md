@@ -684,7 +684,7 @@ class User
   field :name
   field :age, :number
 
-  global_secondary_index hash_key: :age
+  global_secondary_index hash_key: :age # Must come after field definitions.
 end
 ```
 
