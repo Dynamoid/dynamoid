@@ -5,6 +5,6 @@
 source 'https://rubygems.org'
 
 gem 'pry-byebug', platforms: :ruby
-gem 'rails', '~> 5.2.0'
+gem 'activemodel', '~> 5.2.0'
 
 gemspec path: '../'
