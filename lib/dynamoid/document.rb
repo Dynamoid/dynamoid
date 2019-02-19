@@ -303,10 +303,6 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def initialize(attrs = {})
-      # we need this hack for Rails 4.0 only
-      # because `run_callbacks` calls `attributes` getter while it is still nil
-      @attributes = {}
-
       run_callbacks :initialize do
         @new_record = true
         @attributes ||= {}
