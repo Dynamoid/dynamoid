@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module PersictenseHelper
+module PersistenceHelper
   def new_class_with_partion_key(name:, type:, **opts)
     Class.new do
       include Dynamoid::Document
