@@ -48,7 +48,7 @@ RSpec.configure do |config|
 
   config.include NewClassHelper
   config.include DumpingHelper
-  config.include PersictenseHelper
+  config.include PersistenceHelper
   config.include ActiveSupport::Testing::TimeHelpers
 
   config.before(:each) do
