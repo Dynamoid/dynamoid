@@ -2,6 +2,8 @@
 
 require_relative 'aws_sdk_v3/query'
 require_relative 'aws_sdk_v3/scan'
+require_relative 'aws_sdk_v3/item_updater'
+require_relative 'aws_sdk_v3/table'
 
 module Dynamoid
   module AdapterPlugin
@@ -869,137 +871,6 @@ module Dynamoid
         else
           [value]
         end
-      end
-
-      #
-      # Represents a table. Exposes data from the "DescribeTable" API call, and also
-      # provides methods for coercing values to the proper types based on the table's schema data
-      #
-      class Table
-        attr_reader :schema
-
-        #
-        # @param [Hash] schema Data returns from a "DescribeTable" call
-        #
-        def initialize(schema)
-          @schema = schema[:table]
-        end
-
-        def range_key
-          @range_key ||= schema[:key_schema].find { |d| d[:key_type] == RANGE_KEY }.try(:attribute_name)
-        end
-
-        def range_type
-          range_type ||= schema[:attribute_definitions].find do |d|
-            d[:attribute_name] == range_key
-          end.try(:fetch, :attribute_type, nil)
-        end
-
-        def hash_key
-          @hash_key ||= schema[:key_schema].find { |d| d[:key_type] == HASH_KEY }.try(:attribute_name).to_sym
-        end
-
-        #
-        # Returns the API type (e.g. "N", "S") for the given column, if the schema defines it,
-        # nil otherwise
-        #
-        def col_type(col)
-          col = col.to_s
-          col_def = schema[:attribute_definitions].find { |d| d[:attribute_name] == col.to_s }
-          col_def && col_def[:attribute_type]
-        end
-
-        def item_count
-          schema[:item_count]
-        end
-
-        def name
-          schema[:table_name]
-        end
-      end
-
-      #
-      # Mimics behavior of the yielded object on DynamoDB's update_item API (high level).
-      #
-      class ItemUpdater
-        attr_reader :table, :key, :range_key
-
-        def initialize(table, key, range_key = nil)
-          @table = table
-          @key = key
-          @range_key = range_key
-          @additions = {}
-          @deletions = {}
-          @updates   = {}
-        end
-
-        #
-        # Adds the given values to the values already stored in the corresponding columns.
-        # The column must contain a Set or a number.
-        #
-        # @param [Hash] vals keys of the hash are the columns to update, vals are the values to
-        #               add. values must be a Set, Array, or Numeric
-        #
-        def add(values)
-          @additions.merge!(sanitize_attributes(values))
-        end
-
-        #
-        # Removes values from the sets of the given columns
-        #
-        # @param [Hash] values keys of the hash are the columns, values are Arrays/Sets of items
-        #               to remove
-        #
-        def delete(values)
-          @deletions.merge!(sanitize_attributes(values))
-        end
-
-        #
-        # Replaces the values of one or more attributes
-        #
-        def set(values)
-          @updates.merge!(sanitize_attributes(values))
-        end
-
-        #
-        # Returns an AttributeUpdates hash suitable for passing to the V2 Client API
-        #
-        def to_h
-          ret = {}
-
-          @additions.each do |k, v|
-            ret[k.to_s] = {
-              action: ADD,
-              value: v
-            }
-          end
-          @deletions.each do |k, v|
-            ret[k.to_s] = {
-              action: DELETE,
-              value: v
-            }
-          end
-          @updates.each do |k, v|
-            ret[k.to_s] = {
-              action: PUT,
-              value: v
-            }
-          end
-
-          ret
-        end
-
-        private
-
-        def sanitize_attributes(attributes)
-          attributes.transform_values do |v|
-            v.is_a?(Hash) ? v.stringify_keys : v
-          end
-        end
-
-        ADD    = 'ADD'
-        DELETE = 'DELETE'
-        PUT    = 'PUT'
       end
 
       def sanitize_item(attributes)
