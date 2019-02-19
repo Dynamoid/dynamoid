@@ -33,6 +33,7 @@ module Dynamoid #:nodoc:
       end
 
       def attr_readonly(*read_only_attributes)
+        ActiveSupport::Deprecation.warn('[Dynamoid] .attr_readonly is deprecated! Call .find instead of')
         self.read_only_attributes.concat read_only_attributes.map(&:to_s)
       end
 
