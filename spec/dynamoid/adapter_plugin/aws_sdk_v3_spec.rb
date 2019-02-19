@@ -336,6 +336,22 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       Dynamoid.adapter.delete_table('CreateTable')
     end
 
+    it 'creates table synchronously' do
+      table = Dynamoid.adapter.create_table('snakes', :id, sync: true)
+
+      expect(Dynamoid.adapter.list_tables).to include 'snakes'
+
+      Dynamoid.adapter.delete_table('snakes')
+    end
+
+    it 'deletes table synchronously' do
+      table = Dynamoid.adapter.create_table('snakes', :id, sync: true)
+      expect(Dynamoid.adapter.list_tables).to include 'snakes'
+
+      Dynamoid.adapter.delete_table('snakes', sync: true)
+      expect(Dynamoid.adapter.list_tables).not_to include 'snakes'
+    end
+
     describe 'create table with secondary index' do
       let(:doc_class) do
         Class.new do
