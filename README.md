@@ -98,14 +98,9 @@ Then you need to initialize Dynamoid config to get it going. Put code similar to
 
 Dynamoid supports Ruby >= 2.3 and Rails >= 4.2.
 
-Its compatibility is tested in following way:
-
-| Ruby / Active Record  | 4.2.x | 5.0.x | 5.1.x | 5.2.x |
-|:---------------------:|:-----:|:-----:|:-----:|:-----:|
-| 2.3.7                 | ✓     | ✓     | ✓     | ✓     |
-| 2.4.4                 | ✓     | ✓     | ✓     | ✓     |
-| 2.5.1                 | ✓     | ✓     | ✓     | ✓     |
-| jruby-9.1.17.0        | ✓     | ✓     | ✓     | ✓     |
+Its compatibility is tested against following Ruby versions: 2.3.8,
+2.4.5, 2.5.3 and 2.6.1, JRuby versions 9.1.17.0 and 9.2.6.0 and
+ against Rails versions: 4.2.x, 5.0.x, 5.1.x and 5.2.x.
 
 ## Setup
 
