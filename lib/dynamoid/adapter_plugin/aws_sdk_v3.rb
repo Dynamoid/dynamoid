@@ -2,8 +2,10 @@
 
 require_relative 'aws_sdk_v3/query'
 require_relative 'aws_sdk_v3/scan'
+require_relative 'aws_sdk_v3/create_table'
 require_relative 'aws_sdk_v3/item_updater'
 require_relative 'aws_sdk_v3/table'
+require_relative 'aws_sdk_v3/until_past_table_status'
 
 module Dynamoid
   module AdapterPlugin
@@ -295,58 +297,7 @@ module Dynamoid
       # @since 1.0.0
       def create_table(table_name, key = :id, options = {})
         Dynamoid.logger.info "Creating #{table_name} table. This could take a while."
-        read_capacity = options[:read_capacity] || Dynamoid::Config.read_capacity
-        write_capacity = options[:write_capacity] || Dynamoid::Config.write_capacity
-
-        secondary_indexes = options.slice(
-          :local_secondary_indexes,
-          :global_secondary_indexes
-        )
-        ls_indexes = options[:local_secondary_indexes]
-        gs_indexes = options[:global_secondary_indexes]
-
-        key_schema = {
-          hash_key_schema: { key => (options[:hash_key_type] || :string) },
-          range_key_schema: options[:range_key]
-        }
-        attribute_definitions = build_all_attribute_definitions(
-          key_schema,
-          secondary_indexes
-        )
-        key_schema = aws_key_schema(
-          key_schema[:hash_key_schema],
-          key_schema[:range_key_schema]
-        )
-
-        client_opts = {
-          table_name: table_name,
-          provisioned_throughput: {
-            read_capacity_units: read_capacity,
-            write_capacity_units: write_capacity
-          },
-          key_schema: key_schema,
-          attribute_definitions: attribute_definitions
-        }
-
-        if ls_indexes.present?
-          client_opts[:local_secondary_indexes] = ls_indexes.map do |index|
-            index_to_aws_hash(index)
-          end
-        end
-
-        if gs_indexes.present?
-          client_opts[:global_secondary_indexes] = gs_indexes.map do |index|
-            index_to_aws_hash(index)
-          end
-        end
-        resp = client.create_table(client_opts)
-        options[:sync] = true if !options.key?(:sync) && ls_indexes.present? || gs_indexes.present?
-        until_past_table_status(table_name, :creating) if options[:sync] &&
-                                                          (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-                                                          status == TABLE_STATUSES[:creating]
-        # Response to original create_table, which, if options[:sync]
-        #   may have an outdated table_description.table_status of "CREATING"
-        resp
+        CreateTable.new(client, table_name, key, options).call
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         Dynamoid.logger.error "Table #{table_name} cannot be created as it already exists"
       end
@@ -404,7 +355,7 @@ module Dynamoid
       # @since 1.0.0
       def delete_table(table_name, options = {})
         resp = client.delete_table(table_name: table_name)
-        until_past_table_status(table_name, :deleting) if options[:sync] &&
+        UntilPastTableStatus.new(table_name, :deleting).call if options[:sync] &&
                                                           (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
                                                           status == TABLE_STATUSES[:deleting]
         table_cache.delete(table_name)
@@ -606,59 +557,6 @@ module Dynamoid
 
       protected
 
-      def check_table_status?(counter, resp, expect_status)
-        status = PARSE_TABLE_STATUS.call(resp)
-        again = counter < Dynamoid::Config.sync_retry_max_times &&
-                status == TABLE_STATUSES[expect_status]
-        { again: again, status: status, counter: counter }
-      end
-
-      def until_past_table_status(table_name, status = :creating)
-        counter = 0
-        resp = nil
-        begin
-          check = { again: true }
-          while check[:again]
-            sleep Dynamoid::Config.sync_retry_wait_seconds
-            resp = client.describe_table(table_name: table_name)
-            check = check_table_status?(counter, resp, status)
-            Dynamoid.logger.info "Checked table status for #{table_name} (check #{check.inspect})"
-            counter += 1
-          end
-        # If you issue a DescribeTable request immediately after a CreateTable
-        #   request, DynamoDB might return a ResourceNotFoundException.
-        # This is because DescribeTable uses an eventually consistent query,
-        #   and the metadata for your table might not be available at that moment.
-        # Wait for a few seconds, and then try the DescribeTable request again.
-        # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#describe_table-instance_method
-        rescue Aws::DynamoDB::Errors::ResourceNotFoundException => e
-          case status
-          when :creating then
-            if counter >= Dynamoid::Config.sync_retry_max_times
-              Dynamoid.logger.warn "Waiting on table metadata for #{table_name} (check #{counter})"
-              retry # start over at first line of begin, does not reset counter
-            else
-              Dynamoid.logger.error "Exhausted max retries (Dynamoid::Config.sync_retry_max_times) waiting on table metadata for #{table_name} (check #{counter})"
-              raise e
-            end
-          else
-            # When deleting a table, "not found" is the goal.
-            Dynamoid.logger.info "Checked table status for #{table_name}: Not Found (check #{check.inspect})"
-          end
-        end
-      end
-
-      # Converts from symbol to the API string for the given data type
-      # E.g. :number -> 'N'
-      def api_type(type)
-        case type
-        when :string then STRING_TYPE
-        when :number then NUM_TYPE
-        when :binary then BINARY_TYPE
-        else raise "Unknown type: #{type}"
-        end
-      end
-
       #
       # The key hash passed on get_item, put_item, delete_item, update_item, etc
       #
@@ -706,152 +604,6 @@ module Dynamoid
         {}.tap do |r|
           item.each { |k, v| r[k.to_sym] = v }
         end
-      end
-
-      # Converts a Dynamoid::Indexes::Index to an AWS API-compatible hash.
-      # This resulting hash is of the form:
-      #
-      #   {
-      #     index_name: String
-      #     keys: {
-      #       hash_key: aws_key_schema (hash)
-      #       range_key: aws_key_schema (hash)
-      #     }
-      #     projection: {
-      #       projection_type: (ALL, KEYS_ONLY, INCLUDE) String
-      #       non_key_attributes: (optional) Array
-      #     }
-      #     provisioned_throughput: {
-      #       read_capacity_units: Integer
-      #       write_capacity_units: Integer
-      #     }
-      #   }
-      #
-      # @param [Dynamoid::Indexes::Index] index the index.
-      # @return [Hash] hash representing an AWS Index definition.
-      def index_to_aws_hash(index)
-        key_schema = aws_key_schema(index.hash_key_schema, index.range_key_schema)
-
-        hash = {
-          index_name: index.name,
-          key_schema: key_schema,
-          projection: {
-            projection_type: index.projection_type.to_s.upcase
-          }
-        }
-
-        # If the projection type is include, specify the non key attributes
-        if index.projection_type == :include
-          hash[:projection][:non_key_attributes] = index.projected_attributes
-        end
-
-        # Only global secondary indexes have a separate throughput.
-        if index.type == :global_secondary
-          hash[:provisioned_throughput] = {
-            read_capacity_units: index.read_capacity,
-            write_capacity_units: index.write_capacity
-          }
-        end
-        hash
-      end
-
-      # Converts hash_key_schema and range_key_schema to aws_key_schema
-      # @param [Hash] hash_key_schema eg: {:id => :string}
-      # @param [Hash] range_key_schema eg: {:created_at => :number}
-      # @return [Array]
-      def aws_key_schema(hash_key_schema, range_key_schema)
-        schema = [{
-          attribute_name: hash_key_schema.keys.first.to_s,
-          key_type: HASH_KEY
-        }]
-
-        if range_key_schema.present?
-          schema << {
-            attribute_name: range_key_schema.keys.first.to_s,
-            key_type: RANGE_KEY
-          }
-        end
-        schema
-      end
-
-      # Builds aws attributes definitions based off of primary hash/range and
-      # secondary indexes
-      #
-      # @param key_data
-      # @option key_data [Hash] hash_key_schema - eg: {:id => :string}
-      # @option key_data [Hash] range_key_schema - eg: {:created_at => :number}
-      # @param [Hash] secondary_indexes
-      # @option secondary_indexes [Array<Dynamoid::Indexes::Index>] :local_secondary_indexes
-      # @option secondary_indexes [Array<Dynamoid::Indexes::Index>] :global_secondary_indexes
-      def build_all_attribute_definitions(key_schema, secondary_indexes = {})
-        ls_indexes = secondary_indexes[:local_secondary_indexes]
-        gs_indexes = secondary_indexes[:global_secondary_indexes]
-
-        attribute_definitions = []
-
-        attribute_definitions << build_attribute_definitions(
-          key_schema[:hash_key_schema],
-          key_schema[:range_key_schema]
-        )
-
-        if ls_indexes.present?
-          ls_indexes.map do |index|
-            attribute_definitions << build_attribute_definitions(
-              index.hash_key_schema,
-              index.range_key_schema
-            )
-          end
-        end
-
-        if gs_indexes.present?
-          gs_indexes.map do |index|
-            attribute_definitions << build_attribute_definitions(
-              index.hash_key_schema,
-              index.range_key_schema
-            )
-          end
-        end
-
-        attribute_definitions.flatten!
-        # uniq these definitions because range keys might be common between
-        # primary and secondary indexes
-        attribute_definitions.uniq!
-        attribute_definitions
-      end
-
-      # Builds an attribute definitions based on hash key and range key
-      # @params [Hash] hash_key_schema - eg: {:id => :string}
-      # @params [Hash] range_key_schema - eg: {:created_at => :datetime}
-      # @return [Array]
-      def build_attribute_definitions(hash_key_schema, range_key_schema = nil)
-        attrs = []
-
-        attrs << attribute_definition_element(
-          hash_key_schema.keys.first,
-          hash_key_schema.values.first
-        )
-
-        if range_key_schema.present?
-          attrs << attribute_definition_element(
-            range_key_schema.keys.first,
-            range_key_schema.values.first
-          )
-        end
-
-        attrs
-      end
-
-      # Builds an aws attribute definition based on name and dynamoid type
-      # @params [Symbol] name - eg: :id
-      # @params [Symbol] dynamoid_type - eg: :string
-      # @return [Hash]
-      def attribute_definition_element(name, dynamoid_type)
-        aws_type = api_type(dynamoid_type)
-
-        {
-          attribute_name: name.to_s,
-          attribute_type: aws_type
-        }
       end
 
       # Build an array of values for Condition
