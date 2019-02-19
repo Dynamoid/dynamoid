@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'query'
-require_relative 'scan'
+require_relative 'aws_sdk_v3/query'
+require_relative 'aws_sdk_v3/scan'
 
 module Dynamoid
   module AdapterPlugin
