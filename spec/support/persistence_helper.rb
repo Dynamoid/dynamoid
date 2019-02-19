@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module PersistenceHelper
-  def new_class_with_partion_key(name:, type:, **opts)
+  def new_class_with_partition_key(name:, type:, **opts)
     Class.new do
       include Dynamoid::Document
       table name: :documents, key: name

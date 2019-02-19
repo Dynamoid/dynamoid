@@ -77,51 +77,51 @@ describe Dynamoid::Persistence do
 
     describe 'partition key attribute type' do
       it 'maps :string to String' do
-        klass = new_class_with_partion_key(name: :id, type: :string)
+        klass = new_class_with_partition_key(name: :id, type: :string)
         klass.create_table
         expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
       end
 
       it 'maps :integer to Number' do
-        klass = new_class_with_partion_key(name: :id, type: :integer)
+        klass = new_class_with_partition_key(name: :id, type: :integer)
         klass.create_table
         expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
       end
 
       it 'maps :number to Number' do
-        klass = new_class_with_partion_key(name: :id, type: :number)
+        klass = new_class_with_partition_key(name: :id, type: :number)
         klass.create_table
         expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
       end
 
       describe ':datetime' do
         it 'maps :datetime to Number' do
-          klass = new_class_with_partion_key(name: :id, type: :datetime)
+          klass = new_class_with_partition_key(name: :id, type: :datetime)
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
         end
 
         it 'maps :datetime to String if field option :store_as_string is true' do
-          klass = new_class_with_partion_key(name: :id, type: :datetime, store_as_string: true)
+          klass = new_class_with_partition_key(name: :id, type: :datetime, store_as_string: true)
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
         end
 
         it 'maps :datetime to Number if field option :store_as_string is false' do
-          klass = new_class_with_partion_key(name: :id, type: :datetime, store_as_string: false)
+          klass = new_class_with_partition_key(name: :id, type: :datetime, store_as_string: false)
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
         end
 
         context 'field option :store_as_string is nil' do
           it 'maps :datetime to String if :store_datetime_as_string is true', config: { store_datetime_as_string: true } do
-            klass = new_class_with_partion_key(name: :id, type: :datetime, store_as_string: nil)
+            klass = new_class_with_partition_key(name: :id, type: :datetime, store_as_string: nil)
             klass.create_table
             expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
           end
 
           it 'maps :datetime to Number if :store_datetime_as_string is false', config: { store_datetime_as_string: false } do
-            klass = new_class_with_partion_key(name: :id, type: :datetime, store_as_string: nil)
+            klass = new_class_with_partition_key(name: :id, type: :datetime, store_as_string: nil)
             klass.create_table
             expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
           end
@@ -130,32 +130,32 @@ describe Dynamoid::Persistence do
 
       describe ':date' do
         it 'maps :date to Number' do
-          klass = new_class_with_partion_key(name: :id, type: :date)
+          klass = new_class_with_partition_key(name: :id, type: :date)
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
         end
 
         it 'maps :date to String if field option :store_as_string is true' do
-          klass = new_class_with_partion_key(name: :id, type: :date, store_as_string: true)
+          klass = new_class_with_partition_key(name: :id, type: :date, store_as_string: true)
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
         end
 
         it 'maps :date to Number if field option :store_as_string is false' do
-          klass = new_class_with_partion_key(name: :id, type: :date, store_as_string: false)
+          klass = new_class_with_partition_key(name: :id, type: :date, store_as_string: false)
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
         end
 
         context 'field option :store_as_string is nil' do
           it 'maps :date to String if :store_date_as_string is true', config: { store_date_as_string: true } do
-            klass = new_class_with_partion_key(name: :id, type: :date, store_as_string: nil)
+            klass = new_class_with_partition_key(name: :id, type: :date, store_as_string: nil)
             klass.create_table
             expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
           end
 
           it 'maps :date to Number if :store_date_as_string is false', config: { store_date_as_string: false } do
-            klass = new_class_with_partion_key(name: :id, type: :date, store_as_string: nil)
+            klass = new_class_with_partition_key(name: :id, type: :date, store_as_string: nil)
             klass.create_table
             expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
           end
@@ -163,45 +163,45 @@ describe Dynamoid::Persistence do
       end
 
       it 'maps :serialized to String' do
-        klass = new_class_with_partion_key(name: :id, type: :serialized)
+        klass = new_class_with_partition_key(name: :id, type: :serialized)
         klass.create_table
         expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
       end
 
       describe 'custom type' do
         it 'maps custom type to String by default' do
-          klass = new_class_with_partion_key(name: :id, type: user_class)
+          klass = new_class_with_partition_key(name: :id, type: user_class)
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
         end
 
         it 'uses specified type if .dynamoid_field_type method declared' do
-          klass = new_class_with_partion_key(name: :id, type: user_class_with_type)
+          klass = new_class_with_partition_key(name: :id, type: user_class_with_type)
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
         end
       end
 
       it 'does not support :array' do
-        klass = new_class_with_partion_key(name: :id, type: :array)
+        klass = new_class_with_partition_key(name: :id, type: :array)
         expect { klass.create_table }.to raise_error(
           Dynamoid::Errors::UnsupportedKeyType, "array cannot be used as a type of table key attribute")
       end
 
       it 'does not support :set' do
-        klass = new_class_with_partion_key(name: :id, type: :set)
+        klass = new_class_with_partition_key(name: :id, type: :set)
         expect { klass.create_table }.to raise_error(
           Dynamoid::Errors::UnsupportedKeyType, "set cannot be used as a type of table key attribute")
       end
 
       it 'does not support :raw' do
-        klass = new_class_with_partion_key(name: :id, type: :raw)
+        klass = new_class_with_partition_key(name: :id, type: :raw)
         expect { klass.create_table }.to raise_error(
           Dynamoid::Errors::UnsupportedKeyType, "raw cannot be used as a type of table key attribute")
       end
 
       it 'does not support :boolean' do
-        klass = new_class_with_partion_key(name: :id, type: :boolean)
+        klass = new_class_with_partition_key(name: :id, type: :boolean)
         expect { klass.create_table }.to raise_error(
           Dynamoid::Errors::UnsupportedKeyType, "boolean cannot be used as a type of table key attribute")
       end
