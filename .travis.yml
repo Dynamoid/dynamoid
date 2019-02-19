@@ -2,10 +2,12 @@ sudo: required
 
 language: ruby
 rvm:
-  - ruby-2.3.7
-  - ruby-2.4.4
-  - ruby-2.5.1
+  - ruby-2.3.8
+  - ruby-2.4.5
+  - ruby-2.5.3
+  - ruby-2.6.1
   - jruby-9.1.17.0
+  - jruby-9.2.6.0
 gemfile:
 gemfile:
   - gemfiles/rails_4_2.gemfile
