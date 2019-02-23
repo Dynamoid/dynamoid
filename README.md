@@ -820,6 +820,10 @@ Listed below are all configuration options.
 `'t'` and `'f'`. Default is true
 * `backoff` - is a hash: key is a backoff strategy (symbol), value is parameters for the strategy. Is used in batch operations. Default id `nil`
 * `backoff_strategies`: is a hash and contains all available strategies. Default is { constant: ..., exponential: ...}
+* `http_continue_timeout`: The number of seconds to wait for a 100-continue HTTP response before sending the request body. Default option value is `nil`. If not specified effected value is `1`
+* `http_idle_timeout`: The number of seconds an HTTP connection is allowed to sit idble before it is considered stale. Default option value is `nil`. If not specified effected value is `5`
+* `http_open_timeout`: The number of seconds to wait when opening a HTTP session. Default option value is `nil`. If not specified effected value is `15`
+* `http_read_timeout`:The number of seconds to wait for HTTP response data. Default option value is `nil`. If not specified effected value is `60`
 
 
 ## Concurrency
