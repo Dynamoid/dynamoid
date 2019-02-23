@@ -113,14 +113,28 @@ module Dynamoid #:nodoc:
 
       # Does this object exist?
       #
+      # Supports primary key in format that `find` call understands.
+      # Multiple keys and single compound primary key should be passed only as Array explicitily.
+      #
+      # Supports conditions in format that `where` call understands.
+      #
       # @param [Mixed] id_or_conditions the id of the object or a hash with the options to filter from.
       #
       # @return [Boolean] true/false
       #
+      # @example With id
+      #
+      #   Post.exist?(713)
+      #   Post.exist?([713, 210])
+      #
+      # @example With attributes conditions
+      #
+      #   Post.exist?(version: 1, 'created_at.gt': Time.now - 1.day)
+      #
       # @since 0.2.0
       def exists?(id_or_conditions = {})
         case id_or_conditions
-        when Hash then where(id_or_conditions).first.present?
+        when Hash then where(id_or_conditions).count >= 1
         else
           begin
             find(id_or_conditions)
