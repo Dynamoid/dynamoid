@@ -690,18 +690,6 @@ describe Dynamoid::Criteria::Chain do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:records_via_query).and_call_original
         expect(chain.where(city: 'San Francisco').start(@customer2).all).to contain_exactly(@customer3)
-        # Repeat with hash notation
-        expect(chain).to receive(:records_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco').start(city: @customer2.city, age: @customer2.age, name: @customer2.name, customerid: @customer2.customerid).all).to contain_exactly(@customer3)
-      end
-
-      it 'supports scan with start on hash key & range key' do
-        chain = Dynamoid::Criteria::Chain.new(model)
-        expect(chain).to receive(:records_via_scan).and_call_original
-        expect(chain.scan_limit(1).start(@customer2)).to contain_exactly(@customer4)
-        # Repeat with hash notation
-        expect(chain).to receive(:records_via_scan).and_call_original
-        expect(chain.scan_limit(1).start(name: @customer2.name, customerid: @customer2.customerid)).to contain_exactly(@customer4)
       end
 
       it "does not use index if a condition for index hash key is other than 'equal'" do
@@ -973,6 +961,114 @@ describe Dynamoid::Criteria::Chain do
         objects = class_with_not_declared_field.where(id: '1', name: 'Mike').to_a
 
         expect(objects.map(&:id)).to eql(['1'])
+      end
+    end
+  end
+
+  describe '#start' do
+    let(:model) do
+      Class.new do
+        include Dynamoid::Document
+        table name: :customer, key: :name
+        field :city
+      end
+    end
+
+    it 'returns result from the specified item' do
+      customer1 = model.create(name: 'Bob', city: 'San Francisco')
+      customer2 = model.create(name: 'Jeff', city: 'San Francisco')
+      customer3 = model.create(name: 'Mark', city: 'San Francisco')
+      customer4 = model.create(name: 'Greg', city: 'New York')
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+
+      customers = chain.where(city: 'San Francisco').record_limit(2).to_a
+      expect(customers.size).to eq 2
+
+      customers_rest = chain.where(city: 'San Francisco').start(customers.last).all.to_a
+      expect(customers_rest.size).to eq 1
+
+      expect(customers + customers_rest).to contain_exactly(customer1, customer2, customer3)
+    end
+
+    it 'accepts hash argument' do
+      customer1 = model.create(name: 'Bob', city: 'San Francisco')
+      customer2 = model.create(name: 'Jeff', city: 'San Francisco')
+      customer3 = model.create(name: 'Mark', city: 'San Francisco')
+      customer4 = model.create(name: 'Greg', city: 'New York')
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+
+      customers = chain.where(city: 'San Francisco').record_limit(2).to_a
+      expect(customers.size).to eq 2
+
+      customers_rest = chain.where(city: 'San Francisco').start(name: customers.last.name).all.to_a
+      expect(customers_rest.size).to eq 1
+
+      expect(customers + customers_rest).to contain_exactly(customer1, customer2, customer3)
+    end
+
+    context 'document with range key' do
+      let(:model) do
+        Class.new do
+          include Dynamoid::Document
+          table name: :customer, key: :version
+          range :age, :integer
+          field :name
+          field :gender
+        end
+      end
+
+      before do
+        @customer1 = model.create(version: 'v1', name: 'Bob', age: 10, gender: 'male')
+        @customer2 = model.create(version: 'v1', name: 'Jeff', age: 15, gender: 'female')
+        @customer3 = model.create(version: 'v1', name: 'Mark', age: 20, gender: 'male')
+        @customer4 = model.create(version: 'v1', name: 'Greg', age: 25, gender: 'female')
+      end
+
+      it 'return query result from the specified item' do
+        chain = Dynamoid::Criteria::Chain.new(model)
+
+        expect(chain).to receive(:records_via_query).and_call_original
+        customers = chain.where(version: 'v1', 'age.gt': 10).start(@customer2).all.to_a
+
+        expect(customers).to contain_exactly(@customer3, @customer4)
+      end
+
+      it 'return scan result from the specified item' do
+        chain = Dynamoid::Criteria::Chain.new(model)
+
+        expect(chain).to receive(:records_via_scan).and_call_original
+        customers = chain.where(gender: 'male').start(@customer1).all.to_a
+
+        expect(customers).to contain_exactly(@customer3)
+      end
+    end
+
+    context 'document without range key' do
+      let(:model) do
+        Class.new do
+          include Dynamoid::Document
+          table name: :customer, key: :name
+
+          field :age, :integer
+        end
+      end
+
+      before do
+        @customer1 = model.create(name: 'Bob', age: 10)
+        @customer2 = model.create(name: 'Jeff', age: 15)
+        @customer3 = model.create(name: 'Mark', age: 20)
+        @customer4 = model.create(name: 'Greg', age: 25)
+      end
+
+      it 'return scan result from the specified item' do
+        chain = Dynamoid::Criteria::Chain.new(model)
+
+        expect(chain).to receive(:records_via_scan).and_call_original
+        customers = chain.where('age.gt': 10).start(@customer2).all.to_a
+
+        expect(customers).to contain_exactly(@customer3, @customer4)
       end
     end
   end
