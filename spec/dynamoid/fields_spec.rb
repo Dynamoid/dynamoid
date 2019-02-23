@@ -211,6 +211,41 @@ describe Dynamoid::Fields do
       doc = doc_class.new(name: nil)
       expect(doc.name).to eq nil
     end
+
+    it 'supports default value for custom type' do
+      user_class = Class.new do
+        attr_accessor :name
+
+        def initialize(name)
+          self.name = name
+        end
+
+        def dynamoid_dump
+          name
+        end
+
+        def eql?(other)
+          name == other.name
+        end
+
+        def hash
+          name.hash
+        end
+
+        def self.dynamoid_load(string)
+          new(string.to_s)
+        end
+      end
+
+      model_class = new_class(user: user_class.new('Mary')) do |options|
+        field :user, user_class, default: options[:user]
+      end
+
+      model = model_class.create
+      model = model_class.find(model.id)
+
+      expect(model.user).to eql user_class.new('Mary')
+    end
   end
 
   describe 'deprecated :float field type' do

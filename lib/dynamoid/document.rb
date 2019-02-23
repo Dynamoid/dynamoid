@@ -324,12 +324,6 @@ module Dynamoid #:nodoc:
         @associations ||= {}
         @attributes_before_type_cast ||= {}
 
-        self.class.attributes.each do |_, options|
-          if options[:type].is_a?(Class) && options[:default]
-            raise 'Dynamoid class-type fields do not support default values'
-          end
-        end
-
         attrs_with_defaults = {}
         self.class.attributes.each do |attribute, options|
           attrs_with_defaults[attribute] = if attrs.key?(attribute)
