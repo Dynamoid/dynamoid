@@ -151,22 +151,22 @@ module Dynamoid
       end
     end
 
-    # Updates multiple attibutes at once, saving the object once the updates are complete.
+    # Updates multiple attributes at once, saving the object once the updates are complete.
     #
     # @param [Hash] attributes a hash of attributes to update
     #
     # @since 0.2.0
     def update_attributes(attributes)
-      attributes.each { |attribute, value| write_attribute(attribute, value) } unless attributes.nil? || attributes.empty?
+      attributes.each { |attribute, value| write_attribute(attribute, value) }
       save
     end
 
-    # Updates multiple attibutes at once, saving the object once the updates are complete.
+    # Updates multiple attributes at once, saving the object once the updates are complete.
     # Raises a Dynamoid::Errors::DocumentNotValid exception if there is vaidation and it fails.
     #
     # @param [Hash] attributes a hash of attributes to update
     def update_attributes!(attributes)
-      attributes.each { |attribute, value| write_attribute(attribute, value) } unless attributes.nil? || attributes.empty?
+      attributes.each { |attribute, value| write_attribute(attribute, value) }
       save!
     end
 
