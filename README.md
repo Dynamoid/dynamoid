@@ -1,5 +1,10 @@
 # Dynamoid
 
+[![Build Status](https://travis-ci.org/Dynamoid/dynamoid.svg?branch=master)](https://travis-ci.org/Dynamoid/dynamoid)
+[![Code Climate](https://codeclimate.com/github/Dynamoid/dynamoid.svg)](https://codeclimate.com/github/Dynamoid/dynamoid)
+[![Coverage Status](https://coveralls.io/repos/github/Dynamoid/Dynamoid/badge.svg?branch=master)](https://coveralls.io/github/Dynamoid/Dynamoid?branch=master)
+[![CodeTriage Helpers](https://www.codetriage.com/dynamoid/dynamoid/badges/users.svg)](https://www.codetriage.com/dynamoid/dynamoid)
+
 Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It
 provides similar functionality to ActiveRecord and improves on
 Amazon's existing
