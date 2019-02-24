@@ -62,9 +62,9 @@ describe Dynamoid::Document do
   end
 
   it 'allows interception of write_attribute on load' do
-    klass = Class.new do
-      include Dynamoid::Document
+    klass = new_class do
       field :city
+
       def city=(value)
         self[:city] = value.downcase
       end
@@ -73,8 +73,7 @@ describe Dynamoid::Document do
   end
 
   it 'ignores unknown fields (does not raise error)' do
-    klass = Class.new do
-      include Dynamoid::Document
+    klass = new_class do
       field :city
     end
 
@@ -150,15 +149,11 @@ describe Dynamoid::Document do
   end
 
   it 'raises error when tries to save multiple invalid objects' do
-    klass = Class.new do
-      include Dynamoid::Document
+    klass = new_class do
       field :city
       validates :city, presence: true
-
-      def self.name
-        'Address'
-      end
     end
+    klass.create_table
 
     expect do
       klass.create!([{ city: 'Chicago' }, { city: nil }])

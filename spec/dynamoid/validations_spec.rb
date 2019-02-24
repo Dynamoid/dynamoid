@@ -4,13 +4,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Dynamoid::Validations do
   let(:doc_class) do
-    Class.new do
-      include Dynamoid::Document
-
-      def self.name
-        'Document'
-      end
-    end
+    new_class
   end
 
   it 'validates presence of' do
@@ -49,10 +43,7 @@ describe Dynamoid::Validations do
   end
 
   it 'does not validate when saves if `validate` option is false' do
-    klass = Class.new do
-      include Dynamoid::Document
-      table name: :documents
-
+    klass = new_class do
       field :name
       validates :name, presence: true
     end
@@ -63,10 +54,7 @@ describe Dynamoid::Validations do
   end
 
   it 'returns true if model is valid' do
-    klass = Class.new do
-      include Dynamoid::Document
-      table name: :documents
-
+    klass = new_class do
       field :name
       validates :name, presence: true
     end
@@ -75,16 +63,9 @@ describe Dynamoid::Validations do
   end
 
   it 'returns false if model is invalid' do
-    klass = Class.new do
-      include Dynamoid::Document
-      table name: :documents
-
+    klass = new_class do
       field :name
       validates :name, presence: true
-
-      def self.name
-        'Document'
-      end
     end
 
     expect(klass.new(name: nil).save).to eq(false)
@@ -92,10 +73,7 @@ describe Dynamoid::Validations do
 
   describe 'save!' do
     it 'returns self' do
-      klass = Class.new do
-        include Dynamoid::Document
-        table name: :documents
-      end
+      klass = new_class
 
       model = klass.new
       expect(model.save!).to eq(model)

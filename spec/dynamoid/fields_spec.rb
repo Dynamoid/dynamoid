@@ -22,23 +22,24 @@ describe Dynamoid::Fields do
   end
 
   it 'allows range key serializers' do
-    date_serializer = Class.new do
+    serializer = Class.new do
       def self.dump(val)
         val&.strftime('%m/%d/%Y')
       end
 
       def self.load(val)
-        val && DateTime.strptime(val, '%m/%d/%Y')
+        val && DateTime.strptime(val, '%m/%d/%Y').to_date
       end
     end
 
-    expect do
-      model = Class.new do
-        include Dynamoid::Document
-        table name: :special
-        range :special_date, :serialized, serializer: date_serializer
-      end
-    end.to_not raise_error
+    klass = new_class do
+      range :special_date, :serialized, serializer: serializer
+    end
+
+    date = '2019-02-24'.to_date
+    model = klass.create!(special_date: date)
+    model_loaded = klass.find(model.id, range_key: model.special_date)
+    expect(model_loaded.special_date).to eq date
   end
 
   it 'automatically declares and fills in created_at and updated_at' do
@@ -156,18 +157,12 @@ describe Dynamoid::Fields do
 
   context 'default values for fields' do
     let(:doc_class) do
-      Class.new do
-        include Dynamoid::Document
-
+      new_class do
         field :name, :string, default: 'x'
         field :uid, :integer, default: -> { 42 }
         field :config, :serialized, default: {}
         field :version, :integer, default: 1
         field :hidden, :boolean, default: false
-
-        def self.name
-          'Document'
-        end
       end
     end
 
@@ -250,14 +245,8 @@ describe Dynamoid::Fields do
 
   describe 'deprecated :float field type' do
     let(:doc) do
-      Class.new do
-        include Dynamoid::Document
-
+      new_class do
         field :distance_m, :float
-
-        def self.name
-          'Document'
-        end
       end.new
     end
 
@@ -274,7 +263,7 @@ describe Dynamoid::Fields do
     end
   end
 
-  context 'extention overides field accessors' do
+  context 'extention overrides field accessors' do
     let(:klass) do
       extention = Module.new do
         def name
@@ -286,8 +275,7 @@ describe Dynamoid::Fields do
         end
       end
 
-      Class.new do
-        include Dynamoid::Document
+      new_class do
         include extention
 
         field :name
