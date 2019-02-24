@@ -4,9 +4,7 @@ require 'spec_helper'
 
 describe Dynamoid::Indexes do
   let(:doc_class) do
-    Class.new do
-      include Dynamoid::Document
-    end
+    new_class
   end
 
   describe 'base behaviour' do

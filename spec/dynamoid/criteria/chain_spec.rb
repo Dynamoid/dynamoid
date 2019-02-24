@@ -54,9 +54,7 @@ describe Dynamoid::Criteria::Chain do
   describe 'Limits' do
     shared_examples 'correct handling chain limits' do |request_type|
       let(:model) do
-        Class.new do
-          include Dynamoid::Document
-          table name: :customer, key: :id
+        new_class do
           range :age, :integer
           field :name
         end
@@ -123,11 +121,7 @@ describe Dynamoid::Criteria::Chain do
 
   describe 'Query with keys conditions' do
     let(:model) do
-      Class.new do
-        include Dynamoid::Document
-        table name: :customer, key: :name
-        range :age, :integer
-      end
+      new_class(partition_key: :name, sort_key: { name: :age, type: :integer })
     end
 
     it 'supports eq' do
@@ -175,11 +169,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'supports begins_with' do
-      model = Class.new do
-        include Dynamoid::Document
-        table name: :customer, key: :name
-        range :job_title, :string
-      end
+      model = new_class(partition_key: :name, sort_key: :job_title)
 
       customer1 = model.create(name: 'Bob', job_title: 'Environmental Air Quality Consultant')
       customer2 = model.create(name: 'Bob', job_title: 'Environmental Project Manager')
@@ -289,11 +279,8 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'supports begins_with' do
-      model = Class.new do
-        include Dynamoid::Document
-        table name: :customer, key: :name
-        range :last_name
-        field :job_title, :string
+      model = new_class(partition_key: :name, sort_key: :last_name) do
+        field :job_title
       end
 
       customer1 = model.create(name: 'a', last_name: 'a', job_title: 'Environmental Air Quality Consultant')
@@ -322,10 +309,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'supports contains' do
-      model = Class.new do
-        include Dynamoid::Document
-        table name: :customer, key: :name
-        range :last_name
+      model = new_class(partition_key: :name, sort_key: :last_name) do
         field :job_title, :string
       end
 
@@ -338,10 +322,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'supports not_contains' do
-      model = Class.new do
-        include Dynamoid::Document
-        table name: :customer, key: :name
-        range :last_name
+      model = new_class(partition_key: :name, sort_key: :last_name) do
         field :job_title, :string
       end
 
@@ -357,9 +338,7 @@ describe Dynamoid::Criteria::Chain do
   # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ScanFilter.html?shortFooter=true
   describe 'Scan conditions ' do
     let(:model) do
-      Class.new do
-        include Dynamoid::Document
-        table name: :customer
+      new_class do
         field :age, :integer
         field :job_title, :string
       end
@@ -518,10 +497,7 @@ describe Dynamoid::Criteria::Chain do
 
   describe 'local secondary indexes used for `where` clauses' do
     let(:model) do
-      Class.new do
-        include Dynamoid::Document
-        table name: :customer, key: :name
-        range :range, :integer
+      new_class(partition_key: :name, sort_key: { name: :range, type: :integer }) do
         field :range2, :integer
         field :range3, :integer
 
@@ -580,10 +556,7 @@ describe Dynamoid::Criteria::Chain do
 
   describe 'global secondary indexes used for `where` clauses' do
     it 'does not use global secondary index if does not project all attributes' do
-      model = Class.new do
-        include Dynamoid::Document
-        table name: :customer, key: :name
-        range :customerid, :integer
+      model = new_class(partition_key: :name, sort_key: { name: :customerid, type: :integer }) do
         field :city
         field :age, :integer
         field :gender
@@ -605,10 +578,7 @@ describe Dynamoid::Criteria::Chain do
 
     context 'with full composite key for table' do
       let(:model) do
-        Class.new do
-          include Dynamoid::Document
-          table name: :customer, key: :name
-          range :customerid, :integer
+        new_class(partition_key: :name, sort_key: { name: :customerid, type: :integer }) do
           field :city
           field :email
           field :age, :integer
@@ -703,9 +673,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'supports query on global secondary index with correct start key without table range key' do
-      model = Class.new do
-        include Dynamoid::Document
-        table name: :customer, key: :name
+      model = new_class_with_partition_key(:name) do
         field :city
         field :age, :integer
 
@@ -754,10 +722,7 @@ describe Dynamoid::Criteria::Chain do
 
   describe 'dumping in `where` clause' do
     it 'dumps datetime' do
-      model = Class.new do
-        include Dynamoid::Document
-        table name: :customers
-
+      model = new_class do
         field :activated_at, :datetime
       end
 
@@ -771,10 +736,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'dumps date' do
-      model = Class.new do
-        include Dynamoid::Document
-        table name: :customers
-
+      model = new_class do
         field :registered_on, :date
       end
 
@@ -788,10 +750,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'dumps array elements' do
-      model = Class.new do
-        include Dynamoid::Document
-        table name: :customers
-
+      model = new_class do
         field :birthday, :date
       end
 
@@ -806,12 +765,7 @@ describe Dynamoid::Criteria::Chain do
 
     context 'Query' do
       it 'dumps partition key `equal` condition' do
-        model = Class.new do
-          include Dynamoid::Document
-          table name: :customers, key: :registered_on
-
-          field :registered_on, :date
-        end
+        model = new_class_with_partition_key(:registered_on, type: :date)
 
         customer1 = model.create(registered_on: Date.today)
         customer2 = model.create(registered_on: Date.today - 2.day)
@@ -822,13 +776,7 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'dumps sort key `equal` condition' do
-        model = Class.new do
-          include Dynamoid::Document
-          table name: :customers, key: :first_name
-
-          field :first_name
-          range :registered_on, :date
-        end
+        model = new_class(partition_key: :first_name, sort_key: { name: :registered_on, type: :date })
 
         customer1 = model.create(first_name: 'Alice', registered_on: Date.today)
         customer2 = model.create(first_name: 'Alice', registered_on: Date.today - 2.day)
@@ -839,13 +787,7 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'dumps sort key `range` condition' do
-        model = Class.new do
-          include Dynamoid::Document
-          table name: :customers, key: :first_name
-
-          field :first_name
-          range :registered_on, :date
-        end
+        model = new_class(partition_key: :first_name, sort_key: { name: :registered_on, type: :date })
 
         customer1 = model.create(first_name: 'Alice', registered_on: Date.today)
         customer2 = model.create(first_name: 'Alice', registered_on: Date.today - 2.day)
@@ -857,12 +799,7 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'dumps non-key field `equal` condition' do
-        model = Class.new do
-          include Dynamoid::Document
-          table name: :customers, key: :first_name
-
-          field :first_name
-          range :last_name
+        model = new_class(partition_key: :first_name, sort_key: :last_name) do
           field :registered_on, :date # <==== not range key
         end
 
@@ -875,12 +812,7 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'dumps non-key field `range` condition' do
-        model = Class.new do
-          include Dynamoid::Document
-          table name: :customers, key: :first_name
-
-          field :first_name
-          range :last_name
+        model = new_class(partition_key: :first_name, sort_key: :last_name) do
           field :registered_on, :date # <==== not range key
         end
 
@@ -896,10 +828,7 @@ describe Dynamoid::Criteria::Chain do
 
     context 'Scan' do
       it 'dumps field for `equal` condition' do
-        model = Class.new do
-          include Dynamoid::Document
-          table name: :customers
-
+        model = new_class do
           field :birthday, :date
         end
 
@@ -910,10 +839,7 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'dumps field for `range` condition' do
-        model = Class.new do
-          include Dynamoid::Document
-          table name: :customers
-
+        model = new_class do
           field :birthday, :date
         end
 
@@ -967,9 +893,7 @@ describe Dynamoid::Criteria::Chain do
 
   describe '#start' do
     let(:model) do
-      Class.new do
-        include Dynamoid::Document
-        table name: :customer, key: :name
+      new_class_with_partition_key(:name) do
         field :city
       end
     end
@@ -1047,10 +971,7 @@ describe Dynamoid::Criteria::Chain do
 
     context 'document without range key' do
       let(:model) do
-        Class.new do
-          include Dynamoid::Document
-          table name: :customer, key: :name
-
+        new_class_with_partition_key(:name) do
           field :age, :integer
         end
       end
@@ -1290,10 +1211,7 @@ describe Dynamoid::Criteria::Chain do
 
     context 'Scan' do
       let(:model) do
-        Class.new do
-          include Dynamoid::Document
-
-          table name: :customer
+        new_class do
           field :age, :integer
         end
       end
