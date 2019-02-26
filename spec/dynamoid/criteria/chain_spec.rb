@@ -121,7 +121,9 @@ describe Dynamoid::Criteria::Chain do
 
   describe 'Query with keys conditions' do
     let(:model) do
-      new_class(partition_key: :name, sort_key: { name: :age, type: :integer })
+      new_class(partition_key: :name) do
+        range :age, :integer
+      end
     end
 
     it 'supports eq' do
@@ -169,7 +171,9 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'supports begins_with' do
-      model = new_class(partition_key: :name, sort_key: :job_title)
+      model = new_class(partition_key: :name) do
+        range :job_title
+      end
 
       customer1 = model.create(name: 'Bob', job_title: 'Environmental Air Quality Consultant')
       customer2 = model.create(name: 'Bob', job_title: 'Environmental Project Manager')
@@ -279,7 +283,8 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'supports begins_with' do
-      model = new_class(partition_key: :name, sort_key: :last_name) do
+      model = new_class(partition_key: :name) do
+        range :last_name
         field :job_title
       end
 
@@ -309,7 +314,8 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'supports contains' do
-      model = new_class(partition_key: :name, sort_key: :last_name) do
+      model = new_class(partition_key: :name) do
+        range :last_name
         field :job_title, :string
       end
 
@@ -322,7 +328,8 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'supports not_contains' do
-      model = new_class(partition_key: :name, sort_key: :last_name) do
+      model = new_class(partition_key: :name) do
+        range :last_name
         field :job_title, :string
       end
 
@@ -497,7 +504,9 @@ describe Dynamoid::Criteria::Chain do
 
   describe 'local secondary indexes used for `where` clauses' do
     let(:model) do
-      new_class(partition_key: :name, sort_key: { name: :range, type: :integer }) do
+      new_class(partition_key: :name) do
+        range :range, :integer
+
         field :range2, :integer
         field :range3, :integer
 
@@ -556,7 +565,9 @@ describe Dynamoid::Criteria::Chain do
 
   describe 'global secondary indexes used for `where` clauses' do
     it 'does not use global secondary index if does not project all attributes' do
-      model = new_class(partition_key: :name, sort_key: { name: :customerid, type: :integer }) do
+      model = new_class(partition_key: :name) do
+        range :customerid, :integer
+
         field :city
         field :age, :integer
         field :gender
@@ -578,7 +589,9 @@ describe Dynamoid::Criteria::Chain do
 
     context 'with full composite key for table' do
       let(:model) do
-        new_class(partition_key: :name, sort_key: { name: :customerid, type: :integer }) do
+        new_class(partition_key: :name) do
+          range :customerid, :integer
+
           field :city
           field :email
           field :age, :integer
@@ -673,7 +686,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'supports query on global secondary index with correct start key without table range key' do
-      model = new_class_with_partition_key(:name) do
+      model = new_class(partition_key: :name) do
         field :city
         field :age, :integer
 
@@ -765,7 +778,7 @@ describe Dynamoid::Criteria::Chain do
 
     context 'Query' do
       it 'dumps partition key `equal` condition' do
-        model = new_class_with_partition_key(:registered_on, type: :date)
+        model = new_class(partition_key: { name: :registered_on, type: :date })
 
         customer1 = model.create(registered_on: Date.today)
         customer2 = model.create(registered_on: Date.today - 2.day)
@@ -776,7 +789,9 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'dumps sort key `equal` condition' do
-        model = new_class(partition_key: :first_name, sort_key: { name: :registered_on, type: :date })
+        model = new_class(partition_key: :first_name) do
+          range :registered_on, :date
+        end
 
         customer1 = model.create(first_name: 'Alice', registered_on: Date.today)
         customer2 = model.create(first_name: 'Alice', registered_on: Date.today - 2.day)
@@ -787,7 +802,9 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'dumps sort key `range` condition' do
-        model = new_class(partition_key: :first_name, sort_key: { name: :registered_on, type: :date })
+        model = new_class(partition_key: :first_name) do
+          range :registered_on, :date
+        end
 
         customer1 = model.create(first_name: 'Alice', registered_on: Date.today)
         customer2 = model.create(first_name: 'Alice', registered_on: Date.today - 2.day)
@@ -799,7 +816,8 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'dumps non-key field `equal` condition' do
-        model = new_class(partition_key: :first_name, sort_key: :last_name) do
+        model = new_class(partition_key: :first_name) do
+          range :last_name
           field :registered_on, :date # <==== not range key
         end
 
@@ -812,7 +830,8 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'dumps non-key field `range` condition' do
-        model = new_class(partition_key: :first_name, sort_key: :last_name) do
+        model = new_class(partition_key: :first_name) do
+          range :last_name
           field :registered_on, :date # <==== not range key
         end
 
@@ -893,7 +912,7 @@ describe Dynamoid::Criteria::Chain do
 
   describe '#start' do
     let(:model) do
-      new_class_with_partition_key(:name) do
+      new_class(partition_key: :name) do
         field :city
       end
     end
@@ -971,7 +990,7 @@ describe Dynamoid::Criteria::Chain do
 
     context 'document without range key' do
       let(:model) do
-        new_class_with_partition_key(:name) do
+        new_class(partition_key: :name) do
           field :age, :integer
         end
       end
