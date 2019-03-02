@@ -165,7 +165,7 @@ class Document
 end
 ```
 
-WARNING: Fields in numeric format are stored with nanoseconds as a fraction part and precision could be lost.
+**WARNING:** Fields in numeric format are stored with nanoseconds as a fraction part and precision could be lost.
 That's why `datetime` field in numeric format shouldn't be used as a range key.
 
 You have two options if you need to use a `datetime` field as a range key:
@@ -716,44 +716,17 @@ There are following options:
 
 The only mandatory option is `name`.
 
-To use index in `Document.where` implicitly you need to project all the fields with option `projected_attributes: :all`.
-
-There are two ways to query Global Secondary Indexes (GSI).
-
-#### Explicit
-
-The first way explicitly uses your GSI and utilizes the `find_all_by_secondary_index` method which will lookup a valid
-GSI to use based on the inputs, you MUST provide the correct keys to match the GSI you want:
+**WARNING:** In order to use global secondary index in `Document.where` implicitly you need to have all the attributes of the original table in the index and declare it with option `projected_attributes: :all`:
 
 ```ruby
-find_all_by_secondary_index(
-    {
-        dynamo_primary_key_column_name => dynamo_primary_key_value
-    }, # The signature of find_all_by_secondary_index is ugly, so must be an explicit hash here
-    :range => {
-        "#{range_column}.#{range_modifier}" => range_value
-    },
-    # false is the same as DESC in SQL (newest timestamp first)
-    # true is the same as ASC in SQL (oldest timestamp first)
-    scan_index_forward: false # or true
-)
+class User
+  # ...
+
+  global_secondary_index hash_key: :age, projected_attributes: :all
+end
 ```
 
-Where the range modifier is one of `Dynamoid::Finders::RANGE_MAP.keys`, where the `RANGE_MAP` is:
-
-```ruby
-RANGE_MAP = {
-  'gt'            => :range_greater_than,
-  'lt'            => :range_less_than,
-  'gte'           => :range_gte,
-  'lte'           => :range_lte,
-  'begins_with'   => :range_begins_with,
-  'between'       => :range_between,
-  'eq'            => :range_eq
-}
-```
-
-Most range searches, like `eq`, need a single value, and searches like `between`, need an array with two values.
+There is only one implicit way to query Global and Local Secondary Indexes (GSI/LSI).
 
 #### Implicit
 
