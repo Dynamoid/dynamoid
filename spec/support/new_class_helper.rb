@@ -4,7 +4,7 @@
 # So let's use helpers to simplify class declaration in specs.
 module NewClassHelper
   def new_class(options = {}, &blk)
-    table_name = options[:table_name] || :documents
+    table_name = options[:table_name] || :"documents_#{Time.now.to_i}_#{rand(1000)}"
     class_name = (options[:class_name] || table_name).to_s.classify
     partition_key = options[:partition_key]
 
