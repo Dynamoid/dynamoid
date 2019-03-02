@@ -13,8 +13,6 @@ require 'dynamoid'
 require 'pry'
 require 'byebug' if ENV['DEBUG']
 
-require 'dynamodb_local'
-
 ENV['ACCESS_KEY'] ||= 'abcd'
 ENV['SECRET_KEY'] ||= '1234'
 
@@ -50,15 +48,4 @@ RSpec.configure do |config|
   config.include DumpingHelper
   config.include PersistenceHelper
   config.include ActiveSupport::Testing::TimeHelpers
-
-  config.before(:each) do
-    DynamoDBLocal.delete_all_specified_tables!
-    Dynamoid.adapter.clear_cache!
-  end
-
-  config.around(:each) do |example|
-    included_models_before = Dynamoid.included_models.dup
-    example.run
-    Dynamoid.included_models.replace(included_models_before)
-  end
 end
