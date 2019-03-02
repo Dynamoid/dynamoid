@@ -13,8 +13,6 @@ require 'dynamoid'
 require 'pry'
 require 'byebug' if ENV['DEBUG']
 
-require 'dynamodb_local'
-
 ENV['ACCESS_KEY'] ||= 'abcd'
 ENV['SECRET_KEY'] ||= '1234'
 
@@ -48,10 +46,6 @@ RSpec.configure do |config|
 
   config.include NewClassHelper
   config.include DumpingHelper
-  config.include PersictenseHelper
+  config.include PersistenceHelper
   config.include ActiveSupport::Testing::TimeHelpers
-
-  config.before(:each) do
-    DynamoDBLocal.delete_all_specified_tables!
-  end
 end
