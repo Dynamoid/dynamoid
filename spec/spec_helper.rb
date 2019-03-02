@@ -53,5 +53,12 @@ RSpec.configure do |config|
 
   config.before(:each) do
     DynamoDBLocal.delete_all_specified_tables!
+    Dynamoid.adapter.clear_cache!
+  end
+
+  config.around(:each) do |example|
+    included_models_before = Dynamoid.included_models.dup
+    example.run
+    Dynamoid.included_models.replace(included_models_before)
   end
 end
