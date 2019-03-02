@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.configure do |config|
   config.around :each, :log_level do |example|
     level_old = Dynamoid::Config.logger.level

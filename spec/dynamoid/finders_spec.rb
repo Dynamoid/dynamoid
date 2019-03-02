@@ -40,7 +40,7 @@ describe Dynamoid::Finders do
         it 'raises RecordNotFound error when found nothing' do
           klass_with_composite_key.create_table
           expect {
-            klass_with_composite_key.find('wrong-id', range_key: 100500)
+            klass_with_composite_key.find('wrong-id', range_key: 100_500)
           }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Cat with primary key (wrong-id,100500)")
         end
 
@@ -88,7 +88,7 @@ describe Dynamoid::Finders do
     context 'multiple primary keys provided' do
       context 'simple primary key' do
         it 'finds with an array of keys' do
-          objects = (1 .. 2).map { klass.create }
+          objects = (1..2).map { klass.create }
           obj1, obj2 = objects
           expect(klass.find([obj1.id, obj2.id])).to match_array(objects)
         end
@@ -104,7 +104,7 @@ describe Dynamoid::Finders do
         end
 
         it 'raises RecordNotFound error when some objects are not found' do
-          objects = (1 .. 2).map { klass.create }
+          objects = (1..2).map { klass.create }
           obj1, obj2 = objects
 
           expect {
@@ -127,7 +127,7 @@ describe Dynamoid::Finders do
         end
 
         it 'finds with a list of keys' do
-          objects = (1 .. 2).map { klass.create }
+          objects = (1..2).map { klass.create }
           obj1, obj2 = objects
           expect(klass.find(obj1.id, obj2.id)).to match_array(objects)
         end
@@ -135,7 +135,7 @@ describe Dynamoid::Finders do
 
       context 'composite primary key' do
         it 'finds with an array of keys' do
-          objects = (1 .. 2).map { |i| klass_with_composite_key.create(age: i) }
+          objects = (1..2).map { |i| klass_with_composite_key.create(age: i) }
           obj1, obj2 = objects
           expect(klass_with_composite_key.find([[obj1.id, obj1.age], [obj2.id, obj2.age]])).to match_array(objects)
         end
@@ -153,16 +153,17 @@ describe Dynamoid::Finders do
         it 'raises RecordNotFound error when some objects are not found' do
           obj = klass_with_composite_key.create(age: 12)
           expect {
-            klass_with_composite_key.find([[obj.id, obj.age], ['wrong-id', 100500]])
+            klass_with_composite_key.find([[obj.id, obj.age], ['wrong-id', 100_500]])
           }.to raise_error(
             Dynamoid::Errors::RecordNotFound,
-            "Couldn't find all Cats with primary keys [(#{obj.id},12), (wrong-id,100500)] (found 1 results, but was looking for 2)")
+            "Couldn't find all Cats with primary keys [(#{obj.id},12), (wrong-id,100500)] (found 1 results, but was looking for 2)"
+          )
         end
 
         it 'raises RecordNotFound if only one primary key provided and no result found' do
           klass_with_composite_key.create_table
           expect {
-            klass_with_composite_key.find([['wrong-id', 100500]])
+            klass_with_composite_key.find([['wrong-id', 100_500]])
           }.to raise_error(
             Dynamoid::Errors::RecordNotFound,
             "Couldn't find all Cats with primary keys [(wrong-id,100500)] (found 0 results, but was looking for 1)"
@@ -172,13 +173,13 @@ describe Dynamoid::Finders do
         it 'finds with a list of keys' do
           pending 'still is not implemented'
 
-          objects = (1 .. 2).map { |i| klass_with_composite_key.create(age: i) }
+          objects = (1..2).map { |i| klass_with_composite_key.create(age: i) }
           obj1, obj2 = objects
           expect(klass_with_composite_key.find([obj1.id, obj1.age], [obj2.id, obj2.age])).to match_array(objects)
         end
 
         it 'type casts a sort key value' do
-          objects = (1 .. 2).map { |i| klass_with_composite_key.create(age: i) }
+          objects = (1..2).map { |i| klass_with_composite_key.create(age: i) }
           obj1, obj2 = objects
           expect(klass_with_composite_key.find([[obj1.id, '1'], [obj2.id, '2']])).to match_array(objects)
         end
@@ -198,7 +199,7 @@ describe Dynamoid::Finders do
       end
 
       it 'returns persisted? objects' do
-        objects = (1 .. 2).map { |i| klass_with_composite_key.create(age: i) }
+        objects = (1..2).map { |i| klass_with_composite_key.create(age: i) }
         obj1, obj2 = objects
 
         objects = klass_with_composite_key.find([[obj1.id, obj1.age], [obj2.id, obj2.age]])
@@ -223,7 +224,7 @@ describe Dynamoid::Finders do
           Dynamoid.adapter.put_item(class_with_not_declared_field.table_name, id: '1', dob: '1996-12-21')
           Dynamoid.adapter.put_item(class_with_not_declared_field.table_name, id: '2', dob: '2001-03-14')
 
-          objects = class_with_not_declared_field.find(['1', '2'])
+          objects = class_with_not_declared_field.find(%w[1 2])
 
           expect(objects.size).to eql 2
           expect(objects.map(&:id)).to contain_exactly('1', '2')

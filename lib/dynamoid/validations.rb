@@ -14,6 +14,7 @@ module Dynamoid
     def save(options = {})
       options.reverse_merge!(validate: true)
       return false if options[:validate] && !valid?
+
       super
     end
 
@@ -30,6 +31,7 @@ module Dynamoid
     # @since 0.2.0
     def save!
       raise Dynamoid::Errors::DocumentNotValid, self unless valid?
+
       save(validate: false)
       self
     end

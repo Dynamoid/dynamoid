@@ -66,7 +66,7 @@ module Dynamoid
 
     # set -> set
     class SetDumper < Base
-      ALLOWED_TYPES = [:string, :integer, :number, :date, :datetime, :serialized]
+      ALLOWED_TYPES = %i[string integer number date datetime serialized].freeze
 
       def process(set)
         if @options.key?(:of)
@@ -98,27 +98,27 @@ module Dynamoid
       end
 
       def element_type
-        unless @options[:of].is_a?(Hash)
-          @options[:of]
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of].keys.first
+        else
+          @options[:of]
         end
       end
 
       def element_options
-        unless @options[:of].is_a?(Hash)
-          { type: element_type }
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of][element_type].dup.tap do |options|
             options[:type] = element_type
           end
+        else
+          { type: element_type }
         end
       end
     end
 
     # array -> array
     class ArrayDumper < Base
-      ALLOWED_TYPES = [:string, :integer, :number, :date, :datetime, :serialized]
+      ALLOWED_TYPES = %i[string integer number date datetime serialized].freeze
 
       def process(array)
         if @options.key?(:of)
@@ -150,20 +150,20 @@ module Dynamoid
       end
 
       def element_type
-        unless @options[:of].is_a?(Hash)
-          @options[:of]
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of].keys.first
+        else
+          @options[:of]
         end
       end
 
       def element_options
-        unless @options[:of].is_a?(Hash)
-          { type: element_type }
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of][element_type].dup.tap do |options|
             options[:type] = element_type
           end
+        else
+          { type: element_type }
         end
       end
     end
@@ -226,27 +226,27 @@ module Dynamoid
 
       private
 
-      def deep_sanitize(el)
-        case el
+      def deep_sanitize(value)
+        case value
         when Hash
-          sanitize_hash(el).transform_values { |v| deep_sanitize(v) }
+          sanitize_hash(value).transform_values { |v| deep_sanitize(v) }
         when Array
-          sanitize_array(el).map { |v| deep_sanitize(v) }
+          sanitize_array(value).map { |v| deep_sanitize(v) }
         else
-          el
+          value
         end
       end
 
-      def sanitize_hash(h)
-        h.transform_values { |v| invalid_value?(v) ? nil : v }
+      def sanitize_hash(hash)
+        hash.transform_values { |v| invalid_value?(v) ? nil : v }
       end
 
-      def sanitize_array(a)
-        a.map { |v| invalid_value?(v) ? nil : v }
+      def sanitize_array(array)
+        array.map { |v| invalid_value?(v) ? nil : v }
       end
 
-      def invalid_value?(v)
-        (v.is_a?(Set) || v.is_a?(String)) && v.empty?
+      def invalid_value?(value)
+        (value.is_a?(Set) || value.is_a?(String)) && value.empty?
       end
     end
 

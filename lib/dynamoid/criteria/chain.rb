@@ -320,6 +320,7 @@ module Dynamoid #:nodoc:
           # Chooses the first LSI found that can be utilized for the query
           source.local_secondary_indexes.each do |_, lsi|
             next unless query_keys.include?(lsi.range_key.to_s)
+
             @range_key = lsi.range_key
             @index_name = lsi.name
           end
@@ -351,6 +352,7 @@ module Dynamoid #:nodoc:
       # as well as the tables composite key.
       def start_key
         return @start if @start.is_a?(Hash)
+
         hash_key = @hash_key || source.hash_key
         range_key = @range_key || source.range_key
 

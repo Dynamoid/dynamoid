@@ -512,17 +512,17 @@ describe 'Dumping' do
         end
 
         it 'stores elements as strings' do
-          obj = class_with_typed_set.create(values: Set.new(['a', 'b', 'c']))
+          obj = class_with_typed_set.create(values: Set.new(%w[a b c]))
 
-          expect(reload(obj).values).to eql(Set.new(['a', 'b', 'c']))
-          expect(raw_attributes(obj)[:values]).to eql(Set.new(['a', 'b', 'c']))
+          expect(reload(obj).values).to eql(Set.new(%w[a b c]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(%w[a b c]))
         end
 
         it 'removes empty strings' do
           obj = class_with_typed_set.create(values: Set.new(['a', '', 'c']))
 
-          expect(reload(obj).values).to eql(Set.new(['a', 'c']))
-          expect(raw_attributes(obj)[:values]).to eql(Set.new(['a', 'c']))
+          expect(reload(obj).values).to eql(Set.new(%w[a c]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(%w[a c]))
         end
       end
 
@@ -604,7 +604,7 @@ describe 'Dumping' do
         end
 
         it 'stores elements as DateTime' do
-          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          datetime = '2018-07-24 19:04:30 +00:00'.to_datetime
           obj = class_with_typed_set.create(values: Set.new([datetime]))
 
           expect(reload(obj).values).to eql(Set.new([datetime]))
@@ -616,7 +616,7 @@ describe 'Dumping' do
             field :values, :set, of: { datetime: { store_as_string: false } }
           end
 
-          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          datetime = '2018-07-24 19:04:30 +00:00'.to_datetime
           obj = class_with_numeric_format.create(values: Set.new([datetime]))
 
           expect(reload(obj).values).to eql(Set.new([datetime]))
@@ -628,7 +628,7 @@ describe 'Dumping' do
             field :values, :set, of: { datetime: { store_as_string: true } }
           end
 
-          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          datetime = '2018-07-24 19:04:30 +00:00'.to_datetime
           obj = class_with_string_format.create(values: Set.new([datetime]))
 
           expect(reload(obj).values).to eql(Set.new([datetime]))
@@ -795,17 +795,17 @@ describe 'Dumping' do
         end
 
         it 'stores elements as strings' do
-          obj = class_with_typed_array.create(values: ['a', 'b', 'c'])
+          obj = class_with_typed_array.create(values: %w[a b c])
 
-          expect(reload(obj).values).to eql(['a', 'b', 'c'])
-          expect(raw_attributes(obj)[:values]).to eql(['a', 'b', 'c'])
+          expect(reload(obj).values).to eql(%w[a b c])
+          expect(raw_attributes(obj)[:values]).to eql(%w[a b c])
         end
 
         it 'removes empty strings' do
           obj = class_with_typed_array.create(values: ['a', '', 'c'])
 
-          expect(reload(obj).values).to eql(['a', 'c'])
-          expect(raw_attributes(obj)[:values]).to eql(['a', 'c'])
+          expect(reload(obj).values).to eql(%w[a c])
+          expect(raw_attributes(obj)[:values]).to eql(%w[a c])
         end
       end
 
@@ -887,7 +887,7 @@ describe 'Dumping' do
         end
 
         it 'stores elements as DateTime' do
-          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          datetime = '2018-07-24 19:04:30 +00:00'.to_datetime
           obj = class_with_typed_array.create(values: [datetime])
 
           expect(reload(obj).values).to eql([datetime])
@@ -899,7 +899,7 @@ describe 'Dumping' do
             field :values, :array, of: { datetime: { store_as_string: false } }
           end
 
-          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          datetime = '2018-07-24 19:04:30 +00:00'.to_datetime
           obj = class_with_numeric_format.create(values: [datetime])
 
           expect(reload(obj).values).to eql([datetime])
@@ -911,7 +911,7 @@ describe 'Dumping' do
             field :values, :array, of: { datetime: { store_as_string: true } }
           end
 
-          datetime ='2018-07-24 19:04:30 +00:00'.to_datetime
+          datetime = '2018-07-24 19:04:30 +00:00'.to_datetime
           obj = class_with_string_format.create(values: [datetime])
 
           expect(reload(obj).values).to eql([datetime])
@@ -1146,10 +1146,10 @@ describe 'Dumping' do
       end
 
       it 'processes nested Hash and Array' do
-        config = { a: 1, b: '', c: [1, 2, '', { d: 3, e: '' }]}
+        config = { a: 1, b: '', c: [1, 2, '', { d: 3, e: '' }] }
         obj = klass.create(config: config)
 
-        expect(reload(obj).config).to eql({ a: 1, b: nil, c: [1, 2, nil, { d: 3, e: nil }] })
+        expect(reload(obj).config).to eql(a: 1, b: nil, c: [1, 2, nil, { d: 3, e: nil }])
       end
     end
   end

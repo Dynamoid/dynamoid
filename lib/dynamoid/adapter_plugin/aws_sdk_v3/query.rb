@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module Dynamoid
   module AdapterPlugin
     class Query
-      OPTIONS_KEYS = [
-        :limit, :hash_key, :hash_value, :range_key, :consistent_read, :scan_index_forward,
-        :select, :index_name, :batch_size, :exclusive_start_key, :record_limit, :scan_limit
-      ]
+      OPTIONS_KEYS = %i[
+        limit hash_key hash_value range_key consistent_read scan_index_forward
+        select index_name batch_size exclusive_start_key record_limit scan_limit
+      ].freeze
 
       attr_reader :client, :table, :options, :conditions
 

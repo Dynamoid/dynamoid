@@ -3,7 +3,6 @@
 module Dynamoid
   module AdapterPlugin
     class AwsSdkV3
-
       # Represents a table. Exposes data from the "DescribeTable" API call, and also
       # provides methods for coercing values to the proper types based on the table's schema data
       class Table
@@ -51,4 +50,3 @@ module Dynamoid
     end
   end
 end
-

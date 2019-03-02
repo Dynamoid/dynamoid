@@ -3,7 +3,7 @@
 module Dynamoid
   class PrimaryKeyTypeMapping
     def self.dynamodb_type(type, options)
-      if Class === type
+      if type.is_a?(Class)
         type = type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
       end
 

@@ -3,7 +3,6 @@
 module Dynamoid
   module AdapterPlugin
     class AwsSdkV3
-
       # Mimics behavior of the yielded object on DynamoDB's update_item API (high level).
       class ItemUpdater
         attr_reader :table, :key, :range_key

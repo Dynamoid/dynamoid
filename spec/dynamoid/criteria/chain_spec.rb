@@ -70,6 +70,7 @@ describe Dynamoid::Criteria::Chain do
 
       def request_params
         return { id: '1' } if @request_type == :query
+
         {}
       end
 

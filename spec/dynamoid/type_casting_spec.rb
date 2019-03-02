@@ -108,8 +108,8 @@ describe 'Type casting' do
       obj = klass.new(created_at: datetime)
       expect(obj.created_at).to eql(datetime)
 
-      obj = klass.new(created_at: Time.new(2007, 11, 1, 15, 25, 0, "+09:00"))
-      expect(obj.created_at).to eql(DateTime.new(2007, 11, 1, 15, 25, 0, "+09:00"))
+      obj = klass.new(created_at: Time.new(2007, 11, 1, 15, 25, 0, '+09:00'))
+      expect(obj.created_at).to eql(DateTime.new(2007, 11, 1, 15, 25, 0, '+09:00'))
     end
 
     it 'converts string with well formatted date or datetime to DateTime', config: { application_timezone: :utc } do
@@ -177,7 +177,7 @@ describe 'Type casting' do
       obj = klass.new(published_on: DateTime.new(2018, 7, 21, 8, 40, 15, '+7'))
       expect(obj.published_on).to eql(DateTime.new(2018, 7, 21))
 
-      obj = klass.new(published_on: Time.new(2007, 11, 1, 15, 25, 0, "+09:00"))
+      obj = klass.new(published_on: Time.new(2007, 11, 1, 15, 25, 0, '+09:00'))
       expect(obj.published_on).to eql(Date.new(2007, 11, 1))
     end
 
@@ -554,7 +554,7 @@ describe 'Type casting' do
       obj = klass.new(age: :'23abc')
       expect(obj.age).to eql(BigDecimal('23'))
 
-      obj = klass.new(age: :'abc')
+      obj = klass.new(age: :abc)
       expect(obj.age).to eql(BigDecimal('0.0'))
 
       obj = klass.new(age: :'')

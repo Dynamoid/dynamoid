@@ -16,6 +16,7 @@ module Dynamoid #:nodoc:
         key_name = options[:inverse_of] || source.class.to_s.pluralize.underscore.to_sym
         guess = target_class.associations[key_name]
         return nil if guess.nil? || guess[:type] != :has_and_belongs_to_many
+
         key_name
       end
     end

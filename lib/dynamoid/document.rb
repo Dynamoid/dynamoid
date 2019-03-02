@@ -220,7 +220,6 @@ module Dynamoid #:nodoc:
         end
       end
 
-
       # Update existing document or create new one.
       # Similar to `.update_fields`. The only diffirence is creating new document.
       #
@@ -282,7 +281,7 @@ module Dynamoid #:nodoc:
         end
       end
 
-      def inc(hash_key_value, range_key_value=nil, counters)
+      def inc(hash_key_value, range_key_value = nil, counters)
         options = if range_key
                     value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
                     value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
@@ -353,6 +352,7 @@ module Dynamoid #:nodoc:
         super
       else
         return false if other.nil?
+
         other.is_a?(Dynamoid::Document) && hash_key == other.hash_key && range_value == other.range_value
       end
     end

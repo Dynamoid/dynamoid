@@ -469,7 +469,7 @@ describe Dynamoid::Document do
         a = klass.create
 
         expect {
-          klass.update_fields(a.id, hash: {1 => :b})
+          klass.update_fields(a.id, hash: { 1 => :b })
         }.not_to raise_error
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
@@ -632,7 +632,7 @@ describe Dynamoid::Document do
         a = klass.create
 
         expect {
-          klass.upsert(a.id, hash: {1 => :b})
+          klass.upsert(a.id, hash: { 1 => :b })
         }.not_to raise_error
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')

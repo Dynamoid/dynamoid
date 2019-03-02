@@ -63,8 +63,8 @@ module Dynamoid
           resp = client.create_table(client_opts)
           options[:sync] = true if !options.key?(:sync) && ls_indexes.present? || gs_indexes.present?
           UntilPastTableStatus.new(table_name, :creating).call if options[:sync] &&
-                                                            (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-                                                            status == TABLE_STATUSES[:creating]
+                                                                  (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
+                                                                  status == TABLE_STATUSES[:creating]
           # Response to original create_table, which, if options[:sync]
           #   may have an outdated table_description.table_status of "CREATING"
           resp
@@ -232,4 +232,3 @@ module Dynamoid
     end
   end
 end
-

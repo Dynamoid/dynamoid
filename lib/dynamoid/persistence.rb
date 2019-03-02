@@ -18,8 +18,7 @@ module Dynamoid
 
     module ClassMethods
       def table_name
-        table_base_name = options[:name] || base_class.name.split('::').last
-                                                      .downcase.pluralize
+        table_base_name = options[:name] || base_class.name.split('::').last.downcase.pluralize
 
         @table_name ||= [Dynamoid::Config.namespace.to_s, table_base_name].reject(&:empty?).join('_')
       end

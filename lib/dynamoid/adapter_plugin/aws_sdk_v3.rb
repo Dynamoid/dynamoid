@@ -191,6 +191,7 @@ module Dynamoid
 
         table_ids.each do |t, ids|
           next if ids.blank?
+
           ids = Array(ids).dup
           tbl = describe_table(t)
           hk  = tbl.hash_key.to_s
@@ -356,8 +357,8 @@ module Dynamoid
       def delete_table(table_name, options = {})
         resp = client.delete_table(table_name: table_name)
         UntilPastTableStatus.new(table_name, :deleting).call if options[:sync] &&
-                                                          (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-                                                          status == TABLE_STATUSES[:deleting]
+                                                                (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
+                                                                status == TABLE_STATUSES[:deleting]
         table_cache.delete(table_name)
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         Dynamoid.logger.error "Table #{table_name} cannot be deleted as it is in use"
@@ -414,6 +415,7 @@ module Dynamoid
         yield(iu = ItemUpdater.new(table, key, range_key))
 
         raise "non-empty options: #{options}" unless options.empty?
+
         begin
           result = client.update_item(table_name: table_name,
                                       key: key_stanza(table, key, range_key),
@@ -632,7 +634,7 @@ module Dynamoid
       end
 
       def sanitize_item(attributes)
-        attributes.reject do |_k, v|
+        attributes.reject do |_, v|
           v.nil? || ((v.is_a?(Set) || v.is_a?(String)) && v.empty?)
         end.transform_values do |v|
           v.is_a?(Hash) ? v.stringify_keys : v
