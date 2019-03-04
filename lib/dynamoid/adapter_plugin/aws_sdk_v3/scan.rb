@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative 'middleware/backoff'
+require_relative 'middleware/limit'
+require_relative 'middleware/start_key'
+
 module Dynamoid
   module AdapterPlugin
     class AwsSdkV3
@@ -17,52 +21,22 @@ module Dynamoid
           request = build_request
 
           Enumerator.new do |yielder|
-            record_count = 0
-            scan_count = 0
-
-            backoff = Dynamoid.config.backoff ? Dynamoid.config.build_backoff : nil
-
-            loop do
-              # Adjust the limit down if the remaining record and/or scan limit are
-              # lower to obey limits. We can assume the difference won't be
-              # negative due to break statements below but choose smaller limit
-              # which is why we have 2 separate if statements.
-              # NOTE: Adjusting based on record_limit can cause many HTTP requests
-              # being made. We may want to change this behavior, but it affects
-              # filtering on data with potentially large gaps.
-              # Example:
-              #    User.where('created_at.gte' => 1.day.ago).record_limit(1000)
-              #    Records 1-999 User's that fit criteria
-              #    Records 1000-2000 Users's that do not fit criteria
-              #    Record 2001 fits criteria
-              # The underlying implementation will have 1 page for records 1-999
-              # then will request with limit 1 for records 1000-2000 (making 1000
-              # requests of limit 1) until hit record 2001.
-              if request[:limit] && record_limit && record_limit - record_count < request[:limit]
-                request[:limit] = record_limit - record_count
+            api_call = -> (request) do
+              client.scan(request).tap do |response|
+                yielder << response
               end
-              if request[:limit] && scan_limit && scan_limit - scan_count < request[:limit]
-                request[:limit] = scan_limit - scan_count
+            end
+
+            middlewares = Middleware::Backoff.new(
+              Middleware::StartKey.new(
+                Middleware::Limit.new(api_call, record_limit: record_limit, scan_limit: scan_limit)
+              )
+            )
+
+            catch :stop_pagination do
+              loop do
+                middlewares.call(request)
               end
-
-              response = client.scan(request)
-
-              yielder << response
-
-              record_count += response.count
-              break if record_limit && record_count >= record_limit
-
-              scan_count += response.scanned_count
-              break if scan_limit && scan_count >= scan_limit
-
-              # Keep pulling if we haven't finished paging in all data
-              if response.last_evaluated_key
-                request[:exclusive_start_key] = response.last_evaluated_key
-              else
-                break
-              end
-
-              backoff.call if backoff
             end
           end
         end
