@@ -2,7 +2,7 @@
 
 Vagrant.configure('2') do |config|
   # Choose base box
-  config.vm.box = 'bento/ubuntu-16.04'
+  config.vm.box = 'bento/ubuntu-18.04'
 
   config.vm.provider 'virtualbox' do |vb|
     # Prevent clock skew when host goes to sleep while VM is running
@@ -20,7 +20,7 @@ Vagrant.configure('2') do |config|
     # Pillars
     salt.pillar(
       'ruby' => {
-        'version' => '2.4.1'
+        'version' => '2.6.2'
       }
     )
 

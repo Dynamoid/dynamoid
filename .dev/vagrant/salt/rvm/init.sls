@@ -9,7 +9,7 @@ rvm-deps:
       - gawk
       - sed
       - curl
-      - git-core
+      - git
       - subversion
       - gnupg2
 
@@ -18,10 +18,9 @@ mri-deps:
     - pkgs:
       - build-essential
       - openssl
-      - libreadline6
-      - libreadline6-dev
+      - libreadline-dev
       - curl
-      - git-core
+      - git
       - zlib1g
       - zlib1g-dev
       - libssl-dev
@@ -43,7 +42,7 @@ mri-deps:
 gpg-trust:
   cmd.run:
     - cwd: /home/vagrant
-    - name: gpg2 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+    - name: gpg2 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
     - runas: vagrant
 
 ruby-{{ pillar['ruby']['version'] }}:
