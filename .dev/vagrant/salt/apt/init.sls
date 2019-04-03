@@ -2,12 +2,12 @@ apt-pkgs:
   pkg.latest:
     - pkgs:
       - daemontools
-      - git-core
-      - openjdk-8-jre-headless
+      - git
+      - openjdk-11-jre-headless
       - tmux
       - vim
 
 # JAVA_HOME
 /home/vagrant/.bashrc:
   file.append:
-    - text: export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+    - text: export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
