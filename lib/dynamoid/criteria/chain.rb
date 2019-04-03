@@ -312,16 +312,19 @@ module Dynamoid #:nodoc:
         # Chooses the first GSI found that can be utilized for the query
         # But only do so if projects ALL attributes otherwise we won't
         # get back full data
+        result = false
         source.global_secondary_indexes.each do |_, gsi|
           next unless query.keys.map(&:to_s).include?(gsi.hash_key.to_s) && gsi.projected_attributes == :all
+          next if @range_key.present? && !query_keys.include?(gsi.range_key.to_s)
+
           @hash_key = gsi.hash_key
           @range_key = gsi.range_key
           @index_name = gsi.name
-          return true
+          result = true
         end
 
         # Could not utilize any indices so we'll have to scan
-        false
+        result
       end
 
       # Start key needs to be set up based on the index utilized
