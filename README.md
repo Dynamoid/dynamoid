@@ -584,9 +584,9 @@ more manageable. Note that this batching is for `Query` and `Scans` and not `Bat
 ##### DynamoDB Native Pages
 At times it can be useful to rely on DynamoDB [default pages](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html#Query.Pagination)
 instead of fixed pages sizes. Each page results in a single Query or Scan call
-to DyanmoDB, but return an unknown number of records.
+to DyanmoDB, but returns an unknown number of records.
 
-Access to the native DynamoDB pages can be gathered via the `find_by_pages`
+Access to the native DynamoDB pages can be obtained via the `find_by_pages`
 method, which yields arrays of records.
 
 ```ruby
