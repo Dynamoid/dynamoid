@@ -101,7 +101,7 @@ describe Dynamoid::Adapter do
       expect do
         subject.delete(test_table1, '1')
       end.to change {
-        Dynamoid.adapter.scan(test_table1).flat_map(&:itself).to_a.size
+        Dynamoid.adapter.scan(test_table1).flat_map{ |i| i }.to_a.size
       }.from(2).to(1)
 
       expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq nil
@@ -115,7 +115,7 @@ describe Dynamoid::Adapter do
       expect do
         subject.delete(test_table1, %w[1 2])
       end.to change {
-        Dynamoid.adapter.scan(test_table1).flat_map(&:itself).to_a.size
+        Dynamoid.adapter.scan(test_table1).flat_map{ |i| i }.to_a.size
       }.from(3).to(1)
 
       expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq nil
@@ -129,7 +129,7 @@ describe Dynamoid::Adapter do
       expect do
         subject.delete(test_table3, '1', range_key: 1.0)
       end.to change {
-        Dynamoid.adapter.scan(test_table3).flat_map(&:itself).to_a.size
+        Dynamoid.adapter.scan(test_table3).flat_map{ |i| i }.to_a.size
       }.from(2).to(1)
 
       expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to eq nil
@@ -146,7 +146,7 @@ describe Dynamoid::Adapter do
       expect do
         subject.delete(test_table3, %w[1 2], range_key: 1.0)
       end.to change {
-        Dynamoid.adapter.scan(test_table3).flat_map(&:itself).to_a.size
+        Dynamoid.adapter.scan(test_table3).flat_map{ |i| i }.to_a.size
       }.from(4).to(2)
 
       expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to eq nil

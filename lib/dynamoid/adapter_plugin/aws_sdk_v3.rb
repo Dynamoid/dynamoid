@@ -591,7 +591,7 @@ module Dynamoid
         hk    = table.hash_key
         rk    = table.range_key
 
-        scan(table_name, {}, {}).flat_map(&:itself).each do |attributes|
+        scan(table_name, {}, {}).flat_map{ |i| i }.each do |attributes|
           opts = {}
           opts[:range_key] = attributes[rk.to_sym] if rk
           delete_item(table_name, attributes[hk], opts)
