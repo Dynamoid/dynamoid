@@ -581,7 +581,7 @@ Address.record_limit(10_000).batch(100).each { … } # Batch specified as part o
 The implication of batches is that the underlying requests are done in the batch sizes to make the request and responses
 more manageable. Note that this batching is for `Query` and `Scans` and not `BatchGetItem` commands.
 
-#### DynamoDB Native Pages
+##### DynamoDB Native Pages
 At times it can be useful to rely on DynamoDB [default pages](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html#Query.Pagination)
 instead of fixed pages sizes. Each page results in a single Query or Scan call
 to DyanmoDB, but return an unknown number of records.
