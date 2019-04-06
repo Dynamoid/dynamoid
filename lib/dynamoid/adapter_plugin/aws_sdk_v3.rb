@@ -534,8 +534,10 @@ module Dynamoid
       def query(table_name, options = {})
         table = describe_table(table_name)
 
-        Query.new(client, table, options).call.map do |page|
-          page.items.map{ |row| result_item_to_hash(row) }
+        Enumerator.new do |yielder|
+          Query.new(client, table, options).call.each do |page|
+            yielder << page.items.map{ |row| result_item_to_hash(row) }
+          end
         end
       end
 
@@ -562,8 +564,10 @@ module Dynamoid
       def scan(table_name, conditions = {}, options = {})
         table = describe_table(table_name)
 
-        Scan.new(client, table, conditions, options).call.map do |page|
-          page.items.map{ |row| result_item_to_hash(row) }
+        Enumerator.new do |yielder|
+          Scan.new(client, table, conditions, options).call.each do |page|
+            yielder << page.items.map{ |row| result_item_to_hash(row) }
+          end
         end
       end
 
