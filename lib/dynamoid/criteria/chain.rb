@@ -136,14 +136,28 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def records
-        if key_present?
-          records_via_query
-        else
-          records_via_scan
-        end.lazy.flat_map{ |i| i }
+        pages.lazy.flat_map { |i| i }
       end
 
-      def records_via_query
+      # Arrays of records, sized based on the actual pages produced by DynamoDB
+      #
+      # @return [Enumerator] an iterator of the found records.
+      #
+      # @since 3.1.0
+      def pages
+        if key_present?
+          pages_via_query
+        else
+          pages_via_scan
+        end
+      end
+
+      # If the query matches an index, we'll query the associated table to find results.
+      #
+      # @return [Enumerator] an iterator of the found pages. An array of records
+      #
+      # @since 3.1.0
+      def pages_via_query
         Enumerator.new do |yielder|
           Dynamoid.adapter.query(source.table_name, range_query).each do |items|
             yielder.yield(items.map { |hash| source.from_database(hash) })
@@ -153,10 +167,10 @@ module Dynamoid #:nodoc:
 
       # If the query does not match an index, we'll manually scan the associated table to find results.
       #
-      # @return [Enumerator] an iterator of the found records.
+      # @return [Enumerator] an iterator of the found pages. An array of records
       #
-      # @since 0.2.0
-      def records_via_scan
+      # @since 3.1.0
+      def pages_via_scan
         if Dynamoid::Config.warn_on_scan && query.present?
           Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
           Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.downcase}.rb:"
