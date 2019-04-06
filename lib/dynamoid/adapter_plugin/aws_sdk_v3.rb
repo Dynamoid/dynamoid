@@ -536,7 +536,7 @@ module Dynamoid
 
         Enumerator.new do |yielder|
           Query.new(client, table, options).call.each do |page|
-            page.items.each { |row| yielder << result_item_to_hash(row) }
+            yielder << page.items.map{ |row| result_item_to_hash(row) }
           end
         end
       end
@@ -566,7 +566,7 @@ module Dynamoid
 
         Enumerator.new do |yielder|
           Scan.new(client, table, conditions, options).call.each do |page|
-            page.items.each { |row| yielder << result_item_to_hash(row) }
+            yielder << page.items.map{ |row| result_item_to_hash(row) }
           end
         end
       end
@@ -591,7 +591,7 @@ module Dynamoid
         hk    = table.hash_key
         rk    = table.range_key
 
-        scan(table_name, {}, {}).each do |attributes|
+        scan(table_name, {}, {}).flat_map(&:itself).each do |attributes|
           opts = {}
           opts[:range_key] = attributes[rk.to_sym] if rk
           delete_item(table_name, attributes[hk], opts)

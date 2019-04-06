@@ -75,12 +75,12 @@ module Dynamoid #:nodoc:
         ranges = []
 
         if key_present?
-          Dynamoid.adapter.query(source.table_name, range_query).collect do |hash|
+          Dynamoid.adapter.query(source.table_name, range_query).flat_map(&:itself).collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
         else
-          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).collect do |hash|
+          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).flat_map(&:itself).collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
@@ -166,7 +166,7 @@ module Dynamoid #:nodoc:
         end
 
         Enumerator.new do |yielder|
-          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |hash|
+          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).flat_map(&:itself).each do |hash|
             yielder.yield source.from_database(hash)
           end
         end
