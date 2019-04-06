@@ -140,13 +140,13 @@ module Dynamoid #:nodoc:
           records_via_query
         else
           records_via_scan
-        end
+        end.lazy.flat_map(&:itself)
       end
 
       def records_via_query
         Enumerator.new do |yielder|
-          Dynamoid.adapter.query(source.table_name, range_query).each do |hash|
-            yielder.yield source.from_database(hash)
+          Dynamoid.adapter.query(source.table_name, range_query).each do |items|
+            yielder.yield(items.map { |hash| source.from_database(hash) })
           end
         end
       end
@@ -166,8 +166,8 @@ module Dynamoid #:nodoc:
         end
 
         Enumerator.new do |yielder|
-          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).flat_map(&:itself).each do |hash|
-            yielder.yield source.from_database(hash)
+          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items|
+            yielder.yield(items.map { |hash| source.from_database(hash) })
           end
         end
       end

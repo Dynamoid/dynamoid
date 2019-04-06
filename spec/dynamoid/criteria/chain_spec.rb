@@ -11,42 +11,42 @@ describe Dynamoid::Criteria::Chain do
     it 'Scans when query is empty' do
       chain = Dynamoid::Criteria::Chain.new(Address)
       chain.query = {}
-      expect(chain).to receive(:records_via_scan)
+      expect(chain).to receive(:records_via_scan).and_return([])
       chain.all
     end
 
     it 'Queries when query is only ID' do
       chain = Dynamoid::Criteria::Chain.new(Address)
       chain.query = { id: 'test' }
-      expect(chain).to receive(:records_via_query)
+      expect(chain).to receive(:records_via_query).and_return([])
       chain.all
     end
 
     it 'Queries when query contains ID' do
       chain = Dynamoid::Criteria::Chain.new(Address)
       chain.query = { id: 'test', city: 'Bucharest' }
-      expect(chain).to receive(:records_via_query)
+      expect(chain).to receive(:records_via_query).and_return([])
       chain.all
     end
 
     it 'Scans when query includes keys that are neither a hash nor a range' do
       chain = Dynamoid::Criteria::Chain.new(Address)
       chain.query = { city: 'Bucharest' }
-      expect(chain).to receive(:records_via_scan)
+      expect(chain).to receive(:records_via_scan).and_return([])
       chain.all
     end
 
     it 'Scans when query is only a range' do
       chain = Dynamoid::Criteria::Chain.new(Tweet)
       chain.query = { group: 'xx' }
-      expect(chain).to receive(:records_via_scan)
+      expect(chain).to receive(:records_via_scan).and_return([])
       chain.all
     end
 
     it 'Scans when there is only not-equal operator for hash key' do
       chain = Dynamoid::Criteria::Chain.new(Address)
       chain.query = { 'id.in': ['test'] }
-      expect(chain).to receive(:records_via_scan)
+      expect(chain).to receive(:records_via_scan).and_return([])
       chain.all
     end
   end
