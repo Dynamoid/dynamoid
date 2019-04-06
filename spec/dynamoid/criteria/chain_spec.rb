@@ -500,6 +500,15 @@ describe Dynamoid::Criteria::Chain do
         Vehicle.record_limit(1).all
       end
     end
+
+    describe '.find_by_pages' do
+      it 'does load result lazily' do
+        Vehicle.create
+
+        expect(Dynamoid.adapter.client).to receive(:scan).exactly(0).times.and_call_original
+        Vehicle.record_limit(1).find_by_pages
+      end
+    end
   end
 
   describe 'local secondary indexes used for `where` clauses' do

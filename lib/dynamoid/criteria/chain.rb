@@ -128,6 +128,10 @@ module Dynamoid #:nodoc:
         records.each(&block)
       end
 
+      def find_by_pages(&block)
+        pages.each(&block)
+      end
+
       private
 
       # The actual records referenced by the association.

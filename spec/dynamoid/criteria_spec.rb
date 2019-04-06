@@ -44,6 +44,10 @@ describe Dynamoid::Criteria do
     end
   end
 
+  it 'passes find_by_pages to all members' do
+    expect(User.find_by_pages).to match([contain_exactly(user1, user2)])
+  end
+
   it 'returns N records' do
     5.times { |i| User.create(name: 'Josh', email: "josh_#{i}@joshsymonds.com") }
     expect(User.record_limit(2).all.count).to eq(2)
