@@ -162,10 +162,8 @@ module Dynamoid #:nodoc:
       #
       # @since 3.1.0
       def pages_via_query
-        Enumerator.new do |yielder|
-          Dynamoid.adapter.query(source.table_name, range_query).each do |items|
-            yielder.yield(items.map { |hash| source.from_database(hash) })
-          end
+        Dynamoid.adapter.query(source.table_name, range_query).map do |items|
+          items.map { |hash| source.from_database(hash) }
         end
       end
 
@@ -183,10 +181,8 @@ module Dynamoid #:nodoc:
           Dynamoid.logger.warn "Not indexed attributes: #{query.keys.sort.collect { |name| ":#{name}" }.join(', ')}"
         end
 
-        Enumerator.new do |yielder|
-          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items|
-            yielder.yield(items.map { |hash| source.from_database(hash) })
-          end
+        Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).map do |items|
+          items.map { |hash| source.from_database(hash) }
         end
       end
 

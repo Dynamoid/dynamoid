@@ -61,7 +61,7 @@ module Dynamoid
 
             backoff.call if backoff
           end
-        end
+        end.lazy
       end
 
       private
