@@ -75,12 +75,12 @@ module Dynamoid #:nodoc:
         ranges = []
 
         if key_present?
-          Dynamoid.adapter.query(source.table_name, range_query).collect do |hash|
+          Dynamoid.adapter.query(source.table_name, range_query).flat_map{ |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
         else
-          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).collect do |hash|
+          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).flat_map{ |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
@@ -128,6 +128,10 @@ module Dynamoid #:nodoc:
         records.each(&block)
       end
 
+      def find_by_pages(&block)
+        pages.each(&block)
+      end
+
       private
 
       # The actual records referenced by the association.
@@ -136,40 +140,55 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def records
+        pages.lazy.flat_map { |i| i }
+      end
+
+      # Arrays of records, sized based on the actual pages produced by DynamoDB
+      #
+      # @return [Enumerator] an iterator of the found records.
+      #
+      # @since 3.1.0
+      def pages
         if key_present?
-          records_via_query
+          pages_via_query
         else
-          records_via_scan
+          issue_scan_warning if Dynamoid::Config.warn_on_scan && query.present?
+          pages_via_scan
         end
       end
 
-      def records_via_query
-        Enumerator.new do |yielder|
-          Dynamoid.adapter.query(source.table_name, range_query).each do |hash|
-            yielder.yield source.from_database(hash)
-          end
+      # If the query matches an index, we'll query the associated table to find results.
+      #
+      # @return [Enumerator] an iterator of the found pages. An array of records
+      #
+      # @since 3.1.0
+      def pages_via_query
+        return enum_for(:pages_via_query) unless block_given?
+
+        Dynamoid.adapter.query(source.table_name, range_query).each do |items|
+          yield items.map { |hash| source.from_database(hash) }
         end
       end
 
       # If the query does not match an index, we'll manually scan the associated table to find results.
       #
-      # @return [Enumerator] an iterator of the found records.
+      # @return [Enumerator] an iterator of the found pages. An array of records
       #
-      # @since 0.2.0
-      def records_via_scan
-        if Dynamoid::Config.warn_on_scan && query.present?
-          Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
-          Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.downcase}.rb:"
-          Dynamoid.logger.warn "* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'"
-          Dynamoid.logger.warn "* local_secondary_index range_key: 'some-name'"
-          Dynamoid.logger.warn "Not indexed attributes: #{query.keys.sort.collect { |name| ":#{name}" }.join(', ')}"
-        end
+      # @since 3.1.0
+      def pages_via_scan
+        return enum_for(:pages_via_scan) unless block_given?
 
-        Enumerator.new do |yielder|
-          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |hash|
-            yielder.yield source.from_database(hash)
-          end
+        Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items|
+          yield items.map { |hash| source.from_database(hash) }
         end
+      end
+
+      def issue_scan_warning
+        Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
+        Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.downcase}.rb:"
+        Dynamoid.logger.warn "* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'"
+        Dynamoid.logger.warn "* local_secondary_index range_key: 'some-name'"
+        Dynamoid.logger.warn "Not indexed attributes: #{query.keys.sort.collect { |name| ":#{name}" }.join(', ')}"
       end
 
       def count_via_query
