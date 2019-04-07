@@ -152,6 +152,7 @@ module Dynamoid #:nodoc:
         if key_present?
           pages_via_query
         else
+          issue_scan_warning if Dynamoid::Config.warn_on_scan && query.present?
           pages_via_scan
         end
       end
@@ -177,17 +178,17 @@ module Dynamoid #:nodoc:
       def pages_via_scan
         return enum_for(:pages_via_scan) unless block_given?
 
-        if Dynamoid::Config.warn_on_scan && query.present?
-          Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
-          Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.downcase}.rb:"
-          Dynamoid.logger.warn "* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'"
-          Dynamoid.logger.warn "* local_secondary_index range_key: 'some-name'"
-          Dynamoid.logger.warn "Not indexed attributes: #{query.keys.sort.collect { |name| ":#{name}" }.join(', ')}"
-        end
-
         Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items|
           yield items.map { |hash| source.from_database(hash) }
         end
+      end
+
+      def issue_scan_warning
+        Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
+        Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.downcase}.rb:"
+        Dynamoid.logger.warn "* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'"
+        Dynamoid.logger.warn "* local_secondary_index range_key: 'some-name'"
+        Dynamoid.logger.warn "Not indexed attributes: #{query.keys.sort.collect { |name| ":#{name}" }.join(', ')}"
       end
 
       def count_via_query
