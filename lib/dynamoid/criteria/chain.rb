@@ -162,10 +162,10 @@ module Dynamoid #:nodoc:
       #
       # @since 3.1.0
       def pages_via_query
-        Enumerator.new do |yielder|
-          Dynamoid.adapter.query(source.table_name, range_query).each do |items|
-            yielder.yield(items.map { |hash| source.from_database(hash) })
-          end
+        return enum_for(:pages_via_query) unless block_given?
+
+        Dynamoid.adapter.query(source.table_name, range_query).each do |items|
+          yield items.map { |hash| source.from_database(hash) }
         end
       end
 
@@ -175,6 +175,8 @@ module Dynamoid #:nodoc:
       #
       # @since 3.1.0
       def pages_via_scan
+        return enum_for(:pages_via_scan) unless block_given?
+
         if Dynamoid::Config.warn_on_scan && query.present?
           Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
           Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.downcase}.rb:"
@@ -183,10 +185,8 @@ module Dynamoid #:nodoc:
           Dynamoid.logger.warn "Not indexed attributes: #{query.keys.sort.collect { |name| ":#{name}" }.join(', ')}"
         end
 
-        Enumerator.new do |yielder|
-          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items|
-            yielder.yield(items.map { |hash| source.from_database(hash) })
-          end
+        Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items|
+          yield items.map { |hash| source.from_database(hash) }
         end
       end
 
