@@ -607,6 +607,7 @@ describe Dynamoid::Criteria::Chain do
           field :gender
 
           global_secondary_index hash_key: :city, range_key: :age, name: :cityage, projected_attributes: :all
+          global_secondary_index hash_key: :city, range_key: :gender, name: :citygender, projected_attributes: :all
           global_secondary_index hash_key: :email, range_key: :age, name: :emailage, projected_attributes: :all
         end
       end
@@ -691,6 +692,22 @@ describe Dynamoid::Criteria::Chain do
         expect(chain.hash_key).to be_nil
         expect(chain.range_key).to be_nil
         expect(chain.index_name).to be_nil
+      end
+
+      it 'chooses the best global secondary index which consider range key' do
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_query).and_call_original
+        expect(chain.where(city: 'San Francisco', 'age.lte': 15).to_a.size).to eq(2)
+        expect(chain.hash_key).to eq(:city)
+        expect(chain.range_key).to eq(:age)
+        expect(chain.index_name).to eq(:cityage)
+
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:records_via_query).and_call_original
+        expect(chain.where(city: 'San Francisco', gender: 'male').to_a.size).to eq(3)
+        expect(chain.hash_key).to eq(:city)
+        expect(chain.range_key).to eq(:gender)
+        expect(chain.index_name).to eq(:citygender)
       end
     end
 
