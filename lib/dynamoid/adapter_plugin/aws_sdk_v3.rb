@@ -532,12 +532,11 @@ module Dynamoid
       #
       # @todo Provide support for various other options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#query-instance_method
       def query(table_name, options = {})
+        return enum_for(:query, table_name, options) unless block_given?
         table = describe_table(table_name)
 
-        Enumerator.new do |yielder|
-          Query.new(client, table, options).call.each do |page|
-            yielder.yield page.items.map{ |row| result_item_to_hash(row) }
-          end
+        Query.new(client, table, options).call.each do |page|
+          yield page.items.map{ |row| result_item_to_hash(row) }
         end
       end
 
@@ -562,12 +561,11 @@ module Dynamoid
       #
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#scan-instance_method
       def scan(table_name, conditions = {}, options = {})
+        return enum_for(:scan, table_name, conditions, options) unless block_given?
         table = describe_table(table_name)
 
-        Enumerator.new do |yielder|
-          Scan.new(client, table, conditions, options).call.each do |page|
-            yielder.yield page.items.map{ |row| result_item_to_hash(row) }
-          end
+        Scan.new(client, table, conditions, options).call.each do |page|
+          yield page.items.map{ |row| result_item_to_hash(row) }
         end
       end
 
