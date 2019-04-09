@@ -18,11 +18,12 @@ module Dynamoid
           desc 'Creates DynamoDB tables, one for each of your Dynamoid models - does not modify pre-existing tables'
           task create_tables: :environment do
             # Load models so Dynamoid will be able to discover tables expected.
-            Dir[File.join(Dynamoid::Config.models_dir, '**/*.rb')].sort.each { |file| require file }
+            load_models
             if Dynamoid.included_models.any?
               tables = create_tables
-              result = tables[:created].map { |c| "#{c} created" } + tables[:existing].map { |e| "#{e} already exists" }
-              result.sort.each { |r| puts r }
+              result = tables[:created].map { |c| "#{c} created" } +
+                       tables[:existing].map { |e| "#{e} already exists" }
+              puts result.sort
             else
               puts 'Dynamoid models are not loaded, or you have no Dynamoid models.'
             end
@@ -30,15 +31,11 @@ module Dynamoid
 
           desc 'Tests if the DynamoDB instance can be contacted using your configuration'
           task ping: :environment do
-            success = false
-            failure_reason = nil
-
-            begin
-              ping
-              success = true
-            rescue StandardError => e
-              failure_reason = e.message
-            end
+            success, failure_message = begin
+                                         ping
+                                       rescue StandardError => e
+                                         [false, e.message]
+                                       end
 
             msg = "Connection to DynamoDB #{success ? 'OK' : 'FAILED'}"
             msg << if Dynamoid.config.endpoint
@@ -50,6 +47,14 @@ module Dynamoid
             puts msg
           end
         end
+      end
+
+      def model_files
+        Dir[File.join(Dynamoid::Config.models_dir, '**/*.rb')].sort
+      end
+
+      def load_models
+        model_files.each { |file| require file }
       end
 
       # Create any new tables for the models. Existing tables are not
