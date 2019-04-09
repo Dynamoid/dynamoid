@@ -936,6 +936,36 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  describe '#find_by_pages' do
+    let(:model) do
+      new_class do
+        self.range_key = :range
+        field :city
+        field :age, :number
+        field :range, :number
+        field :data
+      end
+    end
+
+    before do
+      120.times do |i|
+        model.create(
+          id: '1',
+          range: i.to_f,
+          age: i.to_f,
+          data: 'A' * 1024 * 16
+        )
+      end
+    end
+
+    it 'yields one page at a time' do
+      expect { |b| model.where(id: '1').find_by_pages(&b) }.to yield_successive_args(
+        [all(be_kind_of(model)), {last_evaluated_key: an_instance_of(Hash)}],
+        [all(be_kind_of(model)), {last_evaluated_key: nil}],
+      )
+    end
+  end
+
   describe '#start' do
     let(:model) do
       new_class(partition_key: :name) do
