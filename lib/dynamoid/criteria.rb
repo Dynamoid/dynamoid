@@ -13,12 +13,12 @@ module Dynamoid
         # see Dynamoid::Criteria::Chain.
         #
         # @since 0.2.0
-        define_method(meth) do |*args|
+        define_method(meth) do |*args, &blk|
           chain = Dynamoid::Criteria::Chain.new(self)
           if args
-            chain.send(meth, *args)
+            chain.send(meth, *args, &blk)
           else
-            chain.send(meth)
+            chain.send(meth, &blk)
           end
         end
       end

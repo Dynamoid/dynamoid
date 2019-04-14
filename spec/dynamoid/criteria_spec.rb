@@ -38,14 +38,26 @@ describe Dynamoid::Criteria do
   end
 
   it 'passes each to all members' do
-    User.each do |u|
-      expect(u.id == user1.id || u.id == user2.id).to be_truthy
-      expect(u.new_record).to be_falsey
-    end
+    expect { |b| User.each(&b)}.to yield_successive_args(
+      be_kind_of(User).and(have_attributes('new_record' => false)),
+      be_kind_of(User).and(have_attributes('new_record' => false))
+    )
   end
 
   it 'passes find_by_pages to all members' do
-    expect(User.find_by_pages).to match([contain_exactly(user1, user2)])
+    expect {|b| User.find_by_pages(&b)}.to yield_successive_args(
+      [all(be_kind_of(User)), {last_evaluated_key: nil}],
+    )
+  end
+
+  it 'returns a last_evaluated_key which may be used to restart iteration' do
+    # Creates exactly 2 full pages
+    58.times { User.create(name: SecureRandom.uuid * 1024) }
+
+    first_page, first_page_meta = User.find_by_pages.first
+    second_page, = User.start(first_page_meta[:last_evaluated_key]).find_by_pages.first
+
+    expect(first_page & second_page).to be_empty
   end
 
   it 'returns N records' do

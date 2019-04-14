@@ -590,8 +590,27 @@ Access to the native DynamoDB pages can be obtained via the `find_by_pages`
 method, which yields arrays of records.
 
 ```ruby
-Address.find_by_pages do |addresses|
+Address.find_by_pages do |addresses, metadata|
   # have an array of pages
+end
+```
+
+Each yielded pages returns metadata as the second argument, which is a hash
+including a key `:last_evaluated_key`. The value of this key can be used for
+the `start` method to fetch the next page of records.
+
+```ruby
+class UserController < ApplicationController
+  def index
+    next_page = params[:next_page_token] ? JSON.parse(Base64.decode64(params[:next_page_token])) : ''
+
+    records, metadata = User.start(next_page).find_by_pages.first
+
+    render json: {
+      records: records,
+      next_page_token: Base64.encode64(metadata[:last_evaluated_key].to_json)
+    }
+  end
 end
 ```
 

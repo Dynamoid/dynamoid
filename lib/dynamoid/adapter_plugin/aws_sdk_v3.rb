@@ -532,11 +532,15 @@ module Dynamoid
       #
       # @todo Provide support for various other options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#query-instance_method
       def query(table_name, options = {})
-        return enum_for(:query, table_name, options) unless block_given?
-        table = describe_table(table_name)
+        Enumerator.new do |yielder|
+          table = describe_table(table_name)
 
-        Query.new(client, table, options).call.each do |page|
-          yield page.items.map{ |row| result_item_to_hash(row) }
+          Query.new(client, table, options).call.each do |page|
+            yielder.yield(
+              page.items.map { |row| result_item_to_hash(row) },
+              last_evaluated_key: page.last_evaluated_key
+            )
+          end
         end
       end
 
@@ -561,11 +565,15 @@ module Dynamoid
       #
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#scan-instance_method
       def scan(table_name, conditions = {}, options = {})
-        return enum_for(:scan, table_name, conditions, options) unless block_given?
-        table = describe_table(table_name)
+        Enumerator.new do |yielder|
+          table = describe_table(table_name)
 
-        Scan.new(client, table, conditions, options).call.each do |page|
-          yield page.items.map{ |row| result_item_to_hash(row) }
+          Scan.new(client, table, conditions, options).call.each do |page|
+            yielder.yield(
+              page.items.map { |row| result_item_to_hash(row) },
+              last_evaluated_key: page.last_evaluated_key
+            )
+          end
         end
       end
 

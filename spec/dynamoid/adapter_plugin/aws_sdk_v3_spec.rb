@@ -258,27 +258,27 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     it 'performs query on a table with a range and selects items in a range' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_between: [0.0, 3.0]).to_a).to eq [[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_between: [0.0, 3.0]).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], {last_evaluated_key: nil}]]
     end
 
     it 'performs query on a table with a range and selects items in a range with :select option' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_between: [0.0, 3.0], select: 'ALL_ATTRIBUTES').to_a).to eq [[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_between: [0.0, 3.0], select: 'ALL_ATTRIBUTES').to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], {last_evaluated_key: nil}]]
     end
 
     it 'performs query on a table with a range and selects items greater than' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_greater_than: 1.0).to_a).to eq [[{ id: '1', range: BigDecimal(3) }]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_greater_than: 1.0).to_a).to eq [[[{ id: '1', range: BigDecimal(3) }], {last_evaluated_key: nil}]]
     end
 
     it 'performs query on a table with a range and selects items less than' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_less_than: 2.0).to_a).to eq [[{ id: '1', range: BigDecimal(1) }]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_less_than: 2.0).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }], {last_evaluated_key: nil}]]
     end
 
     it 'performs query on a table with a range and selects items gte' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_gte: 1.0).to_a).to eq [[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_gte: 1.0).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], {last_evaluated_key: nil}]]
     end
 
     it 'performs query on a table with a range and selects items lte' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_lte: 3.0).to_a).to eq [[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_lte: 3.0).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], {last_evaluated_key: nil}]]
     end
 
     it 'performs query on a table and returns items based on returns correct limit' do
@@ -677,11 +677,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
                                           ])
 
         results = Dynamoid.adapter.scan(test_table3)
-        expect(results.to_a.first).to contain_exactly(
-          { id: '1', range: 1.0 },
-          { id: '2', range: 2.0 },
-          { id: '3', range: 3.0 }
-        )
+        expect(results.to_a.first).to match [
+          contain_exactly(
+            { id: '1', range: 1.0 },
+            { id: '2', range: 2.0 },
+            { id: '3', range: 3.0 }
+          ),
+          { last_evaluated_key: nil }
+        ]
       end
 
       it 'performs BatchDeleteItem with more than 25 items' do
@@ -790,14 +793,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     it 'performs query on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
-      expect(Dynamoid.adapter.query(test_table1, hash_value: '1').first).to eq([id: '1', name: 'Josh'])
+      expect(Dynamoid.adapter.query(test_table1, hash_value: '1').first).to eq([[id: '1', name: 'Josh'], {last_evaluated_key: nil}])
     end
 
     it 'performs query on a table and returns items if there are multiple items' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
 
-      expect(Dynamoid.adapter.query(test_table1, hash_value: '1').first).to eq([id: '1', name: 'Josh'])
+      expect(Dynamoid.adapter.query(test_table1, hash_value: '1').first).to eq([[id: '1', name: 'Josh'], {last_evaluated_key: nil}])
     end
 
     context 'backoff is specified' do
@@ -834,21 +837,28 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     it 'performs scan on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
-      expect(Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' }).to_a).to eq [[{ id: '1', name: 'Josh' }]]
+      expect(Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' }).to_a).to eq [[[{ id: '1', name: 'Josh' }], {last_evaluated_key: nil}]]
     end
 
     it 'performs scan on a table and returns items if there are multiple items but only one match' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
 
-      expect(Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' }).to_a).to eq [[{ id: '1', name: 'Josh' }]]
+      expect(Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' }).to_a).to eq [[[{ id: '1', name: 'Josh' }], {last_evaluated_key: nil}]]
     end
 
     it 'performs scan on a table and returns multiple items if there are multiple matches' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
 
-      expect(Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' })).to match_array(include({ name: 'Josh', id: '2' }, name: 'Josh', id: '1'))
+      expect(
+        Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' }).to_a
+      ).to match([
+        [
+          match_array([{ name: 'Josh', id: '2' }, { name: 'Josh', id: '1' }]),
+          {last_evaluated_key: nil}
+        ]
+      ])
     end
 
     it 'performs scan on a table and returns all items if no criteria are specified' do
