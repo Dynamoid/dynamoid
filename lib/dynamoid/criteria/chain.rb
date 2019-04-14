@@ -163,10 +163,10 @@ module Dynamoid #:nodoc:
       #
       # @since 3.1.0
       def pages_via_query
-        return enum_for(:pages_via_query) unless block_given?
-
-        Dynamoid.adapter.query(source.table_name, range_query).each do |items, metadata|
-          yield items.map { |hash| source.from_database(hash) }, metadata
+        Enumerator.new do |yielder|
+          Dynamoid.adapter.query(source.table_name, range_query).each do |items, metadata|
+            yielder.yield items.map { |hash| source.from_database(hash) }, metadata.slice(:last_evaluated_key)
+          end
         end
       end
 
@@ -176,10 +176,10 @@ module Dynamoid #:nodoc:
       #
       # @since 3.1.0
       def pages_via_scan
-        return enum_for(:pages_via_scan) unless block_given?
-
-        Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items, metadata|
-          yield items.map { |hash| source.from_database(hash) }, metadata
+        Enumerator.new do |yielder|
+          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items, metadata|
+            yielder.yield(items.map { |hash| source.from_database(hash) }, metadata.slice(:last_evaluated_key))
+          end
         end
       end
 
