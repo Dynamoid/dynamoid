@@ -50,6 +50,16 @@ describe Dynamoid::Criteria do
     )
   end
 
+  it 'returns a last_evaluated_key which may be used to restart iteration' do
+    # Creates exactly 2 full pages
+    58.times { User.create(name: SecureRandom.uuid * 1024) }
+
+    first_page, first_page_meta = User.find_by_pages.first
+    second_page, = User.start(first_page_meta[:last_evaluated_key]).find_by_pages.first
+
+    expect(first_page & second_page).to be_empty
+  end
+
   it 'returns N records' do
     5.times { |i| User.create(name: 'Josh', email: "josh_#{i}@joshsymonds.com") }
     expect(User.record_limit(2).all.count).to eq(2)
