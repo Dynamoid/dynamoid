@@ -5,8 +5,8 @@ module Dynamoid #:nodoc:
     # The criteria chain is equivalent to an ActiveRecord relation (and realistically I should change the name from
     # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
     class Chain
-      attr_accessor :query, :source, :values, :consistent_read
       attr_reader :hash_key, :range_key, :index_name
+      attr_reader :query, :source, :consistent_read
       include Enumerable
       # Create a new criteria chain.
       #

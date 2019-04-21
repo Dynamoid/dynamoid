@@ -10,42 +10,42 @@ describe Dynamoid::Criteria::Chain do
   describe 'Query vs Scan' do
     it 'Scans when query is empty' do
       chain = Dynamoid::Criteria::Chain.new(Address)
-      chain.query = {}
+      chain = chain.where({})
       expect(chain).to receive(:pages_via_scan).and_return([])
       chain.all
     end
 
     it 'Queries when query is only ID' do
       chain = Dynamoid::Criteria::Chain.new(Address)
-      chain.query = { id: 'test' }
+      chain = chain.where(id: 'test')
       expect(chain).to receive(:pages_via_query).and_return([])
       chain.all
     end
 
     it 'Queries when query contains ID' do
       chain = Dynamoid::Criteria::Chain.new(Address)
-      chain.query = { id: 'test', city: 'Bucharest' }
+      chain = chain.where(id: 'test', city: 'Bucharest')
       expect(chain).to receive(:pages_via_query).and_return([])
       chain.all
     end
 
     it 'Scans when query includes keys that are neither a hash nor a range' do
       chain = Dynamoid::Criteria::Chain.new(Address)
-      chain.query = { city: 'Bucharest' }
+      chain = chain.where(city: 'Bucharest')
       expect(chain).to receive(:pages_via_scan).and_return([])
       chain.all
     end
 
     it 'Scans when query is only a range' do
       chain = Dynamoid::Criteria::Chain.new(Tweet)
-      chain.query = { group: 'xx' }
+      chain = chain.where(group: 'xx')
       expect(chain).to receive(:pages_via_scan).and_return([])
       chain.all
     end
 
     it 'Scans when there is only not-equal operator for hash key' do
       chain = Dynamoid::Criteria::Chain.new(Address)
-      chain.query = { 'id.in': ['test'] }
+      chain = chain.where('id.in': ['test'])
       expect(chain).to receive(:pages_via_scan).and_return([])
       chain.all
     end
@@ -1092,7 +1092,7 @@ describe Dynamoid::Criteria::Chain do
         document3 = klass.create!(title: 'Doc #3')
 
         chain = Dynamoid::Criteria::Chain.new(klass)
-        chain.query = { title: 'Doc #2' }
+        chain = chain.where(title: 'Doc #2')
 
         expect { chain.delete_all }.to change { klass.count }.by(-1)
         expect(klass.all).to contain_exactly(document1, document3)
@@ -1106,7 +1106,7 @@ describe Dynamoid::Criteria::Chain do
         document = klass.create!(title: 'Doc #1')
 
         chain = Dynamoid::Criteria::Chain.new(klass)
-        chain.query = { id: document.id }
+        chain = chain.where(id: document.id)
 
         expect(Dynamoid.adapter.client).to receive(:query).and_call_original
         expect { chain.delete_all }.to change { klass.count }.by(-1)
@@ -1121,7 +1121,7 @@ describe Dynamoid::Criteria::Chain do
         klass.create!(title: "The Cuckoo's Calling", author: 'J. K. Rowling')
 
         chain = Dynamoid::Criteria::Chain.new(klass)
-        chain.query = { author: 'J. K. Rowling' }
+        chain = chain.where(author: 'J. K. Rowling')
 
         expect(Dynamoid.adapter.client).to receive(:scan).and_call_original
         expect { chain.delete_all }.to change { klass.count }.by(-1)
@@ -1137,7 +1137,7 @@ describe Dynamoid::Criteria::Chain do
           klass.create!(title: 'Doc #2')
 
           chain = Dynamoid::Criteria::Chain.new(klass)
-          chain.query = { id: document.id }
+          chain = chain.where(id: document.id)
 
           expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
@@ -1151,7 +1151,7 @@ describe Dynamoid::Criteria::Chain do
           klass.create!
 
           chain = Dynamoid::Criteria::Chain.new(klass)
-          chain.query = { id: document.id }
+          chain = chain.where(id: document.id)
 
           expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
@@ -1167,7 +1167,7 @@ describe Dynamoid::Criteria::Chain do
           klass.create!(title: 'Doc #2')
 
           chain = Dynamoid::Criteria::Chain.new(klass)
-          chain.query = { title: 'Doc #1' }
+          chain = chain.where(title: 'Doc #1')
 
           expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
@@ -1181,7 +1181,7 @@ describe Dynamoid::Criteria::Chain do
           klass.create!(title: 'Doc #2')
 
           chain = Dynamoid::Criteria::Chain.new(klass)
-          chain.query = { title: 'Doc #1' }
+          chain = chain.where(title: 'Doc #1')
 
           expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
@@ -1225,42 +1225,42 @@ describe Dynamoid::Criteria::Chain do
     describe 'Query vs Scan' do
       it 'Scans when query is empty' do
         chain = Dynamoid::Criteria::Chain.new(Address)
-        chain.query = {}
+        chain = chain.where({})
         expect(chain).to receive(:count_via_scan)
         chain.count
       end
 
       it 'Queries when query is only ID' do
         chain = Dynamoid::Criteria::Chain.new(Address)
-        chain.query = { id: 'test' }
+        chain = chain.where(id: 'test')
         expect(chain).to receive(:count_via_query)
         chain.count
       end
 
       it 'Queries when query contains ID' do
         chain = Dynamoid::Criteria::Chain.new(Address)
-        chain.query = { id: 'test', city: 'Bucharest' }
+        chain = chain.where(id: 'test', city: 'Bucharest')
         expect(chain).to receive(:count_via_query)
         chain.count
       end
 
       it 'Scans when query includes keys that are neither a hash nor a range' do
         chain = Dynamoid::Criteria::Chain.new(Address)
-        chain.query = { city: 'Bucharest' }
+        chain = chain.where(city: 'Bucharest')
         expect(chain).to receive(:count_via_scan)
         chain.count
       end
 
       it 'Scans when query is only a range' do
         chain = Dynamoid::Criteria::Chain.new(Tweet)
-        chain.query = { group: 'xx' }
+        chain = chain.where(group: 'xx')
         expect(chain).to receive(:count_via_scan)
         chain.count
       end
 
       it 'Scans when there is only not-equal operator for hash key' do
         chain = Dynamoid::Criteria::Chain.new(Address)
-        chain.query = { 'id.in': ['test'] }
+        chain = chain.where('id.in': ['test'])
         expect(chain).to receive(:count_via_scan)
         chain.count
       end
@@ -1306,14 +1306,14 @@ describe Dynamoid::Criteria::Chain do
     let(:chain) { described_class.new(User) }
 
     it 'defines each' do
-      chain.query = { name: 'Josh' }
+      chain = self.chain.where(name: 'Josh')
       chain.each { |u| u.update_attribute(:name, 'Justin') }
 
       expect(User.find(user.id).name).to eq 'Justin'
     end
 
     it 'includes Enumerable' do
-      chain.query = { name: 'Josh' }
+      chain = self.chain.where(name: 'Josh')
 
       expect(chain.collect(&:name)).to eq ['Josh']
     end
@@ -1327,20 +1327,20 @@ describe Dynamoid::Criteria::Chain do
     let(:chain) { Dynamoid::Criteria::Chain.new(Tweet) }
 
     it 'limits evaluated records' do
-      chain.query = {}
+      chain = self.chain.where({})
       expect(chain.record_limit(1).count).to eq 1
       expect(chain.record_limit(2).count).to eq 2
     end
 
     it 'finds tweets with a start' do
-      chain.query = { tweet_id: 'x' }
+      chain = self.chain.where(tweet_id: 'x')
       chain.start(tweet1)
       expect(chain.count).to eq 1
       expect(chain.first).to eq tweet2
     end
 
     it 'finds one specific tweet' do
-      chain.query = { tweet_id: 'xx', group: 'two' }
+      chain = self.chain.where(tweet_id: 'xx', group: 'two')
       expect(chain.all.to_a).to eq [tweet3]
     end
 
@@ -1350,10 +1350,9 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(post_id: 'x', posted_at: time)
       post2 = Post.create(post_id: 'x', posted_at: (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { post_id: 'x', 'posted_at.gt': (time + ts_epsilon) }
-      resultset = chain.send(:where, query)
-      expect(resultset.count).to eq 1
-      stored_record = resultset.first
+      chain = chain.where(post_id: 'x', 'posted_at.gt': (time + ts_epsilon))
+      expect(chain.count).to eq 1
+      stored_record = chain.first
       expect(stored_record.attributes[:post_id]).to eq post2.attributes[:post_id]
       # Must use an epsilon to compare timestamps after round-trip: https://github.com/Dynamoid/Dynamoid/issues/2
       expect(stored_record.attributes[:created_at]).to be_within(ts_epsilon).of(post2.attributes[:created_at])
@@ -1367,10 +1366,9 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(post_id: 'x', posted_at: time)
       post2 = Post.create(post_id: 'x', posted_at: (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { post_id: 'x', 'posted_at.lt': (time + 1.hour - ts_epsilon) }
-      resultset = chain.send(:where, query)
-      expect(resultset.count).to eq 1
-      stored_record = resultset.first
+      chain = chain.where(post_id: 'x', 'posted_at.lt': (time + 1.hour - ts_epsilon) )
+      expect(chain.count).to eq 1
+      stored_record = chain.first
       expect(stored_record.attributes[:post_id]).to eq post2.attributes[:post_id]
       # Must use an epsilon to compare timestamps after round-trip: https://github.com/Dynamoid/Dynamoid/issues/2
       expect(stored_record.attributes[:created_at]).to be_within(ts_epsilon).of(post1.attributes[:created_at])
@@ -1384,10 +1382,9 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(post_id: 'x', posted_at: time)
       post2 = Post.create(post_id: 'x', posted_at: (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      query = { post_id: 'x', 'posted_at.between': [time - ts_epsilon, time + ts_epsilon] }
-      resultset = chain.send(:where, query)
-      expect(resultset.count).to eq 1
-      stored_record = resultset.first
+      chain = chain.where(post_id: 'x', 'posted_at.between': [time - ts_epsilon, time + ts_epsilon])
+      expect(chain.count).to eq 1
+      stored_record = chain.first
       expect(stored_record.attributes[:post_id]).to eq post2.attributes[:post_id]
       # Must use an epsilon to compare timestamps after round-trip: https://github.com/Dynamoid/Dynamoid/issues/2
       expect(stored_record.attributes[:created_at]).to be_within(ts_epsilon).of(post1.attributes[:created_at])
