@@ -356,7 +356,7 @@ describe Dynamoid::Persistence do
           expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
         end
 
-        it 'uses specified type if .dynamoid_field_type method declared', :wip do
+        it 'uses specified type if .dynamoid_field_type method declared' do
           klass = new_class(sort_key_type: user_class_with_type) do |options|
             range :prop, options[:sort_key_type]
           end
