@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+require_relative 'keys_detector'
+
 module Dynamoid #:nodoc:
   module Criteria
     # The criteria chain is equivalent to an ActiveRecord relation (and realistically I should change the name from
     # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
     class Chain
-      attr_reader :hash_key, :range_key, :index_name
-      attr_reader :query, :source, :consistent_read
+      attr_reader :query, :source, :consistent_read, :keys_detector
+
       include Enumerable
       # Create a new criteria chain.
       #
@@ -22,6 +24,9 @@ module Dynamoid #:nodoc:
         if @source.attributes.key?(type)
           @query[:"#{type}.in"] = @source.deep_subclasses.map(&:name) << @source.name
         end
+
+        # we should re-initialize keys detector every time we change query
+        @keys_detector = KeysDetector.new(@query, @source)
       end
 
       # The workhorse method of the criteria chain. Each key in the passed in hash will become another criteria that the
@@ -37,6 +42,10 @@ module Dynamoid #:nodoc:
       # @since 0.2.0
       def where(args)
         query.update(args.dup.symbolize_keys)
+
+        # we should re-initialize keys detector every time we change query
+        @keys_detector = KeysDetector.new(@query, @source)
+
         self
       end
 
@@ -53,7 +62,7 @@ module Dynamoid #:nodoc:
       end
 
       def count
-        if key_present?
+        if @keys_detector.key_present?
           count_via_query
         else
           count_via_scan
@@ -74,7 +83,7 @@ module Dynamoid #:nodoc:
         ids = []
         ranges = []
 
-        if key_present?
+        if @keys_detector.key_present?
           Dynamoid.adapter.query(source.table_name, range_query).flat_map{ |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
@@ -149,7 +158,7 @@ module Dynamoid #:nodoc:
       #
       # @since 3.1.0
       def pages
-        if key_present?
+        if @keys_detector.key_present?
           pages_via_query
         else
           issue_scan_warning if Dynamoid::Config.warn_on_scan && query.present?
@@ -257,24 +266,24 @@ module Dynamoid #:nodoc:
         opts = {}
 
         # Add hash key
-        opts[:hash_key] = @hash_key
-        opts[:hash_value] = type_cast_condition_parameter(@hash_key, query[@hash_key])
+        opts[:hash_key] = @keys_detector.hash_key
+        opts[:hash_value] = type_cast_condition_parameter(@keys_detector.hash_key, query[@keys_detector.hash_key])
 
         # Add range key
-        if @range_key
-          opts[:range_key] = @range_key
-          if query[@range_key].present?
-            value = type_cast_condition_parameter(@range_key, query[@range_key])
+        if @keys_detector.range_key
+          opts[:range_key] = @keys_detector.range_key
+          if query[@keys_detector.range_key].present?
+            value = type_cast_condition_parameter(@keys_detector.range_key, query[@keys_detector.range_key])
             opts.update(range_eq: value)
           end
 
-          query.keys.select { |k| k.to_s =~ /^#{@range_key}\./ }.each do |key|
+          query.keys.select { |k| k.to_s =~ /^#{@keys_detector.range_key}\./ }.each do |key|
             opts.merge!(range_hash(key))
           end
         end
 
-        (query.keys.map(&:to_sym) - [@hash_key.to_sym, @range_key.try(:to_sym)])
-          .reject { |k, _| k.to_s =~ /^#{@range_key}\./ }
+        (query.keys.map(&:to_sym) - [@keys_detector.hash_key.to_sym, @keys_detector.range_key.try(:to_sym)])
+          .reject { |k, _| k.to_s =~ /^#{@keys_detector.range_key}\./ }
           .each do |key|
           if key.to_s.include?('.')
             opts.update(field_hash(key))
@@ -303,58 +312,14 @@ module Dynamoid #:nodoc:
         end
       end
 
-      def key_present?
-        query_keys = query.keys.collect { |k| k.to_s.split('.').first }
-
-        # See if querying based on table hash key
-        if query.keys.map(&:to_s).include?(source.hash_key.to_s)
-          @hash_key = source.hash_key
-
-          # Use table's default range key
-          if query_keys.include?(source.range_key.to_s)
-            @range_key = source.range_key
-            return true
-          end
-
-          # See if can use any local secondary index range key
-          # Chooses the first LSI found that can be utilized for the query
-          source.local_secondary_indexes.each do |_, lsi|
-            next unless query_keys.include?(lsi.range_key.to_s)
-
-            @range_key = lsi.range_key
-            @index_name = lsi.name
-          end
-
-          return true
-        end
-
-        # See if can use any global secondary index
-        # Chooses the first GSI found that can be utilized for the query
-        # But only do so if projects ALL attributes otherwise we won't
-        # get back full data
-        result = false
-        source.global_secondary_indexes.each do |_, gsi|
-          next unless query.keys.map(&:to_s).include?(gsi.hash_key.to_s) && gsi.projected_attributes == :all
-          next if @range_key.present? && !query_keys.include?(gsi.range_key.to_s)
-
-          @hash_key = gsi.hash_key
-          @range_key = gsi.range_key
-          @index_name = gsi.name
-          result = true
-        end
-
-        # Could not utilize any indices so we'll have to scan
-        result
-      end
-
       # Start key needs to be set up based on the index utilized
       # If using a secondary index then we must include the index's composite key
       # as well as the tables composite key.
       def start_key
         return @start if @start.is_a?(Hash)
 
-        hash_key = @hash_key || source.hash_key
-        range_key = @range_key || source.range_key
+        hash_key = @keys_detector.hash_key || source.hash_key
+        range_key = @keys_detector.range_key || source.range_key
 
         key = {}
         key[hash_key] = type_cast_condition_parameter(hash_key, @start.send(hash_key))
@@ -373,7 +338,7 @@ module Dynamoid #:nodoc:
 
       def query_opts
         opts = {}
-        opts[:index_name] = @index_name if @index_name
+        opts[:index_name] = @keys_detector.index_name if @keys_detector.index_name
         opts[:select] = 'ALL_ATTRIBUTES'
         opts[:record_limit] = @record_limit if @record_limit
         opts[:scan_limit] = @scan_limit if @scan_limit

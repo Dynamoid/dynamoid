@@ -134,9 +134,9 @@ describe Dynamoid::Criteria::Chain do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:pages_via_query).and_call_original
       expect(chain.where(name: 'Bob', age: 10).all).to contain_exactly(customer1)
-      expect(chain.hash_key).to eq(:name)
-      expect(chain.range_key).to eq(:age)
-      expect(chain.index_name).to be_nil
+      expect(chain.keys_detector.hash_key).to eq(:name)
+      expect(chain.keys_detector.range_key).to eq(:age)
+      expect(chain.keys_detector.index_name).to be_nil
     end
 
     it 'supports lt' do
@@ -211,9 +211,9 @@ describe Dynamoid::Criteria::Chain do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:pages_via_query).and_call_original
       expect(chain.where(name: 'a', age: 10).all).to contain_exactly(customer1)
-      expect(chain.hash_key).to eq(:name)
-      expect(chain.range_key).to be_nil
-      expect(chain.index_name).to be_nil
+      expect(chain.keys_detector.hash_key).to eq(:name)
+      expect(chain.keys_detector.range_key).to be_nil
+      expect(chain.keys_detector.index_name).to be_nil
     end
 
     it 'supports eq for set' do
@@ -359,9 +359,9 @@ describe Dynamoid::Criteria::Chain do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:pages_via_scan).and_call_original
       expect(chain.where(age: 10).all).to contain_exactly(customer1)
-      expect(chain.hash_key).to be_nil
-      expect(chain.range_key).to be_nil
-      expect(chain.index_name).to be_nil
+      expect(chain.keys_detector.hash_key).to be_nil
+      expect(chain.keys_detector.range_key).to be_nil
+      expect(chain.keys_detector.index_name).to be_nil
     end
 
     it 'supports eq for set' do
@@ -535,41 +535,41 @@ describe Dynamoid::Criteria::Chain do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:pages_via_query).and_call_original
       expect(chain.where(name: 'Bob', 'range.lt': 3, 'range2.gt': 15).to_a.size).to eq(1)
-      expect(chain.hash_key).to eq(:name)
-      expect(chain.range_key).to eq(:range)
-      expect(chain.index_name).to be_nil
+      expect(chain.keys_detector.hash_key).to eq(:name)
+      expect(chain.keys_detector.range_key).to eq(:range)
+      expect(chain.keys_detector.index_name).to be_nil
     end
 
     it 'supports query on local secondary index' do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:pages_via_query).and_call_original
       expect(chain.where(name: 'Bob', 'range2.gt': 15).to_a.size).to eq(2)
-      expect(chain.hash_key).to eq(:name)
-      expect(chain.range_key).to eq(:range2)
-      expect(chain.index_name).to eq(:range2index)
+      expect(chain.keys_detector.hash_key).to eq(:name)
+      expect(chain.keys_detector.range_key).to eq(:range2)
+      expect(chain.keys_detector.index_name).to eq(:range2index)
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:pages_via_query).and_call_original
       expect(chain.where(name: 'Bob', 'range3.lt': 200).to_a.size).to eq(1)
-      expect(chain.hash_key).to eq(:name)
-      expect(chain.range_key).to eq(:range3)
-      expect(chain.index_name).to eq(:range3index)
+      expect(chain.keys_detector.hash_key).to eq(:name)
+      expect(chain.keys_detector.range_key).to eq(:range3)
+      expect(chain.keys_detector.index_name).to eq(:range3index)
     end
 
     it 'supports query on local secondary index with start' do
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:pages_via_query).and_call_original
       expect(chain.where(name: 'Bob', 'range2.gt': 15).to_a.size).to eq(2)
-      expect(chain.hash_key).to eq(:name)
-      expect(chain.range_key).to eq(:range2)
-      expect(chain.index_name).to eq(:range2index)
+      expect(chain.keys_detector.hash_key).to eq(:name)
+      expect(chain.keys_detector.range_key).to eq(:range2)
+      expect(chain.keys_detector.index_name).to eq(:range2index)
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:pages_via_query).and_call_original
       expect(chain.where(name: 'Bob', 'range2.gt': 15).start(@customer2).all).to contain_exactly(@customer3)
-      expect(chain.hash_key).to eq(:name)
-      expect(chain.range_key).to eq(:range2)
-      expect(chain.index_name).to eq(:range2index)
+      expect(chain.keys_detector.hash_key).to eq(:name)
+      expect(chain.keys_detector.range_key).to eq(:range2)
+      expect(chain.keys_detector.index_name).to eq(:range2index)
     end
   end
 
@@ -592,9 +592,9 @@ describe Dynamoid::Criteria::Chain do
       expect(chain).to receive(:pages_via_scan).and_call_original
       expect(chain.where(city: 'San Francisco').to_a.size).to eq(2)
       # Does not use GSI since not projecting all attributes
-      expect(chain.hash_key).to be_nil
-      expect(chain.range_key).to be_nil
-      expect(chain.index_name).to be_nil
+      expect(chain.keys_detector.hash_key).to be_nil
+      expect(chain.keys_detector.range_key).to be_nil
+      expect(chain.keys_detector.index_name).to be_nil
     end
 
     context 'with full composite key for table' do
@@ -628,57 +628,57 @@ describe Dynamoid::Criteria::Chain do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:pages_via_query).and_call_original
         expect(chain.where(name: 'Bob').to_a.size).to eq(1)
-        expect(chain.hash_key).to eq(:name)
-        expect(chain.range_key).to be_nil
-        expect(chain.index_name).to be_nil
+        expect(chain.keys_detector.hash_key).to eq(:name)
+        expect(chain.keys_detector.range_key).to be_nil
+        expect(chain.keys_detector.index_name).to be_nil
       end
 
       it 'supports query on global secondary index' do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:pages_via_query).and_call_original
         expect(chain.where(city: 'San Francisco').to_a.size).to eq(3)
-        expect(chain.hash_key).to eq(:city)
-        expect(chain.range_key).to eq(:age)
-        expect(chain.index_name).to eq(:cityage)
+        expect(chain.keys_detector.hash_key).to eq(:city)
+        expect(chain.keys_detector.range_key).to eq(:age)
+        expect(chain.keys_detector.index_name).to eq(:cityage)
 
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:pages_via_query).and_call_original
         expect(chain.where(city: 'San Francisco', 'age.gt': 12).to_a.size).to eq(2)
-        expect(chain.hash_key).to eq(:city)
-        expect(chain.range_key).to eq(:age)
-        expect(chain.index_name).to eq(:cityage)
+        expect(chain.keys_detector.hash_key).to eq(:city)
+        expect(chain.keys_detector.range_key).to eq(:age)
+        expect(chain.keys_detector.index_name).to eq(:cityage)
 
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:pages_via_query).and_call_original
         expect(chain.where(email: 'greg@test.com').to_a.size).to eq(1)
-        expect(chain.hash_key).to eq(:email)
-        expect(chain.range_key).to eq(:age)
-        expect(chain.index_name).to eq(:emailage)
+        expect(chain.keys_detector.hash_key).to eq(:email)
+        expect(chain.keys_detector.range_key).to eq(:age)
+        expect(chain.keys_detector.index_name).to eq(:emailage)
 
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:pages_via_query).and_call_original
         expect(chain.where(email: 'greg@test.com', 'age.gt': 12).to_a.size).to eq(1)
-        expect(chain.hash_key).to eq(:email)
-        expect(chain.range_key).to eq(:age)
-        expect(chain.index_name).to eq(:emailage)
+        expect(chain.keys_detector.hash_key).to eq(:email)
+        expect(chain.keys_detector.range_key).to eq(:age)
+        expect(chain.keys_detector.index_name).to eq(:emailage)
       end
 
       it 'supports scan when no global secondary index available' do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:pages_via_scan).and_call_original
         expect(chain.where(gender: 'male').to_a.size).to eq(4)
-        expect(chain.hash_key).to be_nil
-        expect(chain.range_key).to be_nil
-        expect(chain.index_name).to be_nil
+        expect(chain.keys_detector.hash_key).to be_nil
+        expect(chain.keys_detector.range_key).to be_nil
+        expect(chain.keys_detector.index_name).to be_nil
       end
 
       it 'supports query on global secondary index with start' do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:pages_via_query).and_call_original
         expect(chain.where(city: 'San Francisco').to_a.size).to eq(3)
-        expect(chain.hash_key).to eq(:city)
-        expect(chain.range_key).to eq(:age)
-        expect(chain.index_name).to eq(:cityage)
+        expect(chain.keys_detector.hash_key).to eq(:city)
+        expect(chain.keys_detector.range_key).to eq(:age)
+        expect(chain.keys_detector.index_name).to eq(:cityage)
 
         # Now query with start at customer2 and we should only see customer3
         chain = Dynamoid::Criteria::Chain.new(model)
@@ -690,25 +690,25 @@ describe Dynamoid::Criteria::Chain do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:pages_via_scan).and_call_original
         expect(chain.where('city.begins_with': 'San').to_a.size).to eq(3)
-        expect(chain.hash_key).to be_nil
-        expect(chain.range_key).to be_nil
-        expect(chain.index_name).to be_nil
+        expect(chain.keys_detector.hash_key).to be_nil
+        expect(chain.keys_detector.range_key).to be_nil
+        expect(chain.keys_detector.index_name).to be_nil
       end
 
       it 'prefers global secondary index with range key used in conditions to index w/o such range key' do
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:pages_via_query).and_call_original
         expect(chain.where(city: 'San Francisco', 'age.lte': 15).to_a.size).to eq(2)
-        expect(chain.hash_key).to eq(:city)
-        expect(chain.range_key).to eq(:age)
-        expect(chain.index_name).to eq(:cityage)
+        expect(chain.keys_detector.hash_key).to eq(:city)
+        expect(chain.keys_detector.range_key).to eq(:age)
+        expect(chain.keys_detector.index_name).to eq(:cityage)
 
         chain = Dynamoid::Criteria::Chain.new(model)
         expect(chain).to receive(:pages_via_query).and_call_original
         expect(chain.where(city: 'San Francisco', gender: 'male').to_a.size).to eq(3)
-        expect(chain.hash_key).to eq(:city)
-        expect(chain.range_key).to eq(:gender)
-        expect(chain.index_name).to eq(:citygender)
+        expect(chain.keys_detector.hash_key).to eq(:city)
+        expect(chain.keys_detector.range_key).to eq(:gender)
+        expect(chain.keys_detector.index_name).to eq(:citygender)
       end
     end
 
