@@ -264,7 +264,7 @@ module Dynamoid
           attributes = method.to_s.split('_by_').last.split('_and_')
 
           chain = Dynamoid::Criteria::Chain.new(self)
-          chain.query = {}.tap { |h| attributes.each_with_index { |attr, index| h[attr.to_sym] = args[index] } }
+          chain = chain.where({}.tap { |h| attributes.each_with_index { |attr, index| h[attr.to_sym] = args[index] } })
 
           if finder =~ /all/
             return chain.all

@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
-require_relative 'query'
-require_relative 'scan'
+require_relative 'aws_sdk_v3/query'
+require_relative 'aws_sdk_v3/scan'
+require_relative 'aws_sdk_v3/create_table'
+require_relative 'aws_sdk_v3/item_updater'
+require_relative 'aws_sdk_v3/table'
+require_relative 'aws_sdk_v3/until_past_table_status'
 
 module Dynamoid
   module AdapterPlugin
@@ -187,6 +191,7 @@ module Dynamoid
 
         table_ids.each do |t, ids|
           next if ids.blank?
+
           ids = Array(ids).dup
           tbl = describe_table(t)
           hk  = tbl.hash_key.to_s
@@ -293,58 +298,7 @@ module Dynamoid
       # @since 1.0.0
       def create_table(table_name, key = :id, options = {})
         Dynamoid.logger.info "Creating #{table_name} table. This could take a while."
-        read_capacity = options[:read_capacity] || Dynamoid::Config.read_capacity
-        write_capacity = options[:write_capacity] || Dynamoid::Config.write_capacity
-
-        secondary_indexes = options.slice(
-          :local_secondary_indexes,
-          :global_secondary_indexes
-        )
-        ls_indexes = options[:local_secondary_indexes]
-        gs_indexes = options[:global_secondary_indexes]
-
-        key_schema = {
-          hash_key_schema: { key => (options[:hash_key_type] || :string) },
-          range_key_schema: options[:range_key]
-        }
-        attribute_definitions = build_all_attribute_definitions(
-          key_schema,
-          secondary_indexes
-        )
-        key_schema = aws_key_schema(
-          key_schema[:hash_key_schema],
-          key_schema[:range_key_schema]
-        )
-
-        client_opts = {
-          table_name: table_name,
-          provisioned_throughput: {
-            read_capacity_units: read_capacity,
-            write_capacity_units: write_capacity
-          },
-          key_schema: key_schema,
-          attribute_definitions: attribute_definitions
-        }
-
-        if ls_indexes.present?
-          client_opts[:local_secondary_indexes] = ls_indexes.map do |index|
-            index_to_aws_hash(index)
-          end
-        end
-
-        if gs_indexes.present?
-          client_opts[:global_secondary_indexes] = gs_indexes.map do |index|
-            index_to_aws_hash(index)
-          end
-        end
-        resp = client.create_table(client_opts)
-        options[:sync] = true if !options.key?(:sync) && ls_indexes.present? || gs_indexes.present?
-        until_past_table_status(table_name, :creating) if options[:sync] &&
-                                                          (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-                                                          status == TABLE_STATUSES[:creating]
-        # Response to original create_table, which, if options[:sync]
-        #   may have an outdated table_description.table_status of "CREATING"
-        resp
+        CreateTable.new(client, table_name, key, options).call
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         Dynamoid.logger.error "Table #{table_name} cannot be created as it already exists"
       end
@@ -402,9 +356,9 @@ module Dynamoid
       # @since 1.0.0
       def delete_table(table_name, options = {})
         resp = client.delete_table(table_name: table_name)
-        until_past_table_status(table_name, :deleting) if options[:sync] &&
-                                                          (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-                                                          status == TABLE_STATUSES[:deleting]
+        UntilPastTableStatus.new(table_name, :deleting).call if options[:sync] &&
+                                                                (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
+                                                                status == TABLE_STATUSES[:deleting]
         table_cache.delete(table_name)
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         Dynamoid.logger.error "Table #{table_name} cannot be deleted as it is in use"
@@ -461,6 +415,7 @@ module Dynamoid
         yield(iu = ItemUpdater.new(table, key, range_key))
 
         raise "non-empty options: #{options}" unless options.empty?
+
         begin
           result = client.update_item(table_name: table_name,
                                       key: key_stanza(table, key, range_key),
@@ -610,59 +565,6 @@ module Dynamoid
 
       protected
 
-      def check_table_status?(counter, resp, expect_status)
-        status = PARSE_TABLE_STATUS.call(resp)
-        again = counter < Dynamoid::Config.sync_retry_max_times &&
-                status == TABLE_STATUSES[expect_status]
-        { again: again, status: status, counter: counter }
-      end
-
-      def until_past_table_status(table_name, status = :creating)
-        counter = 0
-        resp = nil
-        begin
-          check = { again: true }
-          while check[:again]
-            sleep Dynamoid::Config.sync_retry_wait_seconds
-            resp = client.describe_table(table_name: table_name)
-            check = check_table_status?(counter, resp, status)
-            Dynamoid.logger.info "Checked table status for #{table_name} (check #{check.inspect})"
-            counter += 1
-          end
-        # If you issue a DescribeTable request immediately after a CreateTable
-        #   request, DynamoDB might return a ResourceNotFoundException.
-        # This is because DescribeTable uses an eventually consistent query,
-        #   and the metadata for your table might not be available at that moment.
-        # Wait for a few seconds, and then try the DescribeTable request again.
-        # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#describe_table-instance_method
-        rescue Aws::DynamoDB::Errors::ResourceNotFoundException => e
-          case status
-          when :creating then
-            if counter >= Dynamoid::Config.sync_retry_max_times
-              Dynamoid.logger.warn "Waiting on table metadata for #{table_name} (check #{counter})"
-              retry # start over at first line of begin, does not reset counter
-            else
-              Dynamoid.logger.error "Exhausted max retries (Dynamoid::Config.sync_retry_max_times) waiting on table metadata for #{table_name} (check #{counter})"
-              raise e
-            end
-          else
-            # When deleting a table, "not found" is the goal.
-            Dynamoid.logger.info "Checked table status for #{table_name}: Not Found (check #{check.inspect})"
-          end
-        end
-      end
-
-      # Converts from symbol to the API string for the given data type
-      # E.g. :number -> 'N'
-      def api_type(type)
-        case type
-        when :string then STRING_TYPE
-        when :number then NUM_TYPE
-        when :binary then BINARY_TYPE
-        else raise "Unknown type: #{type}"
-        end
-      end
-
       #
       # The key hash passed on get_item, put_item, delete_item, update_item, etc
       #
@@ -712,152 +614,6 @@ module Dynamoid
         end
       end
 
-      # Converts a Dynamoid::Indexes::Index to an AWS API-compatible hash.
-      # This resulting hash is of the form:
-      #
-      #   {
-      #     index_name: String
-      #     keys: {
-      #       hash_key: aws_key_schema (hash)
-      #       range_key: aws_key_schema (hash)
-      #     }
-      #     projection: {
-      #       projection_type: (ALL, KEYS_ONLY, INCLUDE) String
-      #       non_key_attributes: (optional) Array
-      #     }
-      #     provisioned_throughput: {
-      #       read_capacity_units: Integer
-      #       write_capacity_units: Integer
-      #     }
-      #   }
-      #
-      # @param [Dynamoid::Indexes::Index] index the index.
-      # @return [Hash] hash representing an AWS Index definition.
-      def index_to_aws_hash(index)
-        key_schema = aws_key_schema(index.hash_key_schema, index.range_key_schema)
-
-        hash = {
-          index_name: index.name,
-          key_schema: key_schema,
-          projection: {
-            projection_type: index.projection_type.to_s.upcase
-          }
-        }
-
-        # If the projection type is include, specify the non key attributes
-        if index.projection_type == :include
-          hash[:projection][:non_key_attributes] = index.projected_attributes
-        end
-
-        # Only global secondary indexes have a separate throughput.
-        if index.type == :global_secondary
-          hash[:provisioned_throughput] = {
-            read_capacity_units: index.read_capacity,
-            write_capacity_units: index.write_capacity
-          }
-        end
-        hash
-      end
-
-      # Converts hash_key_schema and range_key_schema to aws_key_schema
-      # @param [Hash] hash_key_schema eg: {:id => :string}
-      # @param [Hash] range_key_schema eg: {:created_at => :number}
-      # @return [Array]
-      def aws_key_schema(hash_key_schema, range_key_schema)
-        schema = [{
-          attribute_name: hash_key_schema.keys.first.to_s,
-          key_type: HASH_KEY
-        }]
-
-        if range_key_schema.present?
-          schema << {
-            attribute_name: range_key_schema.keys.first.to_s,
-            key_type: RANGE_KEY
-          }
-        end
-        schema
-      end
-
-      # Builds aws attributes definitions based off of primary hash/range and
-      # secondary indexes
-      #
-      # @param key_data
-      # @option key_data [Hash] hash_key_schema - eg: {:id => :string}
-      # @option key_data [Hash] range_key_schema - eg: {:created_at => :number}
-      # @param [Hash] secondary_indexes
-      # @option secondary_indexes [Array<Dynamoid::Indexes::Index>] :local_secondary_indexes
-      # @option secondary_indexes [Array<Dynamoid::Indexes::Index>] :global_secondary_indexes
-      def build_all_attribute_definitions(key_schema, secondary_indexes = {})
-        ls_indexes = secondary_indexes[:local_secondary_indexes]
-        gs_indexes = secondary_indexes[:global_secondary_indexes]
-
-        attribute_definitions = []
-
-        attribute_definitions << build_attribute_definitions(
-          key_schema[:hash_key_schema],
-          key_schema[:range_key_schema]
-        )
-
-        if ls_indexes.present?
-          ls_indexes.map do |index|
-            attribute_definitions << build_attribute_definitions(
-              index.hash_key_schema,
-              index.range_key_schema
-            )
-          end
-        end
-
-        if gs_indexes.present?
-          gs_indexes.map do |index|
-            attribute_definitions << build_attribute_definitions(
-              index.hash_key_schema,
-              index.range_key_schema
-            )
-          end
-        end
-
-        attribute_definitions.flatten!
-        # uniq these definitions because range keys might be common between
-        # primary and secondary indexes
-        attribute_definitions.uniq!
-        attribute_definitions
-      end
-
-      # Builds an attribute definitions based on hash key and range key
-      # @params [Hash] hash_key_schema - eg: {:id => :string}
-      # @params [Hash] range_key_schema - eg: {:created_at => :datetime}
-      # @return [Array]
-      def build_attribute_definitions(hash_key_schema, range_key_schema = nil)
-        attrs = []
-
-        attrs << attribute_definition_element(
-          hash_key_schema.keys.first,
-          hash_key_schema.values.first
-        )
-
-        if range_key_schema.present?
-          attrs << attribute_definition_element(
-            range_key_schema.keys.first,
-            range_key_schema.values.first
-          )
-        end
-
-        attrs
-      end
-
-      # Builds an aws attribute definition based on name and dynamoid type
-      # @params [Symbol] name - eg: :id
-      # @params [Symbol] dynamoid_type - eg: :string
-      # @return [Hash]
-      def attribute_definition_element(name, dynamoid_type)
-        aws_type = api_type(dynamoid_type)
-
-        {
-          attribute_name: name.to_s,
-          attribute_type: aws_type
-        }
-      end
-
       # Build an array of values for Condition
       # Is used in ScanFilter and QueryFilter
       # https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
@@ -877,139 +633,8 @@ module Dynamoid
         end
       end
 
-      #
-      # Represents a table. Exposes data from the "DescribeTable" API call, and also
-      # provides methods for coercing values to the proper types based on the table's schema data
-      #
-      class Table
-        attr_reader :schema
-
-        #
-        # @param [Hash] schema Data returns from a "DescribeTable" call
-        #
-        def initialize(schema)
-          @schema = schema[:table]
-        end
-
-        def range_key
-          @range_key ||= schema[:key_schema].find { |d| d[:key_type] == RANGE_KEY }.try(:attribute_name)
-        end
-
-        def range_type
-          range_type ||= schema[:attribute_definitions].find do |d|
-            d[:attribute_name] == range_key
-          end.try(:fetch, :attribute_type, nil)
-        end
-
-        def hash_key
-          @hash_key ||= schema[:key_schema].find { |d| d[:key_type] == HASH_KEY }.try(:attribute_name).to_sym
-        end
-
-        #
-        # Returns the API type (e.g. "N", "S") for the given column, if the schema defines it,
-        # nil otherwise
-        #
-        def col_type(col)
-          col = col.to_s
-          col_def = schema[:attribute_definitions].find { |d| d[:attribute_name] == col.to_s }
-          col_def && col_def[:attribute_type]
-        end
-
-        def item_count
-          schema[:item_count]
-        end
-
-        def name
-          schema[:table_name]
-        end
-      end
-
-      #
-      # Mimics behavior of the yielded object on DynamoDB's update_item API (high level).
-      #
-      class ItemUpdater
-        attr_reader :table, :key, :range_key
-
-        def initialize(table, key, range_key = nil)
-          @table = table
-          @key = key
-          @range_key = range_key
-          @additions = {}
-          @deletions = {}
-          @updates   = {}
-        end
-
-        #
-        # Adds the given values to the values already stored in the corresponding columns.
-        # The column must contain a Set or a number.
-        #
-        # @param [Hash] vals keys of the hash are the columns to update, vals are the values to
-        #               add. values must be a Set, Array, or Numeric
-        #
-        def add(values)
-          @additions.merge!(sanitize_attributes(values))
-        end
-
-        #
-        # Removes values from the sets of the given columns
-        #
-        # @param [Hash] values keys of the hash are the columns, values are Arrays/Sets of items
-        #               to remove
-        #
-        def delete(values)
-          @deletions.merge!(sanitize_attributes(values))
-        end
-
-        #
-        # Replaces the values of one or more attributes
-        #
-        def set(values)
-          @updates.merge!(sanitize_attributes(values))
-        end
-
-        #
-        # Returns an AttributeUpdates hash suitable for passing to the V2 Client API
-        #
-        def to_h
-          ret = {}
-
-          @additions.each do |k, v|
-            ret[k.to_s] = {
-              action: ADD,
-              value: v
-            }
-          end
-          @deletions.each do |k, v|
-            ret[k.to_s] = {
-              action: DELETE,
-              value: v
-            }
-          end
-          @updates.each do |k, v|
-            ret[k.to_s] = {
-              action: PUT,
-              value: v
-            }
-          end
-
-          ret
-        end
-
-        private
-
-        def sanitize_attributes(attributes)
-          attributes.transform_values do |v|
-            v.is_a?(Hash) ? v.stringify_keys : v
-          end
-        end
-
-        ADD    = 'ADD'
-        DELETE = 'DELETE'
-        PUT    = 'PUT'
-      end
-
       def sanitize_item(attributes)
-        attributes.reject do |_k, v|
+        attributes.reject do |_, v|
           v.nil? || ((v.is_a?(Set) || v.is_a?(String)) && v.empty?)
         end.transform_values do |v|
           v.is_a?(Hash) ? v.stringify_keys : v

@@ -4,8 +4,8 @@
 
 source 'https://rubygems.org'
 
+gem 'activemodel', '~> 4.2.0'
 gem 'nokogiri', '~> 1.6.8'
 gem 'pry-byebug', platforms: :ruby
-gem 'activemodel', '~> 4.2.0'
 
 gemspec path: '../'

@@ -185,25 +185,29 @@ describe Dynamoid::Persistence do
       it 'does not support :array' do
         klass = new_class(partition_key: { name: :id, type: :array })
         expect { klass.create_table }.to raise_error(
-          Dynamoid::Errors::UnsupportedKeyType, "array cannot be used as a type of table key attribute")
+          Dynamoid::Errors::UnsupportedKeyType, 'array cannot be used as a type of table key attribute'
+        )
       end
 
       it 'does not support :set' do
         klass = new_class(partition_key: { name: :id, type: :set })
         expect { klass.create_table }.to raise_error(
-          Dynamoid::Errors::UnsupportedKeyType, "set cannot be used as a type of table key attribute")
+          Dynamoid::Errors::UnsupportedKeyType, 'set cannot be used as a type of table key attribute'
+        )
       end
 
       it 'does not support :raw' do
         klass = new_class(partition_key: { name: :id, type: :raw })
         expect { klass.create_table }.to raise_error(
-          Dynamoid::Errors::UnsupportedKeyType, "raw cannot be used as a type of table key attribute")
+          Dynamoid::Errors::UnsupportedKeyType, 'raw cannot be used as a type of table key attribute'
+        )
       end
 
       it 'does not support :boolean' do
         klass = new_class(partition_key: { name: :id, type: :boolean })
         expect { klass.create_table }.to raise_error(
-          Dynamoid::Errors::UnsupportedKeyType, "boolean cannot be used as a type of table key attribute")
+          Dynamoid::Errors::UnsupportedKeyType, 'boolean cannot be used as a type of table key attribute'
+        )
       end
     end
 
@@ -352,7 +356,7 @@ describe Dynamoid::Persistence do
           expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
         end
 
-        it 'uses specified type if .dynamoid_field_type method declared', :wip do
+        it 'uses specified type if .dynamoid_field_type method declared' do
           klass = new_class(sort_key_type: user_class_with_type) do |options|
             range :prop, options[:sort_key_type]
           end
@@ -368,7 +372,8 @@ describe Dynamoid::Persistence do
         end
 
         expect { klass.create_table }.to raise_error(
-          Dynamoid::Errors::UnsupportedKeyType, "array cannot be used as a type of table key attribute")
+          Dynamoid::Errors::UnsupportedKeyType, 'array cannot be used as a type of table key attribute'
+        )
       end
 
       it 'does not support :set' do
@@ -377,7 +382,8 @@ describe Dynamoid::Persistence do
         end
 
         expect { klass.create_table }.to raise_error(
-          Dynamoid::Errors::UnsupportedKeyType, "set cannot be used as a type of table key attribute")
+          Dynamoid::Errors::UnsupportedKeyType, 'set cannot be used as a type of table key attribute'
+        )
       end
 
       it 'does not support :raw' do
@@ -386,7 +392,8 @@ describe Dynamoid::Persistence do
         end
 
         expect { klass.create_table }.to raise_error(
-          Dynamoid::Errors::UnsupportedKeyType, "raw cannot be used as a type of table key attribute")
+          Dynamoid::Errors::UnsupportedKeyType, 'raw cannot be used as a type of table key attribute'
+        )
       end
 
       it 'does not support :boolean' do
@@ -395,7 +402,8 @@ describe Dynamoid::Persistence do
         end
 
         expect { klass.create_table }.to raise_error(
-          Dynamoid::Errors::UnsupportedKeyType, "boolean cannot be used as a type of table key attribute")
+          Dynamoid::Errors::UnsupportedKeyType, 'boolean cannot be used as a type of table key attribute'
+        )
       end
     end
   end
@@ -574,7 +582,7 @@ describe Dynamoid::Persistence do
       it 'works well with hash keys of any type' do
         a = nil
         expect {
-          a = klass.new(hash: {1 => :b})
+          a = klass.new(hash: { 1 => :b })
           a.save!
         }.not_to raise_error
 
@@ -1238,7 +1246,7 @@ describe Dynamoid::Persistence do
         a = klass.create
 
         expect {
-          a.update { |d| d.set(hash: {1 => :b}) }
+          a.update { |d| d.set(hash: { 1 => :b }) }
         }.not_to raise_error
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
@@ -1528,7 +1536,7 @@ describe Dynamoid::Persistence do
       it 'works well with hash keys of any type' do
         a = nil
         expect {
-          a, = klass.import([hash: {1 => :b}])
+          a, = klass.import([hash: { 1 => :b }])
         }.not_to raise_error
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')

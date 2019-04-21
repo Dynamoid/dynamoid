@@ -160,12 +160,36 @@ describe Dynamoid::Document do
     end.to raise_error(Dynamoid::Errors::DocumentNotValid)
   end
 
-  it 'knows if a document exists or not' do
-    address = Address.create(city: 'Chicago')
-    expect(Address.exists?(address.id)).to be_truthy
-    expect(Address.exists?('does-not-exist')).to be_falsey
-    expect(Address.exists?(city: address.city)).to be_truthy
-    expect(Address.exists?(city: 'does-not-exist')).to be_falsey
+  describe '.exist?' do
+    it 'checks if there is a document with specified primary key' do
+      address = Address.create(city: 'Chicago')
+
+      expect(Address.exists?(address.id)).to be_truthy
+      expect(Address.exists?('does-not-exist')).to be_falsey
+    end
+
+    it 'supports an array of primary keys' do
+      address_1 = Address.create(city: 'Chicago')
+      address_2 = Address.create(city: 'New York')
+      address_3 = Address.create(city: 'Los Angeles')
+
+      expect(Address.exists?([address_1.id, address_2.id])).to be_truthy
+      expect(Address.exists?([address_1.id, 'does-not-exist'])).to be_falsey
+    end
+
+    it 'supports hash with conditions' do
+      address = Address.create(city: 'Chicago')
+
+      expect(Address.exists?(city: address.city)).to be_truthy
+      expect(Address.exists?(city: 'does-not-exist')).to be_falsey
+    end
+
+    it 'checks if there any document in table at all if called without argument' do
+      Address.create_table(sync: true)
+      expect(Address.count).to eq 0
+
+      expect { Address.create }.to change { Address.exists? }.from(false).to(true)
+    end
   end
 
   it 'gets errors courtesy of ActiveModel' do
@@ -445,7 +469,7 @@ describe Dynamoid::Document do
         a = klass.create
 
         expect {
-          klass.update_fields(a.id, hash: {1 => :b})
+          klass.update_fields(a.id, hash: { 1 => :b })
         }.not_to raise_error
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
@@ -608,7 +632,7 @@ describe Dynamoid::Document do
         a = klass.create
 
         expect {
-          klass.upsert(a.id, hash: {1 => :b})
+          klass.upsert(a.id, hash: { 1 => :b })
         }.not_to raise_error
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')

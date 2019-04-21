@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.configure do |config|
   config.around :each, :config do |example|
     config = example.metadata[:config]
@@ -10,7 +12,7 @@ RSpec.configure do |config|
 
     example.run
 
-    config.each do |key, value|
+    config.each do |key, _|
       Dynamoid::Config.send("#{key}=", config_old[key])
     end
   end

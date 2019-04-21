@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe 'STI' do
@@ -49,13 +51,19 @@ RSpec.describe 'STI' do
         field :type
       end
       B = Class.new(A) do
-        def self.name; 'B'; end
+        def self.name
+          'B'
+        end
       end
       C = Class.new(A) do
-        def self.name; 'C'; end
+        def self.name
+          'C'
+        end
       end
       D = Class.new(B) do
-        def self.name; 'D'; end
+        def self.name
+          'D'
+        end
       end
     end
 
@@ -125,7 +133,9 @@ RSpec.describe 'STI' do
       end
 
       B = Class.new(A) do
-        def self.name; 'B'; end
+        def self.name
+          'B'
+        end
       end
     end
 

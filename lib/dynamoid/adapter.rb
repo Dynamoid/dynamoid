@@ -155,6 +155,7 @@ module Dynamoid
     # @since 0.2.0
     def method_missing(method, *args, &block)
       return benchmark(method, *args) { adapter.send(method, *args, &block) } if adapter.respond_to?(method)
+
       super
     end
 

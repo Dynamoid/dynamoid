@@ -89,7 +89,7 @@ module Dynamoid #:nodoc:
           remove_method field
           remove_method :"#{field}="
           remove_method :"#{field}?"
-          remove_method:"#{field}_before_type_cast"
+          remove_method :"#{field}_before_type_cast"
         end
       end
 
@@ -148,6 +148,7 @@ module Dynamoid #:nodoc:
     # @param [Symbol] attribute name
     def read_attribute_before_type_cast(name)
       return nil unless name.respond_to?(:to_sym)
+
       @attributes_before_type_cast[name.to_sym]
     end
 
@@ -174,8 +175,8 @@ module Dynamoid #:nodoc:
       # self.type ||= self.class.name if self.class.attributes[:type]
 
       type = self.class.inheritance_field
-      if self.class.attributes[type] && self.send(type).nil?
-        self.send("#{type}=", self.class.name)
+      if self.class.attributes[type] && send(type).nil?
+        send("#{type}=", self.class.name)
       end
     end
   end

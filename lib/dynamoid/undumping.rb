@@ -8,7 +8,7 @@ module Dynamoid
         attributes.symbolize_keys
           .select { |attribute| attributes_options.key?(attribute) }
           .each do |attribute, value|
-            h[attribute] = undump_field(value, attributes_options[attribute])
+          h[attribute] = undump_field(value, attributes_options[attribute])
         end
       end
     end
@@ -68,7 +68,7 @@ module Dynamoid
     end
 
     class SetUndumper < Base
-      ALLOWED_TYPES = [:string, :integer, :number, :date, :datetime, :serialized]
+      ALLOWED_TYPES = %i[string integer number date datetime serialized].freeze
 
       def process(set)
         if @options.key?(:of)
@@ -94,26 +94,26 @@ module Dynamoid
       end
 
       def element_type
-        unless @options[:of].is_a?(Hash)
-          @options[:of]
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of].keys.first
+        else
+          @options[:of]
         end
       end
 
       def element_options
-        unless @options[:of].is_a?(Hash)
-          { type: element_type }
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of][element_type].dup.tap do |options|
             options[:type] = element_type
           end
+        else
+          { type: element_type }
         end
       end
     end
 
     class ArrayUndumper < Base
-      ALLOWED_TYPES = [:string, :integer, :number, :date, :datetime, :serialized]
+      ALLOWED_TYPES = %i[string integer number date datetime serialized].freeze
 
       def process(array)
         if @options.key?(:of)
@@ -139,20 +139,20 @@ module Dynamoid
       end
 
       def element_type
-        unless @options[:of].is_a?(Hash)
-          @options[:of]
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of].keys.first
+        else
+          @options[:of]
         end
       end
 
       def element_options
-        unless @options[:of].is_a?(Hash)
-          { type: element_type }
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of][element_type].dup.tap do |options|
             options[:type] = element_type
           end
+        else
+          { type: element_type }
         end
       end
     end
@@ -233,7 +233,7 @@ module Dynamoid
     end
 
     class BooleanUndumper < Base
-      STRING_VALUES = ['t', 'f']
+      STRING_VALUES = %w[t f].freeze
 
       def process(value)
         store_as_boolean = if @options[:store_as_native_boolean].nil?

@@ -39,11 +39,13 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
     def request_params
       return { hash_value: '1' } if @request_type == :query
+
       {}
     end
 
     def dynamo_request(table_name, scan_hash = {}, select_opts = {})
       return Dynamoid.adapter.query(table_name, scan_hash.merge(select_opts)).flat_map{ |i| i } if @request_type == :query
+
       Dynamoid.adapter.scan(table_name, scan_hash, select_opts).flat_map{ |i| i }
     end
 
@@ -99,7 +101,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
             test_table3,
             request_params.merge(name: { eq: 'Josh' }),
             scan_limit: 2,
-            record_limit: 10, # Won't be able to return more than 2 due to scan limit
+            record_limit: 10 # Won't be able to return more than 2 due to scan limit
           ).count
         ).to eq(2)
       end
@@ -118,7 +120,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
             test_table3,
             request_params.merge(name: { eq: 'Josh' }),
             scan_limit: 3,
-            batch_size: 2, # This would force batching of size 2 for potential of 4 results!
+            batch_size: 2 # This would force batching of size 2 for potential of 4 results!
           ).count
         ).to eq(3)
       end
@@ -241,8 +243,8 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
           test_table3,
           request_params.merge(name: { eq: 'Josh' }),
           batch_size: 4,
-          scan_limit: 5,    # Scan limit would adjust requested limit to 1
-          record_limit: 6,  # Record limit would adjust requested limit to 2
+          scan_limit: 5, # Scan limit would adjust requested limit to 1
+          record_limit: 6 # Record limit would adjust requested limit to 2
         ).count
       ).to eq(4)
     end
@@ -334,6 +336,22 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(Dynamoid.adapter.list_tables).to include 'CreateTable'
 
       Dynamoid.adapter.delete_table('CreateTable')
+    end
+
+    it 'creates table synchronously' do
+      table = Dynamoid.adapter.create_table('snakes', :id, sync: true)
+
+      expect(Dynamoid.adapter.list_tables).to include 'snakes'
+
+      Dynamoid.adapter.delete_table('snakes')
+    end
+
+    it 'deletes table synchronously' do
+      table = Dynamoid.adapter.create_table('snakes', :id, sync: true)
+      expect(Dynamoid.adapter.list_tables).to include 'snakes'
+
+      Dynamoid.adapter.delete_table('snakes', sync: true)
+      expect(Dynamoid.adapter.list_tables).not_to include 'snakes'
     end
 
     describe 'create table with secondary index' do
@@ -783,8 +801,8 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       it 'automatically pages through all results' do
-        expect(Dynamoid.adapter.list_tables).to include "dynamoid_tests_ALotOfTables44"
-        expect(Dynamoid.adapter.list_tables).to include "dynamoid_tests_ALotOfTables200"
+        expect(Dynamoid.adapter.list_tables).to include 'dynamoid_tests_ALotOfTables44'
+        expect(Dynamoid.adapter.list_tables).to include 'dynamoid_tests_ALotOfTables200'
         expect(Dynamoid.adapter.list_tables.size).to eq 201 + count_before
       end
     end

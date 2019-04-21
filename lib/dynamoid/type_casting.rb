@@ -96,7 +96,7 @@ module Dynamoid
           nil
         elsif value.is_a?(Float) && !value.finite?
           nil
-        elsif !(value.respond_to?(:to_d))
+        elsif !value.respond_to?(:to_d)
           nil
         else
           value.to_d
@@ -122,8 +122,6 @@ module Dynamoid
           value.dup
         elsif value.respond_to?(:to_set)
           value.to_set
-        else
-          nil
         end
       end
 
@@ -138,20 +136,20 @@ module Dynamoid
       end
 
       def element_type
-        unless @options[:of].is_a?(Hash)
-          @options[:of]
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of].keys.first
+        else
+          @options[:of]
         end
       end
 
       def element_options
-        unless @options[:of].is_a?(Hash)
-          { type: element_type }
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of][element_type].dup.tap do |options|
             options[:type] = element_type
           end
+        else
+          { type: element_type }
         end
       end
     end
@@ -174,8 +172,6 @@ module Dynamoid
           value.dup
         elsif value.respond_to?(:to_a)
           value.to_a
-        else
-          nil
         end
       end
 
@@ -190,20 +186,20 @@ module Dynamoid
       end
 
       def element_type
-        unless @options[:of].is_a?(Hash)
-          @options[:of]
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of].keys.first
+        else
+          @options[:of]
         end
       end
 
       def element_options
-        unless @options[:of].is_a?(Hash)
-          { type: element_type }
-        else
+        if @options[:of].is_a?(Hash)
           @options[:of][element_type].dup.tap do |options|
             options[:type] = element_type
           end
+        else
+          { type: element_type }
         end
       end
     end
@@ -213,7 +209,11 @@ module Dynamoid
         if !value.respond_to?(:to_datetime)
           nil
         elsif value.is_a?(String)
-          dt = DateTime.parse(value) rescue nil
+          dt = begin
+                 DateTime.parse(value)
+               rescue StandardError
+                 nil
+               end
           if dt
             seconds = string_utc_offset(value) || ApplicationTimeZone.utc_offset
             offset = seconds_to_offset(seconds)
@@ -243,7 +243,8 @@ module Dynamoid
         else
           begin
             value.to_date
-          rescue ArgumentError
+          rescue StandardError
+            nil
           end
         end
       end

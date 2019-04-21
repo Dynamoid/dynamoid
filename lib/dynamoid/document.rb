@@ -33,6 +33,7 @@ module Dynamoid #:nodoc:
       end
 
       def attr_readonly(*read_only_attributes)
+        ActiveSupport::Deprecation.warn('[Dynamoid] .attr_readonly is deprecated! Call .find instead of')
         self.read_only_attributes.concat read_only_attributes.map(&:to_s)
       end
 
@@ -112,14 +113,28 @@ module Dynamoid #:nodoc:
 
       # Does this object exist?
       #
+      # Supports primary key in format that `find` call understands.
+      # Multiple keys and single compound primary key should be passed only as Array explicitily.
+      #
+      # Supports conditions in format that `where` call understands.
+      #
       # @param [Mixed] id_or_conditions the id of the object or a hash with the options to filter from.
       #
       # @return [Boolean] true/false
       #
+      # @example With id
+      #
+      #   Post.exist?(713)
+      #   Post.exist?([713, 210])
+      #
+      # @example With attributes conditions
+      #
+      #   Post.exist?(version: 1, 'created_at.gt': Time.now - 1.day)
+      #
       # @since 0.2.0
       def exists?(id_or_conditions = {})
         case id_or_conditions
-        when Hash then where(id_or_conditions).first.present?
+        when Hash then where(id_or_conditions).count >= 1
         else
           begin
             find(id_or_conditions)
@@ -205,7 +220,6 @@ module Dynamoid #:nodoc:
         end
       end
 
-
       # Update existing document or create new one.
       # Similar to `.update_fields`. The only diffirence is creating new document.
       #
@@ -267,7 +281,7 @@ module Dynamoid #:nodoc:
         end
       end
 
-      def inc(hash_key_value, range_key_value=nil, counters)
+      def inc(hash_key_value, range_key_value = nil, counters)
         options = if range_key
                     value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
                     value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
@@ -303,21 +317,11 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def initialize(attrs = {})
-      # we need this hack for Rails 4.0 only
-      # because `run_callbacks` calls `attributes` getter while it is still nil
-      @attributes = {}
-
       run_callbacks :initialize do
         @new_record = true
         @attributes ||= {}
         @associations ||= {}
         @attributes_before_type_cast ||= {}
-
-        self.class.attributes.each do |_, options|
-          if options[:type].is_a?(Class) && options[:default]
-            raise 'Dynamoid class-type fields do not support default values'
-          end
-        end
 
         attrs_with_defaults = {}
         self.class.attributes.each do |attribute, options|
@@ -348,6 +352,7 @@ module Dynamoid #:nodoc:
         super
       else
         return false if other.nil?
+
         other.is_a?(Dynamoid::Document) && hash_key == other.hash_key && range_value == other.range_value
       end
     end

@@ -8,11 +8,27 @@ AllCops:
 # It's a matter of taste
 Layout/AlignParameters:
   EnforcedStyle: with_fixed_indentation
+Layout/AlignHash:
+  Enabled: false
 Style/GuardClause:
   Enabled: false
 Style/FormatStringToken:
   Enabled: false
 Style/DoubleNegation:
+  Enabled: false
+Style/IfUnlessModifier:
+  Enabled: false
+Style/EachWithObject:
+  Enabled: false
+Style/SafeNavigation:
+  Enabled: false
+Style/BlockDelimiters:
+  Enabled: false
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+Naming/VariableNumber:
+  Enabled: false
+Style/MultilineBlockChain:
   Enabled: false
 
 # We aren't so brave to tackle all these issues right now
@@ -49,5 +65,7 @@ Style/DateTime:
 Style/MissingRespondToMissing:
   Enabled: false
 Naming/PredicateName:
+  Enabled: false
+Security/YAMLLoad:
   Enabled: false
 
