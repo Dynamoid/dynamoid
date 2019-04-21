@@ -695,16 +695,16 @@ describe Dynamoid::Criteria::Chain do
         expect(chain.index_name).to be_nil
       end
 
-      it 'chooses the best global secondary index which consider range key' do
+      it 'prefers global secondary index with range key used in conditions to index w/o such range key' do
         chain = Dynamoid::Criteria::Chain.new(model)
-        expect(chain).to receive(:pages_via_query).at_least(:once).and_call_original
+        expect(chain).to receive(:pages_via_query).and_call_original
         expect(chain.where(city: 'San Francisco', 'age.lte': 15).to_a.size).to eq(2)
         expect(chain.hash_key).to eq(:city)
         expect(chain.range_key).to eq(:age)
         expect(chain.index_name).to eq(:cityage)
 
         chain = Dynamoid::Criteria::Chain.new(model)
-        expect(chain).to receive(:pages_via_query).at_least(:once).and_call_original
+        expect(chain).to receive(:pages_via_query).and_call_original
         expect(chain.where(city: 'San Francisco', gender: 'male').to_a.size).to eq(3)
         expect(chain.hash_key).to eq(:city)
         expect(chain.range_key).to eq(:gender)
