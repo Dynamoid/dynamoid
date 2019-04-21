@@ -1,8 +1,12 @@
 # Dynamoid
 
-You are viewing the README for version 3 of Dynamoid.  See the [CHANGELOG](https://github.com/Dynamoid/Dynamoid/blob/master/CHANGELOG.md#200) for details on breaking changes since 1.3.x.
-
-For version 1.3.x use the [1-3-stable branch](https://github.com/Dynamoid/Dynamoid/blob/1-3-stable/README.md).
+[![Build Status](https://travis-ci.org/Dynamoid/dynamoid.svg?branch=master)](https://travis-ci.org/Dynamoid/dynamoid)
+[![Code Climate](https://codeclimate.com/github/Dynamoid/dynamoid.svg)](https://codeclimate.com/github/Dynamoid/dynamoid)
+[![Coverage Status](https://coveralls.io/repos/github/Dynamoid/Dynamoid/badge.svg?branch=master)](https://coveralls.io/github/Dynamoid/Dynamoid?branch=master)
+[![CodeTriage Helpers](https://www.codetriage.com/dynamoid/dynamoid/badges/users.svg)](https://www.codetriage.com/dynamoid/dynamoid)
+[![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](https://www.rubydoc.info/github/Dynamoid/dynamoid/frames)
+[![Inline docs](http://inch-ci.org/github/Dynamoid/Dynamoid.svg?branch=master)](http://inch-ci.org/github/Dynamoid/Dynamoid)
+![GitHub](https://img.shields.io/github/license/Dynamoid/dynamoid.svg)
 
 Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It
 provides similar functionality to ActiveRecord and improves on
@@ -13,21 +17,6 @@ by providing better searching tools and native association support.
 DynamoDB is not like other document-based databases you might know, and is very different indeed from relational databases. It sacrifices anything beyond the simplest relational queries and transactional support to provide a fast, cost-efficient, and highly durable storage solution. If your database requires complicated relational queries and transaction support, then this modest Gem cannot provide them for you, and neither can DynamoDB. In those cases you would do better to look elsewhere for your database needs.
 
 But if you want a fast, scalable, simple, easy-to-use database (and a Gem that supports it) then look no further!
-
-
-| Project                 |  Dynamoid         |
-|------------------------ | ----------------- |
-| gem name                |  dynamoid         |
-| license                 |  MIT              |
-| download rank           |  [![Total Downloads](https://img.shields.io/gem/rt/Dynamoid.svg)](https://rubygems.org/gems/dynamoid) |
-| version                 |  [![Gem Version](https://badge.fury.io/rb/dynamoid.svg)](https://badge.fury.io/rb/dynamoid) |
-| dependencies            |  [![Depfu](https://badges.depfu.com/badges/6661c063c8e77a5008344fc7283a50aa/status.svg)](https://depfu.com) |
-| code quality            |  [![Code Climate](https://codeclimate.com/github/Dynamoid/dynamoid.svg)](https://codeclimate.com/github/Dynamoid/dynamoid) |
-| continuous integration  |  [![Build Status](https://travis-ci.org/Dynamoid/dynamoid.svg?branch=master)](https://travis-ci.org/Dynamoid/dynamoid) |
-| test coverage           |  [![Coverage Status](https://coveralls.io/repos/github/Dynamoid/Dynamoid/badge.svg?branch=master)](https://coveralls.io/github/Dynamoid/Dynamoid?branch=master) |
-| triage helpers          |  [![CodeTriage Helpers](https://www.codetriage.com/dynamoid/dynamoid/badges/users.svg)](https://www.codetriage.com/dynamoid/dynamoid) |
-| homepage                |  [https://github.com/Dynamoid/dynamoid](https://github.com/Dynamoid/dynamoid) |
-| documentation           |  [http://rdoc.info/github/Dynamoid/dynamoid/frames](http://rdoc.info/github/Dynamoid/dynamoid/frames) |
 
 ## Installation
 
@@ -176,7 +165,7 @@ class Document
 end
 ```
 
-WARNING: Fields in numeric format are stored with nanoseconds as a fraction part and precision could be lost.
+**WARNING:** Fields in numeric format are stored with nanoseconds as a fraction part and precision could be lost.
 That's why `datetime` field in numeric format shouldn't be used as a range key.
 
 You have two options if you need to use a `datetime` field as a range key:
@@ -542,8 +531,7 @@ u.addresses.where(city: 'Chicago').all
 
 But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.
 
-#### Pagination
-##### Limits / Skip-Take
+#### Limits
 
 There are three types of limits that you can query with:
 
@@ -581,8 +569,9 @@ Address.record_limit(10_000).batch(100).each { … } # Batch specified as part o
 The implication of batches is that the underlying requests are done in the batch sizes to make the request and responses
 more manageable. Note that this batching is for `Query` and `Scans` and not `BatchGetItem` commands.
 
-##### DynamoDB Native Pages
-At times it can be useful to rely on DynamoDB [default pages](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html#Query.Pagination)
+#### DynamoDB pagination
+
+At times it can be useful to rely on DynamoDB [low-level pagination](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html#Query.Pagination)
 instead of fixed pages sizes. Each page results in a single Query or Scan call
 to DyanmoDB, but returns an unknown number of records.
 
@@ -591,18 +580,20 @@ method, which yields arrays of records.
 
 ```ruby
 Address.find_by_pages do |addresses, metadata|
-  # have an array of pages
 end
 ```
 
-Each yielded pages returns metadata as the second argument, which is a hash
+Each yielded pages returns page metadata as the second argument, which is a hash
 including a key `:last_evaluated_key`. The value of this key can be used for
 the `start` method to fetch the next page of records.
+
+This way it can be used for instance to implement efficiently
+pagination in web-application:
 
 ```ruby
 class UserController < ApplicationController
   def index
-    next_page = params[:next_page_token] ? JSON.parse(Base64.decode64(params[:next_page_token])) : ''
+    next_page = params[:next_page_token] ? JSON.parse(Base64.decode64(params[:next_page_token])) : nil
 
     records, metadata = User.start(next_page).find_by_pages.first
 
@@ -727,44 +718,17 @@ There are following options:
 
 The only mandatory option is `name`.
 
-To use index in `Document.where` implicitly you need to project all the fields with option `projected_attributes: :all`.
-
-There are two ways to query Global Secondary Indexes (GSI).
-
-#### Explicit
-
-The first way explicitly uses your GSI and utilizes the `find_all_by_secondary_index` method which will lookup a valid
-GSI to use based on the inputs, you MUST provide the correct keys to match the GSI you want:
+**WARNING:** In order to use global secondary index in `Document.where` implicitly you need to have all the attributes of the original table in the index and declare it with option `projected_attributes: :all`:
 
 ```ruby
-find_all_by_secondary_index(
-    {
-        dynamo_primary_key_column_name => dynamo_primary_key_value
-    }, # The signature of find_all_by_secondary_index is ugly, so must be an explicit hash here
-    :range => {
-        "#{range_column}.#{range_modifier}" => range_value
-    },
-    # false is the same as DESC in SQL (newest timestamp first)
-    # true is the same as ASC in SQL (oldest timestamp first)
-    scan_index_forward: false # or true
-)
+class User
+  # ...
+
+  global_secondary_index hash_key: :age, projected_attributes: :all
+end
 ```
 
-Where the range modifier is one of `Dynamoid::Finders::RANGE_MAP.keys`, where the `RANGE_MAP` is:
-
-```ruby
-RANGE_MAP = {
-  'gt'            => :range_greater_than,
-  'lt'            => :range_less_than,
-  'gte'           => :range_gte,
-  'lte'           => :range_lte,
-  'begins_with'   => :range_begins_with,
-  'between'       => :range_between,
-  'eq'            => :range_eq
-}
-```
-
-Most range searches, like `eq`, need a single value, and searches like `between`, need an array with two values.
+There is only one implicit way to query Global and Local Secondary Indexes (GSI/LSI).
 
 #### Implicit
 
@@ -820,6 +784,10 @@ Listed below are all configuration options.
 `'t'` and `'f'`. Default is true
 * `backoff` - is a hash: key is a backoff strategy (symbol), value is parameters for the strategy. Is used in batch operations. Default id `nil`
 * `backoff_strategies`: is a hash and contains all available strategies. Default is { constant: ..., exponential: ...}
+* `http_continue_timeout`: The number of seconds to wait for a 100-continue HTTP response before sending the request body. Default option value is `nil`. If not specified effected value is `1`
+* `http_idle_timeout`: The number of seconds an HTTP connection is allowed to sit idble before it is considered stale. Default option value is `nil`. If not specified effected value is `5`
+* `http_open_timeout`: The number of seconds to wait when opening a HTTP session. Default option value is `nil`. If not specified effected value is `15`
+* `http_read_timeout`:The number of seconds to wait for HTTP response data. Default option value is `nil`. If not specified effected value is `60`
 
 
 ## Concurrency
