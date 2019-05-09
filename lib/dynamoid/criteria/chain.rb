@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
-require_relative 'keys_detector'
+require_relative 'key_fields_detector'
+require_relative 'nonexistent_fields_detector'
 
 module Dynamoid #:nodoc:
   module Criteria
     # The criteria chain is equivalent to an ActiveRecord relation (and realistically I should change the name from
     # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
     class Chain
-      attr_reader :query, :source, :consistent_read, :keys_detector
+      attr_reader :query, :source, :consistent_read, :key_fields_detector
 
       include Enumerable
       # Create a new criteria chain.
@@ -26,7 +27,7 @@ module Dynamoid #:nodoc:
         end
 
         # we should re-initialize keys detector every time we change query
-        @keys_detector = KeysDetector.new(@query, @source)
+        @key_fields_detector = KeyFieldsDetector.new(@query, @source)
       end
 
       # The workhorse method of the criteria chain. Each key in the passed in hash will become another criteria that the
@@ -41,10 +42,22 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def where(args)
-        query.update(args.dup.symbolize_keys)
+        query.update(args.symbolize_keys)
+
+        nonexistent_fields = NonexistentFieldsDetector.new(args, @source).fields
+
+        if nonexistent_fields.present?
+          fields_list = nonexistent_fields.map { |s| "`#{s}`" }.join(', ')
+          fields_count = nonexistent_fields.size
+
+          Dynamoid.logger.warn(
+            "where conditions contain nonexistent" \
+            " field #{ 'name'.pluralize(fields_count) } #{ fields_list }"
+          )
+        end
 
         # we should re-initialize keys detector every time we change query
-        @keys_detector = KeysDetector.new(@query, @source)
+        @key_fields_detector = KeyFieldsDetector.new(@query, @source)
 
         self
       end
@@ -62,7 +75,7 @@ module Dynamoid #:nodoc:
       end
 
       def count
-        if @keys_detector.key_present?
+        if @key_fields_detector.key_present?
           count_via_query
         else
           count_via_scan
@@ -83,7 +96,7 @@ module Dynamoid #:nodoc:
         ids = []
         ranges = []
 
-        if @keys_detector.key_present?
+        if @key_fields_detector.key_present?
           Dynamoid.adapter.query(source.table_name, range_query).flat_map{ |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
@@ -158,7 +171,7 @@ module Dynamoid #:nodoc:
       #
       # @since 3.1.0
       def pages
-        if @keys_detector.key_present?
+        if @key_fields_detector.key_present?
           pages_via_query
         else
           issue_scan_warning if Dynamoid::Config.warn_on_scan && query.present?
@@ -266,24 +279,24 @@ module Dynamoid #:nodoc:
         opts = {}
 
         # Add hash key
-        opts[:hash_key] = @keys_detector.hash_key
-        opts[:hash_value] = type_cast_condition_parameter(@keys_detector.hash_key, query[@keys_detector.hash_key])
+        opts[:hash_key] = @key_fields_detector.hash_key
+        opts[:hash_value] = type_cast_condition_parameter(@key_fields_detector.hash_key, query[@key_fields_detector.hash_key])
 
         # Add range key
-        if @keys_detector.range_key
-          opts[:range_key] = @keys_detector.range_key
-          if query[@keys_detector.range_key].present?
-            value = type_cast_condition_parameter(@keys_detector.range_key, query[@keys_detector.range_key])
+        if @key_fields_detector.range_key
+          opts[:range_key] = @key_fields_detector.range_key
+          if query[@key_fields_detector.range_key].present?
+            value = type_cast_condition_parameter(@key_fields_detector.range_key, query[@key_fields_detector.range_key])
             opts.update(range_eq: value)
           end
 
-          query.keys.select { |k| k.to_s =~ /^#{@keys_detector.range_key}\./ }.each do |key|
+          query.keys.select { |k| k.to_s =~ /^#{@key_fields_detector.range_key}\./ }.each do |key|
             opts.merge!(range_hash(key))
           end
         end
 
-        (query.keys.map(&:to_sym) - [@keys_detector.hash_key.to_sym, @keys_detector.range_key.try(:to_sym)])
-          .reject { |k, _| k.to_s =~ /^#{@keys_detector.range_key}\./ }
+        (query.keys.map(&:to_sym) - [@key_fields_detector.hash_key.to_sym, @key_fields_detector.range_key.try(:to_sym)])
+          .reject { |k, _| k.to_s =~ /^#{@key_fields_detector.range_key}\./ }
           .each do |key|
           if key.to_s.include?('.')
             opts.update(field_hash(key))
@@ -318,8 +331,8 @@ module Dynamoid #:nodoc:
       def start_key
         return @start if @start.is_a?(Hash)
 
-        hash_key = @keys_detector.hash_key || source.hash_key
-        range_key = @keys_detector.range_key || source.range_key
+        hash_key = @key_fields_detector.hash_key || source.hash_key
+        range_key = @key_fields_detector.range_key || source.range_key
 
         key = {}
         key[hash_key] = type_cast_condition_parameter(hash_key, @start.send(hash_key))
@@ -338,7 +351,7 @@ module Dynamoid #:nodoc:
 
       def query_opts
         opts = {}
-        opts[:index_name] = @keys_detector.index_name if @keys_detector.index_name
+        opts[:index_name] = @key_fields_detector.index_name if @key_fields_detector.index_name
         opts[:select] = 'ALL_ATTRIBUTES'
         opts[:record_limit] = @record_limit if @record_limit
         opts[:scan_limit] = @scan_limit if @scan_limit
