@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'keys_detector'
+require_relative 'nonexistent_fields_detector'
 
 module Dynamoid #:nodoc:
   module Criteria
@@ -42,6 +43,18 @@ module Dynamoid #:nodoc:
       # @since 0.2.0
       def where(args)
         query.update(args.dup.symbolize_keys)
+
+        nonexistent_fields = NonexistentFieldsDetector.new(args, @source).fields
+
+        if nonexistent_fields.present?
+          fields_list = nonexistent_fields.map { |s| "`#{s}`" }.join(', ')
+          fields_count = nonexistent_fields.size
+
+          Dynamoid.logger.warn(
+            "where conditions contain nonexistent" \
+            " field #{ 'name'.pluralize(fields_count) } #{ fields_list }"
+          )
+        end
 
         # we should re-initialize keys detector every time we change query
         @keys_detector = KeysDetector.new(@query, @source)

@@ -937,6 +937,41 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  describe '#where' do
+    context 'passed condition for nonexistent attribute' do
+      let(:model) do
+        new_class do
+          field :city
+        end
+      end
+
+      before do
+        model.create_table
+      end
+
+      it 'writes warning message' do
+        expect(Dynamoid.logger).to receive(:warn)
+          .with('where conditions contain nonexistent field name `town`')
+
+        model.where(town: 'New York')
+      end
+
+      it 'writes warning message for condition with operator' do
+        expect(Dynamoid.logger).to receive(:warn)
+          .with('where conditions contain nonexistent field name `town`')
+
+        model.where('town.contain': 'New York')
+      end
+
+      it 'writes warning message with a list of attributes' do
+        expect(Dynamoid.logger).to receive(:warn)
+          .with('where conditions contain nonexistent field names `town`, `street1`')
+
+        model.where(town: 'New York', street1: 'Allen Street')
+      end
+    end
+  end
+
   describe '#find_by_pages' do
     let(:model) do
       new_class do
