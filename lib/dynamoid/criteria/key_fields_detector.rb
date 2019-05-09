@@ -2,7 +2,7 @@
 
 module Dynamoid #:nodoc:
   module Criteria
-    class KeysDetector
+    class KeyFieldsDetector
       attr_reader :hash_key, :range_key, :index_name
 
       def initialize(query, source)
