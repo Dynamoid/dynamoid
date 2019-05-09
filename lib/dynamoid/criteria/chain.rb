@@ -42,7 +42,7 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def where(args)
-        query.update(args.dup.symbolize_keys)
+        query.update(args.symbolize_keys)
 
         nonexistent_fields = NonexistentFieldsDetector.new(args, @source).fields
 
