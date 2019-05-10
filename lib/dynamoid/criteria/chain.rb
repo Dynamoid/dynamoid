@@ -54,15 +54,9 @@ module Dynamoid
           Dynamoid.logger.warn(detector.warning_message)
         end
 
-        nonexistent_fields = NonexistentFieldsDetector.new(args, @source).fields
-        if nonexistent_fields.present?
-          fields_list = nonexistent_fields.map { |s| "`#{s}`" }.join(', ')
-          fields_count = nonexistent_fields.size
-
-          Dynamoid.logger.warn(
-            "where conditions contain nonexistent" \
-            " field #{ 'name'.pluralize(fields_count) } #{ fields_list }"
-          )
+        detector = NonexistentFieldsDetector.new(args, @source)
+        if detector.found?
+          Dynamoid.logger.warn(detector.warning_message)
         end
 
         query.update(args.symbolize_keys)
