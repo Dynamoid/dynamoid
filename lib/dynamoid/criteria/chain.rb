@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 require_relative 'key_fields_detector'
+require_relative 'ignored_conditions_detector'
+require_relative 'overwritten_conditions_detector'
 require_relative 'nonexistent_fields_detector'
 
-module Dynamoid #:nodoc:
+module Dynamoid
   module Criteria
     # The criteria chain is equivalent to an ActiveRecord relation (and realistically I should change the name from
     # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
@@ -42,10 +44,17 @@ module Dynamoid #:nodoc:
       #
       # @since 0.2.0
       def where(args)
-        query.update(args.symbolize_keys)
+        detector = IgnoredConditionsDetector.new(args)
+        if detector.found?
+          Dynamoid.logger.warn(detector.warning_message)
+        end
+
+        detector = OverwrittenConditionsDetector.new(@query, args)
+        if detector.found?
+          Dynamoid.logger.warn(detector.warning_message)
+        end
 
         nonexistent_fields = NonexistentFieldsDetector.new(args, @source).fields
-
         if nonexistent_fields.present?
           fields_list = nonexistent_fields.map { |s| "`#{s}`" }.join(', ')
           fields_count = nonexistent_fields.size
@@ -55,6 +64,8 @@ module Dynamoid #:nodoc:
             " field #{ 'name'.pluralize(fields_count) } #{ fields_list }"
           )
         end
+
+        query.update(args.symbolize_keys)
 
         # we should re-initialize keys detector every time we change query
         @key_fields_detector = KeyFieldsDetector.new(@query, @source)
