@@ -970,6 +970,61 @@ describe Dynamoid::Criteria::Chain do
         model.where(town: 'New York', street1: 'Allen Street')
       end
     end
+
+    context 'passed several conditions for the same attribute' do
+      let(:model) do
+        new_class do
+          field :age, :integer
+          field :name
+        end
+      end
+
+      before do
+        model.create_table
+      end
+
+      it 'ignores conditions except the last one' do
+        (1 .. 5).each { |i| model.create(age: i) }
+
+        models = model.where('age.gt': 2, 'age.lt': 4).to_a
+        expect(models.map(&:age)).to contain_exactly(1, 2, 3)
+
+        models = model.where('age.lt': 4, 'age.gt': 2).to_a
+        expect(models.map(&:age)).to contain_exactly(3, 4, 5)
+      end
+
+      describe 'warning' do
+        it 'writes warning message' do
+          expect(Dynamoid.logger).to receive(:warn)
+            .with(
+              'Where conditions may contain only one condition for an attribute. ' \
+              'Following conditions are ignored: {:"age.gt"=>2}'
+            )
+
+          model.where('age.gt': 2, 'age.lt': 4)
+        end
+
+        it 'writes warning message when conditions are build with several calls of `where`' do
+          expect(Dynamoid.logger).to receive(:warn)
+            .with(
+              'Where conditions may contain only one condition for an attribute. ' \
+              'Following conditions are ignored: {:"age.gt"=>2}'
+            )
+
+          model.where('age.gt': 2).where('age.lt': 4)
+        end
+
+        it 'writes warning message when there are ignored conditions for several attributes' do
+          expect(Dynamoid.logger).to receive(:warn)
+            .with(
+              'Where conditions may contain only one condition for an attribute. ' \
+              'Following conditions are ignored: {:age=>2, :name=>"Alex"}'
+            )
+
+          model.where(age: 2, name: 'Alex').where('age.gt': 3, name: 'David')
+        end
+      end
+    end
   end
 
   describe '#find_by_pages' do
