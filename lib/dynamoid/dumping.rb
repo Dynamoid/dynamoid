@@ -29,6 +29,7 @@ module Dynamoid
                      when :number     then NumberDumper
                      when :set        then SetDumper
                      when :array      then ArrayDumper
+                     when :map        then MapDumper
                      when :datetime   then DateTimeDumper
                      when :date       then DateDumper
                      when :serialized then SerializedDumper
@@ -39,6 +40,35 @@ module Dynamoid
 
       if dumper_class.present?
         dumper_class.new(options)
+      end
+    end
+
+    module DeepSanitizeHelper
+      extend self
+
+      def deep_sanitize(value)
+        case value
+        when Hash
+          sanitize_hash(value).transform_values { |v| deep_sanitize(v) }
+        when Array
+          sanitize_array(value).map { |v| deep_sanitize(v) }
+        else
+          value
+        end
+      end
+
+      private
+
+      def sanitize_hash(hash)
+        hash.transform_values { |v| invalid_value?(v) ? nil : v }
+      end
+
+      def sanitize_array(array)
+        array.map { |v| invalid_value?(v) ? nil : v }
+      end
+
+      def invalid_value?(value)
+        (value.is_a?(Set) || value.is_a?(String)) && value.empty?
       end
     end
 
@@ -168,6 +198,13 @@ module Dynamoid
       end
     end
 
+    # hash -> map
+    class MapDumper < Base
+      def process(value)
+        DeepSanitizeHelper.deep_sanitize(value)
+      end
+    end
+
     # datetime -> integer/string
     class DateTimeDumper < Base
       def process(value)
@@ -221,32 +258,7 @@ module Dynamoid
     # any standard Ruby object -> self
     class RawDumper < Base
       def process(value)
-        deep_sanitize(value)
-      end
-
-      private
-
-      def deep_sanitize(value)
-        case value
-        when Hash
-          sanitize_hash(value).transform_values { |v| deep_sanitize(v) }
-        when Array
-          sanitize_array(value).map { |v| deep_sanitize(v) }
-        else
-          value
-        end
-      end
-
-      def sanitize_hash(hash)
-        hash.transform_values { |v| invalid_value?(v) ? nil : v }
-      end
-
-      def sanitize_array(array)
-        array.map { |v| invalid_value?(v) ? nil : v }
-      end
-
-      def invalid_value?(value)
-        (value.is_a?(Set) || value.is_a?(String)) && value.empty?
+        DeepSanitizeHelper.deep_sanitize(value)
       end
     end
 

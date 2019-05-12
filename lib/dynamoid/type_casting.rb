@@ -29,6 +29,7 @@ module Dynamoid
                           when :number     then NumberTypeCaster
                           when :set        then SetTypeCaster
                           when :array      then ArrayTypeCaster
+                          when :map        then MapTypeCaster
                           when :datetime   then DateTimeTypeCaster
                           when :date       then DateTypeCaster
                           when :raw        then RawTypeCaster
@@ -200,6 +201,22 @@ module Dynamoid
           end
         else
           { type: element_type }
+        end
+      end
+    end
+
+    class MapTypeCaster < Base
+      def process(value)
+        return nil if value.nil?
+
+        if value.is_a? Hash
+          value
+        elsif value.respond_to? :to_hash
+          value.to_hash
+        elsif value.respond_to? :to_h
+          value.to_h
+        else
+          nil
         end
       end
     end
