@@ -448,6 +448,53 @@ describe 'Type casting' do
   describe 'Raw field' do
   end
 
+  describe 'Map field' do
+    let(:klass) do
+      new_class do
+        field :settings, :map
+      end
+    end
+
+    it 'accepts Hash object' do
+      obj = klass.new(settings: { foo: 21 })
+      expect(obj.settings).to eq(foo: 21)
+    end
+
+    it 'tries to convert to Hash with #to_h' do
+      settings = Object.new
+      def settings.to_h
+        { foo: 'bar' }
+      end
+
+      obj = klass.new(settings: settings)
+      expect(obj.settings).to eq(foo: 'bar')
+
+      obj = klass.new(settings: [[:foo, 'bar']])
+      expect(obj.settings).to eq(foo: 'bar')
+    end
+
+    it 'tries to convert to Hash with #to_hash' do
+      settings = Object.new
+      def settings.to_hash
+        { foo: 'bar' }
+      end
+
+      obj = klass.new(settings: settings)
+      expect(obj.settings).to eq(foo: 'bar')
+    end
+
+    it 'sets nil if fails to convert to Hash' do
+      obj = klass.new(settings: Object.new)
+      expect(obj.settings).to eq(nil)
+
+      obj = klass.new(settings: 'foo')
+      expect(obj.settings).to eq(nil)
+
+      obj = klass.new(settings: 42)
+      expect(obj.settings).to eq(nil)
+    end
+  end
+
   describe 'Integer field' do
     let(:klass) do
       new_class do

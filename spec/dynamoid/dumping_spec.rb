@@ -1003,6 +1003,106 @@ describe 'Dumping' do
     end
   end
 
+  describe 'Map field' do
+    let(:klass) do
+      new_class do
+        field :settings, :map
+      end
+    end
+
+    it 'stores as a Document' do
+      settings = {
+        Day: "Monday",
+        UnreadEmails: 42,
+        ItemsOnMyDesk: [
+          "Coffee Cup",
+          "Telephone",
+          {
+            Pens: { Quantity: 3 },
+            Pencils: { Quantity: 2 },
+            Erasers: { Quantity: 1 }
+          }
+        ]
+      }
+      obj = klass.create(settings: settings)
+
+      expect(reload(obj).settings).to eql(
+        {
+          Day: "Monday",
+          UnreadEmails: 42,
+          ItemsOnMyDesk: [
+            "Coffee Cup",
+            "Telephone",
+            {
+              Pens: { Quantity: 3 },
+              Pencils: { Quantity: 2 },
+              Erasers: { Quantity: 1 }
+            }
+          ]
+        }
+      )
+      expect(raw_attributes(obj)[:settings]).to eql(
+        {
+          "Day" => "Monday",
+          "UnreadEmails" => 42,
+          "ItemsOnMyDesk" => [
+            "Coffee Cup",
+            "Telephone",
+            {
+              "Pens" => { "Quantity" => 3 },
+              "Pencils" => { "Quantity" => 2 },
+              "Erasers" => { "Quantity" => 1 }
+            }
+          ]
+        }
+      )
+    end
+
+    it 'deeply symbolizes keys' do
+      settings = { 'foo' => { 'bar' => 1 }, 'baz' => [{ 'foobar' => 2 }] }
+      obj = klass.create(settings: settings)
+
+      expect(reload(obj).settings).to eql(foo: { bar: 1 }, baz: [{ foobar: 2 }])
+    end
+
+    describe 'sanitizing' do
+      it 'replaces empty set with nil in Hash' do
+        settings = { 'foo' => [].to_set }
+        obj = klass.create(settings: settings)
+
+        expect(reload(obj).settings).to eql(foo: nil)
+      end
+
+      it 'replaces empty string with nil in Hash' do
+        settings = { 'foo' => '' }
+        obj = klass.create(settings: settings)
+
+        expect(reload(obj).settings).to eql(foo: nil)
+      end
+
+      it 'replaces empty set with nil in nested Array' do
+        settings = { 'foo' => [1, 2, [].to_set] }
+        obj = klass.create(settings: settings)
+
+        expect(reload(obj).settings).to eql(foo: [1, 2, nil])
+      end
+
+      it 'replaces empty string with nil in nested Array' do
+        settings = { 'foo' => [1, 2, ''] }
+        obj = klass.create(settings: settings)
+
+        expect(reload(obj).settings).to eql(foo: [1, 2, nil])
+      end
+
+      it 'processes nested Hash and Array' do
+        settings = { a: 1, b: '', c: [1, 2, '', { d: 3, e: '' }] }
+        obj = klass.create(settings: settings)
+
+        expect(reload(obj).settings).to eql(a: 1, b: nil, c: [1, 2, nil, { d: 3, e: nil }])
+      end
+    end
+  end
+
   describe 'String field' do
     it 'stores as strings' do
       klass = new_class do

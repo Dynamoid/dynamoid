@@ -121,7 +121,8 @@ These fields will not change an existing table: so specifying a new read_capacit
 You'll have to define all the fields on the model and the data type of each field. Every field on the object must be included here; if you miss any they'll be completely bypassed during DynamoDB's initialization and will not appear on the model objects.
 
 By default, fields are assumed to be of type `:string`. Other built-in types are
-`:integer`, `:number`, `:set`, `:array`, `:datetime`, `date`, `:boolean`, `:raw` and `:serialized`.
+`:integer`, `:number`, `:set`, `:array`, `:map`, `:datetime`, `date`, `:boolean`, `:raw` and `:serialized`.
+`array` and `map` match List and Map DynamoDB types respectively.
 `raw` type means you can store Ruby Array, Hash, String and numbers.
 If built-in types do not suit you, you can use a custom field type represented by an arbitrary class, provided that the class supports a compatible serialization interface.
 The primary use case for using a custom field type is to represent your business logic with high-level types, while ensuring portability or backward-compatibility of the serialized representation.
@@ -531,6 +532,18 @@ u.addresses.where(city: 'Chicago').all
 
 But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.
 
+**WARNING:** There is a limitation of conditions passed to `where`
+method. Only one condition for some particular field could be specified.
+The last one only will be applyed and others will be ignored. E.g. in
+examples:
+
+```ruby
+User.where('age.gt': 10, 'age.lt': 20)
+User.where(name: 'Mike').where('name.begins_with': 'Ed')
+```
+
+the first one will be ignored and the last one will be used.
+
 #### Limits
 
 There are three types of limits that you can query with:
@@ -900,6 +913,32 @@ Dynamoid.configure do |config|
   config.namespace = "#{Rails.application.railtie_name}_#{Rails.env}"
 end
 ```
+
+## Logging
+
+There is a config option `logger`. Dynamoid writes requests and
+responses to DynamoDB using this logger on the `debug` level. So in
+order to troubleshoot and debug issues just set it:
+
+```ruby
+class User
+  include Dynamoid::Document
+  field name
+end
+
+Dynamoid.config.logger.level = :debug
+Dynamoid.config.endpoint = 'localhost:8000'
+
+User.create(name: 'Alex')
+
+# => D, [2019-05-12T20:01:07.840051 #75059] DEBUG -- : put_item | Request "{\"TableName\":\"dynamoid_users\",\"Item\":{\"created_at\":{\"N\":\"1557680467.608749\"},\"updated_at\":{\"N\":\"1557680467.608809\"},\"id\":{\"S\":\"1227eea7-2c96-4b8a-90d9-77b38eb85cd0\"}},\"Expected\":{\"id\":{\"Exists\":false}}}" | Response "{}"
+
+# => D, [2019-05-12T20:01:07.842397 #75059] DEBUG -- : (231.28 ms) PUT ITEM - ["dynamoid_users", {:created_at=>0.1557680467608749e10, :updated_at=>0.1557680467608809e10, :id=>"1227eea7-2c96-4b8a-90d9-77b38eb85cd0", :User=>nil}, {}]
+```
+
+The first line is a body of HTTP request and response. The second line -
+Dynamoid internal logging of API call (`PUT ITEM` in our case) with
+timing (231.28 ms).
 
 ## Credits
 

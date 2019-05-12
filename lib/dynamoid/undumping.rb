@@ -32,6 +32,7 @@ module Dynamoid
                        when :number     then NumberUndumper
                        when :set        then SetUndumper
                        when :array      then ArrayUndumper
+                       when :map        then MapUndumper
                        when :datetime   then DateTimeUndumper
                        when :date       then DateUndumper
                        when :raw        then RawUndumper
@@ -42,6 +43,35 @@ module Dynamoid
 
       if undumper_class.present?
         undumper_class.new(options)
+      end
+    end
+
+    module UndumpHashHelper
+      extend self
+
+      def undump_hash(hash)
+        {}.tap do |h|
+          hash.each { |key, value| h[key.to_sym] = undump_hash_value(value) }
+        end
+      end
+
+      private
+
+      def undump_hash_value(val)
+        case val
+        when BigDecimal
+          if Dynamoid::Config.convert_big_decimal
+            val.to_f
+          else
+            val
+          end
+        when Hash
+          undump_hash(val)
+        when Array
+          val.map { |v| undump_hash_value(v) }
+        else
+          val
+        end
       end
     end
 
@@ -157,6 +187,12 @@ module Dynamoid
       end
     end
 
+    class MapUndumper < Base
+      def process(value)
+        UndumpHashHelper.undump_hash(value)
+      end
+    end
+
     class DateTimeUndumper < Base
       def process(value)
         return value if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
@@ -190,34 +226,9 @@ module Dynamoid
     class RawUndumper < Base
       def process(value)
         if value.is_a?(Hash)
-          undump_hash(value)
+          UndumpHashHelper.undump_hash(value)
         else
           value
-        end
-      end
-
-      private
-
-      def undump_hash(hash)
-        {}.tap do |h|
-          hash.each { |key, value| h[key.to_sym] = undump_hash_value(value) }
-        end
-      end
-
-      def undump_hash_value(val)
-        case val
-        when BigDecimal
-          if Dynamoid::Config.convert_big_decimal
-            val.to_f
-          else
-            val
-          end
-        when Hash
-          undump_hash(val)
-        when Array
-          val.map { |v| undump_hash_value(v) }
-        else
-          val
         end
       end
     end
