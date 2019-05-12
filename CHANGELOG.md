@@ -10,6 +10,21 @@
 
 
 
+# 3.2.0
+
+## Features
+* Feature: [#341](https://github.com/Dynamoid/dynamoid/pull/341), [#342](https://github.com/Dynamoid/dynamoid/pull/342) Add `find_by_pages` method to provide access to DynamoDB query result pagination mechanism (@bmalinconico, @arjes)
+* Feature: [#354](https://github.com/Dynamoid/dynamoid/pull/354) Add `map` field type
+
+## Improvements
+* Improvement: [#340](https://github.com/Dynamoid/dynamoid/pull/340) Improve selecting more optimal GSI for Query operation - choose GSI with sort key if it's used in criteria (@ryz310)
+* Improvement: [#351](https://github.com/Dynamoid/dynamoid/pull/351) Add warnings about nonexistent fields in `where` conditions
+* Improvement: [#352](https://github.com/Dynamoid/dynamoid/pull/352) Add warning about skipped conditions
+* Improvement: [#356](https://github.com/Dynamoid/dynamoid/pull/356) Simplify requiring Rake tasks in non-Rails application
+* Improvement: Readme.md. Minor improvements and fixes (@cabello)
+
+
+
 # 3.1.0
 
 ## Improvements
