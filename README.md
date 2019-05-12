@@ -532,6 +532,18 @@ u.addresses.where(city: 'Chicago').all
 
 But keep in mind Dynamoid -- and document-based storage systems in general -- are not drop-in replacements for existing relational databases. The above query does not efficiently perform a conditional join, but instead finds all the user's addresses and naively filters them in Ruby. For large associations this is a performance hit compared to relational database engines.
 
+**WARNING:** There is a limitation of conditions passed to `where`
+method. Only one condition for some particular field could be specified.
+The last one only will be applyed and others will be ignored. E.g. in
+examples:
+
+```ruby
+User.where('age.gt': 10, 'age.lt': 20)
+User.where(name: 'Mike').where('name.begins_with': 'Ed')
+```
+
+the first one will be ignored and the last one will be used.
+
 #### Limits
 
 There are three types of limits that you can query with:
