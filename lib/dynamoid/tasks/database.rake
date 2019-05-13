@@ -30,12 +30,12 @@ namespace :dynamoid do
     end
 
     msg = "Connection to DynamoDB #{success ? 'OK' : 'FAILED'}"
-    msg << if Dynamoid.config.endpoint
+    msg += if Dynamoid.config.endpoint
              " at local endpoint '#{Dynamoid.config.endpoint}'"
            else
              ' at remote AWS endpoint'
            end
-    msg << ", reason being '#{failure_reason}'" unless success
+    msg += ", reason being '#{failure_reason}'" unless success
     puts msg
   end
 end
