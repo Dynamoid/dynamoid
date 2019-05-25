@@ -356,7 +356,7 @@ module Dynamoid
       # @since 1.0.0
       def delete_table(table_name, options = {})
         resp = client.delete_table(table_name: table_name)
-        UntilPastTableStatus.new(table_name, :deleting).call if options[:sync] &&
+        UntilPastTableStatus.new(client, table_name, :deleting).call if options[:sync] &&
                                                                 (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
                                                                 status == TABLE_STATUSES[:deleting]
         table_cache.delete(table_name)

@@ -4,9 +4,10 @@ module Dynamoid
   module AdapterPlugin
     class AwsSdkV3
       class UntilPastTableStatus
-        attr_reader :table_name, :status
+        attr_reader :client, :table_name, :status
 
-        def initialize(table_name, status = :creating)
+        def initialize(client, table_name, status = :creating)
+          @client = client
           @table_name = table_name
           @status = status
         end
