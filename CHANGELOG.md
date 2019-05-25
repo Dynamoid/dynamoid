@@ -2,9 +2,12 @@
 
 ## Breaking
 
+## Features
+
 ## Improvements
 
 ## Fixes
+* Fix: [#357](https://github.com/Dynamoid/dynamoid/pull/357) Fix synchronous table creation issue
 
 ---
 
