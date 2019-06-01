@@ -544,6 +544,27 @@ User.where(name: 'Mike').where('name.begins_with': 'Ed')
 
 the first one will be ignored and the last one will be used.
 
+**Warning:** There is a caveat with filtering documents by `nil`
+value attribute. By default Dynamoid ignores attributes with `nil`
+value and doesn't store them in a DynamoDB document. This behavior
+could be changed with `store_attribute_with_nil_value` config option.
+
+If Dynamoid ignores `nil` value attributes `null`/`not_null` operators
+should be used in query:
+
+```ruby
+Address.where('postcode.null': true)
+Address.where('postcode.not_null': true)
+```
+
+If Dynamoid keeps `nil` value attributes `eq`/`ne` operators
+should be used instead:
+
+```ruby
+Address.where('postcode': nil)
+Address.where('postcode.ne': nil)
+```
+
 #### Limits
 
 There are three types of limits that you can query with:
