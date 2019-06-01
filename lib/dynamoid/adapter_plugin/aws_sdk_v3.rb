@@ -639,8 +639,12 @@ module Dynamoid
       end
 
       def sanitize_item(attributes)
+        config_value = Dynamoid.config.store_attribute_with_nil_value
+        store_attribute_with_nil_value = config_value.nil? ? false : !!config_value
+
         attributes.reject do |_, v|
-          v.nil? || ((v.is_a?(Set) || v.is_a?(String)) && v.empty?)
+          ((v.is_a?(Set) || v.is_a?(String)) && v.empty?) ||
+            (!store_attribute_with_nil_value && v.nil?)
         end.transform_values do |v|
           v.is_a?(Hash) ? v.stringify_keys : v
         end

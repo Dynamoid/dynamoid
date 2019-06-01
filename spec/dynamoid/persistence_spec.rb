@@ -695,6 +695,43 @@ describe Dynamoid::Persistence do
         end
       end
     end
+
+    describe '`store_attribute_with_nil_value` config option' do
+      let(:klass) do
+        new_class do
+          field :age, :integer
+        end
+      end
+
+      context 'true', config: { store_attribute_with_nil_value: true } do
+        it 'keeps document attribute with nil' do
+          obj = klass.new(age: nil)
+          obj.save
+
+          expect(raw_attributes(obj)).to include(age: nil)
+        end
+      end
+
+      context 'false', config: { store_attribute_with_nil_value: false } do
+        it 'does not keep document attribute with nil' do
+          obj = klass.new(age: nil)
+          obj.save
+
+          # doesn't contain :age key
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+        end
+      end
+
+      context 'by default', config: { store_attribute_with_nil_value: nil } do
+        it 'does not keep document attribute with nil' do
+          obj = klass.new(age: nil)
+          obj.save
+
+          # doesn't contain :age key
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+        end
+      end
+    end
   end
 
   describe '#update_attribute' do

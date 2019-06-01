@@ -1081,6 +1081,59 @@ describe Dynamoid::Criteria::Chain do
         end
       end
     end
+
+    context 'nil check' do
+      let(:model) do
+        new_class do
+          field :name
+        end
+      end
+
+      before do
+        @mike = model.create(name: 'Mike')
+        @johndoe = model.create(name: nil)
+      end
+
+      context 'store_attribute_with_nil_value = true', config: { store_attribute_with_nil_value: true } do
+        it 'supports "eq nil" check' do
+          expect(model.where('name': nil).to_a).to eq [@johndoe]
+        end
+
+        it 'supports "in [nil]" check', log_level: :debug do
+          pending 'because of temporary bug with nil type casting'
+          expect(model.where('name.in': [nil]).to_a).to eq [@johndoe]
+        end
+
+        it 'supports "ne nil" check' do
+          expect(model.where('name.ne': nil).to_a).to eq [@mike]
+        end
+      end
+
+      context 'store_attribute_with_nil_value = false', config: { store_attribute_with_nil_value: false } do
+        it 'supports "null" check' do
+          expect(model.where('name.null': true).to_a).to eq [@johndoe]
+          expect(model.where('name.null': false).to_a).to eq [@mike]
+        end
+
+        it 'supports "not_null" check' do
+          expect(model.where('name.not_null': true).to_a).to eq [@mike]
+          expect(model.where('name.not_null': false).to_a).to eq [@johndoe]
+        end
+
+        it 'does not support "eq nil" check' do
+          expect(model.where('name': nil).to_a).to eq []
+        end
+
+        it 'does not supports "in [nil]" check' do
+          pending 'because of temporary bug with nil type casting'
+          expect(model.where('name.in': [nil]).to_a).to eq []
+        end
+
+        it 'does not support "ne nil" check' do
+          expect(model.where('name.ne': nil).to_a).to contain_exactly(@mike, @johndoe)
+        end
+      end
+    end
   end
 
   describe '#find_by_pages' do
