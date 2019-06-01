@@ -271,6 +271,13 @@ module Dynamoid
                  { contains: val }
                when 'not_contains'
                  { not_contains: val }
+               # NULL/NOT_NULL operators don't have parameters
+               # So { null: true } means NULL check and { null: false } means NOT_NULL one
+               # The same logic is used for { not_null: BOOL }
+               when 'null'
+                 val ? { null: nil } : { not_null: nil }
+               when 'not_null'
+                 val ? { not_null: nil } : { null: nil }
                end
 
         { name.to_sym => hash }
@@ -314,10 +321,15 @@ module Dynamoid
         opts.merge(query_opts).merge(consistent_opts)
       end
 
+      # TODO casting should be operator aware
+      # e.g. for NULL operator value should be boolean
+      # and isn't related to an attribute own type
       def type_cast_condition_parameter(key, value)
         return value if %i[array set].include?(source.attributes[key.to_sym][:type])
 
-        if !value.respond_to?(:to_ary)
+        if [true, false].include?(value) # Support argument for null/not_null operators
+          value
+        elsif !value.respond_to?(:to_ary)
           options = source.attributes[key.to_sym]
           value_casted = TypeCasting.cast_field(value, options)
           Dumping.dump_field(value_casted, options)
