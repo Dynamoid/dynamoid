@@ -356,9 +356,14 @@ module Dynamoid
       # @since 1.0.0
       def delete_table(table_name, options = {})
         resp = client.delete_table(table_name: table_name)
-        UntilPastTableStatus.new(client, table_name, :deleting).call if options[:sync] &&
-                                                                (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-                                                                status == TABLE_STATUSES[:deleting]
+
+        if options[:sync]
+          status = PARSE_TABLE_STATUS.call(resp, :table_description)
+          if status == TABLE_STATUSES[:deleting]
+            UntilPastTableStatus.new(client, table_name, :deleting).call
+          end
+        end
+
         table_cache.delete(table_name)
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         Dynamoid.logger.error "Table #{table_name} cannot be deleted as it is in use"
