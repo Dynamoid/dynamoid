@@ -634,13 +634,20 @@ Address.where('latitude.between': [10212, 20000])
 ```
 
 You are able to filter results on the DynamoDB side and specify conditions for non-key fields.
-Following operators are available: `in`, `contains`, `not_contains`:
+Following additional operators are available: `in`, `contains`, `not_contains`, `null`, `not_null`:
 
 ```ruby
 Address.where('city.in': ['London', 'Edenburg', 'Birmingham'])
 Address.where('city.contains': ['on'])
 Address.where('city.not_contains': ['ing'])
+Address.where('postcode.null': false)
+Address.where('postcode.not_null': true)
 ```
+
+**WARNING:** Please take into accout that `NULL` and `NOT_NULL`
+operators check attribute presence in a document, not value.
+So if attribute `postcode`'s value is `NULL`, `NULL` operator will return false
+because attribute exists even if has `NULL` value.
 
 ### Consistent Reads
 
