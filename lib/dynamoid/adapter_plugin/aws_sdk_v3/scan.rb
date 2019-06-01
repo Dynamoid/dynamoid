@@ -75,6 +75,8 @@ module Dynamoid
               comparison_operator: AwsSdkV3::FIELD_MAP[cond.keys[0]],
               attribute_value_list: AwsSdkV3.attribute_value_list(AwsSdkV3::FIELD_MAP[cond.keys[0]], cond.values[0].freeze)
             }
+            # nil means operator doesn't require attribute value list
+            conditions.delete(:attribute_value_list) if conditions[:attribute_value_list].nil?
             result[attr] = condition
             result
           end

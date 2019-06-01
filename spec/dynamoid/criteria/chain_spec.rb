@@ -341,6 +341,34 @@ describe Dynamoid::Criteria::Chain do
       expect(model.where(name: 'a', 'job_title.not_contains': 'Consul').all)
         .to contain_exactly(customer2)
     end
+
+    it 'supports null' do
+      model.create_table
+
+      put_attributes(model.table_name, name: 'a', last_name: 'aa', age: 1)
+      put_attributes(model.table_name, name: 'a', last_name: 'bb', age: 2)
+      put_attributes(model.table_name, name: 'a', last_name: 'cc', )
+
+      documents = model.where(name: 'a', 'age.null': true).to_a
+      expect(documents.map(&:last_name)).to contain_exactly('cc')
+
+      documents = model.where(name: 'a', 'age.null': false).to_a
+      expect(documents.map(&:last_name)).to contain_exactly('aa', 'bb')
+    end
+
+    it 'supports not_null' do
+      model.create_table
+
+      put_attributes(model.table_name, name: 'a', last_name: 'aa', age: 1)
+      put_attributes(model.table_name, name: 'a', last_name: 'bb', age: 2)
+      put_attributes(model.table_name, name: 'a', last_name: 'cc', )
+
+      documents = model.where(name: 'a', 'age.not_null': true).to_a
+      expect(documents.map(&:last_name)).to contain_exactly('aa', 'bb')
+
+      documents = model.where('age.not_null': false).to_a
+      expect(documents.map(&:last_name)).to contain_exactly('cc')
+    end
   end
 
   # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ScanFilter.html?shortFooter=true
@@ -489,6 +517,34 @@ describe Dynamoid::Criteria::Chain do
 
       expect(model.where('job_title.not_contains': 'Consul').all)
         .to contain_exactly(customer2)
+    end
+
+    it 'supports null' do
+      model.create_table
+
+      put_attributes(model.table_name, id: '1', age: 1)
+      put_attributes(model.table_name, id: '2', age: 2)
+      put_attributes(model.table_name, id: '3')
+
+      documents = model.where('age.null': true).to_a
+      expect(documents.map(&:id)).to contain_exactly('3')
+
+      documents = model.where('age.null': false).to_a
+      expect(documents.map(&:id)).to contain_exactly('1', '2')
+    end
+
+    it 'supports not_null' do
+      model.create_table
+
+      put_attributes(model.table_name, id: '1', age: 1)
+      put_attributes(model.table_name, id: '2', age: 2)
+      put_attributes(model.table_name, id: '3')
+
+      documents = model.where('age.not_null':  true).to_a
+      expect(documents.map(&:id)).to contain_exactly('1', '2')
+
+      documents = model.where('age.not_null':  false).to_a
+      expect(documents.map(&:id)).to contain_exactly('3')
     end
   end
 

@@ -22,8 +22,6 @@ module Dynamoid
         range_eq:           'EQ'
       }.freeze
 
-      # Don't implement NULL and NOT_NULL because it doesn't make seanse -
-      # we declare schema in models
       FIELD_MAP = {
         eq:           'EQ',
         ne:           'NE',
@@ -35,7 +33,9 @@ module Dynamoid
         between:      'BETWEEN',
         in:           'IN',
         contains:     'CONTAINS',
-        not_contains: 'NOT_CONTAINS'
+        not_contains: 'NOT_CONTAINS',
+        null:         'NULL',
+        not_null:     'NOT_NULL',
       }.freeze
       HASH_KEY  = 'HASH'
       RANGE_KEY = 'RANGE'
@@ -356,9 +356,14 @@ module Dynamoid
       # @since 1.0.0
       def delete_table(table_name, options = {})
         resp = client.delete_table(table_name: table_name)
-        UntilPastTableStatus.new(client, table_name, :deleting).call if options[:sync] &&
-                                                                (status = PARSE_TABLE_STATUS.call(resp, :table_description)) &&
-                                                                status == TABLE_STATUSES[:deleting]
+
+        if options[:sync]
+          status = PARSE_TABLE_STATUS.call(resp, :table_description)
+          if status == TABLE_STATUSES[:deleting]
+            UntilPastTableStatus.new(client, table_name, :deleting).call
+          end
+        end
+
         table_cache.delete(table_name)
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         Dynamoid.logger.error "Table #{table_name} cannot be deleted as it is in use"
@@ -619,15 +624,15 @@ module Dynamoid
       # https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
       # @params [String] operator: value of RANGE_MAP or FIELD_MAP hash, e.g. "EQ", "LT" etc
       # @params [Object] value: scalar value or array/set
-      def attribute_value_list(operator, value)
-        self.class.attribute_value_list(operator, value)
-      end
-
       def self.attribute_value_list(operator, value)
         # For BETWEEN and IN operators we should keep value as is (it should be already an array)
+        # NULL and NOT_NULL require absence of attribute list
         # For all the other operators we wrap the value with array
+        # https://docs.aws.amazon.com/en_us/amazondynamodb/latest/developerguide/LegacyConditionalParameters.Conditions.html
         if %w[BETWEEN IN].include?(operator)
           [value].flatten
+        elsif %w[NULL NOT_NULL].include?(operator)
+          nil
         else
           [value]
         end
