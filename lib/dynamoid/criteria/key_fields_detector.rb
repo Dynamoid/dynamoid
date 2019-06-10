@@ -39,10 +39,13 @@ module Dynamoid #:nodoc:
             @range_key = lsi.range_key
             @index_name = lsi.name
           end
+
+          return if @range_key.present?
         end
 
         # See if can use any global secondary index
-        # Chooses the first GSI found that can be utilized for the query
+        # Chooses the last GSI found that can be utilized for the query
+        # GSI with range key used in query has higher priority
         # But only do so if projects ALL attributes otherwise we won't
         # get back full data
         @source.global_secondary_indexes.each do |_, gsi|
