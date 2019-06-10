@@ -1109,7 +1109,7 @@ describe Dynamoid::Criteria::Chain do
           expect(model.where('name': nil).to_a).to eq [@johndoe]
         end
 
-        it 'supports "in [nil]" check', log_level: :debug do
+        it 'supports "in [nil]" check' do
           pending 'because of temporary bug with nil type casting'
           expect(model.where('name.in': [nil]).to_a).to eq [@johndoe]
         end
