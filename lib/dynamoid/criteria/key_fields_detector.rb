@@ -39,8 +39,6 @@ module Dynamoid #:nodoc:
             @range_key = lsi.range_key
             @index_name = lsi.name
           end
-
-          return
         end
 
         # See if can use any global secondary index
@@ -49,7 +47,7 @@ module Dynamoid #:nodoc:
         # get back full data
         @source.global_secondary_indexes.each do |_, gsi|
           next unless @query.keys.map(&:to_s).include?(gsi.hash_key.to_s) && gsi.projected_attributes == :all
-          next if @range_key.present? && !query_keys.include?(gsi.range_key.to_s)
+          next if @hash_key.present? && !query_keys.include?(gsi.range_key.to_s)
 
           @hash_key = gsi.hash_key
           @range_key = gsi.range_key

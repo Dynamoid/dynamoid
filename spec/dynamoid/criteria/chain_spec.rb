@@ -666,6 +666,7 @@ describe Dynamoid::Criteria::Chain do
           global_secondary_index hash_key: :city, range_key: :age, name: :cityage, projected_attributes: :all
           global_secondary_index hash_key: :city, range_key: :gender, name: :citygender, projected_attributes: :all
           global_secondary_index hash_key: :email, range_key: :age, name: :emailage, projected_attributes: :all
+          global_secondary_index hash_key: :name, range_key: :age, name: :nameage, projected_attributes: :all
         end
       end
 
@@ -765,6 +766,15 @@ describe Dynamoid::Criteria::Chain do
         expect(chain.key_fields_detector.hash_key).to eq(:city)
         expect(chain.key_fields_detector.range_key).to eq(:gender)
         expect(chain.key_fields_detector.index_name).to eq(:citygender)
+      end
+
+      it 'uses global secondary index when secondary hash key overlaps with primary hash key and range key matches' do
+        chain = Dynamoid::Criteria::Chain.new(model)
+        expect(chain).to receive(:pages_via_query).and_call_original
+        expect(chain.where(name: 'Bob', age: 10).to_a.size).to eq(1)
+        expect(chain.key_fields_detector.hash_key).to eq(:name)
+        expect(chain.key_fields_detector.range_key).to eq(:age)
+        expect(chain.key_fields_detector.index_name).to eq(:nameage)
       end
     end
 
