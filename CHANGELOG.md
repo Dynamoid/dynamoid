@@ -8,6 +8,7 @@
 
 ## Fixes
 * Fix: [#357](https://github.com/Dynamoid/dynamoid/pull/357) Fix synchronous table creation issue
+* Fix: [#362](https://github.com/Dynamoid/dynamoid/pull/362) Fix issue with selecting Global Secondary Index (@atyndall)
 
 ---
 
