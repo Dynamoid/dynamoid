@@ -6,6 +6,9 @@
 
 ## Improvements
 
+* Improvement: [#359](https://github.com/Dynamoid/dynamoid/pull/359) Add support of `NULL` and `NOT_NULL` operators
+* Improvement: [#360](https://github.com/Dynamoid/dynamoid/pull/360) Add `store_attribute_with_nil_value` config option
+
 ## Fixes
 * Fix: [#357](https://github.com/Dynamoid/dynamoid/pull/357) Fix synchronous table creation issue
 * Fix: [#362](https://github.com/Dynamoid/dynamoid/pull/362) Fix issue with selecting Global Secondary Index (@atyndall)
