@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+require 'spec_helper'
 
 describe Dynamoid::Fields do
   let(:address) { Address.new }
@@ -131,7 +131,7 @@ describe Dynamoid::Fields do
     end.to raise_error(Aws::DynamoDB::Errors::ValidationException, 'Item size has exceeded the maximum allowed size')
   end
 
-  context '.remove_attribute' do
+  context '.remove_field' do
     subject { address }
     before(:each) do
       Address.field :foobar

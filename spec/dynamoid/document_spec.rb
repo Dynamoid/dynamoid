@@ -1,22 +1,13 @@
 # frozen_string_literal: true
 
-require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+require 'spec_helper'
 
 describe Dynamoid::Document do
   it 'initializes a new document' do
     address = Address.new
 
     expect(address.new_record).to be_truthy
-    expect(address.attributes).to eq(id: nil,
-                                     created_at: nil,
-                                     updated_at: nil,
-                                     city: nil,
-                                     options: nil,
-                                     deliverable: nil,
-                                     latitude: nil,
-                                     config: nil,
-                                     registered_on: nil,
-                                     lock_version: nil)
+    expect(address.attributes).to eq({})
   end
 
   it 'responds to will_change! methods for all fields' do
@@ -32,16 +23,7 @@ describe Dynamoid::Document do
 
     expect(address.new_record).to be_truthy
 
-    expect(address.attributes).to eq(id: nil,
-                                     created_at: nil,
-                                     updated_at: nil,
-                                     city: 'Chicago',
-                                     options: nil,
-                                     deliverable: nil,
-                                     latitude: nil,
-                                     config: nil,
-                                     registered_on: nil,
-                                     lock_version: nil)
+    expect(address.attributes).to eq(city: 'Chicago')
   end
 
   it 'initializes a new document with a virtual attribute' do
@@ -49,16 +31,7 @@ describe Dynamoid::Document do
 
     expect(address.new_record).to be_truthy
 
-    expect(address.attributes).to eq(id: nil,
-                                     created_at: nil,
-                                     updated_at: nil,
-                                     city: 'Chicago',
-                                     options: nil,
-                                     deliverable: nil,
-                                     latitude: nil,
-                                     config: nil,
-                                     registered_on: nil,
-                                     lock_version: nil)
+    expect(address.attributes).to eq(city: 'Chicago')
   end
 
   it 'allows interception of write_attribute on load' do
@@ -348,16 +321,29 @@ describe Dynamoid::Document do
       expect(result.title).to eq 'New title'
     end
 
-    it 'checks the conditions on update' do
-      obj = document_class.create(title: 'Old title', version: 1)
-      expect do
-        document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 1 })
-      end.to change { document_class.find(obj.id).title }.to('New title')
+    context 'condition specified' do
+      it 'updates when model matches conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
 
-      obj = document_class.create(title: 'Old title', version: 1)
-      expect do
+        expect {
+          document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 1 })
+        }.to change { document_class.find(obj.id).title }.to('New title')
+      end
+
+      it 'does not update when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
+        expect {
+          result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
+        }.not_to change { document_class.find(obj.id).title }
+      end
+
+      it 'returns nil when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
         result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
-      end.not_to change { document_class.find(obj.id).title }
+        expect(result).to eq nil
+      end
     end
 
     it 'does not create new document if it does not exist yet' do
@@ -508,16 +494,29 @@ describe Dynamoid::Document do
       expect(result.title).to eq 'New title'
     end
 
-    it 'checks the conditions on update' do
-      obj = document_class.create(title: 'Old title', version: 1)
-      expect do
-        document_class.upsert(obj.id, { title: 'New title' }, if: { version: 1 })
-      end.to change { document_class.find(obj.id).title }.to('New title')
+    context 'conditions specified' do
+      it 'updates when model matches conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
 
-      obj = document_class.create(title: 'Old title', version: 1)
-      expect do
+        expect {
+          document_class.upsert(obj.id, { title: 'New title' }, if: { version: 1 })
+        }.to change { document_class.find(obj.id).title }.to('New title')
+      end
+
+      it 'does not update when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
+        expect {
+          result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
+        }.not_to change { document_class.find(obj.id).title }
+      end
+
+      it 'returns nil when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
         result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
-      end.not_to change { document_class.find(obj.id).title }
+        expect(result).to eq nil
+      end
     end
 
     it 'creates new document if it does not exist yet' do

@@ -3,7 +3,7 @@
 require 'active_support'
 require 'active_support/core_ext/object'
 
-require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
+require 'spec_helper'
 
 describe Dynamoid::Associations::HasOne do
   let(:magazine) { Magazine.create }

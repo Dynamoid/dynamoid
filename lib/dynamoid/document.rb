@@ -70,36 +70,6 @@ module Dynamoid #:nodoc:
         Dynamoid.adapter.count(table_name)
       end
 
-      # Initialize a new object and immediately save it to the database.
-      #
-      # @param [Hash] attrs Attributes with which to create the object.
-      #
-      # @return [Dynamoid::Document] the saved document
-      #
-      # @since 0.2.0
-      def create(attrs = {})
-        if attrs.is_a?(Array)
-          attrs.map { |attr| create(attr) }
-        else
-          build(attrs).tap(&:save)
-        end
-      end
-
-      # Initialize a new object and immediately save it to the database. Raise an exception if persistence failed.
-      #
-      # @param [Hash] attrs Attributes with which to create the object.
-      #
-      # @return [Dynamoid::Document] the saved document
-      #
-      # @since 0.2.0
-      def create!(attrs = {})
-        if attrs.is_a?(Array)
-          attrs.map { |attr| create!(attr) }
-        else
-          build(attrs).tap(&:save!)
-        end
-      end
-
       # Initialize a new object.
       #
       # @param [Hash] attrs Attributes with which to create the object.
@@ -145,161 +115,6 @@ module Dynamoid #:nodoc:
         end
       end
 
-      # Update document with provided values.
-      # Instantiates document and saves changes. Runs validations and callbacks.
-      #
-      # @param [Scalar value] partition key
-      # @param [Scalar value] sort key, optional
-      # @param [Hash] attributes
-      #
-      # @return [Dynamoid::Doument] updated document
-      #
-      # @example Update document
-      #   Post.update(101, read: true)
-      def update(hash_key, range_key_value = nil, attrs)
-        model = find(hash_key, range_key: range_key_value, consistent_read: true)
-        model.update_attributes(attrs)
-        model
-      end
-
-      # Update document.
-      # Uses efficient low-level `UpdateItem` API call.
-      # Changes attibutes and loads new document version with one API call.
-      # Doesn't run validations and callbacks. Can make conditional update.
-      # If a document doesn't exist or specified conditions failed - returns `nil`
-      #
-      # @param [Scalar value] partition key
-      # @param [Scalar value] sort key (optional)
-      # @param [Hash] attributes
-      # @param [Hash] conditions
-      #
-      # @return [Dynamoid::Document/nil] updated document
-      #
-      # @example Update document
-      #   Post.update_fields(101, read: true)
-      #
-      # @example Update document with condition
-      #   Post.update_fields(101, { read: true }, if: { version: 1 })
-      def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
-        optional_params = [range_key_value, attrs, conditions].compact
-        if optional_params.first.is_a?(Hash)
-          range_key_value = nil
-          attrs, conditions = optional_params[0..1]
-        else
-          range_key_value = optional_params.first
-          attrs, conditions = optional_params[1..2]
-        end
-
-        options = if range_key
-                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
-                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
-                    { range_key: value_dumped }
-                  else
-                    {}
-                  end
-
-        (conditions[:if_exists] ||= {})[hash_key] = hash_key_value
-        options[:conditions] = conditions
-
-        attrs = attrs.symbolize_keys
-        if Dynamoid::Config.timestamps
-          attrs[:updated_at] ||= DateTime.now.in_time_zone(Time.zone)
-        end
-
-        begin
-          new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
-            attrs.each do |k, v|
-              value_casted = TypeCasting.cast_field(v, attributes[k])
-              value_dumped = Dumping.dump_field(value_casted, attributes[k])
-              t.set(k => value_dumped)
-            end
-          end
-          attrs_undumped = Undumping.undump_attributes(new_attrs, attributes)
-          new(attrs_undumped)
-        rescue Dynamoid::Errors::ConditionalCheckFailedException
-        end
-      end
-
-      # Update existing document or create new one.
-      # Similar to `.update_fields`. The only diffirence is creating new document.
-      #
-      # Uses efficient low-level `UpdateItem` API call.
-      # Changes attibutes and loads new document version with one API call.
-      # Doesn't run validations and callbacks. Can make conditional update.
-      # If specified conditions failed - returns `nil`
-      #
-      # @param [Scalar value] partition key
-      # @param [Scalar value] sort key (optional)
-      # @param [Hash] attributes
-      # @param [Hash] conditions
-      #
-      # @return [Dynamoid::Document/nil] updated document
-      #
-      # @example Update document
-      #   Post.update(101, read: true)
-      #
-      # @example Update document
-      #   Post.upsert(101, read: true)
-      def upsert(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
-        optional_params = [range_key_value, attrs, conditions].compact
-        if optional_params.first.is_a?(Hash)
-          range_key_value = nil
-          attrs, conditions = optional_params[0..1]
-        else
-          range_key_value = optional_params.first
-          attrs, conditions = optional_params[1..2]
-        end
-
-        options = if range_key
-                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
-                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
-                    { range_key: value_dumped }
-                  else
-                    {}
-                  end
-
-        options[:conditions] = conditions
-
-        attrs = attrs.symbolize_keys
-        if Dynamoid::Config.timestamps
-          attrs[:updated_at] ||= DateTime.now.in_time_zone(Time.zone)
-        end
-
-        begin
-          new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
-            attrs.each do |k, v|
-              value_casted = TypeCasting.cast_field(v, attributes[k])
-              value_dumped = Dumping.dump_field(value_casted, attributes[k])
-
-              t.set(k => value_dumped)
-            end
-          end
-
-          attrs_undumped = Undumping.undump_attributes(new_attrs, attributes)
-          new(attrs_undumped)
-        rescue Dynamoid::Errors::ConditionalCheckFailedException
-        end
-      end
-
-      def inc(hash_key_value, range_key_value = nil, counters)
-        options = if range_key
-                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
-                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
-                    { range_key: value_dumped }
-                  else
-                    {}
-                  end
-
-        Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
-          counters.each do |k, v|
-            value_casted = TypeCasting.cast_field(v, attributes[k])
-            value_dumped = Dumping.dump_field(value_casted, attributes[k])
-
-            t.add(k => value_dumped)
-          end
-        end
-      end
-
       def deep_subclasses
         subclasses + subclasses.map(&:deep_subclasses).flatten
       end
@@ -323,24 +138,19 @@ module Dynamoid #:nodoc:
         @associations ||= {}
         @attributes_before_type_cast ||= {}
 
-        attrs_with_defaults = {}
-        self.class.attributes.each do |attribute, options|
-          attrs_with_defaults[attribute] = if attrs.key?(attribute)
-                                             attrs[attribute]
-                                           elsif options.key?(:default)
-                                             evaluate_default_value(options[:default])
-                                           end
+        attrs_with_defaults = self.class.attributes.reduce({}) do |res, (attribute, options)|
+          if attrs.key?(attribute)
+            res.merge(attribute => attrs[attribute])
+          elsif options.key?(:default)
+            res.merge(attribute => evaluate_default_value(options[:default]))
+          else
+            res
+          end
         end
 
         attrs_virtual = attrs.slice(*(attrs.keys - self.class.attributes.keys))
 
         load(attrs_with_defaults.merge(attrs_virtual))
-      end
-    end
-
-    def load(attrs)
-      attrs.each do |key, value|
-        send("#{key}=", value) if respond_to?("#{key}=")
       end
     end
 
@@ -363,24 +173,6 @@ module Dynamoid #:nodoc:
 
     def hash
       hash_key.hash ^ range_value.hash
-    end
-
-    # Reload an object from the database -- if you suspect the object has changed in the datastore and you need those
-    # changes to be reflected immediately, you would call this method. This is a consistent read.
-    #
-    # @return [Dynamoid::Document] the document this method was called on
-    #
-    # @since 0.2.0
-    def reload
-      options = { consistent_read: true }
-
-      if self.class.range_key
-        options[:range_key] = range_value
-      end
-
-      self.attributes = self.class.find(hash_key, options).attributes
-      @associations.values.each(&:reset)
-      self
     end
 
     # Return an object's hash key, regardless of what it might be called to the object.
