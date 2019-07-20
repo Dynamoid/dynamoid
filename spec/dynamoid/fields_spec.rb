@@ -131,7 +131,7 @@ describe Dynamoid::Fields do
     end.to raise_error(Aws::DynamoDB::Errors::ValidationException, 'Item size has exceeded the maximum allowed size')
   end
 
-  context '.remove_attribute' do
+  context '.remove_field' do
     subject { address }
     before(:each) do
       Address.field :foobar
