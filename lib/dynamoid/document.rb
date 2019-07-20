@@ -153,12 +153,6 @@ module Dynamoid #:nodoc:
       end
     end
 
-    def load(attrs)
-      attrs.each do |key, value|
-        send("#{key}=", value) if respond_to?("#{key}=")
-      end
-    end
-
     # An object is equal to another object if their ids are equal.
     #
     # @since 0.2.0
@@ -178,24 +172,6 @@ module Dynamoid #:nodoc:
 
     def hash
       hash_key.hash ^ range_value.hash
-    end
-
-    # Reload an object from the database -- if you suspect the object has changed in the datastore and you need those
-    # changes to be reflected immediately, you would call this method. This is a consistent read.
-    #
-    # @return [Dynamoid::Document] the document this method was called on
-    #
-    # @since 0.2.0
-    def reload
-      options = { consistent_read: true }
-
-      if self.class.range_key
-        options[:range_key] = range_value
-      end
-
-      self.attributes = self.class.find(hash_key, options).attributes
-      @associations.values.each(&:reset)
-      self
     end
 
     # Return an object's hash key, regardless of what it might be called to the object.

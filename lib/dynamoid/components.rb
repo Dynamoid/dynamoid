@@ -24,6 +24,7 @@ module Dynamoid
     include ActiveModel::Observing if defined?(ActiveModel::Observing)
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml if defined?(ActiveModel::Serializers::Xml)
+    include Dynamoid::Loadable
     include Dynamoid::Fields
     include Dynamoid::Indexes
     include Dynamoid::Persistence
