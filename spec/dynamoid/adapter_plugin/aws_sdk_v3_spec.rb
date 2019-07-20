@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'dynamoid/adapter_plugin/aws_sdk_v3'
-require File.expand_path(File.dirname(__FILE__) + '../../../spec_helper')
+require 'spec_helper'
 
 describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   #
