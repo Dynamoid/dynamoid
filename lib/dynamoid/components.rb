@@ -17,22 +17,24 @@ module Dynamoid
       after_initialize :set_inheritance_field
     end
 
-    include ActiveModel::AttributeMethods
+    include ActiveModel::AttributeMethods # Actually it will be inclided in Dirty module again
     include ActiveModel::Conversion
     include ActiveModel::MassAssignmentSecurity if defined?(ActiveModel::MassAssignmentSecurity)
     include ActiveModel::Naming
     include ActiveModel::Observing if defined?(ActiveModel::Observing)
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml if defined?(ActiveModel::Serializers::Xml)
+    include Dynamoid::Persistence
     include Dynamoid::Loadable
+    # Dirty module should be included after Persistence and Loadable
+    # because it overrides some methods declared in these modules
+    include Dynamoid::Dirty
     include Dynamoid::Fields
     include Dynamoid::Indexes
-    include Dynamoid::Persistence
     include Dynamoid::Finders
     include Dynamoid::Associations
     include Dynamoid::Criteria
     include Dynamoid::Validations
     include Dynamoid::IdentityMap
-    include Dynamoid::Dirty
   end
 end

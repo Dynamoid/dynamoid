@@ -52,6 +52,8 @@ module Dynamoid #:nodoc:
         end
         self.attributes = attributes.merge(name => { type: type }.merge(options))
 
+        define_attribute_method(name) # Dirty API
+
         generated_methods.module_eval do
           define_method(named) { read_attribute(named) }
           define_method("#{named}?") do
@@ -84,6 +86,10 @@ module Dynamoid #:nodoc:
       def remove_field(field)
         field = field.to_sym
         attributes.delete(field) || raise('No such field')
+
+        # Dirty API
+        undefine_attribute_methods
+        define_attribute_methods attributes.keys
 
         generated_methods.module_eval do
           remove_method field
@@ -120,6 +126,8 @@ module Dynamoid #:nodoc:
       if association = @associations[name]
         association.reset
       end
+
+      attribute_will_change!(name) # Dirty API
 
       @attributes_before_type_cast[name] = value
 
