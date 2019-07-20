@@ -103,6 +103,10 @@ describe Dynamoid::Dirty do
         'name' => ['Alex', 'Bob'],
         'updated_at' => ['2019-07-20 00:53:32'.to_datetime, '2019-07-20 20:11:01'.to_datetime]
       )
+
+      obj = model.create(name: 'Alex')
+      # there are also changes for `created_at` and `updated_at` - just don't check them
+      expect(obj.previous_changes).to include('id' => [nil, obj.id], 'name' => [nil, 'Alex'])
     end
 
     it 'returns {} when there were no changes made before saving' do
@@ -150,6 +154,48 @@ describe Dynamoid::Dirty do
 
       obj = model.new
       expect(obj.name_change).to eq(nil)
+    end
+  end
+
+  describe '<attribute>_previously_changed?' do
+    it 'returns true if attribute was changed before model was saved' do
+      obj = model.create(name: 'Alex')
+      obj.name = 'Bob'
+      obj.save
+      expect(obj.name_previously_changed?).to eq(true)
+
+      obj = model.create(name: 'Alex')
+      expect(obj.name_previously_changed?).to eq(true)
+    end
+
+    it 'returns false otherwise' do
+      obj = model.create(name: 'Alex')
+      obj = model.find(obj.id)
+      expect(obj.name_previously_changed?).to eq(false)
+
+      obj = model.new(name: 'Alex')
+      expect(obj.name_previously_changed?).to eq(false)
+    end
+  end
+
+  describe '<attribute>_previous_change' do
+    it 'returns an array of old and changed attribute value before the model was saved' do
+      obj = model.create(name: 'Alex')
+      obj.name = 'Bob'
+      obj.save
+      expect(obj.name_previous_change).to eq(['Alex', 'Bob'])
+
+      obj = model.create(name: 'Alex')
+      expect(obj.name_previous_change).to eq([nil, 'Alex'])
+    end
+
+    it 'returns nil when there were no changes made before saving' do
+      obj = model.create(name: 'Alex')
+      obj = model.find(obj.id)
+      expect(obj.name_previous_change).to eq(nil)
+
+      obj = model.new(name: 'Alex')
+      expect(obj.name_previous_change).to eq(nil)
     end
   end
 

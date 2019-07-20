@@ -18,6 +18,7 @@ module Dynamoid
 
     included do
       attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
+      attribute_method_suffix '_previously_changed?', '_previous_change'
       attribute_method_affix prefix: 'restore_', suffix: '!'
     end
 
@@ -140,6 +141,16 @@ module Dynamoid
       attributes.each { |attr| restore_attribute! attr }
     end
 
+    # Handles <tt>*_previously_changed?</tt> for +method_missing+.
+    def attribute_previously_changed?(attr) #:nodoc:
+      previous_changes_include?(attr)
+    end
+
+    # Handles <tt>*_previous_change</tt> for +method_missing+.
+    def attribute_previous_change(attr)
+      previous_changes[attr] if attribute_previously_changed?(attr)
+    end
+
     private
 
       def changes_include?(attr_name)
@@ -183,6 +194,12 @@ module Dynamoid
           __send__("#{attr}=", changed_attributes[attr])
           clear_attribute_changes([attr])
         end
+      end
+
+      # Returns +true+ if attr_name were changed before the model was saved,
+      # +false+ otherwise.
+      def previous_changes_include?(attr_name)
+        previous_changes.include?(attr_name)
       end
 
       # This is necessary because `changed_attributes` might be overridden in
