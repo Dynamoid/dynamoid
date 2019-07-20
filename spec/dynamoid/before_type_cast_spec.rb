@@ -14,10 +14,7 @@ RSpec.describe 'Before type cast' do
       obj = klass.new(admin: 0)
 
       expect(obj.attributes_before_type_cast).to eql(
-        id: nil,
         admin: 0,
-        created_at: nil,
-        updated_at: nil
       )
     end
 
@@ -30,12 +27,7 @@ RSpec.describe 'Before type cast' do
       obj = klass_with_many_fields.new(first_name: 'John')
 
       expect(obj.attributes_before_type_cast).to eql(
-        id: nil,
         first_name: 'John',
-        last_name: nil,
-        email: nil,
-        created_at: nil,
-        updated_at: nil
       )
     end
 
@@ -46,22 +38,14 @@ RSpec.describe 'Before type cast' do
       obj = klass_with_default_value.new
 
       expect(obj.attributes_before_type_cast).to eql(
-        id: nil,
         activated_on: '2018-09-27',
-        created_at: nil,
-        updated_at: nil
       )
     end
 
     it 'returns nil if field does not have default value' do
       obj = klass.new
 
-      expect(obj.attributes_before_type_cast).to eql(
-        id: nil,
-        admin: nil,
-        created_at: nil,
-        updated_at: nil
-      )
+      expect(obj.attributes_before_type_cast).to eql({})
     end
 
     it 'returns values loaded from the storage before type casting' do
@@ -71,8 +55,6 @@ RSpec.describe 'Before type cast' do
       expect(obj2.attributes_before_type_cast).to eql(
         id: obj.id,
         admin: false,
-        created_at: nil,
-        updated_at: nil
       )
     end
   end

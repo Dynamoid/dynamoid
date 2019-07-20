@@ -7,16 +7,7 @@ describe Dynamoid::Document do
     address = Address.new
 
     expect(address.new_record).to be_truthy
-    expect(address.attributes).to eq(id: nil,
-                                     created_at: nil,
-                                     updated_at: nil,
-                                     city: nil,
-                                     options: nil,
-                                     deliverable: nil,
-                                     latitude: nil,
-                                     config: nil,
-                                     registered_on: nil,
-                                     lock_version: nil)
+    expect(address.attributes).to eq({})
   end
 
   it 'responds to will_change! methods for all fields' do
@@ -32,16 +23,7 @@ describe Dynamoid::Document do
 
     expect(address.new_record).to be_truthy
 
-    expect(address.attributes).to eq(id: nil,
-                                     created_at: nil,
-                                     updated_at: nil,
-                                     city: 'Chicago',
-                                     options: nil,
-                                     deliverable: nil,
-                                     latitude: nil,
-                                     config: nil,
-                                     registered_on: nil,
-                                     lock_version: nil)
+    expect(address.attributes).to eq(city: 'Chicago')
   end
 
   it 'initializes a new document with a virtual attribute' do
@@ -49,16 +31,7 @@ describe Dynamoid::Document do
 
     expect(address.new_record).to be_truthy
 
-    expect(address.attributes).to eq(id: nil,
-                                     created_at: nil,
-                                     updated_at: nil,
-                                     city: 'Chicago',
-                                     options: nil,
-                                     deliverable: nil,
-                                     latitude: nil,
-                                     config: nil,
-                                     registered_on: nil,
-                                     lock_version: nil)
+    expect(address.attributes).to eq(city: 'Chicago')
   end
 
   it 'allows interception of write_attribute on load' do
