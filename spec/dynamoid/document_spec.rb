@@ -321,16 +321,29 @@ describe Dynamoid::Document do
       expect(result.title).to eq 'New title'
     end
 
-    it 'checks the conditions on update' do
-      obj = document_class.create(title: 'Old title', version: 1)
-      expect do
-        document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 1 })
-      end.to change { document_class.find(obj.id).title }.to('New title')
+    context 'condition specified' do
+      it 'updates when model matches conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
 
-      obj = document_class.create(title: 'Old title', version: 1)
-      expect do
+        expect {
+          document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 1 })
+        }.to change { document_class.find(obj.id).title }.to('New title')
+      end
+
+      it 'does not update when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
+        expect {
+          result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
+        }.not_to change { document_class.find(obj.id).title }
+      end
+
+      it 'returns nil when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
         result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
-      end.not_to change { document_class.find(obj.id).title }
+        expect(result).to eq nil
+      end
     end
 
     it 'does not create new document if it does not exist yet' do
@@ -481,16 +494,29 @@ describe Dynamoid::Document do
       expect(result.title).to eq 'New title'
     end
 
-    it 'checks the conditions on update' do
-      obj = document_class.create(title: 'Old title', version: 1)
-      expect do
-        document_class.upsert(obj.id, { title: 'New title' }, if: { version: 1 })
-      end.to change { document_class.find(obj.id).title }.to('New title')
+    context 'conditions specified' do
+      it 'updates when model matches conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
 
-      obj = document_class.create(title: 'Old title', version: 1)
-      expect do
+        expect {
+          document_class.upsert(obj.id, { title: 'New title' }, if: { version: 1 })
+        }.to change { document_class.find(obj.id).title }.to('New title')
+      end
+
+      it 'does not update when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
+        expect {
+          result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
+        }.not_to change { document_class.find(obj.id).title }
+      end
+
+      it 'returns nil when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
         result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
-      end.not_to change { document_class.find(obj.id).title }
+        expect(result).to eq nil
+      end
     end
 
     it 'creates new document if it does not exist yet' do
