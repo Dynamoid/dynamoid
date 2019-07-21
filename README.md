@@ -477,7 +477,7 @@ There is `<name>_before_type_cast` method for every field in a model as well.
 
 ### Dirty API
 
-Dynamoid supports Dirty API which equvalents to [Rails 5.2 `ActiveModel::Dirty`](https://api.rubyonrails.org/v5.2/classes/ActiveModel/Dirty.html). There is only one limitation - change in place of field is't detected automatically.
+Dynamoid supports Dirty API which equvalents to [Rails 5.2 `ActiveModel::Dirty`](https://api.rubyonrails.org/v5.2/classes/ActiveModel/Dirty.html). There is only one limitation - change in place of field isn't detected automatically.
 
 ## Usage
 
