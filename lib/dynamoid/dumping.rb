@@ -222,7 +222,11 @@ module Dynamoid
 
         if use_string_format
           value_in_time_zone = Dynamoid::DynamodbTimeZone.in_time_zone(value)
-          value_in_time_zone.iso8601
+          if options[:iso_precision].nil?
+            value_in_time_zone.iso8601
+          else
+            value_in_time_zone.iso8601(options[:iso_precision].to_i)
+          end
         else
           unless value.respond_to?(:to_i) && value.respond_to?(:nsec)
             value = value.to_time

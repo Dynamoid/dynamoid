@@ -202,7 +202,7 @@ module Dynamoid
                             else
                               @options[:store_as_string]
                             end
-        value = DateTime.iso8601(value).to_time.to_i if use_string_format
+        value = DateTime.iso8601(value).to_time if use_string_format
         ApplicationTimeZone.at(value)
       end
     end
