@@ -536,6 +536,234 @@ describe Dynamoid::Persistence do
     CamelCase.new.save
   end
 
+  describe '.create' do
+    let(:klass) do
+      new_class do
+        field :city
+      end
+    end
+
+    it 'creates a new document' do
+      address = klass.create(city: 'Chicago')
+
+      expect(address.new_record).to eql false
+      expect(address.id).to be_present
+
+      address_saved = klass.find(address.id)
+      expect(address_saved.city).to eq('Chicago')
+    end
+
+    it 'creates multiple documents' do
+      addresses = klass.create([{ city: 'Chicago' }, { city: 'New York' }])
+
+      expect(addresses.size).to eq 2
+      expect(addresses).to be_all(&:persisted?)
+      expect(addresses[0].city).to eq 'Chicago'
+      expect(addresses[1].city).to eq 'New York'
+    end
+
+    describe 'validation' do
+      let(:klass_with_validation) do
+        new_class do
+          field :name
+          validates :name, length: { minimum: 4 }
+        end
+      end
+
+      it 'does not save invalid model' do
+        obj = klass_with_validation.create(name: 'Theodor')
+        expect(obj).to be_persisted
+
+        obj = klass_with_validation.create(name: 'Mo')
+        expect(obj).not_to be_persisted
+      end
+
+      it 'saves valid models even if there are invalid' do
+        obj1, obj2 = klass_with_validation.create([{ name: 'Theodor' }, { name: 'Mo' }])
+
+        expect(obj1).to be_persisted
+        expect(obj2).not_to be_persisted
+      end
+    end
+
+    it 'works with a HashWithIndifferentAccess argument' do
+      attrs = ActiveSupport::HashWithIndifferentAccess.new(city: 'Atlanta')
+      obj = klass.create(attrs)
+
+      expect(obj).to be_persisted
+      expect(obj.city).to eq 'Atlanta'
+    end
+
+    it 'creates table if it does not exist' do
+      expect {
+        klass.create(city: 'Chicago')
+      }.to change {
+        tables_created.include?(klass.table_name)
+      }.from(false).to(true)
+    end
+
+    describe 'callbacks' do
+      it 'runs before_create callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_create { print 'run before_create' }
+        end
+
+        expect do
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run before_create').to_stdout
+      end
+
+      it 'runs after_create callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_create { print 'run after_create' }
+        end
+
+        expect do
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run after_create').to_stdout
+      end
+
+      it 'runs before_save callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_save { print 'run before_save' }
+        end
+
+        expect do
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run before_save').to_stdout
+      end
+
+      it 'runs after_save callbacks' do
+        klass_with_callback = new_class do
+          field :name
+          after_save { print 'run after_save' }
+        end
+
+        expect do
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run after_save').to_stdout
+      end
+
+      it 'runs callback specified with method name' do
+        klass_with_callback = new_class do
+          field :name
+          before_create :log_message
+
+          def log_message
+            print 'run before_create'
+          end
+        end
+
+        expect do
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run before_create').to_stdout
+      end
+    end
+
+    context 'not unique primary key' do
+      context 'composite key' do
+        let(:klass_with_composite_key) do
+          new_class do
+            range :name
+          end
+        end
+
+        it 'raises RecordNotUnique error' do
+          klass_with_composite_key.create(id: '10', name: 'aaa')
+
+          expect {
+            klass_with_composite_key.create(id: '10', name: 'aaa')
+          }.to raise_error(Dynamoid::Errors::RecordNotUnique)
+        end
+      end
+
+      context 'simple key' do
+        let(:klass_with_simple_key) do
+          new_class
+        end
+
+        it 'raises RecordNotUnique error' do
+          klass_with_simple_key.create(id: '10')
+
+          expect {
+            klass_with_simple_key.create(id: '10')
+          }.to raise_error(Dynamoid::Errors::RecordNotUnique)
+        end
+      end
+    end
+
+    describe 'timestamps' do
+      let(:klass) do
+        new_class
+      end
+
+      it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        travel 1.hour do
+          time_now = Time.now
+          obj = klass.create
+
+          expect(obj.created_at.to_i).to eql(time_now.to_i)
+          expect(obj.updated_at.to_i).to eql(time_now.to_i)
+        end
+      end
+
+      it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        travel 1.hour do
+          created_at = updated_at = Time.now
+          obj = klass.create(created_at: created_at, updated_at: updated_at)
+
+          expect(obj.created_at.to_i).to eql(created_at.to_i)
+          expect(obj.updated_at.to_i).to eql(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        created_at = updated_at = Time.now
+        obj = klass.create
+
+        expect(obj.created_at).to eql(nil)
+        expect(obj.updated_at).to eql(nil)
+      end
+    end
+  end
+
+  describe '.create!' do
+    context 'validation' do
+      let(:klass_with_validation) do
+        new_class do
+          field :city
+          validates :city, presence: true
+        end
+      end
+
+      it 'raises DocumentNotValid error when saves invalid model' do
+        expect do
+          klass_with_validation.create!(city: nil)
+        end.to raise_error(Dynamoid::Errors::DocumentNotValid)
+      end
+
+      it 'raises DocumentNotValid error when saves multiple models and some of them are invalid' do
+        expect do
+          klass_with_validation.create!([{ city: 'Chicago' }, { city: nil }])
+        end.to raise_error(Dynamoid::Errors::DocumentNotValid)
+      end
+
+      it 'saves some valid models before raising error because of invalid model' do
+        klass_with_validation.create_table
+
+        expect do
+          klass_with_validation.create!([{ city: 'Chicago' }, { city: nil }, { city: 'London' }]) rescue nil
+        end.to change { klass_with_validation.count }.by(1)
+
+        obj = klass_with_validation.last
+        expect(obj.city).to eq 'Chicago'
+      end
+    end
+  end
+
   describe '.save' do
     context ':raw field' do
       let(:klass) do
