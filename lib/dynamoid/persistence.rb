@@ -23,7 +23,7 @@ module Dynamoid
         @table_name ||= [Dynamoid::Config.namespace.to_s, table_base_name].reject(&:empty?).join('_')
       end
 
-      # Creates a table.
+      # Create a table.
       #
       # @param [Hash] options options to pass for table creation
       # @option options [Symbol] :id the id field for the table
@@ -63,12 +63,11 @@ module Dynamoid
         clazz.new(attrs_undumped).tap { |r| r.new_record = false }
       end
 
-      # Creates several models at once.
+      # Create several models at once.
+      #
       # Neither callbacks nor validations run.
-      # It works efficiently because of using BatchWriteItem.
-      #
-      # Returns array of models
-      #
+      # It works efficiently because of using `BatchWriteItem` API call.
+      # Return array of models.
       # Uses backoff specified by `Dynamoid::Config.backoff` config option
       #
       # @param [Array<Hash>] items
@@ -117,9 +116,13 @@ module Dynamoid
         documents
       end
 
-      # Initialize a new object and immediately save it to the database.
+      # Create a model.
       #
-      # @param [Hash] attrs Attributes with which to create the object.
+      # Initializes a new object and immediately saves it to the database.
+      # Validates model and runs callbacks: before_create, before_save, after_save and after_create.
+      # Accepts both Hash and Array of Hashes and can create several models.
+      #
+      # @param [Hash|Array[Hash]] attrs Attributes with which to create the object.
       #
       # @return [Dynamoid::Document] the saved document
       #
@@ -132,9 +135,13 @@ module Dynamoid
         end
       end
 
-      # Initialize a new object and immediately save it to the database. Raise an exception if persistence failed.
+      # Create new model.
       #
-      # @param [Hash] attrs Attributes with which to create the object.
+      # Initializes a new object and immediately saves it to the database.
+      # Raises an exception if validation failed.
+      # Accepts both Hash and Array of Hashes and can create several models.
+      #
+      # @param [Hash|Array[Hash]] attrs Attributes with which to create the object.
       #
       # @return [Dynamoid::Document] the saved document
       #
@@ -147,8 +154,10 @@ module Dynamoid
         end
       end
 
-      # Update document with provided values.
-      # Instantiates document and saves changes. Runs validations and callbacks.
+      # Update document with provided attributes.
+      #
+      # Instantiates document and saves changes.
+      # Runs validations and callbacks.
       #
       # @param [Scalar value] partition key
       # @param [Scalar value] sort key, optional
@@ -157,7 +166,7 @@ module Dynamoid
       # @return [Dynamoid::Doument] updated document
       #
       # @example Update document
-      #   Post.update(101, read: true)
+      #   Post.update(101, title: 'New title')
       def update(hash_key, range_key_value = nil, attrs)
         model = find(hash_key, range_key: range_key_value, consistent_read: true)
         model.update_attributes(attrs)
@@ -165,6 +174,7 @@ module Dynamoid
       end
 
       # Update document.
+      #
       # Uses efficient low-level `UpdateItem` API call.
       # Changes attibutes and loads new document version with one API call.
       # Doesn't run validations and callbacks. Can make conditional update.
@@ -175,13 +185,13 @@ module Dynamoid
       # @param [Hash] attributes
       # @param [Hash] conditions
       #
-      # @return [Dynamoid::Document/nil] updated document
+      # @return [Dynamoid::Document|nil] updated document
       #
       # @example Update document
       #   Post.update_fields(101, read: true)
       #
       # @example Update document with condition
-      #   Post.update_fields(101, { read: true }, if: { version: 1 })
+      #   Post.update_fields(101, { title: 'New title' }, if: { version: 1 })
       def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
@@ -223,12 +233,14 @@ module Dynamoid
       end
 
       # Update existing document or create new one.
-      # Similar to `.update_fields`. The only diffirence is creating new document.
+      #
+      # Similar to `.update_fields`.
+      # The only diffirence is - it creates new document in case the document doesn't exist.
       #
       # Uses efficient low-level `UpdateItem` API call.
       # Changes attibutes and loads new document version with one API call.
       # Doesn't run validations and callbacks. Can make conditional update.
-      # If specified conditions failed - returns `nil`
+      # If specified conditions failed - returns `nil`.
       #
       # @param [Scalar value] partition key
       # @param [Scalar value] sort key (optional)
@@ -238,10 +250,7 @@ module Dynamoid
       # @return [Dynamoid::Document/nil] updated document
       #
       # @example Update document
-      #   Post.update(101, read: true)
-      #
-      # @example Update document
-      #   Post.upsert(101, read: true)
+      #   Post.upsert(101, title: 'New title')
       def upsert(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
@@ -283,6 +292,19 @@ module Dynamoid
         end
       end
 
+      # Increase numeric field by specified value.
+      #
+      # Can update several fields at once.
+      # Uses efficient low-level `UpdateItem` API call.
+      #
+      # @param [Scalar value] hash_key_value partition key
+      # @param [Scalar value] range_key_value sort key (optional)
+      # @param [Hash] counters value to increase by
+      #
+      # @return [Dynamoid::Document/nil] updated document
+      #
+      # @example Update document
+      #   Post.inc(101, views_counter: 2, downloads: 10)
       def inc(hash_key_value, range_key_value = nil, counters)
         options = if range_key
                     value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
