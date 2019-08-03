@@ -7,6 +7,7 @@ require 'yaml'
 require 'dynamoid/persistence/import'
 require 'dynamoid/persistence/update_fields'
 require 'dynamoid/persistence/upsert'
+require 'dynamoid/persistence/save'
 
 # encoding: utf-8
 module Dynamoid
@@ -267,12 +268,15 @@ module Dynamoid
       self.class.create_table
 
       if new_record?
-        conditions = { unless_exists: [self.class.hash_key] }
-        conditions[:unless_exists] << range_key if range_key
-
-        run_callbacks(:create) { persist(conditions) }
+        run_callbacks(:create) do
+          run_callbacks(:save) do
+            Save.call(self)
+          end
+        end
       else
-        persist
+        run_callbacks(:save) do
+          Save.call(self)
+        end
       end
     end
 
@@ -406,45 +410,6 @@ module Dynamoid
       Dynamoid.adapter.delete(self.class.table_name, hash_key, options)
     rescue Dynamoid::Errors::ConditionalCheckFailedException
       raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
-    end
-
-    private
-
-    # Persist the object into the datastore. Assign it an id first if it doesn't have one.
-    #
-    # @since 0.2.0
-    def persist(conditions = nil)
-      run_callbacks(:save) do
-        self.hash_key = SecureRandom.uuid if hash_key.blank?
-
-        # Add an exists check to prevent overwriting existing records with new ones
-        if new_record?
-          conditions ||= {}
-          (conditions[:unless_exists] ||= []) << self.class.hash_key
-        end
-
-        # Add an optimistic locking check if the lock_version column exists
-        if self.class.attributes[:lock_version]
-          conditions ||= {}
-          self.lock_version = (lock_version || 0) + 1
-          # Uses the original lock_version value from ActiveModel::Dirty in case user changed lock_version manually
-          (conditions[:if] ||= {})[:lock_version] = changes[:lock_version][0] if changes[:lock_version][0]
-        end
-
-        attributes_dumped = Dumping.dump_attributes(attributes, self.class.attributes)
-
-        begin
-          Dynamoid.adapter.write(self.class.table_name, attributes_dumped, conditions)
-          @new_record = false
-          true
-        rescue Dynamoid::Errors::ConditionalCheckFailedException => e
-          if new_record?
-            raise Dynamoid::Errors::RecordNotUnique.new(e, self)
-          else
-            raise Dynamoid::Errors::StaleObjectError.new(self, 'persist')
-          end
-        end
-      end
     end
   end
 end
