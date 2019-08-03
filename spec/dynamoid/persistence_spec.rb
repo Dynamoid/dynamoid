@@ -465,30 +465,6 @@ describe Dynamoid::Persistence do
     end
   end
 
-  it 'assigns itself an id on save' do
-    address.save
-
-    expect(Dynamoid.adapter.read('dynamoid_tests_addresses', address.id)[:id]).to eq address.id
-  end
-
-  it 'prevents concurrent writes to tables with a lock_version' do
-    address.save!
-    a1 = address
-    a2 = Address.find(address.id)
-
-    a1.city = 'Seattle'
-    a2.city = 'San Francisco'
-
-    a1.save!
-    expect { a2.save! }.to raise_exception(Dynamoid::Errors::StaleObjectError)
-  end
-
-  it 'assigns itself an id on save only if it does not have one' do
-    address.id = 'test123'
-    address.save
-
-    expect(Dynamoid.adapter.read('dynamoid_tests_addresses', 'test123')).to_not be_empty
-  end
 
   it 'has a table name' do
     expect(Address.table_name).to eq 'dynamoid_tests_addresses'
@@ -528,12 +504,6 @@ describe Dynamoid::Persistence do
     @user.destroy
 
     expect(Dynamoid.adapter.read('dynamoid_tests_users', @user.id)).to be_nil
-  end
-
-  it 'runs after save callbacks when doing #save' do
-    expect_any_instance_of(CamelCase).to receive(:doing_after_create).once.and_return(true)
-
-    CamelCase.new.save
   end
 
   describe '.create' do
@@ -1330,6 +1300,220 @@ describe Dynamoid::Persistence do
   end
 
   describe '.save' do
+    let(:klass) do
+      new_class do
+        field :name
+      end
+    end
+
+    it 'saves model' do
+      obj = klass.new(name: 'Alex')
+      obj.save
+
+      expect(klass.exists?(obj.id)).to eq true
+      expect(klass.find(obj.id).name).to eq 'Alex'
+    end
+
+    it 'marks it as persisted' do
+      obj = klass.new(name: 'Alex')
+      expect { obj.save }.to change { obj.persisted? }.from(false).to(true)
+    end
+
+    it 'creates table if it does not exist' do
+      model = klass.new
+
+      expect { model.save }
+        .to change { tables_created.include?(klass.table_name) }
+        .from(false).to(true)
+    end
+
+    it 'dumps attribute values' do
+      klass = new_class do
+        field :active, :boolean, store_as_native_boolean: false
+      end
+
+      obj = klass.new(active: false)
+      obj.save!
+      expect(raw_attributes(obj)[:active]).to eql('f')
+    end
+
+    describe 'partition key value' do
+      it 'generates "id" for new model' do
+        obj = klass.new
+        obj.save
+
+        expect(obj.id).to be_present
+        expect(raw_attributes(obj)[:id]).to eql obj.id
+      end
+
+      it 'does not override specified "id" for new model' do
+        obj = klass.new(id: '1024')
+
+        expect { obj.save }.not_to change { obj.id }
+      end
+
+      it 'does not override "id" for persisted model' do
+        obj = klass.create
+        obj.name = 'Alex'
+
+        expect { obj.save }.not_to change { obj.id }
+      end
+    end
+
+    describe 'pessimistic locking' do
+      let(:klass) do
+        new_class do
+          field :name
+          field :lock_version, :integer
+        end
+      end
+
+      it 'generates "lock_version" if field declared' do
+        obj = klass.new
+        obj.save
+
+        expect(obj.lock_version).to eq 1
+        expect(raw_attributes(obj)[:lock_version]).to eq 1
+      end
+
+      it 'increments "lock_version" if it is declared' do
+        obj = klass.create
+        obj.name = 'Alex'
+
+        expect { obj.save }.to change { obj.lock_version }.from(1).to(2)
+      end
+
+      it 'prevents concurrent writes to tables with a lock_version' do
+        # version #1
+        obj = klass.create          # lock_version nil -> 1
+        obj2 = klass.find(obj.id)   # lock_version = 1
+
+        # version #2
+        obj.name = 'Alex'
+        obj.save                    # lock_version 1 -> 2
+        obj2.name = 'Bob'
+
+        # tries to create version #2 again
+        expect {
+          obj2.save                 # lock_version 1 -> 2
+        }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+    end
+
+    describe 'callbacks' do
+      context 'new model' do
+        it 'runs before_create callback' do
+          klass_with_callback = new_class do
+            field :name
+            before_create { print 'run before_create' }
+          end
+
+          obj = klass_with_callback.new(name: 'Alex')
+          expect { obj.save }.to output('run before_create').to_stdout
+        end
+
+        it 'runs after_create callback' do
+          klass_with_callback = new_class do
+            field :name
+            after_create { print 'run after_create' }
+          end
+
+          obj = klass_with_callback.new(name: 'Alex')
+          expect { obj.save }.to output('run after_create').to_stdout
+        end
+      end
+
+      context 'persisted model' do
+        it 'runs before_create callback' do
+          klass_with_callback = new_class do
+            field :name
+            before_create { print 'run before_create' }
+          end
+
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.name = 'Bob'
+
+          expect { obj.save }.not_to output('run before_create').to_stdout
+        end
+
+        it 'runs after_create callback' do
+          klass_with_callback = new_class do
+            field :name
+            after_create { print 'run after_create' }
+          end
+
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.name = 'Bob'
+
+          expect { obj.save }.not_to output('run after_create').to_stdout
+        end
+      end
+
+      it 'runs before_save callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_save { print 'run before_save' }
+        end
+
+        obj = klass_with_callback.new(name: 'Alex')
+        expect { obj.save }.to output('run before_save').to_stdout
+      end
+
+      it 'runs after_save callbacks' do
+        klass_with_callback = new_class do
+          field :name
+          after_save { print 'run after_save' }
+        end
+
+        obj = klass_with_callback.new(name: 'Alex')
+        expect { obj.save }.to output('run after_save').to_stdout
+      end
+
+      it 'runs callback specified with method name' do
+        klass_with_callback = new_class do
+          field :name
+          before_save :log_message
+
+          def log_message
+            print 'run before_save'
+          end
+        end
+
+        obj = klass_with_callback.new(name: 'Alex')
+        expect { obj.save }.to output('run before_save').to_stdout
+      end
+    end
+
+    context 'not unique primary key' do
+      context 'composite key' do
+        let(:klass_with_composite_key) do
+          new_class do
+            range :name
+          end
+        end
+
+        it 'raises RecordNotUnique error' do
+          klass_with_composite_key.create(id: '10', name: 'aaa')
+          obj = klass_with_composite_key.new(id: '10', name: 'aaa')
+
+          expect { obj.save }.to raise_error(Dynamoid::Errors::RecordNotUnique)
+        end
+      end
+
+      context 'simple key' do
+        let(:klass_with_simple_key) do
+          new_class
+        end
+
+        it 'raises RecordNotUnique error' do
+          klass_with_simple_key.create(id: '10')
+          obj = klass_with_simple_key.new(id: '10')
+
+          expect { obj.save }.to raise_error(Dynamoid::Errors::RecordNotUnique)
+        end
+      end
+    end
+
     context ':raw field' do
       let(:klass) do
         new_class do
@@ -1346,25 +1530,6 @@ describe Dynamoid::Persistence do
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
       end
-    end
-
-    it 'creates table if it does not exist' do
-      klass = new_class(table_name: :foo_bars)
-      model = klass.new
-
-      expect { model.save }
-        .to change { tables_created.include?('dynamoid_tests_foo_bars') }
-        .from(false).to(true)
-    end
-
-    it 'dumps attribute values' do
-      klass = new_class do
-        field :active, :boolean, store_as_native_boolean: false
-      end
-
-      obj = klass.new(active: false)
-      obj.save!
-      expect(raw_attributes(obj)[:active]).to eql('f')
     end
 
     describe 'timestamps' do
