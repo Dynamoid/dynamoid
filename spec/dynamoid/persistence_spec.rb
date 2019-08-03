@@ -211,7 +211,7 @@ describe Dynamoid::Persistence do
       end
     end
 
-    describe 'partition key attribute type' do
+    describe 'sort key attribute type' do
       it 'maps :string to String' do
         klass = new_class do
           range :prop, :string
@@ -465,30 +465,6 @@ describe Dynamoid::Persistence do
     end
   end
 
-  it 'assigns itself an id on save' do
-    address.save
-
-    expect(Dynamoid.adapter.read('dynamoid_tests_addresses', address.id)[:id]).to eq address.id
-  end
-
-  it 'prevents concurrent writes to tables with a lock_version' do
-    address.save!
-    a1 = address
-    a2 = Address.find(address.id)
-
-    a1.city = 'Seattle'
-    a2.city = 'San Francisco'
-
-    a1.save!
-    expect { a2.save! }.to raise_exception(Dynamoid::Errors::StaleObjectError)
-  end
-
-  it 'assigns itself an id on save only if it does not have one' do
-    address.id = 'test123'
-    address.save
-
-    expect(Dynamoid.adapter.read('dynamoid_tests_addresses', 'test123')).to_not be_empty
-  end
 
   it 'has a table name' do
     expect(Address.table_name).to eq 'dynamoid_tests_addresses'
@@ -530,48 +506,1014 @@ describe Dynamoid::Persistence do
     expect(Dynamoid.adapter.read('dynamoid_tests_users', @user.id)).to be_nil
   end
 
-  it 'runs the before_create callback only once' do
-    expect_any_instance_of(CamelCase).to receive(:doing_before_create).once.and_return(true)
+  describe '.create' do
+    let(:klass) do
+      new_class do
+        field :city
+      end
+    end
 
-    CamelCase.create
-  end
+    it 'creates a new document' do
+      address = klass.create(city: 'Chicago')
 
-  it 'runs after save callbacks when doing #create' do
-    expect_any_instance_of(CamelCase).to receive(:doing_after_create).once.and_return(true)
+      expect(address.new_record).to eql false
+      expect(address.id).to be_present
 
-    CamelCase.create
-  end
+      address_saved = klass.find(address.id)
+      expect(address_saved.city).to eq('Chicago')
+    end
 
-  it 'runs after save callbacks when doing #save' do
-    expect_any_instance_of(CamelCase).to receive(:doing_after_create).once.and_return(true)
+    it 'creates multiple documents' do
+      addresses = klass.create([{ city: 'Chicago' }, { city: 'New York' }])
 
-    CamelCase.new.save
-  end
+      expect(addresses.size).to eq 2
+      expect(addresses).to be_all(&:persisted?)
+      expect(addresses[0].city).to eq 'Chicago'
+      expect(addresses[1].city).to eq 'New York'
+    end
 
-  it 'works with a HashWithIndifferentAccess' do
-    hash = ActiveSupport::HashWithIndifferentAccess.new('city' => 'Atlanta')
+    describe 'validation' do
+      let(:klass_with_validation) do
+        new_class do
+          field :name
+          validates :name, length: { minimum: 4 }
+        end
+      end
 
-    expect { Address.create(hash) }.to_not raise_error
-  end
+      it 'does not save invalid model' do
+        obj = klass_with_validation.create(name: 'Theodor')
+        expect(obj).to be_persisted
 
-  context 'create' do
-    {
-      Tweet   => ['with range',    { tweet_id: 1, group: 'abc' }],
-      Message => ['without range', { message_id: 1, text: 'foo', time: DateTime.now }]
-    }.each_pair do |clazz, fields|
-      it "checks for existence of an existing object #{fields[0]}" do
-        t1 = clazz.new(fields[1])
-        t2 = clazz.new(fields[1])
+        obj = klass_with_validation.create(name: 'Mo')
+        expect(obj).not_to be_persisted
+      end
 
-        t1.save
+      it 'saves valid models even if there are invalid' do
+        obj1, obj2 = klass_with_validation.create([{ name: 'Theodor' }, { name: 'Mo' }])
+
+        expect(obj1).to be_persisted
+        expect(obj2).not_to be_persisted
+      end
+    end
+
+    it 'works with a HashWithIndifferentAccess argument' do
+      attrs = ActiveSupport::HashWithIndifferentAccess.new(city: 'Atlanta')
+      obj = klass.create(attrs)
+
+      expect(obj).to be_persisted
+      expect(obj.city).to eq 'Atlanta'
+    end
+
+    it 'creates table if it does not exist' do
+      expect {
+        klass.create(city: 'Chicago')
+      }.to change {
+        tables_created.include?(klass.table_name)
+      }.from(false).to(true)
+    end
+
+    describe 'callbacks' do
+      it 'runs before_create callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_create { print 'run before_create' }
+        end
+
         expect do
-          t2.save!
-        end.to raise_exception Dynamoid::Errors::RecordNotUnique
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run before_create').to_stdout
+      end
+
+      it 'runs after_create callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_create { print 'run after_create' }
+        end
+
+        expect do
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run after_create').to_stdout
+      end
+
+      it 'runs before_save callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_save { print 'run before_save' }
+        end
+
+        expect do
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run before_save').to_stdout
+      end
+
+      it 'runs after_save callbacks' do
+        klass_with_callback = new_class do
+          field :name
+          after_save { print 'run after_save' }
+        end
+
+        expect do
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run after_save').to_stdout
+      end
+
+      it 'runs callback specified with method name' do
+        klass_with_callback = new_class do
+          field :name
+          before_create :log_message
+
+          def log_message
+            print 'run before_create'
+          end
+        end
+
+        expect do
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run before_create').to_stdout
+      end
+    end
+
+    context 'not unique primary key' do
+      context 'composite key' do
+        let(:klass_with_composite_key) do
+          new_class do
+            range :name
+          end
+        end
+
+        it 'raises RecordNotUnique error' do
+          klass_with_composite_key.create(id: '10', name: 'aaa')
+
+          expect {
+            klass_with_composite_key.create(id: '10', name: 'aaa')
+          }.to raise_error(Dynamoid::Errors::RecordNotUnique)
+        end
+      end
+
+      context 'simple key' do
+        let(:klass_with_simple_key) do
+          new_class
+        end
+
+        it 'raises RecordNotUnique error' do
+          klass_with_simple_key.create(id: '10')
+
+          expect {
+            klass_with_simple_key.create(id: '10')
+          }.to raise_error(Dynamoid::Errors::RecordNotUnique)
+        end
+      end
+    end
+
+    describe 'timestamps' do
+      let(:klass) do
+        new_class
+      end
+
+      it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        travel 1.hour do
+          time_now = Time.now
+          obj = klass.create
+
+          expect(obj.created_at.to_i).to eql(time_now.to_i)
+          expect(obj.updated_at.to_i).to eql(time_now.to_i)
+        end
+      end
+
+      it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        travel 1.hour do
+          created_at = updated_at = Time.now
+          obj = klass.create(created_at: created_at, updated_at: updated_at)
+
+          expect(obj.created_at.to_i).to eql(created_at.to_i)
+          expect(obj.updated_at.to_i).to eql(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        created_at = updated_at = Time.now
+        obj = klass.create
+
+        expect(obj.created_at).to eql(nil)
+        expect(obj.updated_at).to eql(nil)
+      end
+    end
+  end
+
+  describe '.create!' do
+    context 'validation' do
+      let(:klass_with_validation) do
+        new_class do
+          field :city
+          validates :city, presence: true
+        end
+      end
+
+      it 'raises DocumentNotValid error when saves invalid model' do
+        expect do
+          klass_with_validation.create!(city: nil)
+        end.to raise_error(Dynamoid::Errors::DocumentNotValid)
+      end
+
+      it 'raises DocumentNotValid error when saves multiple models and some of them are invalid' do
+        expect do
+          klass_with_validation.create!([{ city: 'Chicago' }, { city: nil }])
+        end.to raise_error(Dynamoid::Errors::DocumentNotValid)
+      end
+
+      it 'saves some valid models before raising error because of invalid model' do
+        klass_with_validation.create_table
+
+        expect do
+          klass_with_validation.create!([{ city: 'Chicago' }, { city: nil }, { city: 'London' }]) rescue nil
+        end.to change { klass_with_validation.count }.by(1)
+
+        obj = klass_with_validation.last
+        expect(obj.city).to eq 'Chicago'
+      end
+    end
+  end
+
+  describe '.update' do
+    let(:document_class) do
+      new_class do
+        field :name
+
+        validates :name, presence: true, length: { minimum: 5 }
+      end
+    end
+
+    it 'loads and saves document' do
+      d = document_class.create(name: 'Document#1')
+
+      expect do
+        document_class.update(d.id, name: '[Updated]')
+      end.to change { d.reload.name }.from('Document#1').to('[Updated]')
+    end
+
+    it 'returns updated document' do
+      d = document_class.create(name: 'Document#1')
+      d2 = document_class.update(d.id, name: '[Updated]')
+
+      expect(d2).to be_a(document_class)
+      expect(d2.name).to eq '[Updated]'
+    end
+
+    it 'does not save invalid document' do
+      d = document_class.create(name: 'Document#1')
+      d2 = nil
+
+      expect do
+        d2 = document_class.update(d.id, name: '[Up')
+      end.not_to change { d.reload.name }
+      expect(d2).not_to be_valid
+    end
+
+    it 'accepts range key value if document class declares it' do
+      klass = new_class do
+        field :name
+        range :status
+      end
+
+      d = klass.create(status: 'old', name: 'Document#1')
+      expect do
+        klass.update(d.id, 'old', name: '[Updated]')
+      end.to change { d.reload.name }.to('[Updated]')
+    end
+
+    it 'dumps range key value to proper format' do
+      klass = new_class do
+        field :name
+        range :activated_on, :date
+        field :another_date, :datetime
+      end
+
+      d = klass.create(activated_on: '2018-01-14'.to_date, name: 'Document#1')
+      expect do
+        klass.update(d.id, '2018-01-14'.to_date, name: '[Updated]')
+      end.to change { d.reload.name }.to('[Updated]')
+    end
+
+    describe 'timestamps' do
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        d = document_class.create(name: 'Document#1')
+
+        travel 1.hour do
+          time_now = Time.now
+
+          expect {
+            document_class.update(d.id, name: '[Updated]')
+          }.to change { d.reload.updated_at.to_i }.to(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value of updated_at if Config.timestamps=true', config: { timestamps: true } do
+        d = document_class.create(name: 'Document#1')
+
+        travel 1.hour do
+          updated_at = Time.now + 1.hour
+
+          expect {
+            document_class.update(d.id, name: '[Updated]', updated_at: updated_at)
+          }.to change { d.reload.updated_at.to_i }.to(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        d = document_class.create(name: 'Document#1')
+        document_class.update(d.id, name: '[Updated]')
+        expect(d.reload.name).to eql('[Updated]')
+        expect(d.reload.updated_at).to eql(nil)
+      end
+    end
+
+    describe 'type casting' do
+      it 'uses type casted value of sort key to call UpdateItem' do
+        document_class_with_range = new_class do
+          range :count, :integer
+          field :title
+        end
+
+        obj = document_class_with_range.create(title: 'Old', count: '100')
+        document_class_with_range.update(obj.id, '100', title: 'New')
+        expect(obj.reload.title).to eq 'New'
+      end
+
+      it 'type casts attributes' do
+        klass = new_class do
+          field :count, :integer
+        end
+
+        obj = klass.create(count: 100)
+        obj2 = klass.update(obj.id, count: '101')
+        expect(obj2.attributes[:count]).to eql(101)
+        expect(raw_attributes(obj2)[:count]).to eql(101)
+      end
+    end
+  end
+
+  describe '.update_fields' do
+    let(:document_class) do
+      new_class do
+        field :title
+        field :version, :integer
+        field :published_on, :date
+      end
+    end
+
+    it 'changes field value' do
+      obj = document_class.create(title: 'Old title')
+      expect do
+        document_class.update_fields(obj.id, title: 'New title')
+      end.to change { document_class.find(obj.id).title }.from('Old title').to('New title')
+    end
+
+    it 'changes field value to nil' do
+      obj = document_class.create(title: 'New Document')
+      expect do
+        document_class.update_fields(obj.id, title: nil)
+      end.to change { document_class.find(obj.id).title }.from('New Document').to(nil)
+    end
+
+    it 'returns updated document' do
+      obj = document_class.create(title: 'Old title')
+      result = document_class.update_fields(obj.id, title: 'New title')
+
+      expect(result.id).to eq obj.id
+      expect(result.title).to eq 'New title'
+    end
+
+    context 'condition specified' do
+      it 'updates when model matches conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
+        expect {
+          document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 1 })
+        }.to change { document_class.find(obj.id).title }.to('New title')
+      end
+
+      it 'does not update when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
+        expect {
+          result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
+        }.not_to change { document_class.find(obj.id).title }
+      end
+
+      it 'returns nil when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
+        result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
+        expect(result).to eq nil
+      end
+    end
+
+    it 'does not create new document if it does not exist yet' do
+      document_class.create_table
+
+      expect do
+        document_class.update_fields('some-fake-id', title: 'Title')
+      end.not_to change { document_class.count }
+    end
+
+    it 'accepts range key if it is declared' do
+      document_class_with_range = new_class do
+        field :title
+        range :category
+      end
+
+      obj = document_class_with_range.create(category: 'New')
+
+      expect do
+        document_class_with_range.update_fields(obj.id, 'New', title: '[Updated]')
+      end.to change {
+        document_class_with_range.find(obj.id, range_key: 'New').title
+      }.to('[Updated]')
+    end
+
+    it 'uses dumped value of sort key to call UpdateItem' do
+      document_class_with_range = new_class do
+        field :title
+        range :published_on, :date
+      end
+
+      obj = document_class_with_range.create(title: 'Old', published_on: '2018-02-23'.to_date)
+      document_class_with_range.update_fields(obj.id, '2018-02-23'.to_date, title: 'New')
+      expect(obj.reload.title).to eq 'New'
+    end
+
+    it 'dumps attributes values' do
+      obj = document_class.create
+      document_class.update_fields(obj.id, published_on: '2018-02-23'.to_date)
+      attributes = Dynamoid.adapter.get_item(document_class.table_name, obj.id)
+      expect(attributes[:published_on]).to eq 17_585
+    end
+
+    describe 'timestamps' do
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = document_class.create(title: 'Old title')
+
+        travel 1.hour do
+          time_now = Time.now
+
+          expect {
+            document_class.update_fields(obj.id, title: 'New title')
+          }.to change { obj.reload.updated_at.to_i }.to(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value of updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = document_class.create(title: 'Old title')
+
+        travel 1.hour do
+          updated_at = Time.now + 1.hour
+
+          expect {
+            document_class.update_fields(obj.id, title: 'New title', updated_at: updated_at)
+          }.to change { obj.reload.updated_at.to_i }.to(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        obj = document_class.create(title: 'Old title')
+        document_class.update_fields(obj.id, title: 'New title')
+        expect(obj.reload.title).to eql('New title')
+        expect(obj.reload.updated_at).to eql(nil)
+      end
+    end
+
+    describe 'type casting' do
+      it 'uses casted value of sort key to call UpdateItem' do
+        document_class_with_range = new_class do
+          range :count, :integer
+          field :title
+        end
+
+        obj = document_class_with_range.create(title: 'Old', count: '100')
+        document_class_with_range.update_fields(obj.id, '100', title: 'New')
+        expect(obj.reload.title).to eq 'New'
+      end
+
+      it 'type casts attributes' do
+        klass = new_class do
+          field :count, :integer
+        end
+
+        obj = klass.create(count: 100)
+        obj2 = klass.update_fields(obj.id, count: '101')
+        expect(obj2.attributes[:count]).to eql(101)
+        expect(raw_attributes(obj2)[:count]).to eql(101)
+      end
+    end
+
+    context ':raw field' do
+      let(:klass) do
+        new_class do
+          field :hash, :raw
+        end
+      end
+
+      it 'works well with hash keys of any type' do
+        a = klass.create
+
+        expect {
+          klass.update_fields(a.id, hash: { 1 => :b })
+        }.not_to raise_error
+
+        expect(klass.find(a.id)[:hash]).to eql('1': 'b')
+      end
+    end
+  end
+
+  describe '.upsert' do
+    let(:document_class) do
+      new_class do
+        field :title
+        field :version, :integer
+        field :published_on, :date
+      end
+    end
+
+    it 'changes field value' do
+      obj = document_class.create(title: 'Old title')
+      expect do
+        document_class.upsert(obj.id, title: 'New title')
+      end.to change { document_class.find(obj.id).title }.from('Old title').to('New title')
+    end
+
+    it 'changes field value to nil' do
+      obj = document_class.create(title: 'New Document')
+      expect do
+        document_class.upsert(obj.id, title: nil)
+      end.to change { document_class.find(obj.id).title }.from('New Document').to(nil)
+    end
+
+    it 'returns updated document' do
+      obj = document_class.create(title: 'Old title')
+      result = document_class.upsert(obj.id, title: 'New title')
+
+      expect(result.id).to eq obj.id
+      expect(result.title).to eq 'New title'
+    end
+
+    context 'conditions specified' do
+      it 'updates when model matches conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
+        expect {
+          document_class.upsert(obj.id, { title: 'New title' }, if: { version: 1 })
+        }.to change { document_class.find(obj.id).title }.to('New title')
+      end
+
+      it 'does not update when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
+        expect {
+          result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
+        }.not_to change { document_class.find(obj.id).title }
+      end
+
+      it 'returns nil when model does not match conditions' do
+        obj = document_class.create(title: 'Old title', version: 1)
+
+        result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
+        expect(result).to eq nil
+      end
+    end
+
+    it 'creates new document if it does not exist yet' do
+      document_class.create_table
+
+      expect do
+        document_class.upsert('not-existed-id', title: 'Title')
+      end.to change { document_class.count }
+
+      obj = document_class.find('not-existed-id')
+      expect(obj.title).to eq 'Title'
+    end
+
+    it 'accepts range key if it is declared' do
+      document_class_with_range = new_class do
+        field :title
+        range :category
+      end
+
+      obj = document_class_with_range.create(category: 'New')
+
+      expect do
+        document_class_with_range.upsert(obj.id, 'New', title: '[Updated]')
+      end.to change {
+        document_class_with_range.find(obj.id, range_key: 'New').title
+      }.to('[Updated]')
+    end
+
+    it 'uses dumped value of sort key to call UpdateItem' do
+      document_class_with_range = new_class do
+        field :title
+        range :published_on, :date
+      end
+
+      obj = document_class_with_range.create(title: 'Old', published_on: '2018-02-23'.to_date)
+      document_class_with_range.upsert(obj.id, '2018-02-23'.to_date, title: 'New')
+      expect(obj.reload.title).to eq 'New'
+    end
+
+    it 'dumps attributes values' do
+      obj = document_class.create
+      document_class.upsert(obj.id, published_on: '2018-02-23'.to_date)
+      attributes = Dynamoid.adapter.get_item(document_class.table_name, obj.id)
+      expect(attributes[:published_on]).to eq 17_585
+    end
+
+    describe 'timestamps' do
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = document_class.create(title: 'Old title')
+
+        travel 1.hour do
+          time_now = Time.now
+
+          expect {
+            document_class.upsert(obj.id, title: 'New title')
+          }.to change { obj.reload.updated_at.to_i }.to(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value of updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = document_class.create(title: 'Old title')
+
+        travel 1.hour do
+          updated_at = Time.now + 1.hour
+
+          expect {
+            document_class.upsert(obj.id, title: 'New title', updated_at: updated_at)
+          }.to change { obj.reload.updated_at.to_i }.to(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        obj = document_class.create(title: 'Old title')
+        document_class.upsert(obj.id, title: 'New title')
+        expect(obj.reload.title).to eql('New title')
+        expect(obj.reload.updated_at).to eql(nil)
+      end
+    end
+
+    describe 'type casting' do
+      it 'uses casted value of sort key to call UpdateItem' do
+        document_class_with_range = new_class do
+          range :count, :integer
+          field :title
+        end
+
+        obj = document_class_with_range.create(title: 'Old', count: '100')
+        document_class_with_range.upsert(obj.id, '100', title: 'New')
+        expect(obj.reload.title).to eq 'New'
+      end
+
+      it 'type casts attributes' do
+        klass = new_class do
+          field :count, :integer
+        end
+
+        obj = klass.create(count: 100)
+        obj2 = klass.upsert(obj.id, count: '101')
+        expect(obj2.attributes[:count]).to eql(101)
+        expect(raw_attributes(obj2)[:count]).to eql(101)
+      end
+    end
+
+    context ':raw field' do
+      let(:klass) do
+        new_class do
+          field :hash, :raw
+        end
+      end
+
+      it 'works well with hash keys of any type' do
+        a = klass.create
+
+        expect {
+          klass.upsert(a.id, hash: { 1 => :b })
+        }.not_to raise_error
+
+        expect(klass.find(a.id)[:hash]).to eql('1': 'b')
+      end
+    end
+  end
+
+  describe '.inc' do
+    let(:document_class) do
+      new_class do
+        field :links_count, :integer
+        field :mentions_count, :integer
+      end
+    end
+
+    it 'adds specified value' do
+      obj = document_class.create!(links_count: 2)
+
+      expect {
+        document_class.inc(obj.id, links_count: 5)
+      }.to change { document_class.find(obj.id).links_count }.from(2).to(7)
+    end
+
+    it 'accepts negative value' do
+      obj = document_class.create!(links_count: 10)
+
+      expect {
+        document_class.inc(obj.id, links_count: -2)
+      }.to change { document_class.find(obj.id).links_count }.from(10).to(8)
+    end
+
+    it 'traits nil value as zero' do
+      obj = document_class.create!(links_count: nil)
+
+      expect {
+        document_class.inc(obj.id, links_count: 5)
+      }.to change { document_class.find(obj.id).links_count }.from(nil).to(5)
+    end
+
+    it 'supports passing several attributes at once' do
+      obj = document_class.create!(links_count: 2, mentions_count: 31)
+      document_class.inc(obj.id, links_count: 5, mentions_count: 9)
+
+      expect(document_class.find(obj.id).links_count).to eql(7)
+      expect(document_class.find(obj.id).mentions_count).to eql(40)
+    end
+
+    it 'accepts sort key if it is declared' do
+      class_with_sort_key = new_class do
+        range :author_name
+        field :links_count, :integer
+      end
+
+      obj = class_with_sort_key.create!(author_name: 'Mike', links_count: 2)
+      class_with_sort_key.inc(obj.id, 'Mike', links_count: 5)
+
+      expect(obj.reload.links_count).to eql(7)
+    end
+
+    it 'uses dumped value of sort key to call UpdateItem' do
+      class_with_sort_key = new_class do
+        range :published_on, :date
+        field :links_count, :integer
+      end
+
+      obj = class_with_sort_key.create!(published_on: '2018-10-07'.to_date, links_count: 2)
+      class_with_sort_key.inc(obj.id, '2018-10-07'.to_date, links_count: 5)
+
+      expect(obj.reload.links_count).to eql(7)
+    end
+
+    describe 'timestamps' do
+      it 'does not change updated_at', config: { timestamps: true } do
+        obj = document_class.create!
+        expect(obj.updated_at).to be_present
+
+        expect {
+          document_class.inc(obj.id, links_count: 5)
+        }.not_to change { document_class.find(obj.id).updated_at }
+      end
+    end
+
+    describe 'type casting' do
+      it 'uses casted value of sort key to call UpdateItem' do
+        class_with_sort_key = new_class do
+          range :published_on, :date
+          field :links_count, :integer
+        end
+
+        obj = class_with_sort_key.create!(published_on: '2018-10-07'.to_date, links_count: 2)
+        class_with_sort_key.inc(obj.id, '2018-10-07', links_count: 5)
+
+        expect(obj.reload.links_count).to eql(7)
+      end
+
+      it 'type casts attributes' do
+        obj = document_class.create!(links_count: 2)
+
+        expect {
+          document_class.inc(obj.id, links_count: '5.12345')
+        }.to change { document_class.find(obj.id).links_count }.from(2).to(7)
       end
     end
   end
 
   describe '.save' do
+    let(:klass) do
+      new_class do
+        field :name
+      end
+    end
+
+    it 'saves model' do
+      obj = klass.new(name: 'Alex')
+      obj.save
+
+      expect(klass.exists?(obj.id)).to eq true
+      expect(klass.find(obj.id).name).to eq 'Alex'
+    end
+
+    it 'marks it as persisted' do
+      obj = klass.new(name: 'Alex')
+      expect { obj.save }.to change { obj.persisted? }.from(false).to(true)
+    end
+
+    it 'creates table if it does not exist' do
+      model = klass.new
+
+      expect { model.save }
+        .to change { tables_created.include?(klass.table_name) }
+        .from(false).to(true)
+    end
+
+    it 'dumps attribute values' do
+      klass = new_class do
+        field :active, :boolean, store_as_native_boolean: false
+      end
+
+      obj = klass.new(active: false)
+      obj.save!
+      expect(raw_attributes(obj)[:active]).to eql('f')
+    end
+
+    describe 'partition key value' do
+      it 'generates "id" for new model' do
+        obj = klass.new
+        obj.save
+
+        expect(obj.id).to be_present
+        expect(raw_attributes(obj)[:id]).to eql obj.id
+      end
+
+      it 'does not override specified "id" for new model' do
+        obj = klass.new(id: '1024')
+
+        expect { obj.save }.not_to change { obj.id }
+      end
+
+      it 'does not override "id" for persisted model' do
+        obj = klass.create
+        obj.name = 'Alex'
+
+        expect { obj.save }.not_to change { obj.id }
+      end
+    end
+
+    describe 'pessimistic locking' do
+      let(:klass) do
+        new_class do
+          field :name
+          field :lock_version, :integer
+        end
+      end
+
+      it 'generates "lock_version" if field declared' do
+        obj = klass.new
+        obj.save
+
+        expect(obj.lock_version).to eq 1
+        expect(raw_attributes(obj)[:lock_version]).to eq 1
+      end
+
+      it 'increments "lock_version" if it is declared' do
+        obj = klass.create
+        obj.name = 'Alex'
+
+        expect { obj.save }.to change { obj.lock_version }.from(1).to(2)
+      end
+
+      it 'prevents concurrent writes to tables with a lock_version' do
+        # version #1
+        obj = klass.create          # lock_version nil -> 1
+        obj2 = klass.find(obj.id)   # lock_version = 1
+
+        # version #2
+        obj.name = 'Alex'
+        obj.save                    # lock_version 1 -> 2
+        obj2.name = 'Bob'
+
+        # tries to create version #2 again
+        expect {
+          obj2.save                 # lock_version 1 -> 2
+        }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+    end
+
+    describe 'callbacks' do
+      context 'new model' do
+        it 'runs before_create callback' do
+          klass_with_callback = new_class do
+            field :name
+            before_create { print 'run before_create' }
+          end
+
+          obj = klass_with_callback.new(name: 'Alex')
+          expect { obj.save }.to output('run before_create').to_stdout
+        end
+
+        it 'runs after_create callback' do
+          klass_with_callback = new_class do
+            field :name
+            after_create { print 'run after_create' }
+          end
+
+          obj = klass_with_callback.new(name: 'Alex')
+          expect { obj.save }.to output('run after_create').to_stdout
+        end
+      end
+
+      context 'persisted model' do
+        it 'runs before_create callback' do
+          klass_with_callback = new_class do
+            field :name
+            before_create { print 'run before_create' }
+          end
+
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.name = 'Bob'
+
+          expect { obj.save }.not_to output('run before_create').to_stdout
+        end
+
+        it 'runs after_create callback' do
+          klass_with_callback = new_class do
+            field :name
+            after_create { print 'run after_create' }
+          end
+
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.name = 'Bob'
+
+          expect { obj.save }.not_to output('run after_create').to_stdout
+        end
+      end
+
+      it 'runs before_save callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_save { print 'run before_save' }
+        end
+
+        obj = klass_with_callback.new(name: 'Alex')
+        expect { obj.save }.to output('run before_save').to_stdout
+      end
+
+      it 'runs after_save callbacks' do
+        klass_with_callback = new_class do
+          field :name
+          after_save { print 'run after_save' }
+        end
+
+        obj = klass_with_callback.new(name: 'Alex')
+        expect { obj.save }.to output('run after_save').to_stdout
+      end
+
+      it 'runs callback specified with method name' do
+        klass_with_callback = new_class do
+          field :name
+          before_save :log_message
+
+          def log_message
+            print 'run before_save'
+          end
+        end
+
+        obj = klass_with_callback.new(name: 'Alex')
+        expect { obj.save }.to output('run before_save').to_stdout
+      end
+    end
+
+    context 'not unique primary key' do
+      context 'composite key' do
+        let(:klass_with_composite_key) do
+          new_class do
+            range :name
+          end
+        end
+
+        it 'raises RecordNotUnique error' do
+          klass_with_composite_key.create(id: '10', name: 'aaa')
+          obj = klass_with_composite_key.new(id: '10', name: 'aaa')
+
+          expect { obj.save }.to raise_error(Dynamoid::Errors::RecordNotUnique)
+        end
+      end
+
+      context 'simple key' do
+        let(:klass_with_simple_key) do
+          new_class
+        end
+
+        it 'raises RecordNotUnique error' do
+          klass_with_simple_key.create(id: '10')
+          obj = klass_with_simple_key.new(id: '10')
+
+          expect { obj.save }.to raise_error(Dynamoid::Errors::RecordNotUnique)
+        end
+      end
+    end
+
     context ':raw field' do
       let(:klass) do
         new_class do
@@ -588,25 +1530,6 @@ describe Dynamoid::Persistence do
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
       end
-    end
-
-    it 'creates table if it does not exist' do
-      klass = new_class(table_name: :foo_bars)
-      model = klass.new
-
-      expect { model.save }
-        .to change { tables_created.include?('dynamoid_tests_foo_bars') }
-        .from(false).to(true)
-    end
-
-    it 'dumps attribute values' do
-      klass = new_class do
-        field :active, :boolean, store_as_native_boolean: false
-      end
-
-      obj = klass.new(active: false)
-      obj.save!
-      expect(raw_attributes(obj)[:active]).to eql('f')
     end
 
     describe 'timestamps' do

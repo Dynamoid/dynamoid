@@ -4,6 +4,11 @@ require 'bigdecimal'
 require 'securerandom'
 require 'yaml'
 
+require 'dynamoid/persistence/import'
+require 'dynamoid/persistence/update_fields'
+require 'dynamoid/persistence/upsert'
+require 'dynamoid/persistence/save'
+
 # encoding: utf-8
 module Dynamoid
   # Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize
@@ -23,7 +28,7 @@ module Dynamoid
         @table_name ||= [Dynamoid::Config.namespace.to_s, table_base_name].reject(&:empty?).join('_')
       end
 
-      # Creates a table.
+      # Create a table.
       #
       # @param [Hash] options options to pass for table creation
       # @option options [Symbol] :id the id field for the table
@@ -58,68 +63,33 @@ module Dynamoid
       end
 
       def from_database(attrs = {})
-        clazz = choose_right_class(attrs)
-        attrs_undumped = Undumping.undump_attributes(attrs, clazz.attributes)
-        clazz.new(attrs_undumped).tap { |r| r.new_record = false }
+        klass = choose_right_class(attrs)
+        attrs_undumped = Undumping.undump_attributes(attrs, klass.attributes)
+        klass.new(attrs_undumped).tap { |r| r.new_record = false }
       end
 
-      # Creates several models at once.
+      # Create several models at once.
+      #
       # Neither callbacks nor validations run.
-      # It works efficiently because of using BatchWriteItem.
-      #
-      # Returns array of models
-      #
+      # It works efficiently because of using `BatchWriteItem` API call.
+      # Return array of models.
       # Uses backoff specified by `Dynamoid::Config.backoff` config option
       #
-      # @param [Array<Hash>] items
+      # @param [Array<Hash>] array_of_attributes
       #
       # @example
       #   User.import([{ name: 'a' }, { name: 'b' }])
-      def import(objects)
-        documents = objects.map do |attrs|
-          attrs = attrs.symbolize_keys
-
-          if Dynamoid::Config.timestamps
-            time_now = DateTime.now.in_time_zone(Time.zone)
-            attrs[:created_at] ||= time_now
-            attrs[:updated_at] ||= time_now
-          end
-
-          build(attrs).tap do |item|
-            item.hash_key = SecureRandom.uuid if item.hash_key.blank?
-          end
-        end
-
-        if Dynamoid.config.backoff
-          backoff = nil
-
-          array = documents.map do |d|
-            Dumping.dump_attributes(d.attributes, attributes)
-          end
-
-          Dynamoid.adapter.batch_write_item(table_name, array) do |has_unprocessed_items|
-            if has_unprocessed_items
-              backoff ||= Dynamoid.config.build_backoff
-              backoff.call
-            else
-              backoff = nil
-            end
-          end
-        else
-          array = documents.map do |d|
-            Dumping.dump_attributes(d.attributes, attributes)
-          end
-
-          Dynamoid.adapter.batch_write_item(table_name, array)
-        end
-
-        documents.each { |d| d.new_record = false }
-        documents
+      def import(array_of_attributes)
+        Import.call(self, array_of_attributes)
       end
 
-      # Initialize a new object and immediately save it to the database.
+      # Create a model.
       #
-      # @param [Hash] attrs Attributes with which to create the object.
+      # Initializes a new object and immediately saves it to the database.
+      # Validates model and runs callbacks: before_create, before_save, after_save and after_create.
+      # Accepts both Hash and Array of Hashes and can create several models.
+      #
+      # @param [Hash|Array[Hash]] attrs Attributes with which to create the object.
       #
       # @return [Dynamoid::Document] the saved document
       #
@@ -132,9 +102,13 @@ module Dynamoid
         end
       end
 
-      # Initialize a new object and immediately save it to the database. Raise an exception if persistence failed.
+      # Create new model.
       #
-      # @param [Hash] attrs Attributes with which to create the object.
+      # Initializes a new object and immediately saves it to the database.
+      # Raises an exception if validation failed.
+      # Accepts both Hash and Array of Hashes and can create several models.
+      #
+      # @param [Hash|Array[Hash]] attrs Attributes with which to create the object.
       #
       # @return [Dynamoid::Document] the saved document
       #
@@ -147,8 +121,10 @@ module Dynamoid
         end
       end
 
-      # Update document with provided values.
-      # Instantiates document and saves changes. Runs validations and callbacks.
+      # Update document with provided attributes.
+      #
+      # Instantiates document and saves changes.
+      # Runs validations and callbacks.
       #
       # @param [Scalar value] partition key
       # @param [Scalar value] sort key, optional
@@ -157,7 +133,7 @@ module Dynamoid
       # @return [Dynamoid::Doument] updated document
       #
       # @example Update document
-      #   Post.update(101, read: true)
+      #   Post.update(101, title: 'New title')
       def update(hash_key, range_key_value = nil, attrs)
         model = find(hash_key, range_key: range_key_value, consistent_read: true)
         model.update_attributes(attrs)
@@ -165,6 +141,7 @@ module Dynamoid
       end
 
       # Update document.
+      #
       # Uses efficient low-level `UpdateItem` API call.
       # Changes attibutes and loads new document version with one API call.
       # Doesn't run validations and callbacks. Can make conditional update.
@@ -175,13 +152,13 @@ module Dynamoid
       # @param [Hash] attributes
       # @param [Hash] conditions
       #
-      # @return [Dynamoid::Document/nil] updated document
+      # @return [Dynamoid::Document|nil] updated document
       #
       # @example Update document
       #   Post.update_fields(101, read: true)
       #
       # @example Update document with condition
-      #   Post.update_fields(101, { read: true }, if: { version: 1 })
+      #   Post.update_fields(101, { title: 'New title' }, if: { version: 1 })
       def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
@@ -192,43 +169,22 @@ module Dynamoid
           attrs, conditions = optional_params[1..2]
         end
 
-        options = if range_key
-                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
-                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
-                    { range_key: value_dumped }
-                  else
-                    {}
-                  end
-
-        (conditions[:if_exists] ||= {})[hash_key] = hash_key_value
-        options[:conditions] = conditions
-
-        attrs = attrs.symbolize_keys
-        if Dynamoid::Config.timestamps
-          attrs[:updated_at] ||= DateTime.now.in_time_zone(Time.zone)
-        end
-
-        begin
-          new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
-            attrs.each do |k, v|
-              value_casted = TypeCasting.cast_field(v, attributes[k])
-              value_dumped = Dumping.dump_field(value_casted, attributes[k])
-              t.set(k => value_dumped)
-            end
-          end
-          attrs_undumped = Undumping.undump_attributes(new_attrs, attributes)
-          new(attrs_undumped)
-        rescue Dynamoid::Errors::ConditionalCheckFailedException
-        end
+        UpdateFields.call(self,
+                          partition_key: hash_key_value,
+                          sort_key: range_key_value,
+                          attributes: attrs,
+                          conditions: conditions)
       end
 
       # Update existing document or create new one.
-      # Similar to `.update_fields`. The only diffirence is creating new document.
+      #
+      # Similar to `.update_fields`.
+      # The only diffirence is - it creates new document in case the document doesn't exist.
       #
       # Uses efficient low-level `UpdateItem` API call.
       # Changes attibutes and loads new document version with one API call.
       # Doesn't run validations and callbacks. Can make conditional update.
-      # If specified conditions failed - returns `nil`
+      # If specified conditions failed - returns `nil`.
       #
       # @param [Scalar value] partition key
       # @param [Scalar value] sort key (optional)
@@ -238,10 +194,7 @@ module Dynamoid
       # @return [Dynamoid::Document/nil] updated document
       #
       # @example Update document
-      #   Post.update(101, read: true)
-      #
-      # @example Update document
-      #   Post.upsert(101, read: true)
+      #   Post.upsert(101, title: 'New title')
       def upsert(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
@@ -252,37 +205,26 @@ module Dynamoid
           attrs, conditions = optional_params[1..2]
         end
 
-        options = if range_key
-                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
-                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
-                    { range_key: value_dumped }
-                  else
-                    {}
-                  end
-
-        options[:conditions] = conditions
-
-        attrs = attrs.symbolize_keys
-        if Dynamoid::Config.timestamps
-          attrs[:updated_at] ||= DateTime.now.in_time_zone(Time.zone)
-        end
-
-        begin
-          new_attrs = Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
-            attrs.each do |k, v|
-              value_casted = TypeCasting.cast_field(v, attributes[k])
-              value_dumped = Dumping.dump_field(value_casted, attributes[k])
-
-              t.set(k => value_dumped)
-            end
-          end
-
-          attrs_undumped = Undumping.undump_attributes(new_attrs, attributes)
-          new(attrs_undumped)
-        rescue Dynamoid::Errors::ConditionalCheckFailedException
-        end
+        Upsert.call(self,
+                    partition_key: hash_key_value,
+                    sort_key: range_key_value,
+                    attributes: attrs,
+                    conditions: conditions)
       end
 
+      # Increase numeric field by specified value.
+      #
+      # Can update several fields at once.
+      # Uses efficient low-level `UpdateItem` API call.
+      #
+      # @param [Scalar value] hash_key_value partition key
+      # @param [Scalar value] range_key_value sort key (optional)
+      # @param [Hash] counters value to increase by
+      #
+      # @return [Dynamoid::Document/nil] updated document
+      #
+      # @example Update document
+      #   Post.inc(101, views_counter: 2, downloads: 10)
       def inc(hash_key_value, range_key_value = nil, counters)
         options = if range_key
                     value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
@@ -326,12 +268,15 @@ module Dynamoid
       self.class.create_table
 
       if new_record?
-        conditions = { unless_exists: [self.class.hash_key] }
-        conditions[:unless_exists] << range_key if range_key
-
-        run_callbacks(:create) { persist(conditions) }
+        run_callbacks(:create) do
+          run_callbacks(:save) do
+            Save.call(self)
+          end
+        end
       else
-        persist
+        run_callbacks(:save) do
+          Save.call(self)
+        end
       end
     end
 
@@ -465,45 +410,6 @@ module Dynamoid
       Dynamoid.adapter.delete(self.class.table_name, hash_key, options)
     rescue Dynamoid::Errors::ConditionalCheckFailedException
       raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
-    end
-
-    private
-
-    # Persist the object into the datastore. Assign it an id first if it doesn't have one.
-    #
-    # @since 0.2.0
-    def persist(conditions = nil)
-      run_callbacks(:save) do
-        self.hash_key = SecureRandom.uuid if hash_key.blank?
-
-        # Add an exists check to prevent overwriting existing records with new ones
-        if new_record?
-          conditions ||= {}
-          (conditions[:unless_exists] ||= []) << self.class.hash_key
-        end
-
-        # Add an optimistic locking check if the lock_version column exists
-        if self.class.attributes[:lock_version]
-          conditions ||= {}
-          self.lock_version = (lock_version || 0) + 1
-          # Uses the original lock_version value from ActiveModel::Dirty in case user changed lock_version manually
-          (conditions[:if] ||= {})[:lock_version] = changes[:lock_version][0] if changes[:lock_version][0]
-        end
-
-        attributes_dumped = Dumping.dump_attributes(attributes, self.class.attributes)
-
-        begin
-          Dynamoid.adapter.write(self.class.table_name, attributes_dumped, conditions)
-          @new_record = false
-          true
-        rescue Dynamoid::Errors::ConditionalCheckFailedException => e
-          if new_record?
-            raise Dynamoid::Errors::RecordNotUnique.new(e, self)
-          else
-            raise Dynamoid::Errors::StaleObjectError.new(self, 'persist')
-          end
-        end
-      end
     end
   end
 end
