@@ -263,17 +263,39 @@ describe Dynamoid::Document do
     end
   end
 
-    it 'raises error when tries to save multiple invalid objects' do
-      klass = new_class do
-        field :city
-        validates :city, presence: true
+  describe '.create!' do
+    context 'validation' do
+      let(:klass_with_validation) do
+        new_class do
+          field :city
+          validates :city, presence: true
+        end
       end
-      klass.create_table
 
-      expect do
-        klass.create!([{ city: 'Chicago' }, { city: nil }])
-      end.to raise_error(Dynamoid::Errors::DocumentNotValid)
+      it 'raises DocumentNotValid error when saves invalid model' do
+        expect do
+          klass_with_validation.create!(city: nil)
+        end.to raise_error(Dynamoid::Errors::DocumentNotValid)
+      end
+
+      it 'raises DocumentNotValid error when saves multiple models and some of them are invalid' do
+        expect do
+          klass_with_validation.create!([{ city: 'Chicago' }, { city: nil }])
+        end.to raise_error(Dynamoid::Errors::DocumentNotValid)
+      end
+
+      it 'saves some valid models before raising error because of invalid model' do
+        klass_with_validation.create_table
+
+        expect do
+          klass_with_validation.create!([{ city: 'Chicago' }, { city: nil }, { city: 'London' }]) rescue nil
+        end.to change { klass_with_validation.count }.by(1)
+
+        obj = klass_with_validation.last
+        expect(obj.city).to eq 'Chicago'
+      end
     end
+  end
 
   describe '.exist?' do
     it 'checks if there is a document with specified primary key' do
