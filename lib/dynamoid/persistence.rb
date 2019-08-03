@@ -4,6 +4,8 @@ require 'bigdecimal'
 require 'securerandom'
 require 'yaml'
 
+require 'dynamoid/persistence/import'
+
 # encoding: utf-8
 module Dynamoid
   # Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize
@@ -70,50 +72,12 @@ module Dynamoid
       # Return array of models.
       # Uses backoff specified by `Dynamoid::Config.backoff` config option
       #
-      # @param [Array<Hash>] items
+      # @param [Array<Hash>] array_of_attributes
       #
       # @example
       #   User.import([{ name: 'a' }, { name: 'b' }])
-      def import(objects)
-        documents = objects.map do |attrs|
-          attrs = attrs.symbolize_keys
-
-          if Dynamoid::Config.timestamps
-            time_now = DateTime.now.in_time_zone(Time.zone)
-            attrs[:created_at] ||= time_now
-            attrs[:updated_at] ||= time_now
-          end
-
-          build(attrs).tap do |item|
-            item.hash_key = SecureRandom.uuid if item.hash_key.blank?
-          end
-        end
-
-        if Dynamoid.config.backoff
-          backoff = nil
-
-          array = documents.map do |d|
-            Dumping.dump_attributes(d.attributes, attributes)
-          end
-
-          Dynamoid.adapter.batch_write_item(table_name, array) do |has_unprocessed_items|
-            if has_unprocessed_items
-              backoff ||= Dynamoid.config.build_backoff
-              backoff.call
-            else
-              backoff = nil
-            end
-          end
-        else
-          array = documents.map do |d|
-            Dumping.dump_attributes(d.attributes, attributes)
-          end
-
-          Dynamoid.adapter.batch_write_item(table_name, array)
-        end
-
-        documents.each { |d| d.new_record = false }
-        documents
+      def import(array_of_attributes)
+        Import.call(self, array_of_attributes)
       end
 
       # Create a model.
