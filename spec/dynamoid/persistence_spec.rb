@@ -211,7 +211,7 @@ describe Dynamoid::Persistence do
       end
     end
 
-    describe 'partition key attribute type' do
+    describe 'sort key attribute type' do
       it 'maps :string to String' do
         klass = new_class do
           range :prop, :string
@@ -530,45 +530,10 @@ describe Dynamoid::Persistence do
     expect(Dynamoid.adapter.read('dynamoid_tests_users', @user.id)).to be_nil
   end
 
-  it 'runs the before_create callback only once' do
-    expect_any_instance_of(CamelCase).to receive(:doing_before_create).once.and_return(true)
-
-    CamelCase.create
-  end
-
-  it 'runs after save callbacks when doing #create' do
-    expect_any_instance_of(CamelCase).to receive(:doing_after_create).once.and_return(true)
-
-    CamelCase.create
-  end
-
   it 'runs after save callbacks when doing #save' do
     expect_any_instance_of(CamelCase).to receive(:doing_after_create).once.and_return(true)
 
     CamelCase.new.save
-  end
-
-  it 'works with a HashWithIndifferentAccess' do
-    hash = ActiveSupport::HashWithIndifferentAccess.new('city' => 'Atlanta')
-
-    expect { Address.create(hash) }.to_not raise_error
-  end
-
-  context 'create' do
-    {
-      Tweet   => ['with range',    { tweet_id: 1, group: 'abc' }],
-      Message => ['without range', { message_id: 1, text: 'foo', time: DateTime.now }]
-    }.each_pair do |clazz, fields|
-      it "checks for existence of an existing object #{fields[0]}" do
-        t1 = clazz.new(fields[1])
-        t2 = clazz.new(fields[1])
-
-        t1.save
-        expect do
-          t2.save!
-        end.to raise_exception Dynamoid::Errors::RecordNotUnique
-      end
-    end
   end
 
   describe '.save' do
