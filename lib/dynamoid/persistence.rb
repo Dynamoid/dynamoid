@@ -58,9 +58,9 @@ module Dynamoid
       end
 
       def from_database(attrs = {})
-        clazz = choose_right_class(attrs)
-        attrs_undumped = Undumping.undump_attributes(attrs, clazz.attributes)
-        clazz.new(attrs_undumped).tap { |r| r.new_record = false }
+        klass = choose_right_class(attrs)
+        attrs_undumped = Undumping.undump_attributes(attrs, klass.attributes)
+        klass.new(attrs_undumped).tap { |r| r.new_record = false }
       end
 
       # Create several models at once.
