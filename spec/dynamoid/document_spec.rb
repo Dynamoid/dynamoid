@@ -95,17 +95,28 @@ describe Dynamoid::Document do
       expect(addresses[1].city).to eq 'New York'
     end
 
-    it 'does not save invalid model' do
-      klass_with_validation = new_class do
-        field :name
-        validates :name, length: { minimum: 4 }
+    describe 'validation' do
+      let(:klass_with_validation) do
+        new_class do
+          field :name
+          validates :name, length: { minimum: 4 }
+        end
       end
 
-      obj = klass_with_validation.create(name: 'Theodor')
-      expect(obj).to be_persisted
+      it 'does not save invalid model' do
+        obj = klass_with_validation.create(name: 'Theodor')
+        expect(obj).to be_persisted
 
-      obj = klass_with_validation.create(name: 'Mo')
-      expect(obj).not_to be_persisted
+        obj = klass_with_validation.create(name: 'Mo')
+        expect(obj).not_to be_persisted
+      end
+
+      it 'saves valid models even if there are invalid' do
+        obj1, obj2 = klass_with_validation.create([{ name: 'Theodor' }, { name: 'Mo' }])
+
+        expect(obj1).to be_persisted
+        expect(obj2).not_to be_persisted
+      end
     end
 
     it 'works with a HashWithIndifferentAccess argument' do
