@@ -14,6 +14,7 @@
 * Fix: [#357](https://github.com/Dynamoid/dynamoid/pull/357) Fix synchronous table creation issue
 * Fix: [#362](https://github.com/Dynamoid/dynamoid/pull/362) Fix issue with selecting Global Secondary Index (@atyndall)
 * Fix: [#368](https://github.com/Dynamoid/dynamoid/pull/368) Repair `#previous_changes` method from Dirty API
+* Fix: [#373](https://github.com/Dynamoid/dynamoid/pull/373) Fix threadsafety of loading `Dynamoid::Adapter` (@tsub)
 
 ---
 
