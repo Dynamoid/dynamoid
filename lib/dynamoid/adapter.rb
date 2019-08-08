@@ -3,6 +3,7 @@
 # require only 'concurrent/atom' once this issue is resolved:
 #   https://github.com/ruby-concurrency/concurrent-ruby/pull/377
 require 'concurrent'
+require "dynamoid/adapter_plugin/aws_sdk_v3"
 
 # encoding: utf-8
 module Dynamoid
@@ -29,7 +30,7 @@ module Dynamoid
     def adapter
       unless @adapter_.value
         adapter = self.class.adapter_plugin_class.new
-        adapter.connect! if adapter.respond_to?(:connect!)
+        adapter.connect!
         @adapter_.compare_and_set(nil, adapter)
         clear_cache!
       end
@@ -179,8 +180,6 @@ module Dynamoid
     end
 
     def self.adapter_plugin_class
-      require "dynamoid/adapter_plugin/#{Dynamoid::Config.adapter}"
-
       Dynamoid::AdapterPlugin.const_get(Dynamoid::Config.adapter.camelcase)
     end
   end
