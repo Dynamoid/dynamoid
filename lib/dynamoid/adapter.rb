@@ -179,9 +179,7 @@ module Dynamoid
     end
 
     def self.adapter_plugin_class
-      unless Dynamoid.const_defined?(:AdapterPlugin) && Dynamoid::AdapterPlugin.const_defined?(Dynamoid::Config.adapter.camelcase)
-        require "dynamoid/adapter_plugin/#{Dynamoid::Config.adapter}"
-      end
+      require "dynamoid/adapter_plugin/#{Dynamoid::Config.adapter}"
 
       Dynamoid::AdapterPlugin.const_get(Dynamoid::Config.adapter.camelcase)
     end
