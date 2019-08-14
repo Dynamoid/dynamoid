@@ -239,6 +239,8 @@ describe 'Dumping' do
         Dynamoid.config.store_datetime_as_string = store_datetime_as_string
       end
 
+
+
       it 'prioritize field option over global one' do
         store_datetime_as_string = Dynamoid.config.store_datetime_as_string
         Dynamoid.config.store_datetime_as_string = false
@@ -364,6 +366,18 @@ describe 'Dumping' do
 
         expect(reload(obj).signed_up_on).to eql('2017-09-25'.to_date)
         expect(raw_attributes(obj)[:signed_up_on]).to eql('2017-09-25')
+      end
+
+      it 'stores in string format with precision when :iso_precision is present' do
+        klass = new_class do
+          field :signed_up_on, :datetime, store_as_string: true, iso_precision: 6
+        end
+
+        signed_up_on = DateTime.now.utc.iso8601(6)
+
+        obj = klass.create(signed_up_on: signed_up_on)
+
+        expect(reload(obj).signed_up_on.to_f).to eql(DateTime.iso8601(signed_up_on).to_f)
       end
 
       it 'stores in string format when global option :store_date_as_string is true' do

@@ -227,14 +227,22 @@ module Dynamoid
           nil
         elsif value.is_a?(String)
           dt = begin
+                 # parse first for stricter constraint failure before attempting to parse iso for precision support
+                 # e.g. DateTime.iso8601("2018-12") is valid
                  DateTime.parse(value)
+                 DateTime.iso8601(value)
                rescue StandardError
                  nil
                end
           if dt
-            seconds = string_utc_offset(value) || ApplicationTimeZone.utc_offset
-            offset = seconds_to_offset(seconds)
-            DateTime.new(dt.year, dt.mon, dt.mday, dt.hour, dt.min, dt.sec, offset)
+            dt_has_precision = dt.to_f % 1 != 0
+            if dt_has_precision
+              dt.utc
+            else
+              seconds = string_utc_offset(value) || ApplicationTimeZone.utc_offset
+              offset = seconds_to_offset(seconds)
+              DateTime.new(dt.year, dt.mon, dt.mday, dt.hour, dt.min, dt.sec, offset)
+            end
           end
         else
           value.to_datetime
