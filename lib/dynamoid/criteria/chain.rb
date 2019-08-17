@@ -195,9 +195,12 @@ module Dynamoid
       #
       # @since 3.1.0
       def pages_via_query
-        Enumerator.new do |yielder|
+        Enumerator.new do |y|
           Dynamoid.adapter.query(source.table_name, range_query).each do |items, metadata|
-            yielder.yield items.map { |hash| source.from_database(hash) }, metadata.slice(:last_evaluated_key)
+            page = items.map { |h| source.from_database(h) }
+            options = metadata.slice(:last_evaluated_key)
+
+            y.yield page, options
           end
         end
       end
@@ -208,9 +211,12 @@ module Dynamoid
       #
       # @since 3.1.0
       def pages_via_scan
-        Enumerator.new do |yielder|
+        Enumerator.new do |y|
           Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items, metadata|
-            yielder.yield(items.map { |hash| source.from_database(hash) }, metadata.slice(:last_evaluated_key))
+            page = items.map { |h| source.from_database(h) }
+            options = metadata.slice(:last_evaluated_key)
+
+            y.yield page, options
           end
         end
       end
