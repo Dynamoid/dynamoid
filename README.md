@@ -95,7 +95,7 @@ Dynamoid.configure do |config|
   config.namespace = 'dynamoid_app_development'
 
   # [Optional]. If provided, it communicates with the DB listening at the endpoint.
-  # This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
+  # This is useful for testing with [DynamoDB Local] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
   config.endpoint = 'http://localhost:3000'
 end
 ```
@@ -421,8 +421,8 @@ contained on the object specifying the association, even if it seems
 like the association has a foreign key. This is a side effect of
 DynamoDB's structure: it's very difficult to find foreign keys without
 an index. Usually you won't find this to be a problem, but it does mean
-that association methods that build new models will not work correctly
-- for example, `user.addresses.new` returns an address that is not
+that association methods that build new models will not work correctly -
+for example, `user.addresses.new` returns an address that is not
 associated to the user. We'll be correcting this ~soon~ maybe someday,
 if we get a pull request.
 
@@ -977,7 +977,8 @@ Listed below are all configuration options.
   (units)
 * `warn_on_scan` - log warnings when scan table. Default is `true`
 * `endpoint` - if provided, it communicates with the DynamoDB listening
-  at the endpoint. This is useful for testing with [Amazon Local DB]
+  at the endpoint. This is useful for testing with
+  [DynamoDB Local](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html)
 * `identity_map` - ensures that each object gets loaded only once by
   keeping every loaded object in a map. Looks up objects using the map
   when referring to them. Isn't thread safe. Default is `false`.
