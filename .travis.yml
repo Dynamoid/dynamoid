@@ -6,7 +6,7 @@ rvm:
   - ruby-2.4.6
   - ruby-2.5.5
   - ruby-2.6.3
-  - jruby-9.2.7.0
+  - jruby-9.2.8.0
 gemfile:
   - gemfiles/rails_4_2.gemfile
   - gemfiles/rails_5_0.gemfile
