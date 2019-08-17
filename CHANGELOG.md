@@ -4,6 +4,8 @@
 
 ## Features
 
+* Feature: [#374](https://github.com/Dynamoid/dynamoid/pull/374) Add `#project` query method to load only specified fields
+
 ## Improvements
 
 * Improvement: [#359](https://github.com/Dynamoid/dynamoid/pull/359) Add support of `NULL` and `NOT_NULL` operators

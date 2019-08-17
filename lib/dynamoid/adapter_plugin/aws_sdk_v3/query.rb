@@ -11,6 +11,7 @@ module Dynamoid
         OPTIONS_KEYS = %i[
           limit hash_key hash_value range_key consistent_read scan_index_forward
           select index_name batch_size exclusive_start_key record_limit scan_limit
+          project
         ].freeze
 
         attr_reader :client, :table, :options, :conditions
@@ -63,10 +64,11 @@ module Dynamoid
           batch_size = options[:batch_size]
           limit = [record_limit, scan_limit, batch_size].compact.min
 
-          request[:limit]          = limit if limit
-          request[:table_name]     = table.name
-          request[:key_conditions] = key_conditions
-          request[:query_filter]   = query_filter
+          request[:limit]             = limit if limit
+          request[:table_name]        = table.name
+          request[:key_conditions]    = key_conditions
+          request[:query_filter]      = query_filter
+          request[:attributes_to_get] = attributes_to_get
 
           request
         end
@@ -116,6 +118,11 @@ module Dynamoid
             result[attr] = condition
             result
           end
+        end
+
+        def attributes_to_get
+          return if options[:project].nil?
+          options[:project].map(&:to_s)
         end
       end
     end

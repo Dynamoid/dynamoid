@@ -674,6 +674,32 @@ operators check attribute presence in a document, not value.
 So if attribute `postcode`'s value is `NULL`, `NULL` operator will return false
 because attribute exists even if has `NULL` value.
 
+#### Selecting some specific fields only
+
+It could be done with `project` method:
+
+```ruby
+class User
+  include Dynamoid::Document
+  field :name
+end
+
+User.create(name: 'Alex')
+user = User.project(:name).first
+
+user.id         # => nil
+user.name       # => 'Alex'
+user.created_at # => nil
+```
+
+Returned models with have filled specified fields only.
+
+Several fields could be specified:
+
+```ruby
+user = User.project(:name, :created_at)
+```
+
 ### Consistent Reads
 
 Querying supports consistent reading. By default, DynamoDB reads are eventually consistent: if you do a write and then a read immediately afterwards, the results of the previous write may not be reflected. If you need to do a consistent read (that is, you need to read the results of a write immediately) you can do so, but keep in mind that consistent reads are twice as expensive as regular reads for DynamoDB.
