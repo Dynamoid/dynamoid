@@ -1511,6 +1511,45 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  describe '#project' do
+    let(:model) do
+      new_class do
+        field :name
+        field :age, :integer
+      end
+    end
+
+    it 'loads only specified attributes' do
+      model.create(name: 'Alex', age: 21)
+      obj, = model.project(:age).to_a
+
+      expect(obj.age).to eq 21
+
+      expect(obj.id).to eq nil
+      expect(obj.name).to eq nil
+    end
+
+    it 'works with Scan' do
+      model.create(name: 'Alex', age: 21)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:pages_via_scan).and_call_original
+
+      obj, = chain.project(:age).to_a
+      expect(obj.attributes).to eq(age: 21)
+    end
+
+    it 'works with Query' do
+      obj = model.create(name: 'Alex', age: 21)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:pages_via_query).and_call_original
+
+      obj_loaded, = chain.where(id: obj.id).project(:age).to_a
+      expect(obj_loaded.attributes).to eq(age: 21)
+    end
+  end
+
   describe 'User' do
     let(:chain) { described_class.new(User) }
 

@@ -159,6 +159,11 @@ module Dynamoid
         pages.each(&block)
       end
 
+      def project(*fields)
+        @project = fields.map(&:to_sym)
+        self
+      end
+
       private
 
       # The actual records referenced by the association.
@@ -368,13 +373,16 @@ module Dynamoid
 
       def query_opts
         opts = {}
+        # Don't specify select = ALL_ATTRIBUTES option explicitly because it's
+        # already a default value of Select statement. Explicite Select value
+        # conflicts with AttributesToGet statement (project option).
         opts[:index_name] = @key_fields_detector.index_name if @key_fields_detector.index_name
-        opts[:select] = 'ALL_ATTRIBUTES'
         opts[:record_limit] = @record_limit if @record_limit
         opts[:scan_limit] = @scan_limit if @scan_limit
         opts[:batch_size] = @batch_size if @batch_size
         opts[:exclusive_start_key] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
+        opts[:project] = @project
         opts
       end
 
@@ -398,6 +406,7 @@ module Dynamoid
         opts[:batch_size] = @batch_size if @batch_size
         opts[:exclusive_start_key] = start_key if @start
         opts[:consistent_read] = true if @consistent_read
+        opts[:project] = @project
         opts
       end
     end
