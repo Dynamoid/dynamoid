@@ -61,12 +61,10 @@ For example, to configure AWS access:
 Create `config/initializers/aws.rb` as follows:
 
 ```ruby
-
-  Aws.config.update({
-    region: 'us-west-2',
-    credentials: Aws::Credentials.new('REPLACE_WITH_ACCESS_KEY_ID', 'REPLACE_WITH_SECRET_ACCESS_KEY'),
-  })
-
+Aws.config.update({
+  region: 'us-west-2',
+  credentials: Aws::Credentials.new('REPLACE_WITH_ACCESS_KEY_ID', 'REPLACE_WITH_SECRET_ACCESS_KEY'),
+})
 ```
 
 Alternatively, if you don't want Aws connection settings to be
@@ -74,12 +72,12 @@ overwritten for you entire project, you can specify connection settings
 for Dynamoid only, by setting those in the `Dynamoid.configure` clause:
 
 ```ruby
-  require 'dynamoid'
-  Dynamoid.configure do |config|
-    config.access_key = 'REPLACE_WITH_ACCESS_KEY_ID'
-    config.secret_key = 'REPLACE_WITH_SECRET_ACCESS_KEY'
-    config.region = 'us-west-2'
-  end
+require 'dynamoid'
+Dynamoid.configure do |config|
+  config.access_key = 'REPLACE_WITH_ACCESS_KEY_ID'
+  config.secret_key = 'REPLACE_WITH_SECRET_ACCESS_KEY'
+  config.region = 'us-west-2'
+end
 ```
 
 For a full list of the DDB regions, you can go
@@ -90,11 +88,16 @@ similar to this somewhere (a Rails initializer would be a great place
 for this if you're using Rails):
 
 ```ruby
-  require 'dynamoid'
-  Dynamoid.configure do |config|
-    config.namespace = 'dynamoid_app_development' # To namespace tables created by Dynamoid from other tables you might have. Set to nil to avoid namespacing.
-    config.endpoint = 'http://localhost:3000' # [Optional]. If provided, it communicates with the DB listening at the endpoint. This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
-  end
+require 'dynamoid'
+Dynamoid.configure do |config|
+  # To namespace tables created by Dynamoid from other tables you might have.
+  # Set to nil to avoid namespacing.
+  config.namespace = 'dynamoid_app_development'
+
+  # [Optional]. If provided, it communicates with the DB listening at the endpoint.
+  # This is useful for testing with [Amazon Local DB] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
+  config.endpoint = 'http://localhost:3000'
+end
 ```
 
 ### Ruby & Rails Compatibility
@@ -113,6 +116,7 @@ You *must* include `Dynamoid::Document` in every Dynamoid model.
 class User
   include Dynamoid::Document
 
+  # fields declaration
 end
 ```
 
@@ -294,8 +298,8 @@ You can optionally set a default value on a field using either a plain
 value or a lambda:
 
 ```ruby
-  field :actions_taken, :integer, default: 0
-  field :joined_at, :datetime, default: -> { Time.now }
+field :actions_taken, :integer, default: 0
+field :joined_at, :datetime, default: -> { Time.now }
 ```
 
 #### Custom Types
@@ -303,24 +307,24 @@ value or a lambda:
 To use a custom type for a field, suppose you have a `Money` type.
 
 ```ruby
-  class Money
-    # ... your business logic ...
+class Money
+  # ... your business logic ...
 
-    def dynamoid_dump
-      'serialized representation as a string'
-    end
-
-    def self.dynamoid_load(serialized_str)
-      # parse serialized representation and return a Money instance
-      Money.new(1.23)
-    end
+  def dynamoid_dump
+    'serialized representation as a string'
   end
 
-  class User
-    include Dynamoid::Document
-
-    field :balance, Money
+  def self.dynamoid_load(serialized_str)
+    # parse serialized representation and return a Money instance
+    Money.new(1.23)
   end
+end
+
+class User
+  include Dynamoid::Document
+
+  field :balance, Money
+end
 ```
 
 If you want to use a third-party class (which does not support
@@ -331,24 +335,24 @@ from the previous example; here we just add a level of indirection for
 serializing. Example:
 
 ```ruby
-  # Third-party Money class
-  class Money; end
+# Third-party Money class
+class Money; end
 
-  class MoneyAdapter
-    def self.dynamoid_load(money_serialized_str)
-      Money.new(1.23)
-    end
-
-    def self.dynamoid_dump(money_obj)
-      money_obj.value.to_s
-    end
+class MoneyAdapter
+  def self.dynamoid_load(money_serialized_str)
+    Money.new(1.23)
   end
 
-  class User
-    include Dynamoid::Document
-
-    field :balance, MoneyAdapter
+  def self.dynamoid_dump(money_obj)
+    money_obj.value.to_s
   end
+end
+
+class User
+  include Dynamoid::Document
+
+  field :balance, MoneyAdapter
+end
 ```
 
 Lastly, you can control the data type of your custom-class-backed field
@@ -401,7 +405,6 @@ class User
   belongs_to :group, foreign_key: :group_id
   has_one :role
   has_and_belongs_to_many :friends, inverse_of: :friending_users
-
 end
 
 class Address
@@ -410,7 +413,6 @@ class Address
   # ...
 
   belongs_to :user # Automatically links up with the user model
-
 end
 ```
 
@@ -488,7 +490,7 @@ end
 cat = Cat.create(name: 'Morgan')
 animal = Animal.find(cat.id)
 animal.class
-#=>  Cat
+#=> Cat
 ```
 
 If you already have DynamoDB tables and `type` field already exists and
@@ -602,7 +604,8 @@ Querying can be done in one of three ways:
 
 ```ruby
 Address.find(address.id)              # Find directly by ID.
-Address.where(city: 'Chicago').all    # Find by any number of matching criteria... though presently only "where" is supported.
+Address.where(city: 'Chicago').all    # Find by any number of matching criteria...
+                                      # Though presently only "where" is supported.
 Address.find_by_city('Chicago')       # The same as above, but using ActiveRecord's older syntax.
 ```
 
@@ -1115,8 +1118,8 @@ end
 
 There are a few Rake tasks available out of the box:
 
-  * `rake dynamoid:create_tables`
-  * `rake dynamoid:ping`
+* `rake dynamoid:create_tables`
+* `rake dynamoid:ping`
 
 In order to use them in non-Rails application they should be required
 explicitly:
