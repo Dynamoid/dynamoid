@@ -1,82 +1,100 @@
 module Dynamoid
   module AdapterPlugin
     class AwsSdkV3
-
+      # Documentation
+      # https://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#batch_get_item-instance_method
       class BatchGetItem
-        attr_reader :client, :table_ids, :options
+        attr_reader :client, :tables_with_ids, :options
 
-        def initialize(client, table_ids, options = {})
+        def initialize(client, tables_with_ids, options = {})
           @client = client
-          @table_ids = table_ids
+          @tables_with_ids = tables_with_ids
           @options = options
         end
 
         def call
-          request_items = Hash.new { |h, k| h[k] = [] }
-          return request_items if table_ids.all? { |_k, v| v.blank? }
+          results = Hash.new([].freeze) # Default for tables where no rows are returned
 
-          ret = Hash.new([].freeze) # Default for tables where no rows are returned
-
-          table_ids.each do |t, ids|
+          tables_with_ids.each do |table, ids|
             next if ids.blank?
 
             ids = Array(ids).dup
-            tbl = t # <====
-            t = tbl.name # <====
-            hk  = tbl.hash_key.to_s
-            rng = tbl.range_key.to_s
 
             while ids.present?
               batch = ids.shift(Dynamoid::Config.batch_size)
-
-              request_items = Hash.new { |h, k| h[k] = [] }
-
-              keys = if rng.present?
-                       Array(batch).map do |h, r|
-                         { hk => h, rng => r }
-                       end
-                     else
-                       Array(batch).map do |id|
-                         { hk => id }
-                       end
-                     end
-
-              request_items[t] = {
-                keys: keys,
-                consistent_read: options[:consistent_read]
-              }
-
-              results = client.batch_get_item(
-                request_items: request_items
-              )
+              request = build_request(table, batch)
+              api_response = client.batch_get_item(request)
+              response = Response.new(api_response)
 
               if block_given?
+                # return batch items as a result
                 batch_results = Hash.new([].freeze)
+                batch_results.update(response.items_grouped_by_table)
 
-                results.data[:responses].each do |table, rows|
-                  batch_results[table] += rows.collect { |r| result_item_to_hash(r) }
-                end
-
-                yield(batch_results, results.unprocessed_keys.present?)
+                yield(batch_results, response.successful_partially?)
               else
-                results.data[:responses].each do |table, rows|
-                  ret[table] += rows.collect { |r| result_item_to_hash(r) }
-                end
+                # collect all the batches to return at the end
+                results.update(response.items_grouped_by_table) { |_, its1, its2| its1 + its2 }
               end
 
-              if results.unprocessed_keys.present?
-                ids += results.unprocessed_keys[t].keys.map { |h| h[hk] }
+              if response.successful_partially?
+                ids += response.unprocessed_ids(table)
               end
             end
           end
 
-          ret unless block_given?
+          results unless block_given?
         end
 
         private
 
-        def result_item_to_hash(item)
-          item.symbolize_keys
+        def build_request(table, ids)
+          ids = Array(ids)
+
+          keys = if table.range_key.nil?
+                   ids.map { |hk| { table.hash_key => hk } }
+                 else
+                   ids.map { |hk, rk| { table.hash_key => hk, table.range_key => rk } }
+                 end
+
+          {
+            request_items: {
+              table.name => {
+                keys: keys,
+                consistent_read: options[:consistent_read]
+              }
+            }
+          }
+        end
+
+        # Helper class to work with response
+        class Response
+          def initialize(api_response)
+            @api_response = api_response
+          end
+
+          def successful_partially?
+            @api_response.unprocessed_keys.present?
+          end
+
+          def unprocessed_ids(table)
+            # unprocessed_keys Hash contains as values instances of
+            # Aws::DynamoDB::Types::KeysAndAttributes
+            @api_response.unprocessed_keys[table.name].keys.map { |h| h[table.hash_key.to_s] }
+          end
+
+          def items_grouped_by_table
+            # data[:responses] is a Hash[table_name -> items]
+            @api_response.data[:responses].transform_values do |items|
+              items.map(&method(:item_to_hash))
+            end
+          end
+
+          private
+
+          def item_to_hash(item)
+            item.symbolize_keys
+          end
         end
       end
     end

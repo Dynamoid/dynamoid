@@ -6,6 +6,11 @@ describe Dynamoid::Associations::Association do
   let(:subscription) { Subscription.create }
   let(:magazine) { Magazine.create }
 
+  before do
+    Subscription.create_table
+    Magazine.create_table
+  end
+
   it 'returns an empty array if there are no associations' do
     expect(magazine.subscriptions).to be_empty
   end
