@@ -143,11 +143,7 @@ module Dynamoid
       #
       # @since 0.2.0
       define_method(m) do |*args, &blk|
-        if blk.present?
-          benchmark(m.to_s, *args) { adapter.send(m, *args, &blk) }
-        else
-          benchmark(m.to_s, *args) { adapter.send(m, *args) }
-        end
+        benchmark(m.to_s, *args) { adapter.send(m, *args, &blk) }
       end
     end
 

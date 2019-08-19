@@ -13,10 +13,13 @@ module Dynamoid
         end
 
         def call
-          results = Hash.new([].freeze) # Default for tables where no rows are returned
+          results = {}
 
           tables_with_ids.each do |table, ids|
-            next if ids.blank?
+            if ids.blank?
+              results[table.name] = []
+              next
+            end
 
             ids = Array(ids).dup
 
