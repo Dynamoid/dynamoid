@@ -3,6 +3,7 @@
 require_relative 'aws_sdk_v3/query'
 require_relative 'aws_sdk_v3/scan'
 require_relative 'aws_sdk_v3/create_table'
+require_relative 'aws_sdk_v3/batch_get_item'
 require_relative 'aws_sdk_v3/item_updater'
 require_relative 'aws_sdk_v3/table'
 require_relative 'aws_sdk_v3/until_past_table_status'
@@ -183,65 +184,11 @@ module Dynamoid
       # @since 1.0.0
       #
       # @todo: Provide support for passing options to underlying batch_get_item
-      def batch_get_item(table_ids, options = {})
-        request_items = Hash.new { |h, k| h[k] = [] }
-        return request_items if table_ids.all? { |_k, v| v.blank? }
-
-        ret = Hash.new([].freeze) # Default for tables where no rows are returned
-
-        table_ids.each do |t, ids|
-          next if ids.blank?
-
-          ids = Array(ids).dup
-          tbl = describe_table(t)
-          hk  = tbl.hash_key.to_s
-          rng = tbl.range_key.to_s
-
-          while ids.present?
-            batch = ids.shift(Dynamoid::Config.batch_size)
-
-            request_items = Hash.new { |h, k| h[k] = [] }
-
-            keys = if rng.present?
-                     Array(batch).map do |h, r|
-                       { hk => h, rng => r }
-                     end
-                   else
-                     Array(batch).map do |id|
-                       { hk => id }
-                     end
-                   end
-
-            request_items[t] = {
-              keys: keys,
-              consistent_read: options[:consistent_read]
-            }
-
-            results = client.batch_get_item(
-              request_items: request_items
-            )
-
-            if block_given?
-              batch_results = Hash.new([].freeze)
-
-              results.data[:responses].each do |table, rows|
-                batch_results[table] += rows.collect { |r| result_item_to_hash(r) }
-              end
-
-              yield(batch_results, results.unprocessed_keys.present?)
-            else
-              results.data[:responses].each do |table, rows|
-                ret[table] += rows.collect { |r| result_item_to_hash(r) }
-              end
-            end
-
-            if results.unprocessed_keys.present?
-              ids += results.unprocessed_keys[t].keys.map { |h| h[hk] }
-            end
-          end
+      def batch_get_item(table_names_with_ids, options = {}, &block)
+        tables_with_ids = table_names_with_ids.transform_keys do |name|
+          describe_table(name)
         end
-
-        ret unless block_given?
+        BatchGetItem.new(client, tables_with_ids, options).call(&block)
       end
 
       # Delete many items at once from DynamoDB. More efficient than delete each item individually.

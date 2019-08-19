@@ -328,6 +328,255 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
   end
 
+  describe '#batch_get_item' do
+    let(:table)                    { "#{Dynamoid::Config.namespace}_table" }
+    let(:table_another)            { "#{Dynamoid::Config.namespace}_table_another" }
+    let(:table_with_composite_key) { "#{Dynamoid::Config.namespace}_table_with_composite_key" }
+
+    before do
+      Dynamoid.adapter.create_table(table, :id)
+      Dynamoid.adapter.create_table(table_another, :id)
+      Dynamoid.adapter.create_table(table_with_composite_key, :id, range_key: { age: :number })
+    end
+
+    after do
+      Dynamoid.adapter.delete_table(table)
+      Dynamoid.adapter.delete_table(table_another)
+      Dynamoid.adapter.delete_table(table_with_composite_key)
+    end
+
+    it 'passes options to underlying BatchGet call' do
+      pending 'at the moment passing the options to underlying batch get is not supported'
+
+      expect_any_instance_of(Aws::DynamoDB::Client).to receive(:batch_get_item).with(request_items: { test_table1 => { keys: [{ 'id' => '1' }, { 'id' => '2' }], consistent_read: true } }).and_call_original
+      described_class.batch_get_item({ test_table1 => %w[1 2] }, consistent_read: true)
+    end
+
+    it 'loads multiple items at once' do
+      Dynamoid.adapter.put_item(table, id: '1', name: 'Josh')
+      Dynamoid.adapter.put_item(table, id: '2', name: 'Justin')
+
+      results = Dynamoid.adapter.batch_get_item(table => ['1', '2'])
+      expect(results).to eq(
+        {
+          table => [
+            { id: '1', name: 'Josh'},
+            { id: '2', name: 'Justin'},
+          ]
+        }
+      )
+    end
+
+    it 'loads items from multiple tables' do
+      Dynamoid.adapter.put_item(table, id: '1', name: 'Josh')
+      Dynamoid.adapter.put_item(table_another, id: '2', name: 'Justin')
+
+      results = Dynamoid.adapter.batch_get_item(table => ['1'], table_another => ['2'])
+      expect(results).to eq(
+        {
+          table => [
+            { id: '1', name: 'Josh'}
+          ],
+          table_another => [
+            { id: '2', name: 'Justin'}
+          ]
+        }
+      )
+    end
+
+    it 'performs BatchGetItem API call' do
+      expect(Dynamoid.adapter.client).to receive(:batch_get_item).and_call_original
+      Dynamoid.adapter.batch_get_item(table => ['1'])
+    end
+
+    it 'accepts [] as an ids list' do
+      results = Dynamoid.adapter.batch_get_item(table => [])
+      expect(results).to eq(table => [])
+    end
+
+    it 'accepts {} as table_names_with_ids argument' do
+      results = Dynamoid.adapter.batch_get_item({})
+      expect(results).to eq({})
+    end
+
+    it 'accepts table name as String and as Symbol' do
+      Dynamoid.adapter.put_item(table, id: '1', name: 'Josh')
+
+      results = Dynamoid.adapter.batch_get_item(table.to_s => ['1'])
+      expect(results).to eq(table => [{ id: '1', name: 'Josh'}])
+
+      results = Dynamoid.adapter.batch_get_item(table.to_sym => ['1'])
+      expect(results).to eq(table => [{ id: '1', name: 'Josh'}])
+    end
+
+    context 'when simple key' do
+      it 'accepts one id passed as singular value' do
+        Dynamoid.adapter.put_item(table, id: '1', name: 'Josh')
+
+        results = Dynamoid.adapter.batch_get_item(table => '1')
+        expect(results).to eq(table => [{ id: '1', name: 'Josh' }])
+      end
+
+      it 'accepts one id passed as array' do
+        Dynamoid.adapter.put_item(table, id: '1', name: 'Josh')
+
+        results = Dynamoid.adapter.batch_get_item(table => ['1'])
+        expect(results).to eq(table => [{ id: '1', name: 'Josh' }])
+      end
+
+      it 'accepts multiple ids' do
+        Dynamoid.adapter.put_item(table, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(table, id: '2', name: 'Justin')
+
+        results = Dynamoid.adapter.batch_get_item(table => ['1', '2'])
+        expect(results).to eq(
+          {
+            table => [
+              { id: '1', name: 'Josh'},
+              { id: '2', name: 'Justin'},
+            ]
+          }
+        )
+      end
+    end
+
+    context 'when composite key' do
+      it 'accepts one id passed as singular value' do
+        skip "It is not supported and needed yet"
+
+        Dynamoid.adapter.put_item(table_with_composite_key, id: '1', age: 29, name: 'Josh')
+
+        results = Dynamoid.adapter.batch_get_item(table_with_composite_key => ['1', 29])
+        expect(results).to eq(table_with_composite_key => [{id: '1', age: 29, name: 'Josh'}])
+      end
+
+      it 'accepts one id passed as array' do
+        Dynamoid.adapter.put_item(table_with_composite_key, id: '1', age: 29, name: 'Josh')
+
+        results = Dynamoid.adapter.batch_get_item(table_with_composite_key => [['1', 29]])
+        expect(results).to eq(table_with_composite_key => [{id: '1', age: 29, name: 'Josh'}])
+      end
+
+      it 'accepts multiple ids' do
+        Dynamoid.adapter.put_item(table_with_composite_key, id: '1', age: 29, name: 'Josh')
+        Dynamoid.adapter.put_item(table_with_composite_key, id: '2', age: 16, name: 'Justin')
+
+        results = Dynamoid.adapter.batch_get_item(table_with_composite_key => [['1', 29], ['2', 16]])
+
+        expect(results).to match(
+          {
+            table_with_composite_key => contain_exactly(
+              { id: '1', age: 29.to_d, name: 'Josh' },
+              { id: '2', age: 16.to_d, name: 'Justin' },
+            )
+          }
+        )
+      end
+    end
+
+    it 'can load any number of items (even more than 100)' do
+      ids = (1..101).map(&:to_s)
+
+      ids.each do |id|
+        Dynamoid.adapter.put_item(table, id: id)
+      end
+
+      results = Dynamoid.adapter.batch_get_item(table => ids)
+      items = results[table]
+
+      expect(items.size).to eq 101
+    end
+
+    it 'loads unprocessed items' do
+      # BatchGetItem has following limitations:
+      # * up to 100 items at once
+      # * up to 16 MB at once
+      # * one item size up to 400 KB (common limitation)
+      #
+      # To reach limits we will write as large data as possible
+      # and then read it back
+      #
+      # 100 * 400 KB = ~40 MB
+      # 40 MB / 16 MB ~ 3
+      # So we expect BatchGetItem to be called 3 times
+      #
+      # '9' is an experimentally founded value
+      # it includes lenght('id' + 'text') + some not documented overhead (1-100 bytes)
+
+      ids = (1..100).map(&:to_s)
+
+      ids.each do |id|
+        text = '#' * (400.kilobytes - 9)
+        Dynamoid.adapter.put_item(table, id: id, text: text)
+      end
+
+      expect(Dynamoid.adapter.client).to receive(:batch_get_item)
+        .exactly(3)
+        .times.and_call_original
+
+      results = Dynamoid.adapter.batch_get_item(table => ids)
+      items = results[table]
+
+      expect(items.size).to eq 100
+      expect(items.map { |h| h[:id] }).to match_array(ids)
+    end
+
+    context 'when called with block' do
+      it 'returns nil' do
+        Dynamoid.adapter.put_item(table, id: '1')
+        results = Dynamoid.adapter.batch_get_item(table => '1') { |batch, _| batch }
+
+        expect(results).to eq nil
+      end
+
+      it 'calles block for each loaded items batch' do
+        ids = (1..110).map(&:to_s)
+
+        ids.each do |id|
+          Dynamoid.adapter.put_item(table, id: id)
+        end
+
+        batches = []
+        Dynamoid.adapter.batch_get_item(table => ids) do |batch|
+          batches << batch
+        end
+
+        # expect only 2 batches: 1-100 and 101-110
+        expect(batches.size).to eq 2
+        batch1, batch2 = batches
+
+        expect(batch1.keys).to eq [table]
+        expect(batch1[table].size).to eq 100
+
+        expect(batch2.keys).to eq [table]
+        expect(batch2[table].size).to eq 10
+
+        actual_ids = (batch1[table] + batch2[table]).map { |h| h[:id] }
+        expect(actual_ids).to match_array(ids)
+      end
+
+      it 'passes as block arguments flag if there are unprocessed items for each batch' do
+        # It should be enough to exceed limit of 16 MB per call
+        # 50 * 400KB = ~20 MB
+        # 9 bytes = length('id' + 'text') + some not documented overhead (1-100 bytes)
+
+        ids = (1..50).map(&:to_s)
+
+        ids.each do |id|
+          text = '#' * (400.kilobytes - 9)
+          Dynamoid.adapter.put_item(table, id: id, text: text)
+        end
+
+        complete_statuses = []
+        Dynamoid.adapter.batch_get_item(table => ids) do |_, not_completed|
+          complete_statuses << not_completed
+        end
+
+        expect(complete_statuses).to eq [true, false]
+      end
+    end
+  end
+
   context 'without a preexisting table' do
     # CreateTable and DeleteTable
     it 'performs CreateTable and DeleteTable' do
@@ -463,146 +712,6 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
       expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(id: '1', name: 'Josh')
-    end
-
-    # BatchGetItem
-    it 'passes options to underlying BatchGet call' do
-      pending 'at the moment passing the options to underlying batch get is not supported'
-      expect_any_instance_of(Aws::DynamoDB::Client).to receive(:batch_get_item).with(request_items: { test_table1 => { keys: [{ 'id' => '1' }, { 'id' => '2' }], consistent_read: true } }).and_call_original
-      described_class.batch_get_item({ test_table1 => %w[1 2] }, consistent_read: true)
-    end
-
-    it 'performs BatchGetItem with singular keys' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table2, id: '1', name: 'Justin')
-
-      results = Dynamoid.adapter.batch_get_item(test_table1 => '1', test_table2 => '1')
-      expect(results.size).to eq 2
-      expect(results[test_table1]).to include(name: 'Josh', id: '1')
-      expect(results[test_table2]).to include(name: 'Justin', id: '1')
-    end
-
-    it 'performs BatchGetItem with multiple keys' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
-
-      results = Dynamoid.adapter.batch_get_item(test_table1 => %w[1 2])
-      expect(results.size).to eq 1
-      expect(results[test_table1]).to include(name: 'Josh', id: '1')
-      expect(results[test_table1]).to include(name: 'Justin', id: '2')
-    end
-
-    it 'performs BatchGetItem with one ranged key' do
-      Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: 1.0)
-      Dynamoid.adapter.put_item(test_table3, id: '2', name: 'Justin', range: 2.0)
-
-      results = Dynamoid.adapter.batch_get_item(test_table3 => [['1', 1.0]])
-      expect(results.size).to eq 1
-      expect(results[test_table3]).to include(name: 'Josh', id: '1', range: 1.0)
-    end
-
-    it 'performs BatchGetItem with multiple ranged keys' do
-      Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: 1.0)
-      Dynamoid.adapter.put_item(test_table3, id: '2', name: 'Justin', range: 2.0)
-
-      results = Dynamoid.adapter.batch_get_item(test_table3 => [['1', 1.0], ['2', 2.0]])
-      expect(results.size).to eq 1
-
-      expect(results[test_table3]).to include(name: 'Josh', id: '1', range: 1.0)
-      expect(results[test_table3]).to include(name: 'Justin', id: '2', range: 2.0)
-    end
-
-    it 'performs BatchGetItem with ranges of 100 keys' do
-      table_ids = []
-
-      (1..101).each do |i|
-        id = i.to_s
-        range = i.to_f
-        Dynamoid.adapter.put_item(test_table3, id: id, name: "Josh_#{i}", range: range)
-        table_ids << [id, range]
-      end
-
-      results = Dynamoid.adapter.batch_get_item(test_table3 => table_ids)
-
-      expect(results.size).to eq 1
-
-      expect(results[test_table3]).to include(name: 'Josh_101', id: '101', range: 101.0)
-    end
-
-    it 'loads unprocessed items' do
-      # batch_get_item has following limitations:
-      # * up to 100 items at once
-      # * up to 16 MB at once
-      #
-      # So we write data as large as possible and read it back
-      # 100 * 400 KB (limit for item) = ~40 MB
-      # 40 MB / 16 MB = 3 times
-
-      ids = (1..100).map(&:to_s)
-      ids.each do |id|
-        text = ' ' * (400.kilobytes - 9) # length('id' + 'text' + 1-100) = 9 bytes
-        Dynamoid.adapter.put_item(test_table5, id: id, text: text)
-      end
-
-      expect(Dynamoid.adapter.client).to receive(:batch_get_item).exactly(3).times.and_call_original
-
-      results = Dynamoid.adapter.batch_get_item(test_table5 => ids)
-      items = results[test_table5]
-      expect(items.size).to eq 100
-      expect(items.map { |h| h[:id] }).to match_array(ids)
-    end
-
-    context 'optional block passed' do
-      it 'returns nil' do
-        ids = (1..110).map(&:to_s)
-        ids.each do |id|
-          Dynamoid.adapter.put_item(test_table1, id: id)
-        end
-
-        results = Dynamoid.adapter.batch_get_item(test_table1 => ids) do
-        end
-
-        expect(results).to eq nil
-      end
-
-      it 'passes as block arguments items for each batch' do
-        ids = (1..110).map(&:to_s)
-        ids.each do |id|
-          Dynamoid.adapter.put_item(test_table1, id: id)
-        end
-
-        args = []
-        results = Dynamoid.adapter.batch_get_item(test_table1 => ids) do |hash|
-          args << hash
-        end
-
-        expect(args.size).to eq 2
-
-        expect(args[0].keys[0]).to eq test_table1
-        expect(args[0].values[0].size).to eq 100
-
-        expect(args[1].keys[0]).to eq test_table1
-        expect(args[1].values[0].size).to eq 10
-
-        expect((args[0].values[0] + args[1].values[0]).map { |h| h[:id] }).to match_array(ids)
-      end
-
-      it 'passes as block arguments flag if there are unprocessed items for each batch' do
-        # 50 * 400KB = ~20 MB
-        # It should be enough to exceed limit of 16 MB per call
-        ids = (1..50).map(&:to_s)
-        ids.each do |id|
-          text = ' ' * (400.kilobytes - 9) # length('id' + 'text' + 1-100) = 9 bytes
-          Dynamoid.adapter.put_item(test_table5, id: id, text: text)
-        end
-
-        args = []
-        results = Dynamoid.adapter.batch_get_item(test_table5 => ids) do |_hash, flag|
-          args << flag
-        end
-
-        expect(args).to eq [true, false]
-      end
     end
 
     # BatchDeleteItem
