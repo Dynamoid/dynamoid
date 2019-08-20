@@ -4,6 +4,18 @@
 
 ## Features
 
+## Improvements
+
+## Fixes
+
+---
+
+
+
+# 3.3.0
+
+## Features
+
 * Feature: [#374](https://github.com/Dynamoid/dynamoid/pull/374) Add `#project` query method to load only specified fields
 
 ## Improvements
