@@ -10,6 +10,15 @@ require 'dynamoid/config/backoff_strategies/exponential_backoff'
 module Dynamoid
   # Contains all the basic configuration information required for Dynamoid: both sensible defaults and required fields.
   module Config
+    # @since 3.3.1
+    DEFAULT_NAMESPACE = if defined?(Rails)
+                          klass = Rails.application.class
+                          app_name = Rails::VERSION::MAJOR >= 6 ? klass.module_parent_name : klass.parent_name
+                          "dynamoid_#{app_name}_#{Rails.env}".freeze
+                        else
+                          'dynamoid'.freeze
+                        end
+
     extend self
 
     extend Options
@@ -17,7 +26,7 @@ module Dynamoid
 
     # All the default options.
     option :adapter, default: 'aws_sdk_v3'
-    option :namespace, default: defined?(Rails) ? "dynamoid_#{Rails.application.class.parent_name}_#{Rails.env}" : 'dynamoid'
+    option :namespace, default: DEFAULT_NAMESPACE
     option :access_key, default: nil
     option :secret_key, default: nil
     option :region, default: nil
@@ -84,5 +93,6 @@ module Dynamoid
         backoff_strategies[backoff].call
       end
     end
+
   end
 end
