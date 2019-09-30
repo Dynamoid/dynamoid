@@ -839,7 +839,7 @@ limitations, so use it sensibly!
 
 In order to update document you can use high level methods
 `#update_attributes`, `#update_attribute` and `.update`. They run
-validation and collbacks.
+validation and callbacks.
 
 ```ruby
 Address.find(id).update_attributes(city: 'Chicago')
