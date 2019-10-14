@@ -75,11 +75,19 @@ module Dynamoid #:nodoc:
         self.range_key = name
       end
 
-      def table(_options)
+      def table(options)
         # a default 'id' column is created when Dynamoid::Document is included
         unless attributes.key? hash_key
           remove_field :id
           field(hash_key)
+        end
+
+        if options[:timestamps] && !Dynamoid::Config.timestamps
+          field :created_at, :datetime
+          field :updated_at, :datetime
+        elsif options[:timestamps] == false && Dynamoid::Config.timestamps
+          remove_field :created_at
+          remove_field :updated_at
         end
       end
 
