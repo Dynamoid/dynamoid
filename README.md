@@ -163,6 +163,16 @@ explicitly and should have numeric type (`integer`, `number`) only.
 `datetime` type is also possible but only if it's stored as number
 (there is a way to store time as a string also).
 
+It's also possible to override a global option `Dynamoid::Config.timestamps`
+on a table level:
+
+```ruby
+table timestamps: false
+```
+
+This option controls generation of timestamp fields
+`created_at`/`updated_at`.
+
 ### Fields
 
 You'll have to define all the fields on the model and the data type of
