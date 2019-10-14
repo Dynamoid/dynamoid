@@ -21,8 +21,8 @@ module Dynamoid #:nodoc:
       class_attribute :range_key
 
       self.attributes = {}
-      field :created_at, :datetime
-      field :updated_at, :datetime
+      field :created_at, :datetime if Dynamoid::Config.timestamps
+      field :updated_at, :datetime if Dynamoid::Config.timestamps
 
       field :id # Default primary key
     end

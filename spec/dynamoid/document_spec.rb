@@ -280,4 +280,22 @@ describe Dynamoid::Document do
       end.to raise_error(NoMethodError, /undefined method `foo='/)
     end
   end
+
+  describe 'timestamps fields `created_at` and `updated_at`' do
+    it 'declares timestamps when Dynamoid::Config.timestamps = true', config: { timestamps: true } do
+      expect(new_class.attributes).to have_key(:created_at)
+      expect(new_class.attributes).to have_key(:updated_at)
+
+      expect(new_class.new).to respond_to(:created_at)
+      expect(new_class.new).to respond_to(:updated_at)
+    end
+
+    it 'does not declare timestamps when Dynamoid::Config.timestamps = false', config: { timestamps: false } do
+      expect(new_class.attributes).not_to have_key(:created_at)
+      expect(new_class.attributes).not_to have_key(:updated_at)
+
+      expect(new_class.new).not_to respond_to(:created_at)
+      expect(new_class.new).not_to respond_to(:updated_at)
+    end
+  end
 end
