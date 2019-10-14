@@ -54,7 +54,12 @@ module Dynamoid
           global_secondary_indexes: global_secondary_indexes.values
         }.merge(options)
 
-        Dynamoid.adapter.create_table(options[:table_name], options[:id], options)
+        created_successfuly = Dynamoid.adapter.create_table(options[:table_name], options[:id], options)
+
+        if created_successfuly && self.options[:expires]
+          attribute = self.options[:expires][:field]
+          Dynamoid.adapter.update_time_to_live(table_name: table_name, attribute: attribute)
+        end
       end
 
       # Deletes the table for the model

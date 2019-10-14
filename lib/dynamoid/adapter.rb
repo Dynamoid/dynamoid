@@ -124,8 +124,12 @@ module Dynamoid
 
     def create_table(table_name, key, options = {})
       unless tables.include?(table_name)
-        benchmark('Create Table') { adapter.create_table(table_name, key, options) }
+        result = nil
+        benchmark('Create Table') { result = adapter.create_table(table_name, key, options) }
         tables << table_name
+        result
+      else
+        false
       end
     end
 

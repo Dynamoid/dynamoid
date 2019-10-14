@@ -406,6 +406,23 @@ describe Dynamoid::Persistence do
         )
       end
     end
+
+    describe 'expires (Time To Live)' do
+      let(:class_with_expiration) do
+        new_class do
+          table expires: { field: :ttl, after: 60 }
+          field :ttl, :integer
+        end
+      end
+
+      it 'sets up TTL for table' do
+        expect(Dynamoid.adapter).to receive(:update_time_to_live)
+          .with(table_name: class_with_expiration.table_name, attribute: :ttl)
+          .and_call_original
+
+        class_with_expiration.create_table
+      end
+    end
   end
 
   describe 'delete_table' do
