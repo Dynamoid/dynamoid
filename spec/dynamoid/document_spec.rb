@@ -232,4 +232,52 @@ describe Dynamoid::Document do
       expect(Vehicle.deep_subclasses).to include(Cadillac)
     end
   end
+
+  describe 'TTL (Time to Live)' do
+    let(:model) do
+      new_class do
+        table expires: { field: :expired_at, after: 30 * 60 }
+
+        field :expired_at, :integer
+      end
+    end
+
+    let(:model_with_wrong_field_name) do
+      new_class do
+        table expires: { field: :foo, after: 30 * 60 }
+
+        field :expired_at, :integer
+      end
+    end
+
+    it 'sets default value at the creation' do
+      travel 1.hour do
+        obj = model.create
+        expect(obj.expired_at).to eq(Time.now.to_i + 30*60)
+      end
+    end
+
+    it 'sets default value at the updating' do
+      obj = model.create
+
+      travel 1.hour do
+        obj.update_attributes(expired_at: nil)
+        expect(obj.expired_at).to eq(Time.now.to_i + 30*60)
+      end
+    end
+
+    it 'does not override already existing value' do
+      obj = model.create(expired_at: 1024)
+      expect(obj.expired_at).to eq 1024
+
+      obj.update_attributes(expired_at: 512)
+      expect(obj.expired_at).to eq 512
+    end
+
+    it 'raises an error if specified wrong field name' do
+      expect do
+        model_with_wrong_field_name.create
+      end.to raise_error(NoMethodError, /undefined method `foo='/)
+    end
+  end
 end
