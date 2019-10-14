@@ -34,7 +34,7 @@ Gemfile:
 ```ruby
 gem 'dynamoid'
 ```
-## Prerequisities
+## Prerequisites
 
 Dynamoid depends on the aws-sdk, and this is tested on the current
 version of aws-sdk (~> 3), rails (>= 4). Hence the configuration as
@@ -165,8 +165,8 @@ backward-compatibility of the serialized representation.
 
 The boolean fields are stored as DynamoDB boolean values by default.
 Dynamoid can store boolean values as strings as well - `'t'` and `'f'`.
-So if you want to change default format of boolean field you can easily
-achieve this with `store_as_native_boolean` field option:
+So if you want to change the default format of boolean field you can
+easily achieve this with `store_as_native_boolean` field option:
 
 ```ruby
 class Document
@@ -513,7 +513,7 @@ c.my_new_type
 
 ### Type casting
 
-Dynamid supports type casting and tryes to do it in the most convinient
+Dynamid supports type casting and tries to do it in the most convenient
 way. Values for all fields (except custom type) are coerced to declared
 field types.
 
@@ -551,7 +551,7 @@ well.
 
 ### Dirty API
 
-Dynamoid supports Dirty API which equvalents to [Rails 5.2
+Dynamoid supports Dirty API which equivalents to [Rails 5.2
 `ActiveModel::Dirty`](https://api.rubyonrails.org/v5.2/classes/ActiveModel/Dirty.html).
 There is only one limitation - change in place of field isn't detected
 automatically.
@@ -624,7 +624,7 @@ to relational database engines.
 
 **WARNING:** There is a limitation of conditions passed to `where`
 method. Only one condition for some particular field could be specified.
-The last one only will be applyed and others will be ignored. E.g. in
+The last one only will be applied and others will be ignored. E.g. in
 examples:
 
 ```ruby
@@ -714,7 +714,7 @@ commands.
 At times it can be useful to rely on DynamoDB [low-level
 pagination](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html#Query.Pagination)
 instead of fixed pages sizes. Each page results in a single Query or
-Scan call to DyanmoDB, but returns an unknown number of records.
+Scan call to DynamoDB, but returns an unknown number of records.
 
 Access to the native DynamoDB pages can be obtained via the
 `find_by_pages` method, which yields arrays of records.
@@ -729,7 +729,7 @@ is a hash including a key `:last_evaluated_key`. The value of this key
 can be used for the `start` method to fetch the next page of records.
 
 This way it can be used for instance to implement efficiently pagination
-in web-application:
+in web-applications:
 
 ```ruby
 class UserController < ApplicationController
@@ -774,7 +774,7 @@ Address.where('postcode.null': false)
 Address.where('postcode.not_null': true)
 ```
 
-**WARNING:** Please take into accout that `NULL` and `NOT_NULL`
+**WARNING:** Please take into account that `NULL` and `NOT_NULL`
 operators check attribute presence in a document, not value. So if
 attribute `postcode`'s value is `NULL`, `NULL` operator will return
 false because attribute exists even if has `NULL` value.
@@ -831,7 +831,7 @@ User.where("created_at.lt": DateTime.now - 1.day).all
 
 It also supports `gte` and `lte`. Turning those into symbols and
 allowing a Rails SQL-style string syntax is in the works. You can only
-have one range argument per query, because of DynamoDB's inherent
+have one range argument per query, because of DynamoDB inherent
 limitations, so use it sensibly!
 
 
@@ -855,12 +855,12 @@ it runs `update` callbacks). All of them support conditional updates.
 doesn't exist.
 
 ```ruby
-Adderess.find(id).update do |i|
+Address.find(id).update do |i|
   i.set city: 'Chicago'
   i.add latitude: 100
   i.delete set_of_numbers: 10
 end
-Adderess.find(id).update(if: { deliverable: true }) do |i|
+Address.find(id).update(if: { deliverable: true }) do |i|
   i.set city: 'Chicago'
 end
 Address.update_fields(id, city: 'Chicago')
@@ -872,7 +872,7 @@ Address.upsert(id, { city: 'Chicago' }, if: { deliverable: true })
 ### Deleting
 
 In order to delete some items `delete_all` method should be used. Any
-callback wont be called. Items delete in efficient way in batch.
+callback won't be called. Items delete in efficient way in batch.
 
 ```ruby
 Address.where(city: 'London').delete_all
@@ -893,17 +893,17 @@ class User
 end
 ```
 
-There are following options:
+There are the following options:
 * `hash_key` - is used as hash key of an index,
 * `range_key` - is used as range key of an index,
 * `projected_attributes` - list of fields to store in an index or has a
-  predefiled value `:keys_only`, `:all`; `:keys_only` is a default,
+  predefined value `:keys_only`, `:all`; `:keys_only` is a default,
 * `name` - an index will be created with this name when a table is
   created; by default name is generated and contains table name and keys
   names,
-* `read_capacity` - is used when table creates and used as an index
+* `read_capacity` - is used when table created and used as an index
   capacity; by default equals `Dynamoid::Config.read_capacity`,
-* `write_capacity` - is used when table creates and used as an index
+* `write_capacity` - is used when table created and used as an index
   capacity; by default equals `Dynamoid::Config.write_capacity`
 
 The only mandatory option is `name`.
@@ -954,7 +954,7 @@ on the base table*
 
 Listed below are all configuration options.
 
-* `adapter` - usefull only for the gem developers to switch to a new
+* `adapter` - useful only for the gem developers to switch to a new
   adapter. Default and the only available value is `aws_sdk_v3`
 * `namespace` - prefix for table names, default is
   `dynamoid_#{application_name}_#{environment}` for Rails application
@@ -984,7 +984,7 @@ Listed below are all configuration options.
   when referring to them. Isn't thread safe. Default is `false`.
   `Use Dynamoid::Middleware::IdentityMap` to clear identity map for each HTTP request
 * `timestamps` - by default Dynamoid sets `created_at` and `updated_at`
-  fields for model at creation and updating. You can disable this
+  fields for model creation and updating. You can disable this
   behavior by setting `false` value
 * `sync_retry_max_times` - when Dynamoid creates or deletes table
   synchronously it checks for completion specified times. Default is 60
@@ -1024,7 +1024,7 @@ Listed below are all configuration options.
   100-continue HTTP response before sending the request body. Default
   option value is `nil`. If not specified effected value is `1`
 * `http_idle_timeout`: The number of seconds an HTTP connection is
-  allowed to sit idble before it is considered stale. Default option
+  allowed to sit idle before it is considered stale. Default option
   value is `nil`. If not specified effected value is `5`
 * `http_open_timeout`: The number of seconds to wait when opening a HTTP
   session. Default option value is `nil`. If not specified effected
@@ -1056,7 +1056,7 @@ reload the row (so that it will pick up the newest values), and try the
 save again.
 
 Calls to `update` and `update!` also increment the `lock_version`,
-however they do not check the existing value. This guarantees that a
+however, they do not check the existing value. This guarantees that a
 update operation will raise an exception in a concurrent save operation,
 however a save operation will never cause an update to fail. Thus,
 `update` is useful & safe only for doing atomic operations (e.g.
@@ -1102,7 +1102,7 @@ Dynamoid.configure do |config|
 end
 ```
 
-You can use your own strategy in following way:
+You can use your own strategy in the following way:
 
 ```ruby
 Dynamoid.configure do |config|
