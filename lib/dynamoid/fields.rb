@@ -178,6 +178,19 @@ module Dynamoid #:nodoc:
       end
     end
 
+    def set_expires_field
+      options = self.class.options[:expires]
+
+      if options.present?
+        name = options[:field]
+        seconds = options[:after]
+
+        if self[name].blank?
+          send("#{name}=", Time.now.to_i + seconds)
+        end
+      end
+    end
+
     def set_inheritance_field
       # actually it does only following logic:
       # self.type ||= self.class.name if self.class.attributes[:type]

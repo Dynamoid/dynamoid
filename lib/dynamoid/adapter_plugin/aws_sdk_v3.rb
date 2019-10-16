@@ -246,8 +246,22 @@ module Dynamoid
       def create_table(table_name, key = :id, options = {})
         Dynamoid.logger.info "Creating #{table_name} table. This could take a while."
         CreateTable.new(client, table_name, key, options).call
+        true
       rescue Aws::DynamoDB::Errors::ResourceInUseException => e
         Dynamoid.logger.error "Table #{table_name} cannot be created as it already exists"
+        false
+      end
+
+      def update_time_to_live(table_name:, attribute:)
+        request = {
+          table_name: table_name,
+          time_to_live_specification: {
+            attribute_name: attribute,
+            enabled: true,
+          }
+        }
+
+        client.update_time_to_live(request)
       end
 
       # Create a table on DynamoDB *synchronously*.

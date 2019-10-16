@@ -1085,6 +1085,40 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
   # UpdateTable
 
+  describe 'update_time_to_live' do
+    let(:table_name) { "#{Dynamoid::Config.namespace}_table_with_expiration" }
+
+    before do
+      Dynamoid.adapter.create_table(table_name, :id)
+    end
+
+    after do
+      Dynamoid.adapter.delete_table(table_name)
+    end
+
+    it 'calls UpdateTimeToLive' do
+      expect(Dynamoid.adapter.client).to receive(:update_time_to_live)
+        .with(
+          table_name: table_name,
+          time_to_live_specification: {
+            enabled: true,
+            attribute_name: :ttl,
+          }
+        )
+        .and_call_original
+
+      Dynamoid.adapter.update_time_to_live(table_name: table_name, attribute: :ttl)
+    end
+
+    it 'updates a table schema' do
+      Dynamoid.adapter.update_time_to_live(table_name: table_name, attribute: :ttl)
+
+      response = Dynamoid.adapter.client.describe_time_to_live(table_name: table_name)
+      expect(response.time_to_live_description.time_to_live_status).to eq 'ENABLED'
+      expect(response.time_to_live_description.attribute_name).to eq 'ttl'
+    end
+  end
+
   # connection_config
   context '#connectin_config' do
     subject { described_class.new.connection_config }

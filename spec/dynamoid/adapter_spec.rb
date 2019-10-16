@@ -93,6 +93,33 @@ describe Dynamoid::Adapter do
     end
   end
 
+  describe '#create_table' do
+    let(:table_name) { "#{Dynamoid::Config.namespace}_create_table_test" }
+
+    after do
+      Dynamoid.adapter.delete_table(table_name)
+    end
+
+    it 'does not try to create table if it is already in cache' do
+      expect(Dynamoid.adapter.client).to receive(:create_table).once
+        .and_call_original
+
+      3.times { Dynamoid.adapter.create_table(table_name, :id, sync: true) }
+    end
+
+    it 'returns true if table created' do
+      actual = Dynamoid.adapter.create_table(table_name, :id, sync: true)
+      expect(actual).to eq true
+    end
+
+    it 'returns false if table was created earlier' do
+      Dynamoid.adapter.create_table(table_name, :id, sync: true)
+
+      actual = Dynamoid.adapter.create_table(table_name, :id, sync: true)
+      expect(actual).to eq false
+    end
+  end
+
   describe '#delete' do
     it 'deletes through the adapter for one ID' do
       Dynamoid.adapter.put_item(test_table1, id: '1')
