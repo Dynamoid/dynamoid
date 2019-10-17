@@ -21,8 +21,11 @@ module Dynamoid #:nodoc:
       class_attribute :range_key
 
       self.attributes = {}
-      field :created_at, :datetime
-      field :updated_at, :datetime
+
+      # Timestamp fields could be disabled later in `table` method call.
+      # So let's declare them here and remove them later if it will be necessary
+      field :created_at, :datetime if Dynamoid::Config.timestamps
+      field :updated_at, :datetime if Dynamoid::Config.timestamps
 
       field :id # Default primary key
     end
@@ -75,11 +78,23 @@ module Dynamoid #:nodoc:
         self.range_key = name
       end
 
-      def table(_options)
+      def table(options)
         # a default 'id' column is created when Dynamoid::Document is included
         unless attributes.key? hash_key
           remove_field :id
           field(hash_key)
+        end
+
+        if options[:timestamps] && !Dynamoid::Config.timestamps
+          # Timestamp fields weren't declared in `included` hook because they
+          # are disabled globaly
+          field :created_at, :datetime
+          field :updated_at, :datetime
+        elsif options[:timestamps] == false && Dynamoid::Config.timestamps
+          # Timestamp fields were declared in `included` hook but they are
+          # disabled for a table
+          remove_field :created_at
+          remove_field :updated_at
         end
       end
 
@@ -97,6 +112,10 @@ module Dynamoid #:nodoc:
           remove_method :"#{field}?"
           remove_method :"#{field}_before_type_cast"
         end
+      end
+
+      def timestamps_enabled?
+        options[:timestamps] || (options[:timestamps].nil? && Dynamoid::Config.timestamps)
       end
 
       private
@@ -166,14 +185,14 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def set_created_at
-      self.created_at ||= DateTime.now.in_time_zone(Time.zone) if Dynamoid::Config.timestamps
+      self.created_at ||= DateTime.now.in_time_zone(Time.zone) if self.class.timestamps_enabled?
     end
 
     # Automatically called during the save callback to set the updated_at time.
     #
     # @since 0.2.0
     def set_updated_at
-      if Dynamoid::Config.timestamps && !updated_at_changed?
+      if self.class.timestamps_enabled? && !updated_at_changed?
         self.updated_at = DateTime.now.in_time_zone(Time.zone)
       end
     end

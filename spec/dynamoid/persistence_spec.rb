@@ -708,11 +708,7 @@ describe Dynamoid::Persistence do
       end
 
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
-        created_at = updated_at = Time.now
-        obj = klass.create
-
-        expect(obj.created_at).to eql(nil)
-        expect(obj.updated_at).to eql(nil)
+        expect { klass.create }.not_to raise_error
       end
     end
   end
@@ -837,10 +833,11 @@ describe Dynamoid::Persistence do
       end
 
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
-        d = document_class.create(name: 'Document#1')
-        document_class.update(d.id, name: '[Updated]')
-        expect(d.reload.name).to eql('[Updated]')
-        expect(d.reload.updated_at).to eql(nil)
+        doc = document_class.create(name: 'Document#1')
+
+        expect do
+          document_class.update(doc.id, name: '[Updated]')
+        end.not_to raise_error
       end
     end
 
@@ -993,9 +990,10 @@ describe Dynamoid::Persistence do
 
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
         obj = document_class.create(title: 'Old title')
-        document_class.update_fields(obj.id, title: 'New title')
-        expect(obj.reload.title).to eql('New title')
-        expect(obj.reload.updated_at).to eql(nil)
+
+        expect do
+          document_class.update_fields(obj.id, title: 'New title')
+        end.not_to raise_error
       end
     end
 
@@ -1169,9 +1167,10 @@ describe Dynamoid::Persistence do
 
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
         obj = document_class.create(title: 'Old title')
-        document_class.upsert(obj.id, title: 'New title')
-        expect(obj.reload.title).to eql('New title')
-        expect(obj.reload.updated_at).to eql(nil)
+
+        expect do
+          document_class.upsert(obj.id, title: 'New title')
+        end.not_to raise_error
       end
     end
 
@@ -1582,10 +1581,8 @@ describe Dynamoid::Persistence do
         it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
           created_at = updated_at = Time.now
           obj = klass.new
-          obj.save
 
-          expect(obj.created_at).to eql(nil)
-          expect(obj.updated_at).to eql(nil)
+          expect { obj.save }.not_to raise_error
         end
       end
 
@@ -1629,9 +1626,8 @@ describe Dynamoid::Persistence do
         it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
           obj = klass.create(title: 'Old title')
           obj.title = 'New title'
-          obj.save
 
-          expect(obj.updated_at).to eql(nil)
+          expect { obj.save }.not_to raise_error
         end
       end
     end
@@ -1719,9 +1715,10 @@ describe Dynamoid::Persistence do
 
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
         obj = klass.create(title: 'Old title')
-        obj.update_attribute(:title, 'New title')
 
-        expect(obj.updated_at).to eql(nil)
+        expect do
+          obj.update_attribute(:title, 'New title')
+        end.not_to raise_error
       end
     end
   end
@@ -1809,9 +1806,10 @@ describe Dynamoid::Persistence do
 
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
         obj = klass.create(title: 'Old title')
-        obj.update_attributes(title: 'New title')
 
-        expect(obj.updated_at).to eql(nil)
+        expect do
+          obj.update_attributes(title: 'New title')
+        end.not_to raise_error
       end
     end
   end
@@ -1901,9 +1899,10 @@ describe Dynamoid::Persistence do
 
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
         obj = klass.create(title: 'Old title')
-        obj.update_attributes!(title: 'New title')
 
-        expect(obj.updated_at).to eql(nil)
+        expect do
+          obj.update_attributes!(title: 'New title')
+        end.not_to raise_error
       end
     end
   end
@@ -2205,10 +2204,10 @@ describe Dynamoid::Persistence do
 
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
         obj = klass.create(title: 'Old title')
-        obj.update { |d| d.set(title: 'New title') }
 
-        expect(obj.reload.title).to eql('New title')
-        expect(obj.reload.updated_at).to eql(nil)
+        expect do
+          obj.update { |d| d.set(title: 'New title') }
+        end.not_to raise_error
       end
     end
 
@@ -2391,11 +2390,7 @@ describe Dynamoid::Persistence do
       end
 
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
-        created_at = updated_at = Time.now
-        obj, = klass.import([{}])
-
-        expect(obj.created_at).to eql(nil)
-        expect(obj.updated_at).to eql(nil)
+        expect { klass.import([{}]) }.not_to raise_error
       end
     end
 

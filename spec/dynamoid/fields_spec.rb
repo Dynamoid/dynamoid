@@ -42,14 +42,6 @@ describe Dynamoid::Fields do
     expect(model_loaded.special_date).to eq date
   end
 
-  it 'automatically declares and fills in created_at and updated_at' do
-    address.save
-
-    address.reload
-    expect(address.created_at).to be_a DateTime
-    expect(address.updated_at).to be_a DateTime
-  end
-
   context 'query attributes' do
     it 'are declared' do
       expect(address.city?).to be_falsey
