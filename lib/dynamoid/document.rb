@@ -138,13 +138,11 @@ module Dynamoid #:nodoc:
         @associations ||= {}
         @attributes_before_type_cast ||= {}
 
-        attrs_with_defaults = self.class.attributes.reduce({}) do |res, (attribute, options)|
+        attrs_with_defaults = self.class.attributes.each_with_object({}) do |(attribute, options), res|
           if attrs.key?(attribute)
-            res.merge(attribute => attrs[attribute])
+            res[attribute] = attrs[attribute]
           elsif options.key?(:default)
-            res.merge(attribute => evaluate_default_value(options[:default]))
-          else
-            res
+            res[attribute] = evaluate_default_value(options[:default])
           end
         end
 
