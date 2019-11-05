@@ -75,11 +75,17 @@ module Dynamoid
         (Dynamoid::Config.settings.compact.keys & CONNECTION_CONFIG_OPTIONS).each do |option|
           @connection_hash[option] = Dynamoid::Config.send(option)
         end
-        if Dynamoid::Config.access_key?
-          @connection_hash[:access_key_id] = Dynamoid::Config.access_key
-        end
-        if Dynamoid::Config.secret_key?
-          @connection_hash[:secret_access_key] = Dynamoid::Config.secret_key
+        # if credentials are passed, they already contain access key & secret key
+        if Dynamoid::Config.credentials?
+          @connection_hash[:credentials] = Dynamoid::Config.credentials
+        else
+          # otherwise, pass access key & secret key for credentials creation
+          if Dynamoid::Config.access_key?
+            @connection_hash[:access_key_id] = Dynamoid::Config.access_key
+          end
+          if Dynamoid::Config.secret_key?
+            @connection_hash[:secret_access_key] = Dynamoid::Config.secret_key
+          end
         end
 
         # https://github.com/aws/aws-sdk-ruby/blob/master/gems/aws-sdk-core/lib/aws-sdk-core/plugins/logging.rb
