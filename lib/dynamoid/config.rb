@@ -29,6 +29,7 @@ module Dynamoid
     option :namespace, default: DEFAULT_NAMESPACE
     option :access_key, default: nil
     option :secret_key, default: nil
+    option :credentials, default: nil
     option :region, default: nil
     option :batch_size, default: 100
     option :read_capacity, default: 100

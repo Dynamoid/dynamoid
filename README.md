@@ -80,6 +80,27 @@ Dynamoid.configure do |config|
 end
 ```
 
+Additionally, If you would like to pass in pre-configured AWS credentials 
+(e.g. you have an IAM role credential, you configure your credentials 
+elsewhere in your project, etc.), you may do so: 
+
+```ruby
+require 'dynamoid'
+
+credentials = Aws::AssumeRoleCredentials.new(
+    region: region,
+    access_key_id: key,
+    secret_access_key: secret,
+    role_arn: role_arn,
+    role_session_name: 'our-session'
+  )
+  
+Dynamoid.configure do |config|
+  config.region = 'us-west-2',
+  config.credentials = credentials
+end
+```
+
 For a full list of the DDB regions, you can go
 [here](http://docs.aws.amazon.com/general/latest/gr/rande.html#ddb_region).
 
@@ -992,12 +1013,14 @@ Listed below are all configuration options.
 * `logger` - by default it's a `Rails.logger` in Rails application and
   `stdout` otherwise. You can disable logging by setting `nil` or
   `false` values. Set `true` value to use defaults
-* `access_key` - DynamoDb custom credentials for AWS, override global
-  AWS credentials if they present
-* `secret_key` - DynamoDb custom credentials for AWS, override global
-  AWS credentials if they present
+* `access_key` - DynamoDb custom access key for AWS credentials, override global
+  AWS credentials if they're present
+* `secret_key` - DynamoDb custom secret key for AWS credentials, override global
+  AWS credentials if they're present
+* `credentials` - DynamoDb custom pre-configured credentials, override global 
+  AWS credentials if they're present
 * `region` - DynamoDb custom credentials for AWS, override global AWS
-  credentials if they present
+  credentials if they're present
 * `batch_size` - when you try to load multiple items at once with
 * `batch_get_item` call Dynamoid loads them not with one api call but
   piece by piece. Default is 100 items
