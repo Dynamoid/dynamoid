@@ -51,6 +51,13 @@ module Dynamoid #:nodoc:
         options[:write_capacity] || Dynamoid::Config.write_capacity
       end
 
+
+      # Returns the billing (capacity) mode for this table.
+      # Could be either :provisioned or :on_demand
+      def capacity_mode
+        options[:capacity_mode] || Dynamoid::Config.capacity_mode
+      end
+
       # Returns the field name used to support STI for this table.
       def inheritance_field
         options[:inheritance_field] || :type

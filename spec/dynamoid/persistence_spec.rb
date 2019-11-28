@@ -423,6 +423,79 @@ describe Dynamoid::Persistence do
         class_with_expiration.create_table
       end
     end
+
+    describe 'capacity mode' do
+      let(:table_description) { Dynamoid.adapter.adapter.send(:describe_table, model.table_name) }
+      let(:billing_mode)      { table_description.schema.billing_mode_summary.billing_mode }
+
+      before do
+        model.create_table
+      end
+
+      context 'when global config option capacity_mode=on_demand', config: { capacity_mode: :on_demand } do
+        context 'when capacity_mode=provisioned in table' do
+          let(:model) do
+            new_class do
+              table capacity_mode: :provisioned
+            end
+          end
+
+          it 'creates table with provisioned capacity mode' do
+            expect(billing_mode).to eq 'PROVISIONED'
+          end
+        end
+
+        context 'when capacity_mode not set in table' do
+          let(:model) do
+            new_class do
+              table capacity_mode: nil
+            end
+          end
+
+          it 'creates table with on-demand capacity mode' do
+            expect(billing_mode).to eq 'PAY_PER_REQUEST'
+          end
+        end
+      end
+
+      context 'when global config option capacity_mode=provisioned', config: { capacity_mode: :provisioned } do
+        context 'when capacity_mode=on_demand in table' do
+          let(:model) do
+            new_class do
+              table capacity_mode: :on_demand
+            end
+          end
+
+          it 'creates table with on-demand capacity mode' do
+            expect(billing_mode).to eq 'PAY_PER_REQUEST'
+          end
+        end
+
+        context 'when capacity_mode not set in table' do
+          let(:model) do
+            new_class do
+              table capacity_mode: nil
+            end
+          end
+
+          it 'creates table with provisioned capacity mode' do
+            expect(billing_mode).to eq 'PROVISIONED'
+          end
+        end
+      end
+
+      context 'when global config option capacity_mode is not set', config: { capacity_mode: nil } do
+        let(:model) do
+          new_class do
+            table capacity_mode: nil
+          end
+        end
+
+        it 'creates table with provisioned capacity mode' do
+          expect(billing_mode).to eq 'PROVISIONED'
+        end
+      end
+    end
   end
 
   describe 'delete_table' do

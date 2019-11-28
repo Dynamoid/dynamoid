@@ -16,6 +16,7 @@ module Dynamoid
         end
 
         def call
+          billing_mode = options[:billing_mode]
           read_capacity = options[:read_capacity] || Dynamoid::Config.read_capacity
           write_capacity = options[:write_capacity] || Dynamoid::Config.write_capacity
 
@@ -41,13 +42,19 @@ module Dynamoid
 
           client_opts = {
             table_name: table_name,
-            provisioned_throughput: {
-              read_capacity_units: read_capacity,
-              write_capacity_units: write_capacity
-            },
             key_schema: key_schema,
             attribute_definitions: attribute_definitions
           }
+
+          if billing_mode == :on_demand
+            client_opts[:billing_mode] = 'PAY_PER_REQUEST'
+          else
+            client_opts[:billing_mode] = 'PROVISIONED'
+            client_opts[:provisioned_throughput] = {
+              read_capacity_units: read_capacity,
+              write_capacity_units: write_capacity
+            }
+          end
 
           if ls_indexes.present?
             client_opts[:local_secondary_indexes] = ls_indexes.map do |index|

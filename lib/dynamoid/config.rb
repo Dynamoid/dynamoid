@@ -32,6 +32,7 @@ module Dynamoid
     option :credentials, default: nil
     option :region, default: nil
     option :batch_size, default: 100
+    option :capacity_mode, default: nil
     option :read_capacity, default: 100
     option :write_capacity, default: 20
     option :warn_on_scan, default: true

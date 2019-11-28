@@ -46,6 +46,7 @@ module Dynamoid
         options = {
           id: hash_key,
           table_name: table_name,
+          billing_mode: capacity_mode,
           write_capacity: write_capacity,
           read_capacity: read_capacity,
           range_key: range_key_hash,

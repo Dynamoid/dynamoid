@@ -80,9 +80,9 @@ Dynamoid.configure do |config|
 end
 ```
 
-Additionally, If you would like to pass in pre-configured AWS credentials 
-(e.g. you have an IAM role credential, you configure your credentials 
-elsewhere in your project, etc.), you may do so: 
+Additionally, if you would like to pass in pre-configured AWS credentials
+(e.g. you have an IAM role credential, you configure your credentials
+elsewhere in your project, etc.), you may do so:
 
 ```ruby
 require 'dynamoid'
@@ -94,7 +94,7 @@ credentials = Aws::AssumeRoleCredentials.new(
     role_arn: role_arn,
     role_session_name: 'our-session'
   )
-  
+
 Dynamoid.configure do |config|
   config.region = 'us-west-2',
   config.credentials = credentials
@@ -193,6 +193,17 @@ table timestamps: false
 
 This option controls generation of timestamp fields
 `created_at`/`updated_at`.
+
+It's also possible to override table capacity mode configured globally
+with table level option `capacity_mode`. Valid values are
+`:provisioned`, `:on_demand` and `nil`:
+
+```ruby
+table capacity_mode: :on_demand
+```
+
+If table capacity mode is on-demand, another related table-level options
+`read_capacity` and `write_capacity` will be ignored.
 
 ### Fields
 
@@ -1017,13 +1028,17 @@ Listed below are all configuration options.
   AWS credentials if they're present
 * `secret_key` - DynamoDb custom secret key for AWS credentials, override global
   AWS credentials if they're present
-* `credentials` - DynamoDb custom pre-configured credentials, override global 
+* `credentials` - DynamoDb custom pre-configured credentials, override global
   AWS credentials if they're present
 * `region` - DynamoDb custom credentials for AWS, override global AWS
   credentials if they're present
 * `batch_size` - when you try to load multiple items at once with
 * `batch_get_item` call Dynamoid loads them not with one api call but
   piece by piece. Default is 100 items
+* `capacity_mode` - used at a table creation and means whether a table
+  read/write capacity mode will be on-demand or provisioned. Allowed
+  values are `:on_demand` and `:provisioned`. Default value is `nil` which
+  means provisioned mode will be used.
 * `read_capacity` - is used at table or indices creation. Default is 100
   (units)
 * `write_capacity` - is used at table or indices creation. Default is 20
