@@ -12,6 +12,29 @@
 
 
 
+# 3.4.0
+
+## Features
+* Feature: [#386](https://github.com/Dynamoid/dynamoid/pull/386) Disable timestamps fields on a table level with new
+  table option `timestamps`
+* Feature: [#387](https://github.com/Dynamoid/dynamoid/pull/387) Add TTL support with table option `expires`
+* Feature: [#393](https://github.com/Dynamoid/dynamoid/pull/393) Support pre-configured credentials with new config
+  option `credentials` (@emmajhyde)
+* Feature: [#397](https://github.com/Dynamoid/dynamoid/pull/397) Configure on-demand table capacity mode with `capacity_mode` option
+
+## Improvements
+* Improvement: [#388](https://github.com/Dynamoid/dynamoid/pull/388) Minor memory optimization - don't allocate excessive
+  hash (@arjes)
+
+## Fixes
+
+Fix: [#382](https://github.com/Dynamoid/dynamoid/pull/382) Fixed deprecation warning about `Module#parent_name` in Rails 6 (@tmandke)
+Fix: Typos in Readme.md (@romeuhcf)
+
+---
+
+
+
 # 3.3.0
 
 ## Features
