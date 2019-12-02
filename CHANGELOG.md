@@ -11,6 +11,14 @@
 ---
 
 
+# 3.4.1
+
+## Fixes
+* Fix: [#398](https://github.com/Dynamoid/dynamoid/pull/398) Fix broken configuration
+
+---
+
+
 
 # 3.4.0
 
@@ -28,8 +36,8 @@
 
 ## Fixes
 
-Fix: [#382](https://github.com/Dynamoid/dynamoid/pull/382) Fixed deprecation warning about `Module#parent_name` in Rails 6 (@tmandke)
-Fix: Typos in Readme.md (@romeuhcf)
+* Fix: [#382](https://github.com/Dynamoid/dynamoid/pull/382) Fixed deprecation warning about `Module#parent_name` in Rails 6 (@tmandke)
+* Fix: Typos in Readme.md (@romeuhcf)
 
 ---
 
