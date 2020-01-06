@@ -146,6 +146,25 @@ module Dynamoid
         model
       end
 
+      # Update document with provided attributes.
+      #
+      # Instantiates document and saves changes.
+      # Runs validations and callbacks. Raises Dynamoid::Errors::DocumentNotValid exception if validation fails.
+      #
+      # @param [Scalar value] partition key
+      # @param [Scalar value] sort key, optional
+      # @param [Hash] attributes
+      #
+      # @return [Dynamoid::Doument] updated document
+      #
+      # @example Update document
+      #   Post.update!(101, title: 'New title')
+      def update!(hash_key, range_key_value = nil, attrs)
+        model = find(hash_key, range_key: range_key_value, consistent_read: true)
+        model.update_attributes!(attrs)
+        model
+      end
+
       # Update document.
       #
       # Uses efficient low-level `UpdateItem` API call.
