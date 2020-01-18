@@ -6,16 +6,20 @@ rvm:
   - ruby-2.4.6
   - ruby-2.5.5
   - ruby-2.6.3
+  - ruby-2.7.0
   - jruby-9.2.8.0
 gemfile:
   - gemfiles/rails_4_2.gemfile
   - gemfiles/rails_5_0.gemfile
   - gemfiles/rails_5_1.gemfile
   - gemfiles/rails_5_2.gemfile
+  - gemfiles/rails_5_2.gemfile
 
 matrix:
   include:
     - rvm: ruby-2.6.3
+      gemfile: gemfiles/rails_6_0.gemfile
+    - rvm: ruby-2.7.0
       gemfile: gemfiles/rails_6_0.gemfile
 
 ### BUILD LIFECYCLE STEPS ###
