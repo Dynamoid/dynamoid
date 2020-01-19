@@ -12,10 +12,26 @@ gemfile:
   - gemfiles/rails_5_0.gemfile
   - gemfiles/rails_5_1.gemfile
   - gemfiles/rails_5_2.gemfile
+  - gemfiles/rails_5_2.gemfile
 
 matrix:
   include:
+    # Ruby 2.7
+    # Rails works with Ruby 2.7 only from Rails 5.0
+    - rvm: ruby-2.7.0
+      gemfile: gemfiles/rails_5_0.gemfile
+    - rvm: ruby-2.7.0
+      gemfile: gemfiles/rails_5_1.gemfile
+    - rvm: ruby-2.7.0
+      gemfile: gemfiles/rails_5_2.gemfile
+
+    # Rails 6
+    # It requires Ruby 2.5 and above
+    - rvm: ruby-2.5.3
+      gemfile: gemfiles/rails_6_0.gemfile
     - rvm: ruby-2.6.3
+      gemfile: gemfiles/rails_6_0.gemfile
+    - rvm: ruby-2.7.0
       gemfile: gemfiles/rails_6_0.gemfile
 
 ### BUILD LIFECYCLE STEPS ###
