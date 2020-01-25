@@ -425,8 +425,9 @@ describe Dynamoid::Persistence do
     end
 
     describe 'capacity mode' do
+      # when capacity mode is PROVISIONED DynamoDB returns billing_mode_summary=nil
       let(:table_description) { Dynamoid.adapter.adapter.send(:describe_table, model.table_name) }
-      let(:billing_mode)      { table_description.schema.billing_mode_summary.billing_mode }
+      let(:billing_mode)      { table_description.schema.billing_mode_summary&.billing_mode }
 
       before do
         model.create_table
@@ -441,7 +442,7 @@ describe Dynamoid::Persistence do
           end
 
           it 'creates table with provisioned capacity mode' do
-            expect(billing_mode).to eq 'PROVISIONED'
+            expect(billing_mode).to eq nil # it means 'PROVISIONED'
           end
         end
 
@@ -479,7 +480,7 @@ describe Dynamoid::Persistence do
           end
 
           it 'creates table with provisioned capacity mode' do
-            expect(billing_mode).to eq 'PROVISIONED'
+            expect(billing_mode).to eq nil # it means 'PROVISIONED'
           end
         end
       end
@@ -492,7 +493,7 @@ describe Dynamoid::Persistence do
         end
 
         it 'creates table with provisioned capacity mode' do
-          expect(billing_mode).to eq 'PROVISIONED'
+          expect(billing_mode).to eq nil # it means 'PROVISIONED'
         end
       end
     end
