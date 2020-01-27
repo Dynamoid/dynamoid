@@ -820,6 +820,125 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe '.update!' do
+    let(:document_class) do
+      new_class do
+        field :name
+
+        validates :name, presence: true, length: { minimum: 5 }
+      end
+    end
+
+    it 'loads and saves document' do
+      d = document_class.create(name: 'Document#1')
+
+      expect do
+        document_class.update!(d.id, name: '[Updated]')
+      end.to change { d.reload.name }.from('Document#1').to('[Updated]')
+    end
+
+    it 'returns updated document' do
+      d = document_class.create(name: 'Document#1')
+      d2 = document_class.update!(d.id, name: '[Updated]')
+
+      expect(d2).to be_a(document_class)
+      expect(d2.name).to eq '[Updated]'
+    end
+
+    it 'does not save invalid document' do
+      d = document_class.create(name: 'Document#1')
+      d2 = nil
+
+      expect do
+        d2 = document_class.update!(d.id, name: '[Up')
+      end.to raise_error(Dynamoid::Errors::DocumentNotValid)
+      expect(d2).to be_nil
+    end
+
+    it 'accepts range key value if document class declares it' do
+      klass = new_class do
+        field :name
+        range :status
+      end
+
+      d = klass.create(status: 'old', name: 'Document#1')
+      expect do
+        klass.update!(d.id, 'old', name: '[Updated]')
+      end.to change { d.reload.name }.to('[Updated]')
+    end
+
+    it 'dumps range key value to proper format' do
+      klass = new_class do
+        field :name
+        range :activated_on, :date
+        field :another_date, :datetime
+      end
+
+      d = klass.create(activated_on: '2018-01-14'.to_date, name: 'Document#1')
+      expect do
+        klass.update!(d.id, '2018-01-14'.to_date, name: '[Updated]')
+      end.to change { d.reload.name }.to('[Updated]')
+    end
+
+    describe 'timestamps' do
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        d = document_class.create(name: 'Document#1')
+
+        travel 1.hour do
+          time_now = Time.now
+
+          expect {
+            document_class.update!(d.id, name: '[Updated]')
+          }.to change { d.reload.updated_at.to_i }.to(time_now.to_i)
+        end
+      end
+
+      it 'uses provided value of updated_at if Config.timestamps=true', config: { timestamps: true } do
+        d = document_class.create(name: 'Document#1')
+
+        travel 1.hour do
+          updated_at = Time.now + 1.hour
+
+          expect {
+            document_class.update!(d.id, name: '[Updated]', updated_at: updated_at)
+          }.to change { d.reload.updated_at.to_i }.to(updated_at.to_i)
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        doc = document_class.create(name: 'Document#1')
+
+        expect do
+          document_class.update!(doc.id, name: '[Updated]')
+        end.not_to raise_error
+      end
+    end
+
+    describe 'type casting' do
+      it 'uses type casted value of sort key to call UpdateItem' do
+        document_class_with_range = new_class do
+          range :count, :integer
+          field :title
+        end
+
+        obj = document_class_with_range.create(title: 'Old', count: '100')
+        document_class_with_range.update!(obj.id, '100', title: 'New')
+        expect(obj.reload.title).to eq 'New'
+      end
+
+      it 'type casts attributes' do
+        klass = new_class do
+          field :count, :integer
+        end
+
+        obj = klass.create(count: 100)
+        obj2 = klass.update!(obj.id, count: '101')
+        expect(obj2.attributes[:count]).to eql(101)
+        expect(raw_attributes(obj2)[:count]).to eql(101)
+      end
+    end
+  end
+
   describe '.update' do
     let(:document_class) do
       new_class do
