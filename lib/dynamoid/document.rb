@@ -225,3 +225,5 @@ module Dynamoid #:nodoc:
     end
   end
 end
+
+ActiveSupport.run_load_hooks(:dynamoid, Dynamoid::Document)
