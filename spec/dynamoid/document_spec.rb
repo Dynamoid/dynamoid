@@ -3,6 +3,12 @@
 require 'spec_helper'
 
 describe Dynamoid::Document do
+  it 'runs load hooks' do
+    result = nil
+    ActiveSupport.on_load(:dynamoid) { |loaded| result = loaded }
+    expect(loaded).to eq(described_class)
+  end
+
   it 'initializes a new document' do
     address = Address.new
 
