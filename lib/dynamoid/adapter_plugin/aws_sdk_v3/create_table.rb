@@ -213,7 +213,7 @@ module Dynamoid
           end
 
           # Only global secondary indexes have a separate throughput.
-          if index.type == :global_secondary
+          if index.type == :global_secondary && options[:billing_mode] != :on_demand
             hash[:provisioned_throughput] = {
               read_capacity_units: index.read_capacity,
               write_capacity_units: index.write_capacity
