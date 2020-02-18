@@ -24,8 +24,8 @@ module Dynamoid
       def ignored_keys
         @conditions.keys
           .group_by(&method(:key_to_field))
-          .select { |field, ary| ary.size > 1 }
-          .flat_map { |field, ary| ary[0 .. -2] }
+          .select { |_, ary| ary.size > 1 }
+          .flat_map { |_, ary| ary[0..-2] }
       end
 
       def key_to_field(key)
@@ -38,4 +38,3 @@ module Dynamoid
     end
   end
 end
-

@@ -19,8 +19,8 @@ module Dynamoid
         fields_list = @nonexistent_fields.map { |s| "`#{s}`" }.join(', ')
         count = @nonexistent_fields.size
 
-        "where conditions contain nonexistent" \
-          " field #{ 'name'.pluralize(count) } #{ fields_list }"
+        'where conditions contain nonexistent' \
+          " field #{'name'.pluralize(count)} #{fields_list}"
       end
 
       private

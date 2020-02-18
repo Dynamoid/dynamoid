@@ -44,9 +44,9 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     def dynamo_request(table_name, scan_hash = {}, select_opts = {})
-      return Dynamoid.adapter.query(table_name, scan_hash.merge(select_opts)).flat_map{ |i| i } if @request_type == :query
+      return Dynamoid.adapter.query(table_name, scan_hash.merge(select_opts)).flat_map { |i| i } if @request_type == :query
 
-      Dynamoid.adapter.scan(table_name, scan_hash, select_opts).flat_map{ |i| i }
+      Dynamoid.adapter.scan(table_name, scan_hash, select_opts).flat_map { |i| i }
     end
 
     context 'multiple name entities' do
@@ -130,10 +130,15 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         # We should paginate through 5 responses each of size 1 (batch) and
         # only scan through 5 records at most which with our given filter
         # should return 1 result since first 4 are Josh and last is Pascal.
-        expect(dynamo_request(test_table3, request_params.merge(name: { eq: 'Pascal' }),
-          batch_size: 1,
-          scan_limit: 5,
-          record_limit: 3).count).to eq(1)
+        expect(
+          dynamo_request(
+            test_table3,
+            request_params.merge(name: { eq: 'Pascal' }),
+            batch_size: 1,
+            scan_limit: 5,
+            record_limit: 3
+          ).count
+        ).to eq(1)
       end
 
       it 'obeys correct record limit with filter, batching, and scan limit' do
@@ -141,10 +146,15 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         # We should paginate through 6 responses each of size 1 (batch) and
         # only scan through 6 records at most which with our given filter
         # should return 2 results, and hit record limit before scan limit.
-        expect(dynamo_request(test_table3, request_params.merge(name: { eq: 'Pascal' }),
-          batch_size: 1,
-          scan_limit: 10,
-          record_limit: 2).count).to eq(2)
+        expect(
+          dynamo_request(
+            test_table3,
+            request_params.merge(name: { eq: 'Pascal' }),
+            batch_size: 1,
+            scan_limit: 10,
+            record_limit: 2
+          ).count
+        ).to eq(2)
       end
     end
 
@@ -157,11 +167,13 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         # 64 of these items will exceed the 1MB result record_limit thus query won't return all results on first loop
         # We use :age since :range won't work for filtering in queries
         200.times do |i|
-          Dynamoid.adapter.put_item(test_table3,
+          Dynamoid.adapter.put_item(
+            test_table3,
             id: '1',
             range: i.to_f,
             age: i.to_f,
-            data: 'A' * 1024 * 16)
+            data: 'A' * 1024 * 16
+          )
         end
       end
 
@@ -260,37 +272,37 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     it 'performs query on a table with a range and selects items in a range' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_between: [0.0, 3.0]).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], {last_evaluated_key: nil}]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_between: [0.0, 3.0]).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table with a range and selects items in a range with :select option' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_between: [0.0, 3.0], select: 'ALL_ATTRIBUTES').to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], {last_evaluated_key: nil}]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_between: [0.0, 3.0], select: 'ALL_ATTRIBUTES').to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table with a range and selects items greater than' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_greater_than: 1.0).to_a).to eq [[[{ id: '1', range: BigDecimal(3) }], {last_evaluated_key: nil}]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_greater_than: 1.0).to_a).to eq [[[{ id: '1', range: BigDecimal(3) }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table with a range and selects items less than' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_less_than: 2.0).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }], {last_evaluated_key: nil}]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_less_than: 2.0).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table with a range and selects items gte' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_gte: 1.0).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], {last_evaluated_key: nil}]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_gte: 1.0).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table with a range and selects items lte' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_lte: 3.0).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], {last_evaluated_key: nil}]]
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_lte: 3.0).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table and returns items based on returns correct limit' do
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_greater_than: 0.0, record_limit: 1).flat_map{ |i| i }.count).to eq(1)
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_greater_than: 0.0, record_limit: 1).flat_map { |i| i }.count).to eq(1)
     end
 
     it 'performs query on a table with a range and selects all items' do
       200.times { |i| Dynamoid.adapter.put_item(test_table3, id: '1', range: i.to_f, data: 'A' * 1024 * 16) }
       # 64 of these items will exceed the 1MB result limit thus query won't return all results on first loop
-      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_gte: 0.0).flat_map{ |i| i }.count).to eq(200)
+      expect(Dynamoid.adapter.query(test_table3, hash_value: '1', range_gte: 0.0).flat_map { |i| i }.count).to eq(200)
     end
   end
 
@@ -308,7 +320,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     it 'performs query on a table with a range and selects items less than that is in the correct order, scan_index_forward true' do
-      query = Dynamoid.adapter.query(test_table4, hash_value: '1', range_greater_than: 0, scan_index_forward: true).flat_map{ |i| i }.to_a
+      query = Dynamoid.adapter.query(test_table4, hash_value: '1', range_greater_than: 0, scan_index_forward: true).flat_map { |i| i }.to_a
       expect(query[0]).to eq(id: '1', order: 1, range: BigDecimal(1))
       expect(query[1]).to eq(id: '1', order: 2, range: BigDecimal(2))
       expect(query[2]).to eq(id: '1', order: 3, range: BigDecimal(3))
@@ -318,7 +330,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     it 'performs query on a table with a range and selects items less than that is in the correct order, scan_index_forward false' do
-      query = Dynamoid.adapter.query(test_table4, hash_value: '1', range_greater_than: 0, scan_index_forward: false).flat_map{ |i| i }.to_a
+      query = Dynamoid.adapter.query(test_table4, hash_value: '1', range_greater_than: 0, scan_index_forward: false).flat_map { |i| i }.to_a
       expect(query[5]).to eq(id: '1', order: 1, range: BigDecimal(1))
       expect(query[4]).to eq(id: '1', order: 2, range: BigDecimal(2))
       expect(query[3]).to eq(id: '1', order: 3, range: BigDecimal(3))
@@ -356,12 +368,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       Dynamoid.adapter.put_item(table, id: '1', name: 'Josh')
       Dynamoid.adapter.put_item(table, id: '2', name: 'Justin')
 
-      results = Dynamoid.adapter.batch_get_item(table => ['1', '2'])
+      results = Dynamoid.adapter.batch_get_item(table => %w[1 2])
       expect(results).to eq(
         {
           table => [
-            { id: '1', name: 'Josh'},
-            { id: '2', name: 'Justin'},
+            { id: '1', name: 'Josh' },
+            { id: '2', name: 'Justin' },
           ]
         }
       )
@@ -375,10 +387,10 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(results).to eq(
         {
           table => [
-            { id: '1', name: 'Josh'}
+            { id: '1', name: 'Josh' }
           ],
           table_another => [
-            { id: '2', name: 'Justin'}
+            { id: '2', name: 'Justin' }
           ]
         }
       )
@@ -403,10 +415,10 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       Dynamoid.adapter.put_item(table, id: '1', name: 'Josh')
 
       results = Dynamoid.adapter.batch_get_item(table.to_s => ['1'])
-      expect(results).to eq(table => [{ id: '1', name: 'Josh'}])
+      expect(results).to eq(table => [{ id: '1', name: 'Josh' }])
 
       results = Dynamoid.adapter.batch_get_item(table.to_sym => ['1'])
-      expect(results).to eq(table => [{ id: '1', name: 'Josh'}])
+      expect(results).to eq(table => [{ id: '1', name: 'Josh' }])
     end
 
     context 'when simple key' do
@@ -428,12 +440,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         Dynamoid.adapter.put_item(table, id: '1', name: 'Josh')
         Dynamoid.adapter.put_item(table, id: '2', name: 'Justin')
 
-        results = Dynamoid.adapter.batch_get_item(table => ['1', '2'])
+        results = Dynamoid.adapter.batch_get_item(table => %w[1 2])
         expect(results).to eq(
           {
             table => [
-              { id: '1', name: 'Josh'},
-              { id: '2', name: 'Justin'},
+              { id: '1', name: 'Josh' },
+              { id: '2', name: 'Justin' },
             ]
           }
         )
@@ -442,19 +454,19 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
     context 'when composite key' do
       it 'accepts one id passed as singular value' do
-        skip "It is not supported and needed yet"
+        skip 'It is not supported and needed yet'
 
         Dynamoid.adapter.put_item(table_with_composite_key, id: '1', age: 29, name: 'Josh')
 
         results = Dynamoid.adapter.batch_get_item(table_with_composite_key => ['1', 29])
-        expect(results).to eq(table_with_composite_key => [{id: '1', age: 29, name: 'Josh'}])
+        expect(results).to eq(table_with_composite_key => [{ id: '1', age: 29, name: 'Josh' }])
       end
 
       it 'accepts one id passed as array' do
         Dynamoid.adapter.put_item(table_with_composite_key, id: '1', age: 29, name: 'Josh')
 
         results = Dynamoid.adapter.batch_get_item(table_with_composite_key => [['1', 29]])
-        expect(results).to eq(table_with_composite_key => [{id: '1', age: 29, name: 'Josh'}])
+        expect(results).to eq(table_with_composite_key => [{ id: '1', age: 29, name: 'Josh' }])
       end
 
       it 'accepts multiple ids' do
@@ -620,9 +632,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
           range_key: :range2
         )
 
-        Dynamoid.adapter.create_table('table_lsi', :id,
+        Dynamoid.adapter.create_table(
+          'table_lsi',
+          :id,
           local_secondary_indexes: doc_class.local_secondary_indexes.values,
-          range_key: { range: :number })
+          range_key: { range: :number }
+        )
 
         # execute
         resp = Dynamoid.adapter.client.describe_table(table_name: 'table_lsi')
@@ -648,9 +663,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
           write_capacity: 10,
           read_capacity: 20
         )
-        Dynamoid.adapter.create_table('table_gsi', :id,
+        Dynamoid.adapter.create_table(
+          'table_gsi',
+          :id,
           global_secondary_indexes: doc_class.global_secondary_indexes.values,
-          range_key: { range: :number })
+          range_key: { range: :number }
+        )
 
         # execute
         resp = Dynamoid.adapter.client.describe_table(table_name: 'table_gsi')
@@ -771,7 +789,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         .exactly(2).times.and_call_original
       Dynamoid.adapter.batch_delete_item(test_table1 => (0..25).map(&:to_s))
 
-      results = Dynamoid.adapter.scan(test_table1).flat_map{ |i| i }
+      results = Dynamoid.adapter.scan(test_table1).flat_map { |i| i }
       expect(results.to_a.size).to eq 0
     end
 
@@ -788,10 +806,10 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         test_table2 => (0..12).map(&:to_s)
       )
 
-      results = Dynamoid.adapter.scan(test_table1).flat_map{ |i| i }
+      results = Dynamoid.adapter.scan(test_table1).flat_map { |i| i }
       expect(results.to_a.size).to eq 0
 
-      results = Dynamoid.adapter.scan(test_table2).flat_map{ |i| i }
+      results = Dynamoid.adapter.scan(test_table2).flat_map { |i| i }
       expect(results.to_a.size).to eq 0
     end
 
@@ -920,14 +938,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     it 'performs query on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
-      expect(Dynamoid.adapter.query(test_table1, hash_value: '1').first).to eq([[id: '1', name: 'Josh'], {last_evaluated_key: nil}])
+      expect(Dynamoid.adapter.query(test_table1, hash_value: '1').first).to eq([[id: '1', name: 'Josh'], { last_evaluated_key: nil }])
     end
 
     it 'performs query on a table and returns items if there are multiple items' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
 
-      expect(Dynamoid.adapter.query(test_table1, hash_value: '1').first).to eq([[id: '1', name: 'Josh'], {last_evaluated_key: nil}])
+      expect(Dynamoid.adapter.query(test_table1, hash_value: '1').first).to eq([[id: '1', name: 'Josh'], { last_evaluated_key: nil }])
     end
 
     context 'backoff is specified' do
@@ -949,7 +967,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         Dynamoid.adapter.put_item(test_table3, id: '1', range: 1)
         Dynamoid.adapter.put_item(test_table3, id: '1', range: 2)
 
-        expect(Dynamoid.adapter.query(test_table3, hash_value: '1', batch_size: 1).flat_map{ |i| i }.count).to eq 2
+        expect(Dynamoid.adapter.query(test_table3, hash_value: '1', batch_size: 1).flat_map { |i| i }.count).to eq 2
         expect(@counter).to eq 2
       end
     end
@@ -964,14 +982,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     it 'performs scan on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
-      expect(Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' }).to_a).to eq [[[{ id: '1', name: 'Josh' }], {last_evaluated_key: nil}]]
+      expect(Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' }).to_a).to eq [[[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }]]
     end
 
     it 'performs scan on a table and returns items if there are multiple items but only one match' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
 
-      expect(Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' }).to_a).to eq [[[{ id: '1', name: 'Josh' }], {last_evaluated_key: nil}]]
+      expect(Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' }).to_a).to eq [[[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }]]
     end
 
     it 'performs scan on a table and returns multiple items if there are multiple matches' do
@@ -980,19 +998,21 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
       expect(
         Dynamoid.adapter.scan(test_table1, name: { eq: 'Josh' }).to_a
-      ).to match([
+      ).to match(
         [
-          match_array([{ name: 'Josh', id: '2' }, { name: 'Josh', id: '1' }]),
-          {last_evaluated_key: nil}
+          [
+            match_array([{ name: 'Josh', id: '2' }, { name: 'Josh', id: '1' }]),
+            { last_evaluated_key: nil }
+          ]
         ]
-      ])
+      )
     end
 
     it 'performs scan on a table and returns all items if no criteria are specified' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
 
-      expect(Dynamoid.adapter.scan(test_table1, {}).flat_map{ |i| i }).to include({ name: 'Josh', id: '2' }, name: 'Josh', id: '1')
+      expect(Dynamoid.adapter.scan(test_table1, {}).flat_map { |i| i }).to include({ name: 'Josh', id: '2' }, name: 'Josh', id: '1')
     end
 
     it 'performs scan on a table and returns correct limit' do
@@ -1001,7 +1021,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
 
-      expect(Dynamoid.adapter.scan(test_table1, {}, record_limit: 1).flat_map{ |i| i }.count).to eq(1)
+      expect(Dynamoid.adapter.scan(test_table1, {}, record_limit: 1).flat_map { |i| i }.count).to eq(1)
     end
 
     it 'performs scan on a table and returns correct batch' do
@@ -1010,7 +1030,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
 
-      expect(Dynamoid.adapter.scan(test_table1, {}, batch_size: 1).flat_map{ |i| i }.count).to eq(4)
+      expect(Dynamoid.adapter.scan(test_table1, {}, batch_size: 1).flat_map { |i| i }.count).to eq(4)
     end
 
     it 'performs scan on a table and returns correct limit and batch' do
@@ -1019,7 +1039,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
 
-      expect(Dynamoid.adapter.scan(test_table1, {}, record_limit: 1, batch_size: 1).flat_map{ |i| i }.count).to eq(1)
+      expect(Dynamoid.adapter.scan(test_table1, {}, record_limit: 1, batch_size: 1).flat_map { |i| i }.count).to eq(1)
     end
 
     context 'backoff is specified' do
@@ -1043,7 +1063,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
         Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
 
-        expect(Dynamoid.adapter.scan(test_table1, {}, batch_size: 1).flat_map{ |i| i }.count).to eq 4
+        expect(Dynamoid.adapter.scan(test_table1, {}, batch_size: 1).flat_map { |i| i }.count).to eq 4
         expect(@counter).to eq 4
       end
     end

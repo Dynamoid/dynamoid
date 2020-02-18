@@ -3,7 +3,6 @@
 module Dynamoid #:nodoc:
   module Criteria
     class KeyFieldsDetector
-
       class Query
         def initialize(query_hash)
           @query_hash = query_hash
@@ -71,8 +70,8 @@ module Dynamoid #:nodoc:
       def match_local_secondary_index
         return unless @query.contain_with_eq_operator?(@source.hash_key)
 
-        lsi = @source.local_secondary_indexes.values.find do |lsi|
-          @query.contain?(lsi.range_key)
+        lsi = @source.local_secondary_indexes.values.find do |i|
+          @query.contain?(i.range_key)
         end
 
         if lsi.present?
@@ -90,9 +89,9 @@ module Dynamoid #:nodoc:
       # But only do so if projects ALL attributes otherwise we won't
       # get back full data
       def match_global_secondary_index_and_sort_key
-        gsi = @source.global_secondary_indexes.values.find do |gsi|
-          @query.contain_with_eq_operator?(gsi.hash_key) && gsi.projected_attributes == :all &&
-            @query.contain?(gsi.range_key)
+        gsi = @source.global_secondary_indexes.values.find do |i|
+          @query.contain_with_eq_operator?(i.hash_key) && i.projected_attributes == :all &&
+            @query.contain?(i.range_key)
         end
 
         if gsi.present?
@@ -113,8 +112,8 @@ module Dynamoid #:nodoc:
       end
 
       def match_global_secondary_index
-        gsi = @source.global_secondary_indexes.values.find do |gsi|
-          @query.contain_with_eq_operator?(gsi.hash_key) && gsi.projected_attributes == :all
+        gsi = @source.global_secondary_indexes.values.find do |i|
+          @query.contain_with_eq_operator?(i.hash_key) && i.projected_attributes == :all
         end
 
         if gsi.present?

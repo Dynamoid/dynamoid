@@ -102,12 +102,12 @@ module Dynamoid
         ranges = []
 
         if @key_fields_detector.key_present?
-          Dynamoid.adapter.query(source.table_name, range_query).flat_map{ |i| i }.collect do |hash|
+          Dynamoid.adapter.query(source.table_name, range_query).flat_map { |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
         else
-          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).flat_map{ |i| i }.collect do |hash|
+          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).flat_map { |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
@@ -332,7 +332,7 @@ module Dynamoid
         opts.merge(query_opts).merge(consistent_opts)
       end
 
-      # TODO casting should be operator aware
+      # TODO: casting should be operator aware
       # e.g. for NULL operator value should be boolean
       # and isn't related to an attribute own type
       def type_cast_condition_parameter(key, value)

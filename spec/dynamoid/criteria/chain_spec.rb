@@ -347,7 +347,7 @@ describe Dynamoid::Criteria::Chain do
 
       put_attributes(model.table_name, name: 'a', last_name: 'aa', age: 1)
       put_attributes(model.table_name, name: 'a', last_name: 'bb', age: 2)
-      put_attributes(model.table_name, name: 'a', last_name: 'cc', )
+      put_attributes(model.table_name, name: 'a', last_name: 'cc',)
 
       documents = model.where(name: 'a', 'age.null': true).to_a
       expect(documents.map(&:last_name)).to contain_exactly('cc')
@@ -361,7 +361,7 @@ describe Dynamoid::Criteria::Chain do
 
       put_attributes(model.table_name, name: 'a', last_name: 'aa', age: 1)
       put_attributes(model.table_name, name: 'a', last_name: 'bb', age: 2)
-      put_attributes(model.table_name, name: 'a', last_name: 'cc', )
+      put_attributes(model.table_name, name: 'a', last_name: 'cc',)
 
       documents = model.where(name: 'a', 'age.not_null': true).to_a
       expect(documents.map(&:last_name)).to contain_exactly('aa', 'bb')
@@ -540,10 +540,10 @@ describe Dynamoid::Criteria::Chain do
       put_attributes(model.table_name, id: '2', age: 2)
       put_attributes(model.table_name, id: '3')
 
-      documents = model.where('age.not_null':  true).to_a
+      documents = model.where('age.not_null': true).to_a
       expect(documents.map(&:id)).to contain_exactly('1', '2')
 
-      documents = model.where('age.not_null':  false).to_a
+      documents = model.where('age.not_null': false).to_a
       expect(documents.map(&:id)).to contain_exactly('3')
     end
   end
@@ -1050,7 +1050,7 @@ describe Dynamoid::Criteria::Chain do
       end
 
       it 'ignores conditions except the last one' do
-        (1 .. 5).each { |i| model.create(age: i) }
+        (1..5).each { |i| model.create(age: i) }
 
         models = model.where('age.gt': 2, 'age.lt': 4).to_a
         expect(models.map(&:age)).to contain_exactly(1, 2, 3)
@@ -1170,8 +1170,8 @@ describe Dynamoid::Criteria::Chain do
 
     it 'yields one page at a time' do
       expect { |b| model.where(id: '1').find_by_pages(&b) }.to yield_successive_args(
-        [all(be_kind_of(model)), {last_evaluated_key: an_instance_of(Hash)}],
-        [all(be_kind_of(model)), {last_evaluated_key: nil}],
+        [all(be_kind_of(model)), { last_evaluated_key: an_instance_of(Hash) }],
+        [all(be_kind_of(model)), { last_evaluated_key: nil }],
       )
     end
   end
@@ -1614,7 +1614,7 @@ describe Dynamoid::Criteria::Chain do
       post1 = Post.create(post_id: 'x', posted_at: time)
       post2 = Post.create(post_id: 'x', posted_at: (time + 1.hour))
       chain = Dynamoid::Criteria::Chain.new(Post)
-      chain = chain.where(post_id: 'x', 'posted_at.lt': (time + 1.hour - ts_epsilon) )
+      chain = chain.where(post_id: 'x', 'posted_at.lt': (time + 1.hour - ts_epsilon))
       expect(chain.count).to eq 1
       stored_record = chain.first
       expect(stored_record.attributes[:post_id]).to eq post2.attributes[:post_id]

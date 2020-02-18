@@ -215,8 +215,6 @@ module Dynamoid
           value.to_hash
         elsif value.respond_to? :to_h
           value.to_h
-        else
-          nil
         end
       end
     end

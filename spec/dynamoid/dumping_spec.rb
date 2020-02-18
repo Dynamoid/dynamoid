@@ -84,8 +84,7 @@ describe 'Dumping' do
 
       context 'store_boolean_as_native=true' do
         it 'is stored as boolean if field option store_as_native_boolean is not set',
-          config: { store_boolean_as_native: true } do
-
+           config: { store_boolean_as_native: true } do
           klass = new_class do
             field :active, :boolean
           end
@@ -97,8 +96,7 @@ describe 'Dumping' do
         end
 
         it 'is stored as boolean if field option store_as_native_boolean=true',
-          config: { store_boolean_as_native: true } do
-
+           config: { store_boolean_as_native: true } do
           klass = new_class do
             field :active, :boolean, store_as_native_boolean: true
           end
@@ -110,8 +108,7 @@ describe 'Dumping' do
         end
 
         it 'is stored as string if field option store_as_native_boolean=false',
-          config: { store_boolean_as_native: true } do
-
+           config: { store_boolean_as_native: true } do
           klass = new_class do
             field :active, :boolean, store_as_native_boolean: false
           end
@@ -125,8 +122,7 @@ describe 'Dumping' do
 
       context 'store_boolean_as_native=false' do
         it 'is stored as string if field option store_as_native_boolean is not set',
-          config: { store_boolean_as_native: false } do
-
+           config: { store_boolean_as_native: false } do
           klass = new_class do
             field :active, :boolean
           end
@@ -138,8 +134,7 @@ describe 'Dumping' do
         end
 
         it 'is stored as boolean if field option store_as_native_boolean=true',
-          config: { store_boolean_as_native: false } do
-
+           config: { store_boolean_as_native: false } do
           klass = new_class do
             field :active, :boolean, store_as_native_boolean: true
           end
@@ -151,8 +146,7 @@ describe 'Dumping' do
         end
 
         it 'is stored as string if field option store_as_native_boolean=false',
-          config: { store_boolean_as_native: false } do
-
+           config: { store_boolean_as_native: false } do
           klass = new_class do
             field :active, :boolean, store_as_native_boolean: false
           end
@@ -198,8 +192,7 @@ describe 'Dumping' do
     end
 
     context 'Stored in :string ISO-8601 format',
-      config: { application_timezone: :utc, dynamodb_timezone: :utc } do
-
+            config: { application_timezone: :utc, dynamodb_timezone: :utc } do
       let(:klass) do
         new_class do
           field :sent_at, :datetime, store_as_string: true
@@ -268,8 +261,7 @@ describe 'Dumping' do
       end
 
       it 'loads time in local time zone if config.application_timezone = :local',
-        config: { application_timezone: :local } do
-
+         config: { application_timezone: :local } do
         time = DateTime.now
         obj = klass.create(last_logged_in_at: time)
         obj = klass.find(obj.id)
@@ -280,8 +272,7 @@ describe 'Dumping' do
       end
 
       it 'loads time in specified time zone if config.application_timezone = time zone name',
-        config: { application_timezone: 'Hawaii' } do
-
+         config: { application_timezone: 'Hawaii' } do
         # Hawaii UTC-10
         time = '2017-06-20 08:00:00 +0300'.to_datetime
         obj = klass.create(last_logged_in_at: time)
@@ -290,8 +281,7 @@ describe 'Dumping' do
       end
 
       it 'loads time in UTC if config.application_timezone = :utc',
-        config: { application_timezone: :utc } do
-
+         config: { application_timezone: :utc } do
         time = '2017-06-20 08:00:00 +0300'.to_datetime
         obj = klass.create(last_logged_in_at: time)
 
@@ -307,8 +297,7 @@ describe 'Dumping' do
       end
 
       it 'stores time in local time zone',
-        config: { dynamodb_timezone: :local, store_datetime_as_string: true } do
-
+         config: { dynamodb_timezone: :local, store_datetime_as_string: true } do
         time = DateTime.now
         obj = klass.create(last_logged_in_at: time)
 
@@ -316,8 +305,7 @@ describe 'Dumping' do
       end
 
       it 'stores time in specified time zone',
-        config: { dynamodb_timezone: 'Hawaii', store_datetime_as_string: true } do
-
+         config: { dynamodb_timezone: 'Hawaii', store_datetime_as_string: true } do
         time = '2017-06-20 08:00:00 +0300'.to_datetime
         obj = klass.create(last_logged_in_at: time)
 
@@ -339,9 +327,8 @@ describe 'Dumping' do
       end
 
       it 'converts time between application time zone and dynamodb time zone correctly',
-        config: { application_timezone: 'Hong Kong', dynamodb_timezone: 'Hawaii',
-                  store_datetime_as_string: true } do
-
+         config: { application_timezone: 'Hong Kong', dynamodb_timezone: 'Hawaii',
+                   store_datetime_as_string: true } do
         # Hong Kong +8
         # Hawaii -10
         time = '2017-06-20 08:00:00 +0300'.to_datetime
@@ -1012,11 +999,11 @@ describe 'Dumping' do
 
     it 'stores as a Document' do
       settings = {
-        Day: "Monday",
+        Day: 'Monday',
         UnreadEmails: 42,
         ItemsOnMyDesk: [
-          "Coffee Cup",
-          "Telephone",
+          'Coffee Cup',
+          'Telephone',
           {
             Pens: { Quantity: 3 },
             Pencils: { Quantity: 2 },
@@ -1027,34 +1014,30 @@ describe 'Dumping' do
       obj = klass.create(settings: settings)
 
       expect(reload(obj).settings).to eql(
-        {
-          Day: "Monday",
-          UnreadEmails: 42,
-          ItemsOnMyDesk: [
-            "Coffee Cup",
-            "Telephone",
-            {
-              Pens: { Quantity: 3 },
-              Pencils: { Quantity: 2 },
-              Erasers: { Quantity: 1 }
-            }
-          ]
-        }
+        Day: 'Monday',
+        UnreadEmails: 42,
+        ItemsOnMyDesk: [
+          'Coffee Cup',
+          'Telephone',
+          {
+            Pens: { Quantity: 3 },
+            Pencils: { Quantity: 2 },
+            Erasers: { Quantity: 1 }
+          }
+        ]
       )
       expect(raw_attributes(obj)[:settings]).to eql(
-        {
-          "Day" => "Monday",
-          "UnreadEmails" => 42,
-          "ItemsOnMyDesk" => [
-            "Coffee Cup",
-            "Telephone",
-            {
-              "Pens" => { "Quantity" => 3 },
-              "Pencils" => { "Quantity" => 2 },
-              "Erasers" => { "Quantity" => 1 }
-            }
-          ]
-        }
+        'Day' => 'Monday',
+        'UnreadEmails' => 42,
+        'ItemsOnMyDesk' => [
+          'Coffee Cup',
+          'Telephone',
+          {
+            'Pens' => { 'Quantity' => 3 },
+            'Pencils' => { 'Quantity' => 2 },
+            'Erasers' => { 'Quantity' => 1 }
+          }
+        ]
       )
     end
 

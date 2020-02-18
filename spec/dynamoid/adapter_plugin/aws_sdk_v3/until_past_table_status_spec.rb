@@ -21,18 +21,16 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::UntilPastTableStatus do
       end
 
       it 'stops if exceeded Dynamoid.config.sync_retry_max_times attempts limit',
-        config: { sync_retry_max_times: 5 } do
-
+         config: { sync_retry_max_times: 5 } do
         expect(client).to receive(:describe_table)
           .exactly(6).times
-          .and_return(*[response_creating]*6)
+          .and_return(*[response_creating] * 6)
 
         described_class.new(client, :dogs, :creating).call
       end
 
       it 'uses :sync_retry_max_times seconds to delay attempts',
-        config: { sync_retry_wait_seconds: 2, sync_retry_max_times: 3 } do
-
+         config: { sync_retry_wait_seconds: 2, sync_retry_max_times: 3 } do
         service = described_class.new(client, :dogs, :creating)
         allow(client).to receive(:describe_table).and_return(response_creating).exactly(4).times
         expect(service).to receive(:sleep).with(2).exactly(4).times

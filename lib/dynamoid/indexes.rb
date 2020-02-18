@@ -165,8 +165,8 @@ module Dynamoid
       DEFAULT_PROJECTION_TYPE = :keys_only
 
       attr_accessor :name, :dynamoid_class, :type, :hash_key, :range_key,
-        :hash_key_schema, :range_key_schema, :projected_attributes,
-        :read_capacity, :write_capacity
+                    :hash_key_schema, :range_key_schema, :projected_attributes,
+                    :read_capacity, :write_capacity
 
       validate do
         validate_index_type

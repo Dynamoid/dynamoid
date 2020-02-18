@@ -14,11 +14,10 @@ module Dynamoid
             response = @next_chain.call(request)
             @backoff.call if @backoff
 
-            return response
+            response
           end
         end
       end
     end
   end
 end
-

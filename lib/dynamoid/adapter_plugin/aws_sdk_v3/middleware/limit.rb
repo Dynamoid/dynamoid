@@ -46,12 +46,10 @@ module Dynamoid
             @scan_count += response.scanned_count
             throw :stop_pagination if @scan_limit && @scan_count >= @scan_limit
 
-            return response
+            response
           end
         end
-
       end
     end
   end
 end
-

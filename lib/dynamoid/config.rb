@@ -14,9 +14,9 @@ module Dynamoid
     DEFAULT_NAMESPACE = if defined?(Rails)
                           klass = Rails.application.class
                           app_name = Rails::VERSION::MAJOR >= 6 ? klass.module_parent_name : klass.parent_name
-                          "dynamoid_#{app_name}_#{Rails.env}".freeze
+                          "dynamoid_#{app_name}_#{Rails.env}"
                         else
-                          'dynamoid'.freeze
+                          'dynamoid'
                         end
 
     extend self
@@ -95,6 +95,5 @@ module Dynamoid
         backoff_strategies[backoff].call
       end
     end
-
   end
 end

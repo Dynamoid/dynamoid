@@ -29,8 +29,8 @@ module Dynamoid
           request = build_request
 
           Enumerator.new do |yielder|
-            api_call = -> (request) do
-              client.query(request).tap do |response|
+            api_call = lambda do |req|
+              client.query(req).tap do |response|
                 yielder << response
               end
             end
@@ -122,6 +122,7 @@ module Dynamoid
 
         def attributes_to_get
           return if options[:project].nil?
+
           options[:project].map(&:to_s)
         end
       end
