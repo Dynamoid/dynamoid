@@ -7,7 +7,7 @@
 # versions of RuboCop, may require this file to be generated again.
 
 # Offense count: 2
-Lint/HandleExceptions:
+Lint/SuppressedException:
   Exclude:
     - 'lib/dynamoid/document.rb'
 
@@ -16,14 +16,6 @@ Lint/HandleExceptions:
 Security/YAMLLoad:
   Exclude:
     - 'lib/dynamoid/persistence.rb'
-
-# Offense count: 1
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: braces, no_braces, context_dependent
-Style/BracesAroundHashParameters:
-  Exclude:
-    - 'spec/dynamoid/adapter_plugin/aws_sdk_v3_spec.rb'
 
 # Offense count: 2
 # Cop supports --auto-correct.

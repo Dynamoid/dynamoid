@@ -6,9 +6,9 @@ AllCops:
   TargetRubyVersion: 2.3
 
 # It's a matter of taste
-Layout/AlignParameters:
+Layout/ParameterAlignment:
   EnforcedStyle: with_fixed_indentation
-Layout/AlignHash:
+Layout/HashAlignment:
   Enabled: false
 Style/GuardClause:
   Enabled: false
