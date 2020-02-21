@@ -51,7 +51,6 @@ module Dynamoid #:nodoc:
         options[:write_capacity] || Dynamoid::Config.write_capacity
       end
 
-
       # Returns the billing (capacity) mode for this table.
       # Could be either :provisioned or :on_demand
       def capacity_mode

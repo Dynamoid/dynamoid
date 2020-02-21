@@ -556,7 +556,6 @@ describe Dynamoid::Persistence do
     end
   end
 
-
   it 'has a table name' do
     expect(Address.table_name).to eq 'dynamoid_tests_addresses'
   end
@@ -812,7 +811,11 @@ describe Dynamoid::Persistence do
         klass_with_validation.create_table
 
         expect do
-          klass_with_validation.create!([{ city: 'Chicago' }, { city: nil }, { city: 'London' }]) rescue nil
+          begin
+            klass_with_validation.create!([{ city: 'Chicago' }, { city: nil }, { city: 'London' }])
+          rescue StandardError
+            nil
+          end
         end.to change { klass_with_validation.count }.by(1)
 
         obj = klass_with_validation.last
@@ -1599,12 +1602,12 @@ describe Dynamoid::Persistence do
 
         # version #2
         obj.name = 'Alex'
-        obj.save                    # lock_version 1 -> 2
+        obj.save # lock_version 1 -> 2
         obj2.name = 'Bob'
 
         # tries to create version #2 again
         expect {
-          obj2.save                 # lock_version 1 -> 2
+          obj2.save # lock_version 1 -> 2
         }.to raise_error(Dynamoid::Errors::StaleObjectError)
       end
     end

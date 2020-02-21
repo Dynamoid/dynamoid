@@ -32,7 +32,7 @@ module Dynamoid
           # See: http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#describe_table-instance_method
           rescue Aws::DynamoDB::Errors::ResourceNotFoundException => e
             case status
-            when :creating then
+            when :creating
               if counter >= Dynamoid::Config.sync_retry_max_times
                 Dynamoid.logger.warn "Waiting on table metadata for #{table_name} (check #{counter})"
                 retry # start over at first line of begin, does not reset counter

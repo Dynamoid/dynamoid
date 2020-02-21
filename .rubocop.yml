@@ -3,12 +3,12 @@ inherit_from: .rubocop_todo.yml
 
 # It's the lowest supported Ruby version
 AllCops:
-  TargetRubyVersion: 2.3
+  TargetRubyVersion: 2.6
 
 # It's a matter of taste
-Layout/AlignParameters:
+Layout/ParameterAlignment:
   EnforcedStyle: with_fixed_indentation
-Layout/AlignHash:
+Layout/HashAlignment:
   Enabled: false
 Style/GuardClause:
   Enabled: false
@@ -29,6 +29,14 @@ Layout/MultilineMethodCallIndentation:
 Naming/VariableNumber:
   Enabled: false
 Style/MultilineBlockChain:
+  Enabled: false
+Style/TrailingCommaInHashLiteral:
+  Enabled: false
+Style/TrailingCommaInArrayLiteral:
+  Enabled: false
+Style/TrailingCommaInArguments:
+  Enabled: false
+Style/UnlessElse:
   Enabled: false
 
 # We aren't so brave to tackle all these issues right now

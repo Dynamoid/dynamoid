@@ -18,11 +18,10 @@ module Dynamoid
               throw :stop_pagination
             end
 
-            return response
+            response
           end
         end
       end
     end
   end
 end
-

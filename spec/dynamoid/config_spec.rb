@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Dynamoid::Config do
@@ -7,7 +9,8 @@ describe Dynamoid::Config do
     end
 
     before do
-      @credentials_old, Dynamoid.config.credentials = Dynamoid.config.credentials, credentials_new
+      @credentials_old = Dynamoid.config.credentials
+      Dynamoid.config.credentials = credentials_new
       Dynamoid.adapter.connect!  # clear cached client
     end
 

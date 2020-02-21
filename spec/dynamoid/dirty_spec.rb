@@ -77,7 +77,7 @@ describe Dynamoid::Dirty do
     it 'returns a hash of changed attributes indicating their original and new values' do
       obj = model.create(name: 'Alex')
       obj.name = 'Bob'
-      expect(obj.changes).to eq('name' => ['Alex', 'Bob'])
+      expect(obj.changes).to eq('name' => %w[Alex Bob])
 
       obj = model.new(name: 'Alex')
       expect(obj.changes).to eq('name' => [nil, 'Alex'])
@@ -100,7 +100,7 @@ describe Dynamoid::Dirty do
       obj.save
 
       expect(obj.previous_changes).to eq(
-        'name' => ['Alex', 'Bob'],
+        'name' => %w[Alex Bob],
         'updated_at' => ['2019-07-20 00:53:32'.to_datetime, '2019-07-20 20:11:01'.to_datetime]
       )
 
@@ -142,7 +142,7 @@ describe Dynamoid::Dirty do
     it 'returns an array with previous and current values' do
       obj = model.create(name: 'Alex')
       obj.name = 'Bob'
-      expect(obj.name_change).to eq(['Alex', 'Bob'])
+      expect(obj.name_change).to eq(%w[Alex Bob])
 
       obj = model.new(name: 'Alex')
       expect(obj.name_change).to eq([nil, 'Alex'])
@@ -183,7 +183,7 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Alex')
       obj.name = 'Bob'
       obj.save
-      expect(obj.name_previous_change).to eq(['Alex', 'Bob'])
+      expect(obj.name_previous_change).to eq(%w[Alex Bob])
 
       obj = model.create(name: 'Alex')
       expect(obj.name_previous_change).to eq([nil, 'Alex'])
@@ -204,7 +204,7 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Alex')
       obj.name_will_change!
       obj.name.reverse!
-      expect(obj.name_change).to eq(['Alex', 'xelA'])
+      expect(obj.name_change).to eq(%w[Alex xelA])
 
       obj = model.create(name: 'Alex')
       obj.name.reverse!
@@ -241,7 +241,6 @@ describe Dynamoid::Dirty do
       a = model.new(name: 'Alex')
       a.restore_name!
       expect(a.name).to eq nil
-
 
       a = model.create(name: 'Alex')
       a.restore_name!
@@ -341,7 +340,7 @@ describe Dynamoid::Dirty do
     describe '.where' do
       it 'returns model without unsaved changes (Query)' do
         a = model.create(name: 'Alex')
-        (a_loaded, ) = model.where(id: a.id).to_a
+        (a_loaded,) = model.where(id: a.id).to_a
 
         expect(a_loaded.changed?).to eq false
         expect(a_loaded.changes).to eq({})
@@ -349,7 +348,7 @@ describe Dynamoid::Dirty do
 
       it 'returns model without unsaved changes (Scan)' do
         a = model.create(name: 'Alex')
-        (a_loaded, ) = model.where(name: a.name).to_a
+        (a_loaded,) = model.where(name: a.name).to_a
 
         expect(a_loaded.changed?).to eq false
         expect(a_loaded.changes).to eq({})

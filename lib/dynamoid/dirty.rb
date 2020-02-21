@@ -153,67 +153,67 @@ module Dynamoid
 
     private
 
-      def changes_include?(attr_name)
-        attributes_changed_by_setter.include?(attr_name)
-      end
-      alias attribute_changed_by_setter? changes_include?
+    def changes_include?(attr_name)
+      attributes_changed_by_setter.include?(attr_name)
+    end
+    alias attribute_changed_by_setter? changes_include?
 
-      # Removes current changes and makes them accessible through +previous_changes+.
-      def changes_applied # :doc:
-        @previously_changed = changes
-        @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
-      end
+    # Removes current changes and makes them accessible through +previous_changes+.
+    def changes_applied # :doc:
+      @previously_changed = changes
+      @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+    end
 
-      # Clear all dirty data: current changes and previous changes.
-      def clear_changes_information # :doc:
-        @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
-        @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
-      end
+    # Clear all dirty data: current changes and previous changes.
+    def clear_changes_information # :doc:
+      @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
+      @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+    end
 
-      # Handle <tt>*_change</tt> for +method_missing+.
-      def attribute_change(attr)
-        [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
-      end
+    # Handle <tt>*_change</tt> for +method_missing+.
+    def attribute_change(attr)
+      [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
+    end
 
-      # Handle <tt>*_will_change!</tt> for +method_missing+.
-      def attribute_will_change!(attr)
-        return if attribute_changed?(attr)
+    # Handle <tt>*_will_change!</tt> for +method_missing+.
+    def attribute_will_change!(attr)
+      return if attribute_changed?(attr)
 
-        begin
-          value = __send__(attr)
-          value = value.duplicable? ? value.clone : value
-        rescue TypeError, NoMethodError
-        end
-
-        set_attribute_was(attr, value)
+      begin
+        value = __send__(attr)
+        value = value.duplicable? ? value.clone : value
+      rescue TypeError, NoMethodError
       end
 
-      # Handle <tt>restore_*!</tt> for +method_missing+.
-      def restore_attribute!(attr)
-        if attribute_changed?(attr)
-          __send__("#{attr}=", changed_attributes[attr])
-          clear_attribute_changes([attr])
-        end
-      end
+      set_attribute_was(attr, value)
+    end
 
-      # Returns +true+ if attr_name were changed before the model was saved,
-      # +false+ otherwise.
-      def previous_changes_include?(attr_name)
-        previous_changes.include?(attr_name)
+    # Handle <tt>restore_*!</tt> for +method_missing+.
+    def restore_attribute!(attr)
+      if attribute_changed?(attr)
+        __send__("#{attr}=", changed_attributes[attr])
+        clear_attribute_changes([attr])
       end
+    end
 
-      # This is necessary because `changed_attributes` might be overridden in
-      # other implemntations (e.g. in `ActiveRecord`)
-      alias_method :attributes_changed_by_setter, :changed_attributes # :nodoc:
+    # Returns +true+ if attr_name were changed before the model was saved,
+    # +false+ otherwise.
+    def previous_changes_include?(attr_name)
+      previous_changes.include?(attr_name)
+    end
 
-      # Force an attribute to have a particular "before" value
-      def set_attribute_was(attr, old_value)
-        attributes_changed_by_setter[attr] = old_value
-      end
+    # This is necessary because `changed_attributes` might be overridden in
+    # other implemntations (e.g. in `ActiveRecord`)
+    alias attributes_changed_by_setter changed_attributes # :nodoc:
 
-      # Remove changes information for the provided attributes.
-      def clear_attribute_changes(attributes) # :doc:
-        attributes_changed_by_setter.except!(*attributes)
-      end
+    # Force an attribute to have a particular "before" value
+    def set_attribute_was(attr, old_value)
+      attributes_changed_by_setter[attr] = old_value
+    end
+
+    # Remove changes information for the provided attributes.
+    def clear_attribute_changes(attributes) # :doc:
+      attributes_changed_by_setter.except!(*attributes)
+    end
   end
 end

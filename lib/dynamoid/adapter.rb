@@ -3,7 +3,7 @@
 # require only 'concurrent/atom' once this issue is resolved:
 #   https://github.com/ruby-concurrency/concurrent-ruby/pull/377
 require 'concurrent'
-require "dynamoid/adapter_plugin/aws_sdk_v3"
+require 'dynamoid/adapter_plugin/aws_sdk_v3'
 
 # encoding: utf-8
 module Dynamoid

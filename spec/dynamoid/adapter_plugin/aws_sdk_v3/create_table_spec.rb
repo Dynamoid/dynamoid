@@ -83,22 +83,30 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
 
       it 'defines a composite primary key' do
         expect(client).to receive(:create_table)
-          .with(hash_including(key_schema: [
-            hash_including(attribute_name: 'id', key_type: 'HASH'),
-            hash_including(attribute_name: 'name', key_type: 'RANGE')
-          ])).and_return(response)
+          .with(
+            hash_including(
+              key_schema: [
+                hash_including(attribute_name: 'id', key_type: 'HASH'),
+                hash_including(attribute_name: 'name', key_type: 'RANGE')
+              ]
+            )
+          ).and_return(response)
 
-        described_class.new(client, :dogs, :id, { range_key: { name: :string } }).call
+        described_class.new(client, :dogs, :id, range_key: { name: :string }).call
       end
 
       it 'defines the composite key attributes' do
         expect(client).to receive(:create_table)
-          .with(hash_including(attribute_definitions: [
-            hash_including(attribute_name: 'id', attribute_type: 'S'),
-            hash_including(attribute_name: 'name', attribute_type: 'S')
-          ])).and_return(response)
+          .with(
+            hash_including(
+              attribute_definitions: [
+                hash_including(attribute_name: 'id', attribute_type: 'S'),
+                hash_including(attribute_name: 'name', attribute_type: 'S')
+              ]
+            )
+          ).and_return(response)
 
-        described_class.new(client, :dogs, :id, { hash_key_type: :string, range_key: { name: :string } }).call
+        described_class.new(client, :dogs, :id, hash_key_type: :string, range_key: { name: :string }).call
       end
     end
 
@@ -122,12 +130,18 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
 
       it 'defines the index' do
         expect(client).to receive(:create_table)
-          .with(hash_including(local_secondary_indexes: [
-            hash_including(index_name: 'local', key_schema: [
-              hash_including(attribute_name: 'type', key_type: 'HASH'),
-              hash_including(attribute_name: 'id', key_type: 'RANGE')
-            ])
-          ])).and_return(response)
+          .with(
+            hash_including(
+              local_secondary_indexes: [
+                hash_including(
+                  index_name: 'local', key_schema: [
+                    hash_including(attribute_name: 'type', key_type: 'HASH'),
+                    hash_including(attribute_name: 'id', key_type: 'RANGE')
+                  ]
+                )
+              ]
+            )
+          ).and_return(response)
 
         described_class.new(client, :dogs, :id, options).call
       end
@@ -154,21 +168,31 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
 
       it 'defines the index' do
         expect(client).to receive(:create_table)
-          .with(hash_including(global_secondary_indexes: [
-            hash_including(index_name: 'global', key_schema: [
-              hash_including(attribute_name: 'type', key_type: 'HASH'),
-              hash_including(attribute_name: 'id', key_type: 'RANGE')
-            ])
-          ])).and_return(response)
+          .with(
+            hash_including(
+              global_secondary_indexes: [
+                hash_including(
+                  index_name: 'global', key_schema: [
+                    hash_including(attribute_name: 'type', key_type: 'HASH'),
+                    hash_including(attribute_name: 'id', key_type: 'RANGE')
+                  ]
+                )
+              ]
+            )
+          ).and_return(response)
 
         described_class.new(client, :dogs, :id, options).call
       end
 
       it 'defines the provisioned capacity' do
         expect(client).to receive(:create_table)
-          .with(hash_including(global_secondary_indexes: [
-            hash_including(provisioned_throughput: { read_capacity_units: 20, write_capacity_units: 5 })
-          ])).and_return(response)
+          .with(
+            hash_including(
+              global_secondary_indexes: [
+                hash_including(provisioned_throughput: { read_capacity_units: 20, write_capacity_units: 5 })
+              ]
+            )
+          ).and_return(response)
 
         described_class.new(client, :dogs, :id, options).call
       end
@@ -180,9 +204,13 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
 
         it 'does not define a capacity' do
           expect(client).to receive(:create_table)
-            .with(hash_including(global_secondary_indexes: [
-              hash_excluding(provisioned_throughput: { read_capacity_units: 20, write_capacity_units: 5 })
-            ])).and_return(response)
+            .with(
+              hash_including(
+                global_secondary_indexes: [
+                  hash_excluding(provisioned_throughput: { read_capacity_units: 20, write_capacity_units: 5 })
+                ]
+              )
+            ).and_return(response)
 
           described_class.new(client, :dogs, :id, options).call
         end

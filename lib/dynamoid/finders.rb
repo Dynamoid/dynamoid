@@ -183,7 +183,7 @@ module Dynamoid
       def find_all_by_composite_key(hash_key, options = {})
         ActiveSupport::Deprecation.warn('[Dynamoid] .find_all_composite_key is deprecated! Call .where instead of')
 
-        Dynamoid.adapter.query(table_name, options.merge(hash_value: hash_key)).flat_map{ |i| i }.collect do |item|
+        Dynamoid.adapter.query(table_name, options.merge(hash_value: hash_key)).flat_map { |i| i }.collect do |item|
           from_database(item)
         end
       end
@@ -240,7 +240,7 @@ module Dynamoid
           opts[range_op_mapped] = range_key_value
         end
         dynamo_options = opts.merge(options.reject { |key, _| key == :range })
-        Dynamoid.adapter.query(table_name, dynamo_options).flat_map{ |i| i }.map do |item|
+        Dynamoid.adapter.query(table_name, dynamo_options).flat_map { |i| i }.map do |item|
           from_database(item)
         end
       end
@@ -267,9 +267,9 @@ module Dynamoid
           chain = chain.where({}.tap { |h| attributes.each_with_index { |attr, index| h[attr.to_sym] = args[index] } })
 
           if finder =~ /all/
-            return chain.all
+            chain.all
           else
-            return chain.first
+            chain.first
           end
         else
           super

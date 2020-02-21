@@ -11,8 +11,8 @@ require 'dynamoid/persistence/save'
 
 # encoding: utf-8
 module Dynamoid
-  # Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize
-  # values to be of the same type as when they were passed in, based on the fields in the class.
+  #   # Persistence is responsible for dumping objects to and marshalling objects from the datastore. It tries to reserialize
+  #   # values to be of the same type as when they were passed in, based on the fields in the class.
   module Persistence
     extend ActiveSupport::Concern
 
@@ -361,7 +361,6 @@ module Dynamoid
           raise Dynamoid::Errors::StaleObjectError.new(self, 'update')
         end
       end
-
     end
 
     def update(conditions = {}, &block)

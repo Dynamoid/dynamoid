@@ -61,6 +61,25 @@ module Dynamoid
 
       attr_reader :table_cache
 
+      # Build an array of values for Condition
+      # Is used in ScanFilter and QueryFilter
+      # https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
+      # @params [String] operator: value of RANGE_MAP or FIELD_MAP hash, e.g. "EQ", "LT" etc
+      # @params [Object] value: scalar value or array/set
+      def self.attribute_value_list(operator, value)
+        # For BETWEEN and IN operators we should keep value as is (it should be already an array)
+        # NULL and NOT_NULL require absence of attribute list
+        # For all the other operators we wrap the value with array
+        # https://docs.aws.amazon.com/en_us/amazondynamodb/latest/developerguide/LegacyConditionalParameters.Conditions.html
+        if %w[BETWEEN IN].include?(operator)
+          [value].flatten
+        elsif %w[NULL NOT_NULL].include?(operator)
+          nil
+        else
+          [value]
+        end
+      end
+
       # Establish the connection to DynamoDB.
       #
       # @return [Aws::DynamoDB::Client] the DynamoDB connection
@@ -525,7 +544,7 @@ module Dynamoid
         hk    = table.hash_key
         rk    = table.range_key
 
-        scan(table_name, {}, {}).flat_map{ |i| i }.each do |attributes|
+        scan(table_name, {}, {}).flat_map { |i| i }.each do |attributes|
           opts = {}
           opts[:range_key] = attributes[rk.to_sym] if rk
           delete_item(table_name, attributes[hk], opts)
@@ -584,25 +603,6 @@ module Dynamoid
       def result_item_to_hash(item)
         {}.tap do |r|
           item.each { |k, v| r[k.to_sym] = v }
-        end
-      end
-
-      # Build an array of values for Condition
-      # Is used in ScanFilter and QueryFilter
-      # https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
-      # @params [String] operator: value of RANGE_MAP or FIELD_MAP hash, e.g. "EQ", "LT" etc
-      # @params [Object] value: scalar value or array/set
-      def self.attribute_value_list(operator, value)
-        # For BETWEEN and IN operators we should keep value as is (it should be already an array)
-        # NULL and NOT_NULL require absence of attribute list
-        # For all the other operators we wrap the value with array
-        # https://docs.aws.amazon.com/en_us/amazondynamodb/latest/developerguide/LegacyConditionalParameters.Conditions.html
-        if %w[BETWEEN IN].include?(operator)
-          [value].flatten
-        elsif %w[NULL NOT_NULL].include?(operator)
-          nil
-        else
-          [value]
         end
       end
 
