@@ -1531,6 +1531,8 @@ describe Dynamoid::Persistence do
     it 'creates table if it does not exist' do
       model = klass.new
 
+      expect(klass).to receive(:create_table).with(sync: true).and_call_original
+
       expect { model.save }
         .to change { tables_created.include?(klass.table_name) }
         .from(false).to(true)

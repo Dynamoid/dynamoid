@@ -290,7 +290,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def save(_options = {})
-      self.class.create_table
+      self.class.create_table(sync: true)
 
       if new_record?
         run_callbacks(:create) do
