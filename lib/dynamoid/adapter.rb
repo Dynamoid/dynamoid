@@ -94,7 +94,7 @@ module Dynamoid
     #
     # @param [String] table the name of the table to write the object to
     # @param [Array] ids to delete, can also be a string of just one id
-    # @param [Array] range_key of the record to delete, can also be a string of just one range_key
+    # @param [Hash] range_key of the record to delete, can also be a string of just one range_key
     #
     def delete(table, ids, options = {})
       range_key = options[:range_key] # array of range keys that matches the ids passed in
