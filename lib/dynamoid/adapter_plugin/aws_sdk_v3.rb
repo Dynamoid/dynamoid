@@ -544,11 +544,11 @@ module Dynamoid
         hk    = table.hash_key
         rk    = table.range_key
 
-        scan(table_name, {}, {}).flat_map { |i| i }.each do |attributes|
-          opts = {}
-          opts[:range_key] = attributes[rk.to_sym] if rk
-          delete_item(table_name, attributes[hk], opts)
+        ids = scan(table_name, {}, {}).flat_map { |i| i }.map do |attributes|
+          rk ? [attributes[hk], attributes[rk.to_sym]] : attributes[hk]
         end
+
+        batch_delete_item(table_name => ids)
       end
 
       def count(table_name)
