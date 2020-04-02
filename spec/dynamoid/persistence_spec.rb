@@ -1866,6 +1866,20 @@ describe Dynamoid::Persistence do
         end
       end
     end
+
+    context 'when `touch: false` option passed' do
+      it 'does not update updated_at attribute' do
+        obj = klass.create!
+        updated_at = obj.updated_at
+
+        travel 1.minute do
+          obj.name = 'foo'
+          obj.save(touch: false)
+        end
+
+        expect(obj.updated_at).to eq updated_at
+      end
+    end
   end
 
   describe '#update_attribute' do

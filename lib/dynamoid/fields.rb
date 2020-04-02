@@ -192,7 +192,8 @@ module Dynamoid #:nodoc:
     #
     # @since 0.2.0
     def set_updated_at
-      if self.class.timestamps_enabled? && !updated_at_changed?
+      # @_touch_record=false means explicit disabling
+      if self.class.timestamps_enabled? && !updated_at_changed? && @_touch_record != false
         self.updated_at = DateTime.now.in_time_zone(Time.zone)
       end
     end

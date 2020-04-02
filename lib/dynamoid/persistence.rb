@@ -289,8 +289,10 @@ module Dynamoid
     # Run the callbacks and then persist this object in the datastore.
     #
     # @since 0.2.0
-    def save(_options = {})
+    def save(options = {})
       self.class.create_table(sync: true)
+
+      @_touch_record = options[:touch]
 
       if new_record?
         run_callbacks(:create) do
