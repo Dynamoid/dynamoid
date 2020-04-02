@@ -283,7 +283,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def persisted?
-      !new_record?
+      !(new_record? || @destroyed)
     end
 
     # Run the callbacks and then persist this object in the datastore.
@@ -407,6 +407,9 @@ module Dynamoid
       ret = run_callbacks(:destroy) do
         delete
       end
+
+      @destroyed = true
+
       ret == false ? false : self
     end
 
@@ -431,6 +434,9 @@ module Dynamoid
           end
         options[:conditions] = conditions
       end
+
+      @destroyed = true
+
       Dynamoid.adapter.delete(self.class.table_name, hash_key, options)
     rescue Dynamoid::Errors::ConditionalCheckFailedException
       raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
