@@ -20,13 +20,13 @@
 * Feature: [#408](https://github.com/Dynamoid/dynamoid/pull/408) Added `ActiveSupport` load hook on `Dynamoid` load (@aaronmallen)
 * Feature: [#422](https://github.com/Dynamoid/dynamoid/pull/422) Added `.pluck` method
 
-Fixes:
+## Fixes:
 * Fix: [#410](https://github.com/Dynamoid/dynamoid/pull/410) Fixed creating GSI when table uses on-demand capacity provisioning (@icy-arctic-fox)
 * Fix: [#414](https://github.com/Dynamoid/dynamoid/pull/414) Fixed lazy table creation
 * Fix: [#415](https://github.com/Dynamoid/dynamoid/pull/415) Fixed RubyDoc comment (@walkersumida)
 * Fix: [#420](https://github.com/Dynamoid/dynamoid/pull/420) Fixed `#persisted?` for deleted/destroyed models
 
-Improvements:
+## Improvements:
 * Improvement: [#416](https://github.com/Dynamoid/dynamoid/pull/416) Improved speed of Adapter's `truncate` method. It now uses `#batch_delete_item` method (@TheSmartnik)
 * Improvement: [#421](https://github.com/Dynamoid/dynamoid/pull/421) Added `touch: false` option of the #save method
 * Improvement: [#423](https://github.com/Dynamoid/dynamoid/pull/423) Added warning when generated for a field methods override existing ones
