@@ -5,6 +5,60 @@ require 'spec_helper'
 describe Dynamoid::Fields do
   let(:address) { Address.new }
 
+
+  describe '.field' do
+    context 'generated method overrided existing one' do
+      let(:module_with_methods) do
+        Module.new do
+          def foo; end
+          def bar=; end
+          def baz?; end
+          def foobar_before_type_cast?; end
+        end
+      end
+
+      it 'warns about getter' do
+        message = 'Method foo generated for the field foo overrides already existing method'
+        expect(Dynamoid.logger).to receive(:warn).with(message)
+
+        new_class(module: module_with_methods, class_name: 'Foobar') do
+          include @helper_options[:module]
+          field :foo
+        end
+      end
+
+      it 'warns about setter' do
+        message = 'Method bar= generated for the field bar overrides already existing method'
+        expect(Dynamoid.logger).to receive(:warn).with(message)
+
+        new_class(module: module_with_methods) do
+          include @helper_options[:module]
+          field :bar
+        end
+      end
+
+      it 'warns about <name>?' do
+        message = 'Method baz? generated for the field baz overrides already existing method'
+        expect(Dynamoid.logger).to receive(:warn).with(message)
+
+        new_class(module: module_with_methods) do
+          include @helper_options[:module]
+          field :baz
+        end
+      end
+
+      it 'warns about <name>_before_type_cast' do
+        message = 'Method foobar_before_type_cast? generated for the field foobar overrides already existing method'
+        expect(Dynamoid.logger).to receive(:warn).with(message)
+
+        new_class(module: module_with_methods) do
+          include @helper_options[:module]
+          field :foobar
+        end
+      end
+    end
+  end
+
   it 'declares read attributes' do
     expect(address.city).to be_nil
   end
