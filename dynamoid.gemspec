@@ -37,7 +37,7 @@ Gem::Specification.new do |spec|
 
   spec.metadata = {
     "bug_tracker_uri"   => "https://github.com/Dynamoid/dynamoid/issues",
-    "changelog_uri"     => "https://github.com/Dynamoid/dynamoid/tag/v#{Dynamoid::VERSION}/CHANGELOG.md",
+    "changelog_uri"     => "https://github.com/Dynamoid/dynamoid/tree/v#{Dynamoid::VERSION}/CHANGELOG.md",
     "source_code_uri"   => "https://github.com/Dynamoid/dynamoid/tree/v#{Dynamoid::VERSION}",
   }
 
