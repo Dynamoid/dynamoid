@@ -55,6 +55,12 @@ module Dynamoid #:nodoc:
         end
         self.attributes = attributes.merge(name => { type: type }.merge(options))
 
+        # should be called before `define_attribute_methods` method because it defines a getter itself
+        warn_about_method_overriding(name, name)
+        warn_about_method_overriding("#{named}=", name)
+        warn_about_method_overriding("#{named}?", name)
+        warn_about_method_overriding("#{named}_before_type_cast?", name)
+
         define_attribute_method(name) # Dirty API
 
         generated_methods.module_eval do
@@ -125,6 +131,12 @@ module Dynamoid #:nodoc:
           Module.new.tap do |mod|
             include(mod)
           end
+        end
+      end
+
+      def warn_about_method_overriding(method_name, field_name)
+        if self.instance_methods.include?(method_name.to_sym)
+          Dynamoid.logger.warn("Method #{method_name} generated for the field #{field_name} overrides already existing method")
         end
       end
     end

@@ -28,6 +28,7 @@ module NewClassHelper
       end
 
       @class_name = class_name
+      @helper_options = options
 
       def self.name
         @class_name
