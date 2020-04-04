@@ -164,6 +164,20 @@ module Dynamoid
         self
       end
 
+      def pluck(*args)
+        fields = args.map(&:to_sym)
+        @project = fields
+
+        if fields.many?
+          items.map do |item|
+            fields.map { |key| Undumping.undump_field(item[key], source.attributes[key]) }
+          end.to_a
+        else
+          key = fields.first
+          items.map { |item| Undumping.undump_field(item[key], source.attributes[key]) }.to_a
+        end
+      end
+
       private
 
       # The actual records referenced by the association.
@@ -172,7 +186,12 @@ module Dynamoid
       #
       # @since 0.2.0
       def records
-        pages.lazy.flat_map { |i| i }
+        pages.lazy.flat_map { |items, _| items }
+      end
+
+      # Raw items like they are stored before type casting
+      def items
+        raw_pages.lazy.flat_map { |items, _| items }
       end
 
       # Arrays of records, sized based on the actual pages produced by DynamoDB
@@ -181,11 +200,19 @@ module Dynamoid
       #
       # @since 3.1.0
       def pages
+        raw_pages.lazy.map do |items, options|
+          models = items.map { |i| source.from_database(i) }
+          [models, options]
+        end.each
+      end
+
+      # Pages of items before type casting
+      def raw_pages
         if @key_fields_detector.key_present?
-          pages_via_query
+          raw_pages_via_query
         else
           issue_scan_warning if Dynamoid::Config.warn_on_scan && query.present?
-          pages_via_scan
+          raw_pages_via_scan
         end
       end
 
@@ -194,13 +221,12 @@ module Dynamoid
       # @return [Enumerator] an iterator of the found pages. An array of records
       #
       # @since 3.1.0
-      def pages_via_query
+      def raw_pages_via_query
         Enumerator.new do |y|
           Dynamoid.adapter.query(source.table_name, range_query).each do |items, metadata|
-            page = items.map { |h| source.from_database(h) }
             options = metadata.slice(:last_evaluated_key)
 
-            y.yield page, options
+            y.yield items, options
           end
         end
       end
@@ -210,13 +236,12 @@ module Dynamoid
       # @return [Enumerator] an iterator of the found pages. An array of records
       #
       # @since 3.1.0
-      def pages_via_scan
+      def raw_pages_via_scan
         Enumerator.new do |y|
           Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items, metadata|
-            page = items.map { |h| source.from_database(h) }
             options = metadata.slice(:last_evaluated_key)
 
-            y.yield page, options
+            y.yield items, options
           end
         end
       end
