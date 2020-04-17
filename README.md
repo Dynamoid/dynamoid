@@ -232,7 +232,7 @@ easily achieve this with `store_as_native_boolean` field option:
 
 ```ruby
 class Document
-  include DynamoId::Document
+  include Dynamoid::Document
 
   field :active, :boolean, store_as_native_boolean: false
 end
@@ -246,7 +246,7 @@ strings instead then set `store_as_string` to `true`
 
 ```ruby
 class Document
-  include DynamoId::Document
+  include Dynamoid::Document
 
   field :sent_on, :date, store_as_string: true
 end
@@ -261,7 +261,7 @@ as ISO-8601 formatted strings instead then set `store_as_string` to
 
 ```ruby
 class Document
-  include DynamoId::Document
+  include Dynamoid::Document
 
   field :sent_at, :datetime, store_as_string: true
 end
@@ -293,7 +293,7 @@ types.
 
 ```ruby
 class Document
-  include DynamoId::Document
+  include Dynamoid::Document
 
   field :tags, :set, of: :integer
 end
@@ -305,7 +305,7 @@ elements type:
 
 ```ruby
 class Document
-  include DynamoId::Document
+  include Dynamoid::Document
 
   field :values, :set, of: { serialized: { serializer: JSON } }
   field :dates, :set, of: { date: { store_as_string: true } }
@@ -329,7 +329,7 @@ natively, you should specify element type with `of` option:
 
 ```ruby
 class Document
-  include DynamoId::Document
+  include Dynamoid::Document
 
   field :dates, :array, of: :date
 end
