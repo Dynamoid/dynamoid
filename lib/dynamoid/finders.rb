@@ -19,6 +19,19 @@ module Dynamoid
     module ClassMethods
       # Find one or many objects, specified by one id or an array of ids.
       #
+      # By default it raises `RecordNotFound` exception if at least one model
+      # isn't found. This behavior can be changed with `raise_error` option. If
+      # specified `raise_error: false` option then `find` will not raise the
+      # exception.
+      #
+      # Please note that `find` doesn't preserve order of models in result when
+      # passes multiple ids.
+      #
+      # Supported following options:
+      # - `consistent_read`
+      # - `range_key`
+      # - `raise_error`
+      #
       # @param [Array/String] *id an array of ids or one single id
       # @param [Hash] options
       #
@@ -45,9 +58,9 @@ module Dynamoid
       # @since 0.2.0
       def find(*ids, **options)
         if ids.size == 1 && !ids[0].is_a?(Array)
-          _find_by_id(ids[0], options.merge(raise_error: true))
+          _find_by_id(ids[0], options.reverse_merge(raise_error: true))
         else
-          _find_all(ids.flatten(1), options.merge(raise_error: true))
+          _find_all(ids.flatten(1), options.reverse_merge(raise_error: true))
         end
       end
 
