@@ -83,6 +83,26 @@ describe Dynamoid::Finders do
           expect(obj.id).to eql('1')
         end
       end
+
+      describe 'raise_error option' do
+        before do
+          klass.create_table
+        end
+
+        context 'when true' do
+          it 'leads to raising RecordNotFound exception if model not found' do
+            expect do
+              klass.find('blah-blah', raise_error: true)
+            end.to raise_error(Dynamoid::Errors::RecordNotFound)
+          end
+        end
+
+        context 'when true' do
+          it 'leads to not raising exception if model not found' do
+            expect(klass.find('blah-blah', raise_error: false)).to eq nil
+          end
+        end
+      end
     end
 
     context 'multiple primary keys provided' do
@@ -207,6 +227,31 @@ describe Dynamoid::Finders do
 
         expect(obj1).to be_persisted
         expect(obj2).to be_persisted
+      end
+
+      describe 'raise_error option' do
+        before do
+          klass.create_table
+        end
+
+        context 'when true' do
+          it 'leads to raising exception if model not found' do
+            obj = klass.create
+
+            expect do
+              klass.find([obj.id, 'blah-blah'], raise_error: true)
+            end.to raise_error(Dynamoid::Errors::RecordNotFound)
+          end
+        end
+
+        context 'when true' do
+          it 'leads to not raising exception if model not found' do
+            obj = klass.create
+
+            #expect(klass.find([obj.id, 'blah-blah'], raise_error: false)).to eq [obj]
+            expect(klass.find_all([obj.id, 'blah-blah'])).to eq [obj]
+          end
+        end
       end
 
       context 'field is not declared in document' do
