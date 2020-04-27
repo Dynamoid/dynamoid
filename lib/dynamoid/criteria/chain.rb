@@ -133,7 +133,7 @@ module Dynamoid
       # processed with considerebly small memory footprint and throughput
       # consumption.
       #
-      # @return [Enumerator]
+      # @return [Enumerator::Lazy]
       # @since 0.2.0
       def all
         records
@@ -280,7 +280,8 @@ module Dynamoid
 
       # Set the start item.
       #
-      # When start item is set items will be loaded starting from the specified item.
+      # When start item is set the items will be loaded starting right after
+      # the specified item.
       #
       #   Post.where(links_count: 2).start(post)
       #
@@ -288,7 +289,7 @@ module Dynamoid
       #
       #   Post.where(author_id: author_id).start(last_post).scan_limit(50)
       #
-      # The specified start item will be returned back in a result set.
+      # The specified start item will not be returned back in a result set.
       #
       # Actually it's not needed all the item attributes to start - item may
       # have only primary key attributes (partition and sort key if it's
@@ -296,33 +297,126 @@ module Dynamoid
       #
       #   Post.where(links_count: 2).start(Post.new(id: id))
       #
+      # It also supports a +Hash+ argument with the keys attributes - a
+      # partition key and a sort key (if it's declared).
+      #
+      #   Post.where(links_count: 2).start(id: id)
+      #
       # @return [Dynamoid::Criteria::Chain]
       def start(start)
         @start = start
         self
       end
 
+      # Reverse the sort order.
+      #
+      # By default the sort order is ascending (by the sort key value). Set
+      # +false+ value to reverse the order.
+      #
+      #   Post.where(id: id, 'views_count.gt' => 1000).scan_index_forward(false)
+      #
+      # It works only for queries with a partition key contition e.g. +id:
+      # 'some-id'+ which internally performs `Query` operation.
+      #
+      # @return [Dynamoid::Criteria::Chain]
       def scan_index_forward(scan_index_forward)
         @scan_index_forward = scan_index_forward
         self
       end
 
-      # Allows you to use the results of a search as an enumerable over the results found.
+      # Allows to use the results of a search as an enumerable over the results
+      # found.
+      #
+      #   Post.all.each do |post|
+      #   end
+      #
+      #   Post.where(links_count: 2).each do |post|
+      #   end
+      #
+      # It works similar to +all+ method so results are loded lazily.
       #
       # @since 0.2.0
       def each(&block)
         records.each(&block)
       end
 
+      # Iterates over the pages returned by DynamoDB.
+      #
+      # DynamoDB has its own paging machanizm and divides a large result set
+      # into separate pages. +find_by_pages+ method provides an access to these
+      # native DynamoDB pages.
+      #
+      # The pages are loaded lazily.
+      #
+      #   Post.where('views_count.gt' => 1000).find_by_pages do |posts, options|
+      #     # process posts
+      #   end
+      #
+      # It passes to block an +Array+ of models and a Hash with options.
+      #
+      # Options +Hash+ contains only one option +:last_evaluated_key+. The last
+      # evaluated key is a Hash with key attributes of the last item processed by
+      # DynamoDB. It can be used to resume querying using +start+ method.
+      #
+      #   posts, options = Post.where('views_count.gt' => 1000).find_by_pages.first
+      #   last_key = options[:last_evaluated_key]
+      #
+      #   # ...
+      #
+      #   Post.where('views_count.gt' => 1000).start(last_key).find_by_pages do |posts, options|
+      #   end
+      #
+      # If it's called without a block then it returns an +Enumerator+.
+      #
+      #   enum = Post.where('views_count.gt' => 1000).find_by_pages
+      #
+      #   enum.each do |posts, options|
+      #     # process posts
+      #   end
+      #
+      # @return [Enumerator::Lazy]
       def find_by_pages(&block)
         pages.each(&block)
       end
 
+      # Select only specified fields.
+      #
+      # It takes one or more field names and returns a collection of models with only
+      # these fields set.
+      #
+      #   Post.where('views_count.gt' => 1000).select(:title)
+      #   Post.where('views_count.gt' => 1000).select(:title, :created_at)
+      #   Post.select(:id)
+      #
+      # It can be used to avoid loading large field values and to decrease a
+      # memory footprint.
+      #
+      # @return [Dynamoid::Criteria::Chain]
       def project(*fields)
         @project = fields.map(&:to_sym)
         self
       end
 
+      # Select only specified fields.
+      #
+      # It takes one or more field names and returns an array of either values
+      # or arrays of values.
+      #
+      #   Post.pluck(:id)                   # => ['1', '2']
+      #   Post.pluck(:title, :title)        # => [['1', 'Title #1'], ['2', 'Title#2']]
+      #
+      #   Post.where('views_count.gt' => 1000).pluck(:title)
+      #
+      # There are some differences between +pluck+ and +project+. +pluck+
+      # - doesn't instantiate models
+      # - it isn't chainable and returns +Array+ instead of +Chain+
+      #
+      # It deserializes values if a field type isn't supporded by DynamoDB natively.
+      #
+      # It can be used to avoid loading large field values and to decrease a
+      # memory footprint.
+      #
+      # @return [Array]
       def pluck(*args)
         fields = args.map(&:to_sym)
         @project = fields
