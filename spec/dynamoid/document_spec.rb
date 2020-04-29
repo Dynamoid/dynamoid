@@ -172,6 +172,17 @@ describe Dynamoid::Document do
     expect(Tweet.write_capacity).to eq 200
   end
 
+  it 'supports tables with hash_key as the id' do
+    blog = Blog.create(title: 'Naming your partition key "hash_key"')
+
+    expect { blog.id }.to raise_error(NoMethodError)
+    expect(blog.hash_key).to_not be_nil
+    expect(Blog.table_name).to eq 'dynamoid_tests_blogs'
+    expect(Blog.hash_key).to eq :hash_key
+    expect(Blog.read_capacity).to eq 100
+    expect(Blog.write_capacity).to eq 20
+  end
+
   shared_examples 'it has equality testing and hashing' do
     it 'is equal to itself' do
       expect(document).to eq document

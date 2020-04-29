@@ -183,14 +183,14 @@ module Dynamoid #:nodoc:
     #
     # @since 0.4.0
     def hash_key
-      send(self.class.hash_key)
+      self[self.class.hash_key.to_sym]
     end
 
     # Assign an object's hash key, regardless of what it might be called to the object.
     #
     # @since 0.4.0
     def hash_key=(value)
-      send("#{self.class.hash_key}=", value)
+      self[self.class.hash_key.to_sym] = value
     end
 
     def range_value
