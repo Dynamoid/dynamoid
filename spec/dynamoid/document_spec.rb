@@ -172,15 +172,79 @@ describe Dynamoid::Document do
     expect(Tweet.write_capacity).to eq 200
   end
 
-  it 'supports tables with hash_key as the id' do
-    blog = Blog.create(title: 'Naming your partition key "hash_key"')
+  describe '#hash_key' do
+    context 'when there is already an attribute with name `hash_key`' do
+       let(:klass) do
+         new_class do
+           field :hash_key
+         end
+       end
 
-    expect { blog.id }.to raise_error(NoMethodError)
-    expect(blog.hash_key).to_not be_nil
-    expect(Blog.table_name).to eq 'dynamoid_tests_blogs'
-    expect(Blog.hash_key).to eq :hash_key
-    expect(Blog.read_capacity).to eq 100
-    expect(Blog.write_capacity).to eq 20
+      it 'returns id value if hash_key attribute is not set' do
+        obj = klass.new(id: 'id')
+
+        expect(obj.id).to eq 'id'
+        expect(obj.hash_key).to eq 'id'
+      end
+
+      it 'returns hash_key value if hash_key attribute is set' do
+        obj = klass.new(id: 'id', hash_key: 'hash key')
+
+        expect(obj.id).to eq 'hash key'
+        expect(obj.hash_key).to eq 'hash key'
+      end
+    end
+
+    context 'when hash key attribute name is `hash_key`' do
+       let(:klass) do
+         new_class do
+           table key: :hash_key
+         end
+       end
+
+      it 'returns id value' do
+        obj = klass.new(hash_key: 'hash key')
+        expect(obj.hash_key).to eq 'hash key'
+      end
+    end
+  end
+
+  describe '#range_value' do
+    context 'when there is already an attribute with name `range_key`' do
+       let(:klass) do
+         new_class do
+           range :name
+           field :range_value
+         end
+       end
+
+      it 'returns range key value if range_key attribute is not set' do
+        obj = klass.new(name: 'name')
+
+        expect(obj.name).to eq 'name'
+        expect(obj.range_value).to eq 'name'
+      end
+
+      it 'returns range_key value if range_key attribute is set' do
+        obj = klass.new(name: 'name', range_value: 'range key')
+
+        expect(obj.name).to eq 'range key'
+        expect(obj.range_value).to eq 'range key'
+      end
+    end
+
+    context 'when range key attribute name is `range_value`' do
+       let(:klass) do
+         new_class do
+           range :range_value
+         end
+       end
+
+      it 'returns range key value' do
+        obj = klass.new(range_value: 'range key')
+        expect(obj.range_value).to eq 'range key'
+      end
+    end
   end
 
   shared_examples 'it has equality testing and hashing' do

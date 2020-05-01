@@ -56,6 +56,32 @@ describe Dynamoid::Fields do
           field :foobar
         end
       end
+
+      it 'warns about hash_key field' do
+        messages = [
+          'Method hash_key= generated for the field hash_key overrides already existing method',
+          'Method hash_key generated for the field hash_key overrides already existing method'
+        ]
+        expect(Dynamoid.logger).to receive(:warn).with(messages[0])
+        expect(Dynamoid.logger).to receive(:warn).with(messages[1])
+
+        new_class do
+          table key: :hash_key
+        end
+      end
+
+      it 'warns about range_value field' do
+        messages = [
+          'Method range_value= generated for the field range_value overrides already existing method',
+          'Method range_value generated for the field range_value overrides already existing method'
+        ]
+        expect(Dynamoid.logger).to receive(:warn).with(messages[0])
+        expect(Dynamoid.logger).to receive(:warn).with(messages[1])
+
+        new_class do
+          range :range_value
+        end
+      end
     end
   end
 

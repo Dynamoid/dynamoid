@@ -194,13 +194,15 @@ module Dynamoid #:nodoc:
     end
 
     def range_value
-      if range_key = self.class.range_key
-        send(range_key)
+      if self.class.range_key
+        self[self.class.range_key.to_sym]
       end
     end
 
     def range_value=(value)
-      send("#{self.class.range_key}=", value)
+      if self.class.range_key
+        self[self.class.range_key.to_sym] = value
+      end
     end
 
     private
