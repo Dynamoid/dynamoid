@@ -208,6 +208,43 @@ describe Dynamoid::Document do
       end
     end
   end
+
+  describe '#range_value' do
+    context 'when there is already an attribute with name `range_key`' do
+       let(:klass) do
+         new_class do
+           range :name
+           field :range_value
+         end
+       end
+
+      it 'returns range key value if range_key attribute is not set' do
+        obj = klass.new(name: 'name')
+
+        expect(obj.name).to eq 'name'
+        expect(obj.range_value).to eq 'name'
+      end
+
+      it 'returns range_key value if range_key attribute is set' do
+        obj = klass.new(name: 'name', range_value: 'range key')
+
+        expect(obj.name).to eq 'range key'
+        expect(obj.range_value).to eq 'range key'
+      end
+    end
+
+    context 'when range key attribute name is `range_value`' do
+       let(:klass) do
+         new_class do
+           range :range_value
+         end
+       end
+
+      it 'returns range key value' do
+        obj = klass.new(range_value: 'range key')
+        expect(obj.range_value).to eq 'range key'
+      end
+    end
   end
 
   shared_examples 'it has equality testing and hashing' do
