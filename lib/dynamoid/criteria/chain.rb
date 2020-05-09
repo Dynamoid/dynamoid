@@ -32,16 +32,70 @@ module Dynamoid
         @key_fields_detector = KeyFieldsDetector.new(@query, @source)
       end
 
-      # The workhorse method of the criteria chain. Each key in the passed in hash will become another criteria that the
-      # ultimate query must match. A key can either be a symbol or a string, and should be an attribute name or
-      # an attribute name with a range operator.
+      # Returns a chain which is a result of filtering current chain with the specified conditions.
       #
-      # @example A simple criteria
-      #   where(:name => 'Josh')
+      # It accepts conditions in the form of a hash.
       #
-      # @example A more complicated criteria
-      #   where(:name => 'Josh', 'created_at.gt' => DateTime.now - 1.day)
+      #   Post.where(links_count: 2)
       #
+      # A key could be either string or symbol.
+      #
+      # In order to express conditions other than equality predicates could be used.
+      # Predicate should be added to an attribute name to form a key +'created_at.gt' => Date.yesterday+
+      #
+      # Currently supported following predicates:
+      # - +gt+ - greater than
+      # - +gte+ - greater or equal
+      # - +lt+ - less than
+      # - +lte+ - less or equal
+      # - +ne+ - not equal
+      # - +between+ - an attribute value is greater than the first value and less than the second value
+      # - +in+ - check an attribute in a list of values
+      # - +begins_with+ - check for a prefix in string
+      # - +contains+ - check substring or value in a set or array
+      # - +not_contains+ - check for absence of substring or a value in set or array
+      # - +null+ - attribute doesn't exists in an item
+      # - +not_null+ - attribute exists in an item
+      #
+      # All the predicates match operators supported by DynamoDB's
+      # {ComparisonOperator}[https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html#DDB-Type-Condition-ComparisonOperator]
+      #
+      #   Post.where('size.gt' => 1000)
+      #   Post.where('size.gte' => 1000)
+      #   Post.where('size.lt' => 35000)
+      #   Post.where('size.lte' => 35000)
+      #   Post.where('author.ne' => 'John Doe')
+      #   Post.where('created_at.between' => [Time.now - 3600, Time.now])
+      #   Post.where('category.in' => ['tech', 'fashion'])
+      #   Post.where('title.begins_with' => 'How long')
+      #   Post.where('tags.contains' => 'Ruby')
+      #   Post.where('tags.not_contains' => 'Ruby on Rails')
+      #   Post.where('legacy_attribute.null' => true)
+      #   Post.where('optional_attribute.not_null' => true)
+      #
+      # There are some limitations for a sort key. Only following predicates
+      # are supported - +gt+, +gte+, +lt+, +lte+, +between+, +begins_with+.
+      #
+      # +where+ without argument will return the current chain.
+      #
+      # Multiple calls can be chained together and conditions will be merged:
+      #
+      #   Post.where('size.gt' => 1000).where('title' => 'some title')
+      #
+      # It's equivalent to:
+      #
+      #   Post.where('size.gt' => 1000, 'title' => 'some title')
+      #
+      # But only one condition can be specified for a certain attribute. The
+      # last specified condition will override all the others. Only condition
+      # 'size.lt' => 200 will be used in following examples:
+      #
+      #   Post.where('size.gt' => 100, 'size.lt' => 200)
+      #   Post.where('size.gt' => 100).where('size.lt' => 200)
+      #
+      # Internally +where+ performs either +Scan+ or +Query+ operation.
+      #
+      # @return [Dynamoid::Criteria::Chain]
       # @since 0.2.0
       def where(args)
         detector = IgnoredConditionsDetector.new(args)
@@ -67,6 +121,13 @@ module Dynamoid
         self
       end
 
+      # Turns on strongly consistent reads.
+      #
+      # By default reads are eventually consistent.
+      #
+      #   Post.where('size.gt' => 1000).consistent
+      #
+      # @return [Dynamoid::Criteria::Chain]
       def consistent
         @consistent_read = true
         self
@@ -74,11 +135,39 @@ module Dynamoid
 
       # Returns all the records matching the criteria.
       #
+      # Since +where+ and most of the other methods return a +Chain+
+      # the only way to get a result as a collection is to call the +all+
+      # method. It returns +Enumerator+ which could be used directly or
+      # transformed into +Array+
+      #
+      #   Post.all                            # => Enumerator
+      #   Post.where(links_count: 2).all      # => Enumerator
+      #   Post.where(links_count: 2).all.to_a # => Array
+      #
+      # When the result set is too large DynamoDB divides it into separate
+      # pages.  While an enumerator iterates over the result models each page
+      # is loaded lazily. So even an extra large result set can be loaded and
+      # processed with considerably small memory footprint and throughput
+      # consumption.
+      #
+      # @return [Enumerator::Lazy]
       # @since 0.2.0
       def all
         records
       end
 
+      # Returns the actual number of items in a table matching the criteria.
+      #
+      #   Post.where(links_count: 2).count
+      #
+      # Internally it uses either `Scan` or `Query` DynamoDB's operation so it
+      # costs like all the matching items were read from a table.
+      #
+      # The only difference is that items are read by DynemoDB but not actually
+      # loaded on the client side. DynamoDB returns only count of items after
+      # filtering.
+      #
+      # @return [Integer]
       def count
         if @key_fields_detector.key_present?
           count_via_query
@@ -87,16 +176,38 @@ module Dynamoid
         end
       end
 
-      # Returns the last fetched record matched the criteria
-      # Enumerable doesn't implement `last`, only `first`
-      # So we have to implement it ourselves
+      # Returns the last item matching the criteria.
       #
+      #   Post.where(links_count: 2).last
+      #
+      # DynamoDB doesn't support ordering by some arbitrary attribute except a
+      # sort key. So this method is mostly useful during development and
+      # testing.
+      #
+      # If used without criteria it just returns the last item of some arbitrary order.
+      #
+      #   Post.last
+      #
+      # It isn't efficient from the performance point of view as far as it reads and
+      # loads all the filtered items from DynamoDB.
+      #
+      # @return [Model|nil]
       def last
         all.to_a.last
       end
 
-      # Destroys all the records matching the criteria.
+      # Deletes all the items matching the criteria.
       #
+      #   Post.where(links_count: 2).delete_all
+      #
+      # If called without criteria then it deletes all the items in a table.
+      #
+      #   Post.delete_all
+      #
+      # It loads all the items either with +Scan+ or +Query+ operation and
+      # deletes them in batch with +BatchWriteItem+ operation. +BatchWriteItem+
+      # is limited by request size and items count so it's quite possible the
+      # deletion will require several +BatchWriteItem+ calls.
       def delete_all
         ids = []
         ranges = []
@@ -117,53 +228,215 @@ module Dynamoid
       end
       alias destroy_all delete_all
 
-      # The record limit is the limit of evaluated records returned by the
-      # query or scan.
+      # Set the record limit.
+      #
+      # The record limit is the limit of evaluated items returned by the
+      # +Query+ or +Scan+. In other words it's how many items should be
+      # returned in response.
+      #
+      #   Post.where(links_count: 2).record_limit(1000) # => 1000 models
+      #   Post.record_limit(1000)                       # => 1000 models
+      #
+      # It could be very inefficient in terms of HTTP requests in pathological
+      # cases. DynamoDB doesn't support out of the box the limits for items
+      # count after filtering. So it's possible to make a lot of HTTP requests
+      # to find items matching criteria and skip not matching. It means that
+      # the cost (read capacity units) is unpredictable.
+      #
+      # Because of such issues with performance and cost it's mostly useful in
+      # development and testing.
+      #
+      # When called without criteria it works like +scan_limit+.
+      #
+      # @return [Dynamoid::Criteria::Chain]
       def record_limit(limit)
         @record_limit = limit
         self
       end
 
-      # The scan limit which is the limit of records that DynamoDB will
-      # internally query or scan. This is different from the record limit
-      # as with filtering DynamoDB may look at N scanned records but return 0
-      # records if none pass the filter.
+      # Set the scan limit.
+      #
+      # The scan limit is the limit of records that DynamoDB will internally
+      # read with +Query+ or +Scan+. It's different from the record limit as
+      # with filtering DynamoDB may look at N scanned items but return 0
+      # items if none passes the filter. So it can return less items than was
+      # specified with the limit.
+      #
+      #   Post.where(links_count: 2).scan_limit(1000)   # => 850 models
+      #   Post.scan_limit(1000)                         # => 1000 models
+      #
+      # By contrast with +record_limit+ the cost (read capacity units) and
+      # performance is predictable.
+      #
+      # When called without criteria it works like +record_limit+.
+      #
+      # @return [Dynamoid::Criteria::Chain]
       def scan_limit(limit)
         @scan_limit = limit
         self
       end
 
+      # Set the batch size.
+      #
+      # The batch size is a number of items which will be lazily loaded one by one.
+      # When the batch size is set then items will be loaded batch by batch of
+      # the specified size instead of relying on the default paging mechanism
+      # of DynamoDB.
+      #
+      #   Post.where(links_count: 2).batch(1000).all.each do |post|
+      #     # process a post
+      #   end
+      #
+      # It's useful to limit memory usage or throughput consumption
+      #
+      # @return [Dynamoid::Criteria::Chain]
       def batch(batch_size)
         @batch_size = batch_size
         self
       end
 
+      # Set the start item.
+      #
+      # When the start item is set the items will be loaded starting right
+      # after the specified item.
+      #
+      #   Post.where(links_count: 2).start(post)
+      #
+      # It can be used to implement an own pagination mechanism.
+      #
+      #   Post.where(author_id: author_id).start(last_post).scan_limit(50)
+      #
+      # The specified start item will not be returned back in a result set.
+      #
+      # Actually it doesn't need all the item attributes to start - an item may
+      # have only the primary key attributes (partition and sort key if it's
+      # declared).
+      #
+      #   Post.where(links_count: 2).start(Post.new(id: id))
+      #
+      # It also supports a +Hash+ argument with the keys attributes - a
+      # partition key and a sort key (if it's declared).
+      #
+      #   Post.where(links_count: 2).start(id: id)
+      #
+      # @return [Dynamoid::Criteria::Chain]
       def start(start)
         @start = start
         self
       end
 
+      # Reverse the sort order.
+      #
+      # By default the sort order is ascending (by the sort key value). Set a
+      # +false+ value to reverse the order.
+      #
+      #   Post.where(id: id, 'views_count.gt' => 1000).scan_index_forward(false)
+      #
+      # It works only for queries with a partition key condition e.g. +id:
+      # 'some-id'+ which internally performs +Query+ operation.
+      #
+      # @return [Dynamoid::Criteria::Chain]
       def scan_index_forward(scan_index_forward)
         @scan_index_forward = scan_index_forward
         self
       end
 
-      # Allows you to use the results of a search as an enumerable over the results found.
+      # Allows to use the results of a search as an enumerable over the results
+      # found.
+      #
+      #   Post.each do |post|
+      #   end
+      #
+      #   Post.all.each do |post|
+      #   end
+      #
+      #   Post.where(links_count: 2).each do |post|
+      #   end
+      #
+      # It works similar to the +all+ method so results are loaded lazily.
       #
       # @since 0.2.0
       def each(&block)
         records.each(&block)
       end
 
+      # Iterates over the pages returned by DynamoDB.
+      #
+      # DynamoDB has its own paging machanism and divides a large result set
+      # into separate pages. The +find_by_pages+ method provides access to
+      # these native DynamoDB pages.
+      #
+      # The pages are loaded lazily.
+      #
+      #   Post.where('views_count.gt' => 1000).find_by_pages do |posts, options|
+      #     # process posts
+      #   end
+      #
+      # It passes as block argument an +Array+ of models and a Hash with options.
+      #
+      # Options +Hash+ contains only one option +:last_evaluated_key+. The last
+      # evaluated key is a Hash with key attributes of the last item processed by
+      # DynamoDB. It can be used to resume querying using the +start+ method.
+      #
+      #   posts, options = Post.where('views_count.gt' => 1000).find_by_pages.first
+      #   last_key = options[:last_evaluated_key]
+      #
+      #   # ...
+      #
+      #   Post.where('views_count.gt' => 1000).start(last_key).find_by_pages do |posts, options|
+      #   end
+      #
+      # If it's called without a block then it returns an +Enumerator+.
+      #
+      #   enum = Post.where('views_count.gt' => 1000).find_by_pages
+      #
+      #   enum.each do |posts, options|
+      #     # process posts
+      #   end
+      #
+      # @return [Enumerator::Lazy]
       def find_by_pages(&block)
         pages.each(&block)
       end
 
+      # Select only specified fields.
+      #
+      # It takes one or more field names and returns a collection of models with only
+      # these fields set.
+      #
+      #   Post.where('views_count.gt' => 1000).select(:title)
+      #   Post.where('views_count.gt' => 1000).select(:title, :created_at)
+      #   Post.select(:id)
+      #
+      # It can be used to avoid loading large field values and to decrease a
+      # memory footprint.
+      #
+      # @return [Dynamoid::Criteria::Chain]
       def project(*fields)
         @project = fields.map(&:to_sym)
         self
       end
 
+      # Select only specified fields.
+      #
+      # It takes one or more field names and returns an array of either values
+      # or arrays of values.
+      #
+      #   Post.pluck(:id)                   # => ['1', '2']
+      #   Post.pluck(:title, :title)        # => [['1', 'Title #1'], ['2', 'Title#2']]
+      #
+      #   Post.where('views_count.gt' => 1000).pluck(:title)
+      #
+      # There are some differences between +pluck+ and +project+. +pluck+
+      # - doesn't instantiate models
+      # - it isn't chainable and returns +Array+ instead of +Chain+
+      #
+      # It deserializes values if a field type isn't supported by DynamoDB natively.
+      #
+      # It can be used to avoid loading large field values and to decrease a
+      # memory footprint.
+      #
+      # @return [Array]
       def pluck(*args)
         fields = args.map(&:to_sym)
         @project = fields
