@@ -17,15 +17,6 @@ module Dynamoid #:nodoc:
     end
 
     module ClassMethods
-      # Set up table options, including naming it whatever you want, setting the id key, and manually overriding read and
-      # write capacity.
-      #
-      # @param [Hash] options options to pass for this table
-      # @option options [Symbol] :name the name for the table; this still gets namespaced
-      # @option options [Symbol] :id id column for the table
-      # @option options [Integer] :read_capacity set the read capacity for the table; does not work on existing tables
-      # @option options [Integer] :write_capacity set the write capacity for the table; does not work on existing tables
-      #
       # @since 0.4.0
       def table(options = {})
         self.options = options
@@ -33,12 +24,12 @@ module Dynamoid #:nodoc:
       end
 
       def attr_readonly(*read_only_attributes)
-        ActiveSupport::Deprecation.warn('[Dynamoid] .attr_readonly is deprecated! Call .find instead of')
         self.read_only_attributes.concat read_only_attributes.map(&:to_s)
       end
 
-      # Returns the read_capacity for this table.
+      # Returns the read capacity for this table.
       #
+      # @return [Integer] read capacity units
       # @since 0.4.0
       def read_capacity
         options[:read_capacity] || Dynamoid::Config.read_capacity
@@ -46,31 +37,53 @@ module Dynamoid #:nodoc:
 
       # Returns the write_capacity for this table.
       #
+      # @return [Integer] write capacity units
       # @since 0.4.0
       def write_capacity
         options[:write_capacity] || Dynamoid::Config.write_capacity
       end
 
       # Returns the billing (capacity) mode for this table.
-      # Could be either :provisioned or :on_demand
+      #
+      # Could be either +provisioned+ or +on_demand+.
+      #
+      # @return [Symbol]
       def capacity_mode
         options[:capacity_mode] || Dynamoid::Config.capacity_mode
       end
 
       # Returns the field name used to support STI for this table.
+      #
+      # Default field name is +type+ but it can be overrided in the +table+
+      # method call.
+      #
+      #   User.inheritance_field # => :type
       def inheritance_field
         options[:inheritance_field] || :type
       end
 
-      # Returns the id field for this class.
+      # Returns the hash key field name for this class.
       #
+      # By default +id+ field is used. But it can be overriden in the +table+
+      # method call.
+      #
+      #   User.hash_key # => :id
+      #
+      # @return [Symbol] a hash key name
       # @since 0.4.0
       def hash_key
         options[:key] || :id
       end
 
-      # Returns the number of items for this class.
+      # Return the count of items for this class.
       #
+      # It returns aproximate value based on DynamoDB statistic. DynamoDB
+      # updates it periodicaly so the value can be no accurate.
+      #
+      # It's a reletivly cheap operation and doesn't read all the items in a
+      # table. It makes just one HTTP request to DynamoDB.
+      #
+      # @return [Integer] items count in a table
       # @since 0.6.1
       def count
         Dynamoid.adapter.count(table_name)
@@ -78,35 +91,58 @@ module Dynamoid #:nodoc:
 
       # Initialize a new object.
       #
-      # @param [Hash] attrs Attributes with which to create the object.
+      # The only difference between +build+ and +new+ methods is that +build+
+      # supports STI (Single table inheritance) and looks at the inheritance
+      # field. So it can build a model of actual class. For instance:
       #
+      #   class Employee
+      #     include Dynamoid::Document
+      #
+      #     field :type
+      #     field :name
+      #   end
+      #
+      #   class Manager < Employee
+      #   end
+      #
+      #   Employee.build(name: 'Alice', type: 'Manager') # => #<Manager:0x00007f945756e3f0 ...>
+      #
+      # @param attrs [Hash] Attributes with which to create the object.
       # @return [Dynamoid::Document] the new document
-      #
       # @since 0.2.0
       def build(attrs = {})
         choose_right_class(attrs).new(attrs)
       end
 
-      # Does this object exist?
+      # Does this model exist in a table?
       #
-      # Supports primary key in format that `find` call understands.
-      # Multiple keys and single compound primary key should be passed only as Array explicitily.
+      #   User.exists?('713') # => true
       #
-      # Supports conditions in format that `where` call understands.
+      # If a range key is declared it should be specified in the following way:
       #
-      # @param [Mixed] id_or_conditions the id of the object or a hash with the options to filter from.
+      #   User.exists?([['713', 'range-key-value']]) # => true
       #
-      # @return [Boolean] true/false
+      # It's possible to check existence of several models at once:
       #
-      # @example With id
+      #   User.exists?(['713', '714', '715'])
       #
-      #   Post.exist?(713)
-      #   Post.exist?([713, 210])
+      # Or in case when a range key is declared:
       #
-      # @example With attributes conditions
+      #   User.exists?(
+      #     [
+      #       ['713', 'range-key-value-1'],
+      #       ['714', 'range-key-value-2'],
+      #       ['715', 'range-key-value-3']
+      #     ]
+      #   )
       #
-      #   Post.exist?(version: 1, 'created_at.gt': Time.now - 1.day)
+      # It's also possible to specify models not with primary key but with
+      # conditions on the attributes (in the +where+ method style):
       #
+      #   User.exists?(age: 20, 'created_at.gt': Time.now - 1.day)
+      #
+      # @param id_or_conditions [String|Array[String]|Array[Array]|Hash] the primary id of the model, a list of primary ids or a hash with the options to filter from.
+      # @return [true|false]
       # @since 0.2.0
       def exists?(id_or_conditions = {})
         case id_or_conditions
@@ -132,8 +168,7 @@ module Dynamoid #:nodoc:
 
     # Initialize a new object.
     #
-    # @param [Hash] attrs Attributes with which to create the object.
-    #
+    # @param attrs [Hash] Attributes with which to create the object.
     # @return [Dynamoid::Document] the new document
     #
     # @since 0.2.0
@@ -158,8 +193,12 @@ module Dynamoid #:nodoc:
       end
     end
 
-    # An object is equal to another object if their ids are equal.
+    # Check equality of two models.
     #
+    # A model is equal to another model only if their primary keys (hash key
+    # and optionaly range key) are equal.
+    #
+    # @return [true|false]
     # @since 0.2.0
     def ==(other)
       if self.class.identity_map_on?
@@ -171,34 +210,50 @@ module Dynamoid #:nodoc:
       end
     end
 
+    # Check equality of two models.
+    #
+    # Works exactly like +==+ does.
+    #
+    # @return [true|false]
     def eql?(other)
       self == other
     end
 
+    # Generate an Integer hash value for this model.
+    #
+    # Hash value is based on primary key. So models can be used safely as a
+    # +Hash+ keys.
+    #
+    # @return [Integer]
     def hash
       hash_key.hash ^ range_value.hash
     end
 
-    # Return an object's hash key, regardless of what it might be called to the object.
+    # Return a model's hash key value.
     #
     # @since 0.4.0
     def hash_key
       send(self.class.hash_key)
     end
 
-    # Assign an object's hash key, regardless of what it might be called to the object.
+    # Assign a model's hash key value, regardless of what it might be called to
+    # the object.
     #
     # @since 0.4.0
     def hash_key=(value)
       send("#{self.class.hash_key}=", value)
     end
 
+    # Return a model's range key value.
+    #
+    # Returns +nil+ if a range key isn't declared for a model.
     def range_value
       if range_key = self.class.range_key
         send(range_key)
       end
     end
 
+    # Assign a model's range key value.
     def range_value=(value)
       send("#{self.class.range_key}=", value)
     end
@@ -212,7 +267,7 @@ module Dynamoid #:nodoc:
     # Evaluates the default value given, this is used by undump
     # when determining the value of the default given for a field options.
     #
-    # @param [Object] :value the attribute's default value
+    # @param val [Object] the attribute's default value
     def evaluate_default_value(val)
       if val.respond_to?(:call)
         val.call
