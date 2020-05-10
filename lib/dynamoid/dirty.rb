@@ -78,17 +78,22 @@ module Dynamoid
     # Returns +true+ if any attribute have unsaved changes, +false+ otherwise.
     #
     #   person.changed? # => false
-    #   person.name = 'bob'
+    #   person.name = 'Bob'
     #   person.changed? # => true
+    #
+    # @return [true|false]
     def changed?
       changed_attributes.present?
     end
 
-    # Returns an array with the name of the attributes with unsaved changes.
+    # Returns an array with names of the attributes with unsaved changes.
     #
+    #   person = Person.new
     #   person.changed # => []
-    #   person.name = 'bob'
+    #   person.name = 'Bob'
     #   person.changed # => ["name"]
+    #
+    # @return [Array[String]]
     def changed
       changed_attributes.keys
     end
@@ -97,18 +102,22 @@ module Dynamoid
     # and new values like <tt>attr => [original value, new value]</tt>.
     #
     #   person.changes # => {}
-    #   person.name = 'bob'
-    #   person.changes # => { "name" => ["bill", "bob"] }
+    #   person.name = 'Bob'
+    #   person.changes # => { "name" => ["Bill", "Bob"] }
+    #
+    # @return [ActiveSupport::HashWithIndifferentAccess]
     def changes
       ActiveSupport::HashWithIndifferentAccess[changed.map { |attr| [attr, attribute_change(attr)] }]
     end
 
     # Returns a hash of attributes that were changed before the model was saved.
     #
-    #   person.name # => "bob"
-    #   person.name = 'robert'
+    #   person.name # => "Bob"
+    #   person.name = 'Robert'
     #   person.save
-    #   person.previous_changes # => {"name" => ["bob", "robert"]}
+    #   person.previous_changes # => {"name" => ["Bob", "Robert"]}
+    #
+    # @return [ActiveSupport::HashWithIndifferentAccess]
     def previous_changes
       @previously_changed ||= ActiveSupport::HashWithIndifferentAccess.new
     end
@@ -116,15 +125,28 @@ module Dynamoid
     # Returns a hash of the attributes with unsaved changes indicating their original
     # values like <tt>attr => original value</tt>.
     #
-    #   person.name # => "bob"
-    #   person.name = 'robert'
-    #   person.changed_attributes # => {"name" => "bob"}
+    #   person.name # => "Bob"
+    #   person.name = 'Robert'
+    #   person.changed_attributes # => {"name" => "Bob"}
+    #
+    # @return [ActiveSupport::HashWithIndifferentAccess]
     def changed_attributes
       @changed_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
     end
 
     # Handle <tt>*_changed?</tt> for +method_missing+.
-    def attribute_changed?(attr, options = {}) #:nodoc:
+    #
+    #  person.attribute_changed?(:name) # => true
+    #  person.attribute_changed?(:name, from: 'Alice')
+    #  person.attribute_changed?(:name, to: 'Bob')
+    #  person.attribute_changed?(:name, from: 'Alice', to: 'Bod')
+    #
+    # @api private
+    # @param attr [Symbol] attribute name
+    # @param options [Hash] conditions on +from+ and +to+ value (optional)
+    # @option options [Symbol] :from previous attribute value
+    # @option options [Symbol] :to current attribute value
+    def attribute_changed?(attr, options = {})
       result = changes_include?(attr)
       result &&= options[:to] == __send__(attr) if options.key?(:to)
       result &&= options[:from] == changed_attributes[attr] if options.key?(:from)
@@ -132,21 +154,48 @@ module Dynamoid
     end
 
     # Handle <tt>*_was</tt> for +method_missing+.
-    def attribute_was(attr) # :nodoc:
+    #
+    #  person = Person.create(name: 'Alice')
+    #  person.name = 'Bob'
+    #  person.attribute_was(:name) # => "Alice"
+    #
+    # @api private
+    # @param attr [Symbol] attribute name
+    def attribute_was(attr)
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
 
     # Restore all previous data of the provided attributes.
+    #
+    # @param attributes [Array[Symbol]] a list of attribute names
     def restore_attributes(attributes = changed)
       attributes.each { |attr| restore_attribute! attr }
     end
 
     # Handles <tt>*_previously_changed?</tt> for +method_missing+.
-    def attribute_previously_changed?(attr) #:nodoc:
+    #
+    #  person = Person.create(name: 'Alice')
+    #  person.name = 'Bob'
+    #  person.save
+    #  person.attribute_changed?(:name) # => true
+    #
+    # @api private
+    # @param attr [Symbol] attribute name
+    # @return [true|false]
+    def attribute_previously_changed?(attr)
       previous_changes_include?(attr)
     end
 
     # Handles <tt>*_previous_change</tt> for +method_missing+.
+    #
+    #  person = Person.create(name: 'Alice')
+    #  person.name = 'Bob'
+    #  person.save
+    #  person.attribute_previously_changed(:name) # => ["Alice", "Bob"]
+    #
+    # @api private
+    # @param attr [Symbol]
+    # @return [Array]
     def attribute_previous_change(attr)
       previous_changes[attr] if attribute_previously_changed?(attr)
     end
