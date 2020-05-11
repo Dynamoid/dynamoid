@@ -116,7 +116,7 @@ module Dynamoid #:nodoc:
 
       # Create a new instance of the target class without trying to add it to the association. This creates a base, that caller can update before setting or adding it.
       #
-      # @param [Hash] attribute hash for the new object
+      # @param attributes [Hash] attribute values for the new object
       #
       # @return [Dynamoid::Document] the newly-created object
       #

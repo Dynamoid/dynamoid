@@ -43,13 +43,20 @@ module Dynamoid #:nodoc:
         records.include?(object)
       end
 
-      # Deletes an object or array of objects from the association. This removes their records from the association field on the source,
-      # and attempts to remove the source from the target association if it is detected to exist.
+      # Delete an object or array of objects from the association.
       #
-      # @param [Dynamoid::Document] object the object (or array of objects) to remove from the association
+      #   tag.posts.delete(post)
+      #   tag.posts.delete([post1, post2, post3])
       #
-      # @return [Dynamoid::Document] the deleted object
+      # This removes their records from the association field on the source,
+      # and attempts to remove the source from the target association if it is
+      # detected to exist.
       #
+      # It saves both models immediately - the source model and the target one
+      # so any not saved changes will be saved as well.
+      #
+      # @param object [Dynamoid::Document|Array] model (or array of models) to remove from the association
+      # @return [Dynamoid::Document|Array] the deleted model
       # @since 0.2.0
       def delete(object)
         disassociate(Array(object).collect(&:hash_key))
@@ -59,13 +66,19 @@ module Dynamoid #:nodoc:
         object
       end
 
-      # Add an object or array of objects to an association. This preserves the current records in the association (if any)
-      # and adds the object to the target association if it is detected to exist.
+      # Add an object or array of objects to an association.
       #
-      # @param [Dynamoid::Document] object the object (or array of objects) to add to the association
+      #   tag.posts << post
+      #   tag.posts << [post1, post2, post3]
       #
-      # @return [Dynamoid::Document] the added object
+      # This preserves the current records in the association (if any) and adds
+      # the object to the target association if it is detected to exist.
       #
+      # It saves both models immediately - the source model and the target one
+      # so any not saved changes will be saved as well.
+      #
+      # @param object [Dynamoid::Document|Array] model (or array of models) to add to the association
+      # @return [Dynamoid::Document] the added model
       # @since 0.2.0
       def <<(object)
         associate(Array(object).collect(&:hash_key))
@@ -82,7 +95,7 @@ module Dynamoid #:nodoc:
       #
       # @param [Dynamoid::Document] object the object (or array of objects) to add to the association
       #
-      # @return [Dynamoid::Document] the added object
+      # @return [Dynamoid::Document|Array] the added object
       #
       # @since 0.2.0
       def setter(object)
@@ -91,31 +104,43 @@ module Dynamoid #:nodoc:
         object
       end
 
-      # Create a new instance of the target class and add it directly to the association. If the create fails an exception will be raised.
+      # Create a new instance of the target class, persist it and add directly
+      # to the association.
       #
-      # @param [Hash] attribute hash for the new object
+      #   tag.posts.create!(title: 'foo')
       #
-      # @return [Dynamoid::Document] the newly-created object
+      # Several models can be created at once when an array of attributes
+      # specified:
       #
+      #   tag.posts.create!([{ title: 'foo' }, {title: 'bar'} ])
+      #
+      # If the creation fails an exception will be raised.
+      #
+      # @param attributes [Hash] attribute values for the new object
+      # @return [Dynamoid::Document|Array] the newly-created object
       # @since 0.2.0
       def create!(attributes = {})
         self << target_class.create!(attributes)
       end
 
-      # Create a new instance of the target class and add it directly to the association.
+      # Create a new instance of the target class, persist it and add directly
+      # to the association.
       #
-      # @param [Hash] attribute hash for the new object
+      #   tag.posts.create(title: 'foo')
       #
-      # @return [Dynamoid::Document] the newly-created object
+      # Several models can be created at once when an array of attributes
+      # specified:
       #
+      #   tag.posts.create([{ title: 'foo' }, {title: 'bar'} ])
+      #
+      # @param attributes [Hash] attribute values for the new object
+      # @return [Dynamoid::Document|Array] the newly-created object
       # @since 0.2.0
       def create(attributes = {})
         self << target_class.create(attributes)
       end
 
       # Create a new instance of the target class and add it directly to the association. If the create fails an exception will be raised.
-      #
-      # @param [Hash] attribute hash for the new object
       #
       # @return [Dynamoid::Document] the newly-created object
       #
@@ -124,7 +149,10 @@ module Dynamoid #:nodoc:
         records.each(&block)
       end
 
-      # Destroys all members of the association and removes them from the association.
+      # Destroys all members of the association and removes them from the
+      # association.
+      #
+      #   tag.posts.destroy_all
       #
       # @since 0.2.0
       def destroy_all
@@ -133,7 +161,10 @@ module Dynamoid #:nodoc:
         objs.each(&:destroy)
       end
 
-      # Deletes all members of the association and removes them from the association.
+      # Deletes all members of the association and removes them from the
+      # association.
+      #
+      #   tag.posts.delete_all
       #
       # @since 0.2.0
       def delete_all
@@ -144,10 +175,13 @@ module Dynamoid #:nodoc:
 
       # Naive association filtering.
       #
-      # @param [Hash] A hash of attributes; each must match every returned object's attribute exactly.
+      #   tag.posts.where(title: 'foo')
       #
+      # It loads lazily all the associated models and checks provided
+      # conditions. That's why only equality conditions can be specified.
+      #
+      # @param args [Hash] A hash of attributes; each must match every returned object's attribute exactly.
       # @return [Dynamoid::Association] the association this method was called on (for chaining purposes)
-      #
       # @since 0.2.0
       def where(args)
         filtered = clone
