@@ -19,22 +19,21 @@ module Dynamoid
     module ClassMethods
       # Find one or many objects, specified by one id or an array of ids.
       #
-      # By default it raises `RecordNotFound` exception if at least one model
-      # isn't found. This behavior can be changed with `raise_error` option. If
-      # specified `raise_error: false` option then `find` will not raise the
+      # By default it raises +RecordNotFound+ exception if at least one model
+      # isn't found. This behavior can be changed with +raise_error+ option. If
+      # specified +raise_error: false+ option then +find+ will not raise the
       # exception.
       #
-      # Please note that `find` doesn't preserve order of models in result when
+      # Please note that +find+ doesn't preserve order of models in result when
       # passes multiple ids.
       #
       # Supported following options:
-      # - `consistent_read`
-      # - `range_key`
-      # - `raise_error`
+      # * +consistent_read+
+      # * +range_key+
+      # * +raise_error+
       #
-      # @param [Array/String] *id an array of ids or one single id
-      # @param [Hash] options
-      #
+      # @param ids [String|Array] hash key or an array of hash keys
+      # @param options [Hash]
       # @return [Dynamoid::Document] one object or an array of objects, depending on whether the input was an array or not
       #
       # @example Find by partition key
@@ -64,30 +63,39 @@ module Dynamoid
         end
       end
 
-      # Return objects found by the given array of ids, either hash keys, or hash/range key combinations using BatchGetItem.
+      # Find several models at once.
+      #
+      # Returns objects found by the given array of ids, either hash keys, or
+      # hash/range key combinations using +BatchGetItem+.
+      #
       # Returns empty array if no results found.
       #
-      # Uses backoff specified by `Dynamoid::Config.backoff` config option
+      # Uses backoff specified by +Dynamoid::Config.backoff+ config option.
       #
-      # @param [Array<ID>] ids
-      # @param [Hash] options: Passed to the underlying query.
+      # @param ids [Array] array of primary keys
+      # @param options [Hash]
+      # @option options [true|false] :consistent_read
+      # @option options [true|false] :raise_error
       #
       # @example
-      #   find all the user with hash key
+      #   # Find all the user with hash key
       #   User.find_all(['1', '2', '3'])
       #
-      #   find all the tweets using hash key and range key with consistent read
-      #   Tweet.find_all([['1', 'red'], ['1', 'green']], :consistent_read => true)
+      #   # Find all the tweets using hash key and range key with consistent read
+      #   Tweet.find_all([['1', 'red'], ['1', 'green']], consistent_read: true)
       def find_all(ids, options = {})
         ActiveSupport::Deprecation.warn('[Dynamoid] .find_all is deprecated! Call .find instead of')
 
         _find_all(ids, options)
       end
 
-      # Find one object directly by id.
+      # Find one object directly by primary key.
       #
-      # @param [String] id the id of the object to find
-      #
+      # @param id [String] the id of the object to find
+      # @param options [Hash]
+      # @option options [true|false] :consistent_read
+      # @option options [true|false] :raise_error
+      # @option options [Scalar value] :range_key
       # @return [Dynamoid::Document] the found object, or nil if nothing was found
       #
       # @example Find by partition key
@@ -162,10 +170,10 @@ module Dynamoid
         end
       end
 
-      # Find one object directly by hash and range keys
+      # Find one object directly by hash and range keys.
       #
-      # @param [String] hash_key of the object to find
-      # @param [String/Number] range_key of the object to find
+      # @param hash_key [Scalar value] hash key of the object to find
+      # @param range_key [Scalar value] range key of the object to find
       #
       def find_by_composite_key(hash_key, range_key, options = {})
         ActiveSupport::Deprecation.warn('[Dynamoid] .find_by_composite_key is deprecated! Call .find instead of')
@@ -182,6 +190,7 @@ module Dynamoid
       #     range :level,                   :integer
       #     table :key => :chamber_type
       #   end
+      #
       #   ChamberType.find_all_by_composite_key('DustVault', range_greater_than: 1)
       #
       # @param [String] hash_key of the objects to find
@@ -206,20 +215,22 @@ module Dynamoid
       # @example
       #   class User
       #     include Dynamoid::Document
-      #     field :email,          :string
-      #     field :age,            :integer
-      #     field :gender,         :string
-      #     field :rank            :number
+      #
       #     table :key => :email
-      #     global_secondary_index :hash_key => :age, :range_key => :rank
+      #     global_secondary_index hash_key: :age, range_key: :rank
+      #
+      #     field :email,  :string
+      #     field :age,    :integer
+      #     field :gender, :string
+      #     field :rank    :number
       #   end
+      #
       #   # NOTE: the first param and the second param are both hashes,
       #   #       so curly braces must be used on first hash param if sending both params
-      #   User.find_all_by_secondary_index({:age => 5}, :range => {"rank.lte" => 10})
+      #   User.find_all_by_secondary_index({ age: 5 }, range: { "rank.lte": 10 })
       #
-      # @param [Hash] eg: {:age => 5}
-      # @param [Hash] eg: {"rank.lte" => 10}
-      # @param [Hash] options - query filter, projected keys, scan_index_forward etc
+      # @param hash [Hash] conditions for the hash key e.g. +{ age: 5 }+
+      # @param options [Hash] conditions on range key e.g. +{ "rank.lte": 10 }, query filter, projected keys, scan_index_forward etc.
       # @return [Array] an array of all matching items
       def find_all_by_secondary_index(hash, options = {})
         ActiveSupport::Deprecation.warn('[Dynamoid] .find_all_by_secondary_index is deprecated! Call .where instead of')
@@ -258,7 +269,8 @@ module Dynamoid
         end
       end
 
-      # Find using exciting method_missing finders attributes. Uses criteria chains under the hood to accomplish this neatness.
+      # Find using exciting method_missing finders attributes. Uses criteria
+      # chains under the hood to accomplish this neatness.
       #
       # @example find a user by a first name
       #   User.find_by_first_name('Josh')
@@ -266,7 +278,7 @@ module Dynamoid
       # @example find all users by first and last name
       #   User.find_all_by_first_name_and_last_name('Josh', 'Symonds')
       #
-      # @return [Dynamoid::Document/Array] the found object, or an array of found objects if all was somewhere in the method
+      # @return [Dynamoid::Document|Array] the found object, or an array of found objects if all was somewhere in the method
       #
       # @since 0.2.0
       def method_missing(method, *args)
