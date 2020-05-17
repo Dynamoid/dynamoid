@@ -2,6 +2,7 @@
 
 module Dynamoid
   module Persistence
+    # @private
     class UpdateFields
       def self.call(*args)
         new(*args).call

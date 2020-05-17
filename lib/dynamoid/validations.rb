@@ -10,6 +10,7 @@ module Dynamoid
 
     # Override save to provide validation support.
     #
+    # @private
     # @since 0.2.0
     def save(options = {})
       options.reverse_merge!(validate: true)
@@ -28,6 +29,7 @@ module Dynamoid
 
     # Raise an error unless this object is valid.
     #
+    # @private
     # @since 0.2.0
     def save!
       raise Dynamoid::Errors::DocumentNotValid, self unless valid?

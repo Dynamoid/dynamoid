@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Dynamoid
+  # @private
   module AdapterPlugin
     class AwsSdkV3
       # Represents a table. Exposes data from the "DescribeTable" API call, and also

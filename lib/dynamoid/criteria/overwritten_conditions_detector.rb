@@ -2,6 +2,7 @@
 
 module Dynamoid
   module Criteria
+    # @private
     class OverwrittenConditionsDetector
       def initialize(conditions, conditions_new)
         @conditions = conditions

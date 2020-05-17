@@ -11,6 +11,7 @@ module Dynamoid
   # 1) For the rest of Dynamoid, the gateway to DynamoDB.
   # 2) Allows switching `config.adapter` to ease development of a new adapter.
   # 3) Caches the list of tables Dynamoid knows about.
+  # @private
   class Adapter
     def initialize
       @adapter_ = Concurrent::Atom.new(nil)

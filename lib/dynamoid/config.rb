@@ -9,6 +9,7 @@ require 'dynamoid/config/backoff_strategies/exponential_backoff'
 
 module Dynamoid
   # Contains all the basic configuration information required for Dynamoid: both sensible defaults and required fields.
+  # @private
   module Config
     # @since 3.3.1
     DEFAULT_NAMESPACE = if defined?(Rails)

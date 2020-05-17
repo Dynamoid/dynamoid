@@ -13,6 +13,7 @@ module Dynamoid
         @identity_map ||= {}
       end
 
+      # @private
       def from_database(attrs = {})
         return super if identity_map_off?
 
@@ -29,6 +30,7 @@ module Dynamoid
         document
       end
 
+      # @private
       def find_by_id(id, options = {})
         return super if identity_map_off?
 
@@ -41,6 +43,7 @@ module Dynamoid
         identity_map[key] || super
       end
 
+      # @private
       def identity_map_key(attrs)
         key = attrs[hash_key].to_s
         key += "::#{attrs[range_key]}" if range_key
@@ -60,6 +63,7 @@ module Dynamoid
       self.class.identity_map
     end
 
+    # @private
     def save(*args)
       return super if self.class.identity_map_off?
 
@@ -69,6 +73,7 @@ module Dynamoid
       result
     end
 
+    # @private
     def delete
       return super if self.class.identity_map_off?
 
@@ -76,6 +81,7 @@ module Dynamoid
       super
     end
 
+    # @private
     def identity_map_key
       key = hash_key.to_s
       key += "::#{range_value}" if self.class.range_key

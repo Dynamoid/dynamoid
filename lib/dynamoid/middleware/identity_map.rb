@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Dynamoid
+  # @private
   module Middleware
     class IdentityMap
       def initialize(app)

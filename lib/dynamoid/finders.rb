@@ -6,6 +6,7 @@ module Dynamoid
   module Finders
     extend ActiveSupport::Concern
 
+    # @private
     RANGE_MAP = {
       'gt'            => :range_greater_than,
       'lt'            => :range_less_than,
@@ -111,6 +112,7 @@ module Dynamoid
         _find_by_id(id, options)
       end
 
+      # @private
       def _find_all(ids, options = {})
         if range_key
           ids = ids.map do |pk, sk|
@@ -152,6 +154,7 @@ module Dynamoid
         end
       end
 
+      # @private
       def _find_by_id(id, options = {})
         if range_key
           key = options[:range_key]
@@ -280,6 +283,7 @@ module Dynamoid
       #
       # @return [Dynamoid::Document|Array] the found object, or an array of found objects if all was somewhere in the method
       #
+      # @private
       # @since 0.2.0
       def method_missing(method, *args)
         if method =~ /find/

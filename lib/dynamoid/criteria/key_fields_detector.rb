@@ -2,6 +2,7 @@
 
 module Dynamoid #:nodoc:
   module Criteria
+    # @private
     class KeyFieldsDetector
       class Query
         def initialize(query_hash)

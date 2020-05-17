@@ -2,6 +2,7 @@
 
 module Dynamoid
   module Config
+    # @private
     module BackoffStrategies
       # Truncated binary exponential backoff algorithm
       # See https://en.wikipedia.org/wiki/Exponential_backoff

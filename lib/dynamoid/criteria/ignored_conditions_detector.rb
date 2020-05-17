@@ -2,6 +2,7 @@
 
 module Dynamoid
   module Criteria
+    # @private
     class IgnoredConditionsDetector
       def initialize(conditions)
         @conditions = conditions

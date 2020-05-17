@@ -6,6 +6,7 @@ module Dynamoid #:nodoc:
   module Fields
     extend ActiveSupport::Concern
 
+    # @private
     # Types allowed in indexes:
     PERMITTED_KEY_TYPES = %i[
       number
@@ -265,6 +266,7 @@ module Dynamoid #:nodoc:
         end
       end
 
+      # @private
       def timestamps_enabled?
         options[:timestamps] || (options[:timestamps].nil? && Dynamoid::Config.timestamps)
       end

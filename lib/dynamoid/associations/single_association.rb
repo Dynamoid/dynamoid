@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-module Dynamoid #:nodoc:
+module Dynamoid
   module Associations
     module SingleAssociation
       include Association
 
       delegate :class, to: :target
 
+      # @private
       def setter(object)
         if object.nil?
           delete
@@ -65,6 +66,7 @@ module Dynamoid #:nodoc:
 
       # Delegate methods we don't find directly to the target.
       #
+      # @private
       # @since 0.2.0
       def method_missing(method, *args)
         if target.respond_to?(method)
@@ -74,21 +76,25 @@ module Dynamoid #:nodoc:
         end
       end
 
+      # @private
       def nil?
         target.nil?
       end
 
+      # @private
       def empty?
         # This is needed to that ActiveSupport's #blank? and #present?
         # methods work as expected for SingleAssociations.
         target.nil?
       end
 
+      # @private
       def associate(hash_key)
         target.send(target_association).disassociate(source.hash_key) if target && target_association
         source.update_attribute(source_attribute, Set[hash_key])
       end
 
+      # @private
       def disassociate(_hash_key = nil)
         source.update_attribute(source_attribute, nil)
       end

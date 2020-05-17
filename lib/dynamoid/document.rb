@@ -17,7 +17,7 @@ module Dynamoid #:nodoc:
     end
 
     module ClassMethods
-      # @since 0.4.0
+      # @private
       def table(options = {})
         self.options = options
         super if defined? super
@@ -157,10 +157,12 @@ module Dynamoid #:nodoc:
         end
       end
 
+      # @private
       def deep_subclasses
         subclasses + subclasses.map(&:deep_subclasses).flatten
       end
 
+      # @private
       def choose_right_class(attrs)
         attrs[inheritance_field] ? attrs[inheritance_field].constantize : self
       end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Dynamoid #:nodoc:
+module Dynamoid
   module Associations
     module ManyAssociation
       include Association
@@ -13,6 +13,8 @@ module Dynamoid #:nodoc:
       end
 
       include Enumerable
+
+      # @private
       # Delegate methods to the records the association represents.
       delegate :first, :last, :empty?, :size, :class, to: :records
 
@@ -20,11 +22,13 @@ module Dynamoid #:nodoc:
       #
       # @return the association records; depending on which association this is, either a single instance or an array
       #
+      # @private
       # @since 0.2.0
       def find_target
         Array(target_class.find(source_ids.to_a))
       end
 
+      # @private
       def records
         if query.empty?
           target
@@ -97,6 +101,7 @@ module Dynamoid #:nodoc:
       #
       # @return [Dynamoid::Document|Array] the added object
       #
+      # @private
       # @since 0.2.0
       def setter(object)
         target.each { |o| delete(o) }
@@ -144,6 +149,7 @@ module Dynamoid #:nodoc:
       #
       # @return [Dynamoid::Document] the newly-created object
       #
+      # @private
       # @since 0.2.0
       def each(&block)
         records.each(&block)
@@ -201,6 +207,7 @@ module Dynamoid #:nodoc:
 
       # Delegate methods we don't find directly to the records array.
       #
+      # @private
       # @since 0.2.0
       def method_missing(method, *args)
         if records.respond_to?(method)
@@ -210,10 +217,12 @@ module Dynamoid #:nodoc:
         end
       end
 
+      # @private
       def associate(hash_key)
         source.update_attribute(source_attribute, source_ids.merge(Array(hash_key)))
       end
 
+      # @private
       def disassociate(hash_key)
         source.update_attribute(source_attribute, source_ids - Array(hash_key))
       end

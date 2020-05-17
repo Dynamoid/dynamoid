@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
-module Dynamoid #:nodoc:
+module Dynamoid
   # The base association module which all associations include. Every association has two very important components: the source and
   # the target. The source is the object which is calling the association information. It always has the target_ids inside of an attribute on itself.
   # The target is the object which is referencing by this association.
+  # @private
   module Associations
+    # @private
     module Association
       attr_accessor :name, :options, :source, :loaded
 

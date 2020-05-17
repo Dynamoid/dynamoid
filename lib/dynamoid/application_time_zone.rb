@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Dynamoid
+  # @private
   module ApplicationTimeZone
     def self.at(value)
       case Dynamoid::Config.application_timezone

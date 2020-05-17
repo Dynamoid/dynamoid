@@ -2,6 +2,7 @@
 
 module Dynamoid
   module Persistence
+    # @private
     class Save
       def self.call(model)
         new(model).call

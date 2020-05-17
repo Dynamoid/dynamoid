@@ -5,6 +5,7 @@ require_relative 'middleware/limit'
 require_relative 'middleware/start_key'
 
 module Dynamoid
+  # @private
   module AdapterPlugin
     class AwsSdkV3
       class Scan

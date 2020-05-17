@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Dynamoid
+  # @private
   module DynamodbTimeZone
     def self.in_time_zone(value)
       case Dynamoid::Config.dynamodb_timezone

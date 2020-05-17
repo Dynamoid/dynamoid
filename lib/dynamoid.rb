@@ -57,6 +57,7 @@ module Dynamoid
     @included_models ||= []
   end
 
+  # @private
   def adapter
     @adapter ||= Adapter.new
   end
