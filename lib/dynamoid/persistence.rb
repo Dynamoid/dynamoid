@@ -30,13 +30,64 @@ module Dynamoid
 
       # Create a table.
       #
-      # @param [Hash] options options to pass for table creation
-      # @option options [Symbol] :id the id field for the table
-      # @option options [Symbol] :table_name the actual name for the table
-      # @option options [Integer] :read_capacity set the read capacity for the table; does not work on existing tables
-      # @option options [Integer] :write_capacity set the write capacity for the table; does not work on existing tables
-      # @option options [Hash] {range_key => :type} a hash of the name of the range key and a symbol of its type
-      # @option options [Symbol] :hash_key_type the dynamo type of the hash key (:string or :number)
+      # Uses a configuration specified in a model class (with the +table+
+      # method) e.g. table name, schema (hash and range keys), global and local
+      # secondary indexes, billing mode and write/read capacity.
+      #
+      # For instance here
+      #
+      #   class User
+      #     include Dynamoid::Document
+      #
+      #     table key: :uuid
+      #     range :last_name
+      #
+      #     field :first_name
+      #     field :last_name
+      #   end
+      #
+      #   User.create_table
+      #
+      # +create_table+ method call will create a table +dynamoid_users+ with
+      # hash key +uuid+ and range key +name+, DynamoDB default billing mode and
+      # Dynamoid default read/write capacity units (100/20).
+      #
+      # All the configuration can be overridden with +options+ argument.
+      #
+      #   User.create_table(table_name: 'users', read_capacity: 200, write_capacity: 40)
+      #
+      # Dynamoid creates a table synchronously by default. DynamoDB table
+      # creation is an asynchronous operation and a client should wait until a
+      # table status changes to +ACTIVE+ and a table becomes available. That's
+      # why Dynamoid is polling a table status and returns results only when a
+      # table becomes available.
+      #
+      # Polling is configured with +Dynamoid::Config.sync_retry_max_times+ and
+      # +Dynamoid::Config.sync_retry_wait_seconds+ configuration options. If
+      # table creation takes more time than configured waiting time then
+      # Dynamoid stops polling and returns +true+.
+      #
+      # In order to return back asynchronous behaviour and not to wait until a
+      # table is created the +sync: false+ option should be specified.
+      #
+      #   User.create_table(sync: false)
+      #
+      # Subsequent method calls for the same table will be ignored.
+      #
+      # @param options [Hash]
+      #
+      # @option options [Symbol] :table_name name of the table
+      # @option options [Symbol] :id hash key name of the table
+      # @option options [Symbol] :hash_key_type Dynamoid type of the hash key - +:string+, +:integer+ or any other scalar type
+      # @option options [Hash] :range_key a Hash with range key name and type in format +{ <name> => <type> }+ e.g. +{ last_name: :string }+
+      # @option options [String] :billing_mode billing mode of a table - either +PROVISIONED+ (default) or +PAY_PER_REQUEST+ (for On-Demand Mode)
+      # @option options [Integer] :read_capacity read capacity units for the table; does not work on existing tables and is ignored when billing mode is +PAY_PER_REQUEST+
+      # @option options [Integer] :write_capacity write capacity units for the table; does not work on existing tables and is ignored when billing mode is +PAY_PER_REQUEST+
+      # @option options [Hash] :local_secondary_indexes
+      # @option options [Hash] :global_secondary_indexes
+      # @option options [true|false] :sync specifies should the method call be synchronous and wait until a table is completely created
+      #
+      # @return [true|false] Whether a table created successfully
       # @since 0.4.0
       def create_table(options = {})
         range_key_hash = if range_key
@@ -63,11 +114,17 @@ module Dynamoid
         end
       end
 
-      # Deletes the table for the model
+      # Deletes the table for the model.
+      #
+      # Dynamoid deletes a table asynchronously and doesn't wait until a table
+      # is deleted completely.
+      #
+      # Subsequent method calls for the same table will be ignored.
       def delete_table
         Dynamoid.adapter.delete_table(table_name)
       end
 
+      # @private
       def from_database(attrs = {})
         klass = choose_right_class(attrs)
         attrs_undumped = Undumping.undump_attributes(attrs, klass.attributes)
@@ -76,29 +133,44 @@ module Dynamoid
 
       # Create several models at once.
       #
-      # Neither callbacks nor validations run.
-      # It works efficiently because of using `BatchWriteItem` API call.
-      # Return array of models.
-      # Uses backoff specified by `Dynamoid::Config.backoff` config option
+      #   users = User.import([{ name: 'a' }, { name: 'b' }])
       #
-      # @param [Array<Hash>] array_of_attributes
+      # +import+ is a relatively low-level method and bypasses some
+      # mechanisms like callbacks and validation.
       #
-      # @example
-      #   User.import([{ name: 'a' }, { name: 'b' }])
+      # It sets timestamp fields +created_at+ and +updated_at+ if they are
+      # blank. It sets a hash key field as well if it's blank. It expects that
+      # the hash key field is +string+ and sets a random UUID value if the field
+      # value is blank. All the field values are type casted to the declared
+      # types.
+      #
+      # It works efficiently and uses the `BatchWriteItem` operation. In order
+      # to cope with throttling it uses a backoff strategy if it's specified with
+      # `Dynamoid::Config.backoff` configuration option.
+      #
+      # Because of the nature of DynamoDB and its limits only 25 models can be
+      # saved at once. So multiple HTTP requests can be sent to DynamoDB.
+      #
+      # @param array_of_attributes [Array<Hash>]
+      # @return [Array] Created models
       def import(array_of_attributes)
         Import.call(self, array_of_attributes)
       end
 
       # Create a model.
       #
-      # Initializes a new object and immediately saves it to the database.
-      # Validates model and runs callbacks: before_create, before_save, after_save and after_create.
+      # Initializes a new model and immediately saves it to DynamoDB.
+      #
+      #   user = User.create(first_name: 'Mark', last_name: 'Tyler')
+      #
       # Accepts both Hash and Array of Hashes and can create several models.
       #
-      # @param [Hash|Array[Hash]] attrs Attributes with which to create the object.
+      #   users = User.create([{ first_name: 'Alice' }, { first_name: 'Bob' }])
       #
-      # @return [Dynamoid::Document] the saved document
+      # Validates model and runs callbacks.
       #
+      # @param attrs [Hash|Array[Hash]] Attributes of the models
+      # @return [Dynamoid::Document] The created document
       # @since 0.2.0
       def create(attrs = {})
         if attrs.is_a?(Array)
@@ -108,16 +180,15 @@ module Dynamoid
         end
       end
 
-      # Create new model.
+      # Create a model.
       #
-      # Initializes a new object and immediately saves it to the database.
-      # Raises an exception if validation failed.
-      # Accepts both Hash and Array of Hashes and can create several models.
+      # Initializes a new object and immediately saves it to the Dynamoid.
+      # Raises an exception +Dynamoid::Errors::DocumentNotValid+ if validation
+      # failed. Accepts both Hash and Array of Hashes and can create several
+      # models.
       #
-      # @param [Hash|Array[Hash]] attrs Attributes with which to create the object.
-      #
-      # @return [Dynamoid::Document] the saved document
-      #
+      # @param attrs [Hash|Array[Hash]] Attributes with which to create the object.
+      # @return [Dynamoid::Document] The created document
       # @since 0.2.0
       def create!(attrs = {})
         if attrs.is_a?(Array)
@@ -129,17 +200,19 @@ module Dynamoid
 
       # Update document with provided attributes.
       #
-      # Instantiates document and saves changes.
-      # Runs validations and callbacks.
+      # Instantiates document and saves changes. Runs validations and
+      # callbacks. Don't save changes if validation fails.
       #
-      # @param [Scalar value] partition key
-      # @param [Scalar value] sort key, optional
-      # @param [Hash] attributes
+      #   User.update('1', age: 26)
       #
-      # @return [Dynamoid::Doument] updated document
+      # If range key is declared for a model it should be passed as well:
       #
-      # @example Update document
-      #   Post.update(101, title: 'New title')
+      #   User.update('1', 'Tylor', age: 26)
+      #
+      # @param hash_key [Scalar value] hash key
+      # @param range_key_value [Scalar value] range key (optional)
+      # @param attrs [Hash]
+      # @return [Dynamoid::Document] Updated document
       def update(hash_key, range_key_value = nil, attrs)
         model = find(hash_key, range_key: range_key_value, consistent_read: true)
         model.update_attributes(attrs)
@@ -148,17 +221,21 @@ module Dynamoid
 
       # Update document with provided attributes.
       #
-      # Instantiates document and saves changes.
-      # Runs validations and callbacks. Raises Dynamoid::Errors::DocumentNotValid exception if validation fails.
+      # Instantiates document and saves changes. Runs validations and
+      # callbacks.
       #
-      # @param [Scalar value] partition key
-      # @param [Scalar value] sort key, optional
-      # @param [Hash] attributes
+      #   User.update!('1', age: 26)
       #
-      # @return [Dynamoid::Doument] updated document
+      # If range key is declared for a model it should be passed as well:
       #
-      # @example Update document
-      #   Post.update!(101, title: 'New title')
+      #   User.update('1', 'Tylor', age: 26)
+      #
+      # Raises +Dynamoid::Errors::DocumentNotValid+ exception if validation fails.
+      #
+      # @param hash_key [Scalar value] hash key
+      # @param range_key_value [Scalar value] range key (optional)
+      # @param attrs [Hash]
+      # @return [Dynamoid::Document] Updated document
       def update!(hash_key, range_key_value = nil, attrs)
         model = find(hash_key, range_key: range_key_value, consistent_read: true)
         model.update_attributes!(attrs)
@@ -167,23 +244,34 @@ module Dynamoid
 
       # Update document.
       #
-      # Uses efficient low-level `UpdateItem` API call.
-      # Changes attibutes and loads new document version with one API call.
-      # Doesn't run validations and callbacks. Can make conditional update.
-      # If a document doesn't exist or specified conditions failed - returns `nil`
+      # Doesn't run validations and callbacks.
       #
-      # @param [Scalar value] partition key
-      # @param [Scalar value] sort key (optional)
-      # @param [Hash] attributes
-      # @param [Hash] conditions
+      #   User.update_fields('1', age: 26)
       #
-      # @return [Dynamoid::Document|nil] updated document
+      # If range key is declared for a model it should be passed as well:
       #
-      # @example Update document
-      #   Post.update_fields(101, read: true)
+      #   User.update_fields('1', 'Tylor', age: 26)
       #
-      # @example Update document with condition
-      #   Post.update_fields(101, { title: 'New title' }, if: { version: 1 })
+      # Can make a conditional update so a document will be updated only if it
+      # meets the specified conditions. Conditions can be specified as a +Hash+
+      # with +:if+ key:
+      #
+      #   User.update_fields('1', { age: 26 }, if: { version: 1 })
+      #
+      # Here +User+ model has an integer +version+ field and the document will
+      # be updated only if the +version+ attribute currently has value 1.
+      #
+      # If a document with specified hash and range keys doesn't exist or
+      # conditions were specified and failed the method call returns +nil+.
+      #
+      # +update_fields+ uses the +UpdateItem+ operation so it saves changes and
+      # loads an updated document back with one HTTP request.
+      #
+      # @param hash_key_value [Scalar value] hash key
+      # @param range_key_value [Scalar value] range key (optional)
+      # @param attrs [Hash]
+      # @param conditions [Hash] (optional)
+      # @return [Dynamoid::Document|nil] Updated document
       def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
@@ -201,25 +289,37 @@ module Dynamoid
                           conditions: conditions)
       end
 
-      # Update existing document or create new one.
+      # Update an existing document or create a new one.
       #
-      # Similar to `.update_fields`.
-      # The only diffirence is - it creates new document in case the document doesn't exist.
+      # If a document with specified hash and range keys doesn't exist it
+      # creates a new document with specified attributes. Doesn't run
+      # validations and callbacks.
       #
-      # Uses efficient low-level `UpdateItem` API call.
-      # Changes attibutes and loads new document version with one API call.
-      # Doesn't run validations and callbacks. Can make conditional update.
-      # If specified conditions failed - returns `nil`.
+      #   User.upsert('1', age: 26)
       #
-      # @param [Scalar value] partition key
-      # @param [Scalar value] sort key (optional)
-      # @param [Hash] attributes
-      # @param [Hash] conditions
+      # If range key is declared for a model it should be passed as well:
       #
-      # @return [Dynamoid::Document/nil] updated document
+      #   User.upsert('1', 'Tylor', age: 26)
       #
-      # @example Update document
-      #   Post.upsert(101, title: 'New title')
+      # Can make a conditional update so a document will be updated only if it
+      # meets the specified conditions. Conditions can be specified as a +Hash+
+      # with +:if+ key:
+      #
+      #   User.upsert('1', { age: 26 }, if: { version: 1 })
+      #
+      # Here +User+ model has an integer +version+ field and the document will
+      # be updated only if the +version+ attribute currently has value 1.
+      #
+      # If conditions were specified and failed the method call returns +nil+.
+      #
+      # +upsert+ uses the +UpdateItem+ operation so it saves changes and loads
+      # an updated document back with one HTTP request.
+      #
+      # @param hash_key_value [Scalar value] hash key
+      # @param range_key_value [Scalar value] range key (optional)
+      # @param attrs [Hash]
+      # @param conditions [Hash] (optional)
+      # @return [Dynamoid::Document|nil] Updated document
       def upsert(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
         if optional_params.first.is_a?(Hash)
@@ -237,19 +337,27 @@ module Dynamoid
                     conditions: conditions)
       end
 
-      # Increase numeric field by specified value.
+      # Increase a numeric field by specified value.
+      #
+      #   User.inc('1', age: 2)
       #
       # Can update several fields at once.
-      # Uses efficient low-level `UpdateItem` API call.
       #
-      # @param [Scalar value] hash_key_value partition key
-      # @param [Scalar value] range_key_value sort key (optional)
-      # @param [Hash] counters value to increase by
+      #   User.inc('1', age: 2, version: 1)
       #
-      # @return [Dynamoid::Document/nil] updated document
+      # If range key is declared for a model it should be passed as well:
       #
-      # @example Update document
-      #   Post.inc(101, views_counter: 2, downloads: 10)
+      #   User.inc('1', 'Tylor', age: 2)
+      #
+      # Uses efficient low-level +UpdateItem+ operation and does only one HTTP
+      # request.
+      #
+      # Doesn't run validations and callbacks. Doesn't update +created_at+ and
+      # +updated_at+ as well.
+      #
+      # @param hash_key_value [Scalar value] hash key
+      # @param range_key_value [Scalar value] range key (optional)
+      # @param counters [Hash] value to increase by
       def inc(hash_key_value, range_key_value = nil, counters)
         options = if range_key
                     value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
@@ -270,8 +378,17 @@ module Dynamoid
       end
     end
 
-    # Set updated_at and any passed in field to current DateTime. Useful for things like last_login_at, etc.
+    # Update document timestamps.
     #
+    # Set +updated_at+ attribute to current DateTime.
+    #
+    #   post.touch
+    #
+    # Can update another field in addition with the same timestamp if it's name passed as argument.
+    #
+    #   user.touch(:last_login_at)
+    #
+    # @param name [Symbol] attribute name to update (optional)
     def touch(name = nil)
       now = DateTime.now
       self.updated_at = now
@@ -279,15 +396,67 @@ module Dynamoid
       save
     end
 
-    # Is this object persisted in the datastore? Required for some ActiveModel integration stuff.
+    # Is this object persisted in DynamoDB?
     #
+    #   user = User.new
+    #   user.persisted? # => false
+    #
+    #   user.save
+    #   user.persisted? # => true
+    #
+    # @return [true|false]
     # @since 0.2.0
     def persisted?
       !(new_record? || @destroyed)
     end
 
-    # Run the callbacks and then persist this object in the datastore.
+    # Create new model or persist changes.
     #
+    # Run the validation and callbacks. Returns +true+ if saving is successful
+    # and +false+ otherwise.
+    #
+    #   user = User.new
+    #   user.save # => true
+    #
+    #   user.age = 26
+    #   user.save # => true
+    #
+    # Validation can be skipped with +validate: false+ option:
+    #
+    #   user = User.new(age: -1)
+    #   user.save(validate: false) # => true
+    #
+    # +save+ by default sets timestamps attributes - +created_at+ and
+    # +updated_at+ when creates new model and updates +updated_at+ attribute
+    # when update already existing one.
+    #
+    # Changing +updated_at+ attribute at updating a model can be skipped with
+    # +touch: false+ option:
+    #
+    #   user.save(touch: false)
+    #
+    # If a model is new and hash key (+id+ by default) is not assigned yet
+    # it was assigned implicitly with random UUID value.
+    #
+    # If +lock_version+ attribute is declared it will be incremented. If it's blank then it will be initialized with 1.
+    #
+    # +save+ method call raises +Dynamoid::Errors::RecordNotUnique+ exception
+    # if primary key (hash key + optional range key) already exists in a
+    # table.
+    #
+    # +save+ method call raises +Dynamoid::Errors::StaleObjectError+ exception
+    # if there is +lock_version+ attribute and the document in a table was
+    # already changed concurrently and +lock_version+ was consequently
+    # increased.
+    #
+    # When a table is not created yet the first +save+ method call will create
+    # a table. It's useful in test environment to avoid explicit table
+    # creation.
+    #
+    # @param options [Hash] (optional)
+    # @option options [true|false] :validate validate a model or not - +true+ by default (optional)
+    # @option options [true|false] :touch update tiemstamps fields or not - +true+ by default (optional)
+    # @return [true|false] Whether saving successful or not
     # @since 0.2.0
     def save(options = {})
       self.class.create_table(sync: true)
@@ -307,20 +476,29 @@ module Dynamoid
       end
     end
 
-    # Updates multiple attributes at once, saving the object once the updates are complete.
+    # Update multiple attributes at once, saving the object once the updates
+    # are complete. Returns +true+ if saving is successful and +false+
+    # otherwise.
     #
-    # @param [Hash] attributes a hash of attributes to update
+    #   user.update_attributes(age: 27, last_name: 'Tylor')
     #
+    # @param attributes [Hash] a hash of attributes to update
+    # @return [true|false] Whether updating successful or not
     # @since 0.2.0
     def update_attributes(attributes)
       attributes.each { |attribute, value| write_attribute(attribute, value) }
       save
     end
 
-    # Updates multiple attributes at once, saving the object once the updates are complete.
-    # Raises a Dynamoid::Errors::DocumentNotValid exception if there is vaidation and it fails.
+    # Update multiple attributes at once, saving the object once the updates
+    # are complete.
     #
-    # @param [Hash] attributes a hash of attributes to update
+    #   user.update_attributes!(age: 27, last_name: 'Tylor')
+    #
+    # Raises a +Dynamoid::Errors::DocumentNotValid+ exception if some vaidation
+    # fails.
+    #
+    # @param attributes [Hash] a hash of attributes to update
     def update_attributes!(attributes)
       attributes.each { |attribute, value| write_attribute(attribute, value) }
       save!
@@ -328,20 +506,68 @@ module Dynamoid
 
     # Update a single attribute, saving the object afterwards.
     #
-    # @param [Symbol] attribute the attribute to update
-    # @param [Object] value the value to assign it
+    # Returns +true+ if saving is successful and +false+ otherwise.
     #
+    #   user.update_attribute(:last_name, 'Tylor')
+    #
+    # @param attribute [Symbol] attribute name to update
+    # @param value [Object] the value to assign it
+    # @return [Dynamoid::Document] self
     # @since 0.2.0
     def update_attribute(attribute, value)
       write_attribute(attribute, value)
       save
     end
 
+    # Update a model.
     #
-    # update!() will increment the lock_version if the table has the column, but will not check it. Thus, a concurrent save will
-    # never cause an update! to fail, but an update! may cause a concurrent save to fail.
+    # Runs validation and callbacks. Reloads all attribute values.
     #
+    # Accepts mandatory block in order to specify operations which will modify
+    # attributes. Supports following operations: +add+, +delete+ and +set+.
     #
+    # Operation +add+ just adds a value for numeric attributes and join
+    # collections if attribute is a collection (one of +array+, +set+ or
+    # +map+).
+    #
+    #   user.update do |t|
+    #     t.add(age: 1, followers_count: 5)
+    #     t.add(hobbies: ['skying', 'climbing'])
+    #   end
+    #
+    # Operation +delete+ is applied to collection attribute types and
+    # substructs one collection from another.
+    #
+    #   user.update do |t|
+    #     t.delete(hobbies: ['skying'])
+    #   end
+    #
+    # Operation +set+ just changes an attribute value:
+    #
+    #   user.update do |t|
+    #     t.set(age: 21)
+    #   end
+    #
+    # All the operations works like +ADD+, +DELETE+ and +PUT+ actions supported
+    # by +AttributeUpdates+
+    # {parameter}[https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.AttributeUpdates.html]
+    # of +UpdateItem+ operation.
+    #
+    # Can update a model conditionaly:
+    #
+    #   user.update(if: { age: 20 }) do |t|
+    #     t.add(age: 1)
+    #   end
+    #
+    # If a document doesn't meet conditions it raises
+    # +Dynamoid::Errors::StaleObjectError+ exception.
+    #
+    # It will increment the +lock_version+ attribute if a table has the column,
+    # but will not check it. Thus, a concurrent +save+ call will never cause an
+    # +update!+ to fail, but an +update!+ may cause a concurrent +save+ to
+    # fail.
+    #
+    # @param conditions [Hash] Conditions on model attributes to make a conditional update (optional)
     def update!(conditions = {})
       run_callbacks(:update) do
         options = range_key ? { range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
@@ -365,6 +591,54 @@ module Dynamoid
       end
     end
 
+    # Update a model.
+    #
+    # Runs validation and callbacks. Reloads all attribute values.
+    #
+    # Accepts mandatory block in order to specify operations which will modify
+    # attributes. Supports following operations: +add+, +delete+ and +set+.
+    #
+    # Operation +add+ just adds a value for numeric attributes and join
+    # collections if attribute is a collection (one of +array+, +set+ or
+    # +map+).
+    #
+    #   user.update do |t|
+    #     t.add(age: 1, followers_count: 5)
+    #     t.add(hobbies: ['skying', 'climbing'])
+    #   end
+    #
+    # Operation +delete+ is applied to collection attribute types and
+    # substructs one collection from another.
+    #
+    #   user.update do |t|
+    #     t.delete(hobbies: ['skying'])
+    #   end
+    #
+    # Operation +set+ just changes an attribute value:
+    #
+    #   user.update do |t|
+    #     t.set(age: 21)
+    #   end
+    #
+    # All the operations works like +ADD+, +DELETE+ and +PUT+ actions supported
+    # by +AttributeUpdates+
+    # {parameter}[https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.AttributeUpdates.html]
+    # of +UpdateItem+ operation.
+    #
+    # Can update a model conditionaly:
+    #
+    #   user.update(if: { age: 20 }) do |t|
+    #     t.add(age: 1)
+    #   end
+    #
+    # If a document doesn't meet conditions it just returns +false+. Otherwise it returns +true+.
+    #
+    # It will increment the +lock_version+ attribute if a table has the column,
+    # but will not check it. Thus, a concurrent +save+ call will never cause an
+    # +update!+ to fail, but an +update!+ may cause a concurrent +save+ to
+    # fail.
+    #
+    # @param conditions [Hash] Conditions on model attributes to make a conditional update (optional)
     def update(conditions = {}, &block)
       update!(conditions, &block)
       true
@@ -372,38 +646,86 @@ module Dynamoid
       false
     end
 
-    # Initializes attribute to zero if nil and adds the value passed as by (default is 1).
-    # Only makes sense for number-based attributes. Returns self.
+    # Change numeric attribute value.
+    #
+    # Initializes attribute to zero if +nil+ and adds the specified value (by
+    # default is 1). Only makes sense for number-based attributes.
+    #
+    #   user.increment(:followers_count)
+    #   user.increment(followers_count: 2)
+    #
+    # @param attribute [Symbol] attribute name
+    # @param by [Numeric] value to add (optional)
+    # @return [Dynamoid::Document] self
     def increment(attribute, by = 1)
       self[attribute] ||= 0
       self[attribute] += by
       self
     end
 
-    # Wrapper around increment that saves the record.
-    # Returns true if the record could be saved.
+    # Change numeric attribute value and save a model.
+    #
+    # Initializes attribute to zero if +nil+ and adds the specified value (by
+    # default is 1). Only makes sense for number-based attributes.
+    #
+    #   user.increment!(:followers_count)
+    #   user.increment!(followers_count: 2)
+    #
+    # Returns +true+ if a model was saved and +false+ otherwise.
+    #
+    # @param attribute [Symbol] attribute name
+    # @param by [Numeric] value to add (optional)
+    # @return [true|false] whether saved model successfully
     def increment!(attribute, by = 1)
       increment(attribute, by)
       save
     end
 
-    # Initializes attribute to zero if nil and subtracts the value passed as by (default is 1).
-    # Only makes sense for number-based attributes. Returns self.
+    # Change numeric attribute value.
+    #
+    # Initializes attribute to zero if +nil+ and subtracts the specified value
+    # (by default is 1). Only makes sense for number-based attributes.
+    #
+    #   user.decrement(:followers_count)
+    #   user.decrement(followers_count: 2)
+    #
+    # @param attribute [Symbol] attribute name
+    # @param by [Numeric] value to subtract (optional)
+    # @return [Dynamoid::Document] self
     def decrement(attribute, by = 1)
       self[attribute] ||= 0
       self[attribute] -= by
       self
     end
 
-    # Wrapper around decrement that saves the record.
-    # Returns true if the record could be saved.
+    # Change numeric attribute value and save a model.
+    #
+    # Initializes attribute to zero if +nil+ and subtracts the specified value
+    # (by default is 1). Only makes sense for number-based attributes.
+    #
+    #   user.decrement!(:followers_count)
+    #   user.decrement!(followers_count: 2)
+    #
+    # Returns +true+ if a model was saved and +false+ otherwise.
+    #
+    # @param attribute [Symbol] attribute name
+    # @param by [Numeric] value to subtract (optional)
+    # @return [true|false] whether saved model successfully
     def decrement!(attribute, by = 1)
       decrement(attribute, by)
       save
     end
 
-    # Delete this object, but only after running callbacks for it.
+    # Delete a model.
     #
+    # Runs callbacks.
+    #
+    # Supports optimistic locking with the +lock_version+ attribute and doesn't
+    # delete a model if it's already changed.
+    #
+    # Returns +true+ if deleted successfully and +false+ otherwise.
+    #
+    # @return [true|false] whether deleted successfully
     # @since 0.2.0
     def destroy
       ret = run_callbacks(:destroy) do
@@ -415,11 +737,26 @@ module Dynamoid
       ret == false ? false : self
     end
 
+    # Delete a model.
+    #
+    # Runs callbacks.
+    #
+    # Supports optimistic locking with the +lock_version+ attribute and doesn't
+    # delete a model if it's already changed.
+    #
+    # Raises +Dynamoid::Errors::RecordNotDestroyed+ exception if model deleting
+    # failed.
     def destroy!
       destroy || (raise Dynamoid::Errors::RecordNotDestroyed, self)
     end
 
-    # Delete this object from the datastore.
+    # Delete a model.
+    #
+    # Supports optimistic locking with the +lock_version+ attribute and doesn't
+    # delete a model if it's already changed.
+    #
+    # Raises +Dynamoid::Errors::StaleObjectError+ exception if cannot delete a
+    # model.
     #
     # @since 0.2.0
     def delete

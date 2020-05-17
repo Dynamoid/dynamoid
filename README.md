@@ -762,7 +762,7 @@ for requesting documents in batches:
 
 ```ruby
 # Do some maintenance on the entire table without flooding DynamoDB
-Address.all(batch_size: 100).each { |address| address.do_some_work; sleep(0.01) }
+Address.batch(100).each { |address| address.do_some_work; sleep(0.01) }
 Address.record_limit(10_000).batch(100).each { … } # Batch specified as part of a chain
 ```
 
