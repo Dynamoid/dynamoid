@@ -32,7 +32,6 @@ module Dynamoid #:nodoc:
         target
       end
 
-
       # Create a new instance of the target class, persist it and associate.
       #
       #   post.logo.create!(hight: 50, width: 90)

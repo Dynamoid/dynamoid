@@ -135,7 +135,7 @@ module Dynamoid #:nodoc:
       end
 
       def warn_about_method_overriding(method_name, field_name)
-        if self.instance_methods.include?(method_name.to_sym)
+        if instance_methods.include?(method_name.to_sym)
           Dynamoid.logger.warn("Method #{method_name} generated for the field #{field_name} overrides already existing method")
         end
       end
