@@ -33,18 +33,99 @@ module Dynamoid #:nodoc:
     module ClassMethods
       # Specify a field for a document.
       #
-      # Its type determines how it is coerced when read in and out of the datastore.
-      # You can specify :integer, :number, :set, :array, :datetime, :date and :serialized,
-      # or specify a class that defines a serialization strategy.
+      #   class User
+      #     include Dynamoid::Document
+      #
+      #     field :last_name
+      #     field :age, :integer
+      #     field :last_sign_in, :datetime
+      #   end
+      #
+      # Its type determines how it is coerced when read in and out of the
+      # datastore. You can specify +string+, +integer+, +number+, +set+, +array+,
+      # +map+, +datetime+, +date+, +serialized+, +raw+ and +boolean+ or specify a
+      # class that defines a serialization strategy.
+      #
+      # Set can store elements of the same type only (it's a limitation of
+      # DynamoDB itself). If a set should store elements only some particular
+      # type +of+ option should be specified:
+      #
+      #   field :hobbies, :set, of: :string
+      #
+      # Only +string+, +integer+, +number+, +date+, +datetime+ and +serialized+
+      # element types are supported.
+      #
+      # Element type can have own options - they should be specified in the
+      # form of +Hash+:
+      #
+      #   field :hobbies, :set, of: { serialized: { serializer: JSON } }
+      #
+      # Array can contain element of different types but if supports the same
+      # +of+ option to convert all the provided elements to the declared type.
+      #
+      #   field :rates, :array, of: :number
+      #
+      # By default +date+ and +datetime+ fields are stored as integer values.
+      # The format can be changed to string with option +store_as_string+:
+      #
+      #   field :published_on, :datetime, store_as_string: true
+      #
+      # Boolean field by default is stored as a string +t+ or 'f'. But DynamoDB
+      # supports boolean type natively. In order to switch to the native
+      # boolean type an option +store_as_native_boolean+ should be specified:
+      #
+      #   field :active, :boolean, store_as_native_boolean: true
+      #
+      # If you specify the +serialized+ type a value will be serialized to
+      # string in Yaml format by default. Custom way to serialize value to
+      # string can be specified with +serializer+ option. Custom serializer
+      # should have +dump+ and +load+ methods.
       #
       # If you specify a class for field type, Dynamoid will serialize using
-      # `dynamoid_dump` or `dump` methods, and load using `dynamoid_load` or `load` methods.
+      # +dynamoid_dump+ method and load using +dynamoid_load+ method.
       #
-      # Default field type is :string.
+      # Default field type is +string+.
       #
-      # @param [Symbol] name the name of the field
-      # @param [Symbol] type the type of the field (refer to method description for details)
-      # @param [Hash] options any additional options for the field
+      # A field can have a default value. It's assigned at initializing a model
+      # if no value is specified:
+      #
+      #   field :age, :integer, default: 1
+      #
+      # If a defautl value should be recalculated every time it can be
+      # specified as a callable object (it should implement a +call+ method
+      # e.g. +Proc+ object):
+      #
+      #   field :date_of_birth, :date, default: -> { Date.today }
+      #
+      # For every field Dynamoid creates several methods:
+      #
+      # * getter
+      # * setter
+      # * predicate +<name>?+ to check whether a value set
+      # * +<name>_before_type_cast?+ to get an original field value before it was type casted
+      #
+      # It works in the following way:
+      #
+      #   class User
+      #     include Dynamoid::Document
+      #
+      #     field :age, :integer
+      #   end
+      #
+      #   user = User.new
+      #   user.age # => nil
+      #   user.age? # => false
+      #
+      #   user.age = 20
+      #   user.age? # => true
+      #
+      #   user.age = '21'
+      #   user.age # => 21 - integer
+      #   user.age_before_type_cast # => '21' - string
+      #
+      # @param name [Symbol] name of the field
+      # @param type [Symbol] type of the field (optional)
+      # @param options [Hash] any additional options for the field type (optional)
       #
       # @since 0.2.0
       def field(name, type = :string, options = {})
@@ -79,11 +160,69 @@ module Dynamoid #:nodoc:
         end
       end
 
+      # Declare a table range key.
+      #
+      #   class User
+      #     include Dynamoid::Document
+      #
+      #     range :last_name
+      #   end
+      #
+      # By default a range key is a string. In order to use any other type it
+      # should be specified as a second argument:
+      #
+      #   range :age, :integer
+      #
+      # Type options can be specified as well:
+      #
+      #   range :date_of_birth, :date, store_as_string: true
+      #
+      # @param name [Symbol] a range key attribute name
+      # @param type [Symbol] a range key type (optional)
+      # @param options [Symbol] type options (optional)
       def range(name, type = :string, options = {})
         field(name, type, options)
         self.range_key = name
       end
 
+      # Set table level properties.
+      #
+      # There are some sensible defaults:
+      #
+      # * table name is based on a model class e.g. +users+ for +User+ class
+      # * hash key name - +id+ by default
+      # * hash key type - +string+ by default
+      # * generating timestamp fields +created_at+ and +updated_at+
+      # * billing mode and read/write capacity units
+      #
+      # The +table+ method can be used to override the defaults:
+      #
+      #   class User
+      #     include Dynamoid::Document
+      #
+      #     table name: :customers, key: :uuid
+      #   end
+      #
+      # The hash key field is declared by default and a type is a string. If
+      # another type is needed the field should be declared explicitly:
+      #
+      #   class User
+      #     include Dynamoid::Document
+      #
+      #     field :id, :integer
+      #   end
+      #
+      # @param options [Hash] options to override default table settings
+      # @option options [Symbol] :name name of a table
+      # @option options [Symbol] :key name of a hash key attribute
+      # @option options [Symbol] :inheritance_field name of an attribute used for STI
+      # @option options [Symbol] :capacity_mode table billing mode - either +provisioned+ or +on_demand+
+      # @option options [Integer] :write_capacity table write capacity units
+      # @option options [Integer] :read_capacity table read capacity units
+      # @option options [true|false] :timestamps whether generate +created_at+ and +updated_at+ fields or not
+      # @option options [Hash] :expires set up a table TTL and should have following structure +{ field: <attriubute name>, after: <seconds> }+
+      #
+      # @since 0.4.0
       def table(options)
         # a default 'id' column is created when Dynamoid::Document is included
         unless attributes.key? hash_key
@@ -104,6 +243,12 @@ module Dynamoid #:nodoc:
         end
       end
 
+      # Remove a field declaration
+      #
+      # Removes a field from the list of fields and removes all te generated
+      # for a field methods.
+      #
+      # @param field [Symbol] a field name
       def remove_field(field)
         field = field.to_sym
         attributes.delete(field) || raise('No such field')
@@ -145,10 +290,16 @@ module Dynamoid #:nodoc:
     attr_accessor :attributes
     alias raw_attributes attributes
 
-    # Write an attribute on the object. Also marks the previous value as dirty.
+    # Write an attribute on the object.
     #
-    # @param [Symbol] name the name of the field
-    # @param [Object] value the value to assign to that field
+    #   user.age = 20
+    #   user.write_attribute(:age, 21)
+    #   user.age # => 21
+    #
+    # Also marks the previous value as dirty.
+    #
+    # @param name [Symbol] the name of the field
+    # @param value [Object] the value to assign to that field
     #
     # @since 0.2.0
     def write_attribute(name, value)
@@ -169,22 +320,40 @@ module Dynamoid #:nodoc:
 
     # Read an attribute from an object.
     #
-    # @param [Symbol] name the name of the field
+    #   user.age = 20
+    #   user.read_attribute(:age) # => 20
     #
+    # @param name [Symbol] the name of the field
+    # @return attribute value
     # @since 0.2.0
     def read_attribute(name)
       attributes[name.to_sym]
     end
     alias [] read_attribute
 
-    # Returns a hash of attributes before typecasting
+    # Return attributes values before type casting.
+    #
+    #   user = User.new
+    #   user.age = '21'
+    #   user.age # => 21
+    #
+    #   user.attributes_before_type_cast # => { age: '21' }
+    #
+    # @return [Hash] original attribute values
     def attributes_before_type_cast
       @attributes_before_type_cast
     end
 
-    # Returns the value of the attribute identified by name before typecasting
+    # Return the value of the attribute identified by name before type casting.
     #
-    # @param [Symbol] attribute name
+    #   user = User.new
+    #   user.age = '21'
+    #   user.age # => 21
+    #
+    #   user.read_attribute_before_type_cast(:age) # => '21'
+    #
+    # @param name [Symbol] attribute name
+    # @return original attribute value
     def read_attribute_before_type_cast(name)
       return nil unless name.respond_to?(:to_sym)
 
