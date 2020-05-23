@@ -19,16 +19,37 @@ module Dynamoid #:nodoc:
         object
       end
 
+      # Delete a model from the association.
+      #
+      #   post.logo.delete # => nil
+      #
+      # Saves both models immediately - a source model and a target one so any
+      # unsaved changes will be saved. Doesn't delete an associated model from
+      # DynamoDB.
       def delete
         target.send(target_association).disassociate(source.hash_key) if target && target_association
         disassociate
         target
       end
 
+      # Create a new instance of the target class, persist it and associate.
+      #
+      #   post.logo.create!(hight: 50, width: 90)
+      #
+      # If the creation fails an exception will be raised.
+      #
+      # @param attributes [Hash] attributes of a model to create
+      # @return [Dynamoid::Document] created model
       def create!(attributes = {})
         setter(target_class.create!(attributes))
       end
 
+      # Create a new instance of the target class, persist it and associate.
+      #
+      #   post.logo.create(hight: 50, width: 90)
+      #
+      # @param attributes [Hash] attributes of a model to create
+      # @return [Dynamoid::Document] created model
       def create(attributes = {})
         setter(target_class.create(attributes))
       end

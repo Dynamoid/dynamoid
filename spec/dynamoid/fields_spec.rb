@@ -5,14 +5,16 @@ require 'spec_helper'
 describe Dynamoid::Fields do
   let(:address) { Address.new }
 
-
   describe '.field' do
     context 'generated method overrided existing one' do
       let(:module_with_methods) do
         Module.new do
           def foo; end
+
           def bar=; end
+
           def baz?; end
+
           def foobar_before_type_cast?; end
         end
       end

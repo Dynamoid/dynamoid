@@ -248,7 +248,7 @@ describe Dynamoid::Finders do
           it 'leads to not raising exception if model not found' do
             obj = klass.create
 
-            #expect(klass.find([obj.id, 'blah-blah'], raise_error: false)).to eq [obj]
+            # expect(klass.find([obj.id, 'blah-blah'], raise_error: false)).to eq [obj]
             expect(klass.find_all([obj.id, 'blah-blah'])).to eq [obj]
           end
         end

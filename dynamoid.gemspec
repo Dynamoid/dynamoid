@@ -36,9 +36,9 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.metadata = {
-    "bug_tracker_uri"   => "https://github.com/Dynamoid/dynamoid/issues",
-    "changelog_uri"     => "https://github.com/Dynamoid/dynamoid/tree/v#{Dynamoid::VERSION}/CHANGELOG.md",
-    "source_code_uri"   => "https://github.com/Dynamoid/dynamoid/tree/v#{Dynamoid::VERSION}",
+    'bug_tracker_uri'   => 'https://github.com/Dynamoid/dynamoid/issues',
+    'changelog_uri'     => "https://github.com/Dynamoid/dynamoid/tree/v#{Dynamoid::VERSION}/CHANGELOG.md",
+    'source_code_uri'   => "https://github.com/Dynamoid/dynamoid/tree/v#{Dynamoid::VERSION}",
   }
 
   spec.add_runtime_dependency 'activemodel',      '>=4'
