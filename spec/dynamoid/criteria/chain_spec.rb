@@ -1430,6 +1430,80 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  describe '#first' do
+    let(:model) do
+      new_class partition_key: :name do
+        range :age, :integer
+        field :city, :string
+      end
+    end
+
+    it 'applies a record_limit' do
+      model.create(name: 'Bob', age: 5)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:record_limit).with(1)
+      chain.first
+    end
+
+    it 'applies a record limit if only key conditions are present' do
+      model.create(name: 'Bob', age: 5)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:record_limit).with(1)
+      chain.where(name: 'Bob', age: 5).first
+    end
+
+    it 'does not apply a record limit if the hash key is missing' do
+      model.create(name: 'Bob', city: 'New York', age: 5)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).not_to receive(:record_limit)
+      chain.where(age: 5).first
+    end
+
+    it 'does not apply a record limit if non-key conditions are present' do
+      model.create(name: 'Bob', city: 'New York', age: 5)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).not_to receive(:record_limit)
+      chain.where(city: 'New York').first
+      chain.where(name: 'Bob', city: 'New York').first
+      chain.where(name: 'Bob', age: 5, city: 'New York').first
+    end
+
+    it 'does not apply a record limit if non-equality conditions are present' do
+      model.create(name: 'Bob', age: 5)
+      model.create(name: 'Alice', age: 6)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).not_to receive(:record_limit)
+      chain.where('name.gt': 'Alice').first
+    end
+
+    it 'returns nil if no matching document is present' do
+      model.create(name: 'Bob', age: 5)
+
+      expect(model.where(name: 'Alice').first).to be_nil
+    end
+
+    it 'returns the first document with regards to the sort order' do
+      customer1 = model.create(name: 'Bob', age: 5)
+      customer2 = model.create(name: 'Bob', age: 9)
+      customer3 = model.create(name: 'Bob', age: 12)
+
+      expect(model.first.age).to eq(5)
+    end
+
+    it 'returns the first document matching the criteria and with regards to the sort order' do
+      customer1 = model.create(name: 'Bob', age: 4)
+      customer3 = model.create(name: 'Alice', age: 6)
+      customer4 = model.create(name: 'Alice', age: 8)
+
+      expect(model.where(name: 'Alice').first.age).to eq(6)
+    end
+  end
+
   describe '#count' do
     describe 'Query vs Scan' do
       it 'Scans when query is empty' do

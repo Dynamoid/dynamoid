@@ -10,6 +10,10 @@ module Dynamoid #:nodoc:
           @fields = query_hash.keys.map(&:to_s).map { |s| s.split('.').first }
         end
 
+        def contain_only?(field_names)
+          (@fields - field_names.map(&:to_s)).blank?
+        end
+
         def contain?(field_name)
           @fields.include?(field_name.to_s)
         end
@@ -24,6 +28,10 @@ module Dynamoid #:nodoc:
         @source = source
         @query = Query.new(query)
         @result = find_keys_in_query
+      end
+
+      def non_key_present?
+        !@query.contain_only?([hash_key, range_key].compact)
       end
 
       def key_present?
