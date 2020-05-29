@@ -1438,47 +1438,47 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    it 'applies a record_limit' do
-      model.create(name: 'Bob', age: 5)
+    it 'applies a scan limit if no conditions are present' do
+      document = model.create(name: 'Bob', age: 5)
 
       chain = Dynamoid::Criteria::Chain.new(model)
-      expect(chain).to receive(:record_limit).with(1)
-      chain.first
+      expect(chain).to receive(:scan_limit).with(1).and_call_original
+      expect(chain.first).to eq(document)
     end
 
     it 'applies a record limit if only key conditions are present' do
-      model.create(name: 'Bob', age: 5)
+      document = model.create(name: 'Bob', age: 5)
 
       chain = Dynamoid::Criteria::Chain.new(model)
-      expect(chain).to receive(:record_limit).with(1)
-      chain.where(name: 'Bob', age: 5).first
+      expect(chain).to receive(:record_limit).with(1).and_call_original
+      expect(chain.where(name: 'Bob', age: 5).first).to eq(document)
     end
 
     it 'does not apply a record limit if the hash key is missing' do
-      model.create(name: 'Bob', city: 'New York', age: 5)
+      document = model.create(name: 'Bob', city: 'New York', age: 5)
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).not_to receive(:record_limit)
-      chain.where(age: 5).first
+      expect(chain.where(age: 5).first).to eq(document)
     end
 
     it 'does not apply a record limit if non-key conditions are present' do
-      model.create(name: 'Bob', city: 'New York', age: 5)
+      document = model.create(name: 'Bob', city: 'New York', age: 5)
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).not_to receive(:record_limit)
-      chain.where(city: 'New York').first
-      chain.where(name: 'Bob', city: 'New York').first
-      chain.where(name: 'Bob', age: 5, city: 'New York').first
+      expect(chain.where(city: 'New York').first).to eq(document)
+      expect(chain.where(name: 'Bob', city: 'New York').first).to eq(document)
+      expect(chain.where(name: 'Bob', age: 5, city: 'New York').first).to eq(document)
     end
 
     it 'does not apply a record limit if non-equality conditions are present' do
-      model.create(name: 'Bob', age: 5)
-      model.create(name: 'Alice', age: 6)
+      document1 = model.create(name: 'Bob', age: 5)
+      document2 = model.create(name: 'Alice', age: 6)
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).not_to receive(:record_limit)
-      chain.where('name.gt': 'Alice').first
+      expect(chain.where('name.gt': 'Alice').first).to eq(document1)
     end
 
     it 'returns nil if no matching document is present' do
@@ -1488,17 +1488,17 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'returns the first document with regards to the sort order' do
-      customer1 = model.create(name: 'Bob', age: 5)
-      customer2 = model.create(name: 'Bob', age: 9)
-      customer3 = model.create(name: 'Bob', age: 12)
+      document1 = model.create(name: 'Bob', age: 5)
+      document2 = model.create(name: 'Bob', age: 9)
+      document3 = model.create(name: 'Bob', age: 12)
 
       expect(model.first.age).to eq(5)
     end
 
     it 'returns the first document matching the criteria and with regards to the sort order' do
-      customer1 = model.create(name: 'Bob', age: 4)
-      customer3 = model.create(name: 'Alice', age: 6)
-      customer4 = model.create(name: 'Alice', age: 8)
+      document1 = model.create(name: 'Bob', age: 4)
+      document3 = model.create(name: 'Alice', age: 6)
+      document4 = model.create(name: 'Alice', age: 8)
 
       expect(model.where(name: 'Alice').first.age).to eq(6)
     end
