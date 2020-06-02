@@ -1690,4 +1690,100 @@ describe Dynamoid::Criteria::Chain do
       end
     end
   end
+
+  describe '#scan_index_forward' do
+    let(:klass_with_range_key) do
+      new_class do
+        range :name
+        field :age, :integer
+      end
+    end
+
+    it 'returns collection sorted in ascending order by range key when called with true' do
+      klass_with_range_key.create(id: 'the same id', name: 'a')
+      klass_with_range_key.create(id: 'the same id', name: 'c')
+      klass_with_range_key.create(id: 'the same id', name: 'b')
+
+      chain = Dynamoid::Criteria::Chain.new(klass_with_range_key)
+      models = chain.where(id: 'the same id').scan_index_forward(true)
+      expect(models.map(&:name)).to eq ['a', 'b', 'c']
+    end
+
+    it 'returns collection sorted in descending order by range key when called with false' do
+      klass_with_range_key.create(id: 'the same id', name: 'a')
+      klass_with_range_key.create(id: 'the same id', name: 'c')
+      klass_with_range_key.create(id: 'the same id', name: 'b')
+
+      chain = Dynamoid::Criteria::Chain.new(klass_with_range_key)
+      models = chain.where(id: 'the same id').scan_index_forward(false)
+      expect(models.map(&:name)).to eq ['c', 'b', 'a']
+    end
+
+    it 'overides previous calls' do
+      klass_with_range_key.create(id: 'the same id', name: 'a')
+      klass_with_range_key.create(id: 'the same id', name: 'c')
+      klass_with_range_key.create(id: 'the same id', name: 'b')
+
+      chain = Dynamoid::Criteria::Chain.new(klass_with_range_key)
+      models = chain.where(id: 'the same id').scan_index_forward(false).scan_index_forward(true)
+      expect(models.map(&:name)).to eq ['a', 'b', 'c']
+    end
+
+    context 'when Scan conditions' do
+      it 'does not affect query without conditions on hash' do
+        klass_with_range_key.create(id: 'the same id', name: 'a')
+        klass_with_range_key.create(id: 'the same id', name: 'c')
+        klass_with_range_key.create(id: 'the same id', name: 'b')
+
+        chain = Dynamoid::Criteria::Chain.new(klass_with_range_key)
+        models = chain.where('name.gte': 'a').scan_index_forward(false)
+        expect(models.map(&:name)).not_to eq ['c', 'b', 'a']
+      end
+    end
+
+    context 'when Local Secondary Index (LSI) used' do
+      let(:klass_with_local_secondary_index) do
+        new_class do
+          range :name
+          field :age, :integer
+
+          local_secondary_index range_key: :age, name: :age_index,  projected_attributes: :all
+        end
+      end
+
+      it 'affects a query' do
+        klass_with_local_secondary_index.create(id: 'the same id', age: 30, name: 'a')
+        klass_with_local_secondary_index.create(id: 'the same id', age: 10, name: 'c')
+        klass_with_local_secondary_index.create(id: 'the same id', age: 20, name: 'b')
+
+        chain = Dynamoid::Criteria::Chain.new(klass_with_local_secondary_index)
+        models = chain.where(id: 'the same id', 'age.gt': 0).scan_index_forward(false)
+        expect(models.map(&:age)).to eq [30, 20, 10]
+        expect(chain.key_fields_detector.index_name).to eq(:age_index)
+      end
+    end
+
+    context 'when Global Secondary Index (GSI) used' do
+      let(:klass_with_global_secondary_index) do
+        new_class do
+          range :name
+          field :age, :integer
+          field :nickname
+
+          global_secondary_index hash_key: :age, range_key: :nickname, name: :age_nickname_index, projected_attributes: :all
+        end
+      end
+
+      it 'affects a query' do
+        klass_with_global_secondary_index.create(age: 30, nickname: 'a', name: 'b')
+        klass_with_global_secondary_index.create(age: 30, nickname: 'c', name: 'c')
+        klass_with_global_secondary_index.create(age: 30, nickname: 'b', name: 'a')
+
+        chain = Dynamoid::Criteria::Chain.new(klass_with_global_secondary_index)
+        models = chain.where(age: 30).scan_index_forward(false)
+        expect(models.map(&:nickname)).to eq ['c', 'b', 'a']
+        expect(chain.key_fields_detector.index_name).to eq(:age_nickname_index)
+      end
+    end
+  end
 end
