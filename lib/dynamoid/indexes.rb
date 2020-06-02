@@ -12,22 +12,47 @@ module Dynamoid
     end
 
     module ClassMethods
+
       # Defines a Global Secondary index on a table. Keys can be specified as
       # hash-only, or hash & range.
       #
-      # @param [Hash] options options to pass for this table
-      # @option options [Symbol] :name the name for the index; this still gets
-      #         namespaced.  If not specified, will use a default name.
-      # @option options [Symbol] :hash_key the index hash key column.
-      # @option options [Symbol] :range_key the index range key column (if
+      #   class Post
+      #     include Dynamoid::Document
+      #
+      #     field :category
+      #
+      #     global_secondary_indexes hash_key: :category
+      #   end
+      #
+      # The full example with all the options being specified:
+      #
+      #   global_secondary_indexes hash_key: :category,
+      #                            range_key: :created_at,
+      #                            name: 'posts_category_created_at_index',
+      #                            projected_attributes: :all,
+      #                            read_capacity: 100,
+      #                            write_capacity: 20
+      #
+      # Global secondary index should be declared after fields for mentioned
+      # hash key and optional range key are declared (with method +field+)
+      #
+      # The only mandatory option is +hash_key+. Raises
+      # +Dynamoid::Errors::InvalidIndex+ exception if passed incorrect
+      # options.
+      #
+      # @param [Hash] options the options to pass for this table
+      # @option options [Symbol] name the name for the index; this still gets
+      #         namespaced. If not specified, will use a default name.
+      # @option options [Symbol] hash_key the index hash key column.
+      # @option options [Symbol] range_key the index range key column (if
       #         applicable).
-      # @option options [Symbol, Array<Symbol>] :projected_attributes table
-      #         attributes to project for this index. Can be :keys_only, :all
+      # @option options [Symbol, Array<Symbol>] projected_attributes table
+      #         attributes to project for this index. Can be +:keys_only+, +:all+
       #         or an array of included fields. If not specified, defaults to
-      #         :keys_only.
-      # @option options [Integer] :read_capacity set the read capacity for the
+      #         +:keys_only+.
+      # @option options [Integer] read_capacity set the read capacity for the
       #         index; does not work on existing indexes.
-      # @option options [Integer] :write_capacity set the write capacity for
+      # @option options [Integer] write_capacity set the write capacity for
       #         the index; does not work on existing indexes.
       def global_secondary_index(options = {})
         unless options.present?
@@ -55,14 +80,38 @@ module Dynamoid
       # Defines a local secondary index on a table. Will use the same primary
       # hash key as the table.
       #
+      #   class Comment
+      #     include Dynamoid::Document
+      #
+      #     table hash_key: :post_id
+      #     range :created_at, :datetime
+      #     field :author_id
+      #
+      #     local_secondary_indexes hash_key: :author_id
+      #   end
+      #
+      # The full example with all the options being specified:
+      #
+      #   local_secondary_indexes range_key: :created_at,
+      #                           name: 'posts_created_at_index',
+      #                           projected_attributes: :all
+      #
+      # Local secondary index should be declared after fields for mentioned
+      # hash key and optional range key are declared (with method +field+) as
+      # well as after +table+ method call.
+      #
+      # The only mandatory option is +range_key+. Raises
+      # +Dynamoid::Errors::InvalidIndex+ exception if passed incorrect
+      # options.
+      #
       # @param [Hash] options options to pass for this index.
-      # @option options [Symbol] :name the name for the index; this still gets
+      # @option options [Symbol] name the name for the index; this still gets
       #         namespaced. If not specified, a name is automatically generated.
-      # @option options [Symbol] :range_key the range key column for the index.
-      # @option options [Symbol, Array<Symbol>] :projected_attributes table
-      #         attributes to project for this index. Can be :keys_only, :all
+      # @option options [Symbol] range_key the range key column for the index.
+      # @option options [Symbol, Array<Symbol>] projected_attributes table
+      #         attributes to project for this index. Can be +:keys_only+, +:all+
       #         or an array of included fields. If not specified, defaults to
-      #         :keys_only.
+      #         +:keys_only+.
       def local_secondary_index(options = {})
         unless options.present?
           raise Dynamoid::Errors::InvalidIndex, 'empty index definition'
@@ -94,6 +143,13 @@ module Dynamoid
         self
       end
 
+      # Returns an index by its hash key and optional range key.
+      #
+      # It works only for indexes without explicit name declared.
+      #
+      # @param hash [scalar] the hash key used to declare an index
+      # @param range [scalar] the range key used to declare an index (optional)
+      # @return [Dynamoid::Indexes::Index, nil] index object or nil if it isn't found
       def find_index(hash, range = nil)
         index = indexes[index_key(hash, range)]
         index
@@ -150,6 +206,10 @@ module Dynamoid
         local_secondary_indexes.merge(global_secondary_indexes)
       end
 
+      # Returns an array of hash keys for all the declared Glocal Secondary
+      # Indexes.
+      #
+      # @return [Array[String]] array of hash keys
       def indexed_hash_keys
         global_secondary_indexes.map do |_name, index|
           index.hash_key.to_s
