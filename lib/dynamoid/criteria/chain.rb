@@ -176,6 +176,27 @@ module Dynamoid
         end
       end
 
+      # Returns the first item matching the criteria.
+      #
+      #   Post.where(links_count: 2).first
+      #
+      # Applies `record_limit(1)` to ensure only a single record is fetched
+      # when no non-key conditions are present and `scan_limit(1)` when no
+      # conditions are present at all.
+      #
+      # If used without criteria it just returns the first item of some
+      # arbitrary order.
+      #
+      #   Post.first
+      #
+      # @return [Model|nil]
+      def first
+        return scan_limit(1).to_a.first if @query.blank?
+        return super if @key_fields_detector.non_key_present?
+
+        record_limit(1).to_a.first
+      end
+
       # Returns the last item matching the criteria.
       #
       #   Post.where(links_count: 2).last
