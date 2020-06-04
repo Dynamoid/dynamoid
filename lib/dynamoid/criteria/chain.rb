@@ -190,11 +190,13 @@ module Dynamoid
       #   Post.first
       #
       # @return [Model|nil]
-      def first
-        return scan_limit(1).to_a.first if @query.blank?
+      def first(*args)
+        n = args.first || 1
+
+        return scan_limit(n).to_a.first(*args) if @query.blank?
         return super if @key_fields_detector.non_key_present?
 
-        record_limit(1).to_a.first
+        record_limit(n).to_a.first(*args)
       end
 
       # Returns the last item matching the criteria.
