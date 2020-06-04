@@ -1446,12 +1446,32 @@ describe Dynamoid::Criteria::Chain do
       expect(chain.first).to eq(document)
     end
 
+    it 'applies the correct scan limit if no conditions are present' do
+      document1 = model.create(name: 'Bob', age: 5)
+      document2 = model.create(name: 'Bob', age: 6)
+      document3 = model.create(name: 'Bob', age: 7)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:scan_limit).with(2).and_call_original
+      expect(chain.first(2).to_set).to eq([document1, document2].to_set)
+    end
+
     it 'applies a record limit if only key conditions are present' do
       document = model.create(name: 'Bob', age: 5)
 
       chain = Dynamoid::Criteria::Chain.new(model)
       expect(chain).to receive(:record_limit).with(1).and_call_original
       expect(chain.where(name: 'Bob', age: 5).first).to eq(document)
+    end
+
+    it 'applies the correct record limit if only key conditions are present' do
+      document1 = model.create(name: 'Bob', age: 5)
+      document2 = model.create(name: 'Bob', age: 6)
+      document3 = model.create(name: 'Bob', age: 7)
+
+      chain = Dynamoid::Criteria::Chain.new(model)
+      expect(chain).to receive(:record_limit).with(2).and_call_original
+      expect(chain.where(name: 'Bob').first(2)).to eq([document1, document2])
     end
 
     it 'does not apply a record limit if the hash key is missing' do
