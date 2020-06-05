@@ -1102,6 +1102,65 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   # DescribeTable
 
   # UpdateItem
+  describe '#update_item' do
+    it 'updates an existing item' do
+      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+
+      Dynamoid.adapter.update_item(test_table1, '1') do |t|
+        t.set(name: 'Justin')
+      end
+
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(name: 'Justin', id: '1')
+    end
+
+    it 'creates a new item' do
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to be_nil
+
+      Dynamoid.adapter.update_item(test_table1, '1') do |t|
+        t.set(name: 'Justin')
+      end
+
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(name: 'Justin', id: '1')
+    end
+
+    context 'attribute values' do
+      it 'adds attribute values' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+
+        Dynamoid.adapter.update_item(test_table1, '1') do |t|
+          t.add(age: 1, followers_count: 5)
+          t.add(hobbies: ['skying', 'climbing'].to_set)
+        end
+
+        expected_attributes = {
+          name: 'Josh', id: '1', age: 1, followers_count: 5, hobbies: ['skying', 'climbing'].to_set
+        }
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(expected_attributes)
+      end
+
+      it 'deletes attribute values' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', hobbies: ['skying', 'climbing'].to_set)
+
+        Dynamoid.adapter.update_item(test_table1, '1') do |t|
+          t.delete(hobbies: ['skying'].to_set)
+        end
+
+        expected_attributes = { name: 'Josh', id: '1', hobbies: ['climbing'].to_set }
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(expected_attributes)
+      end
+
+      it 'sets attribute values' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+
+        Dynamoid.adapter.update_item(test_table1, '1') do |t|
+          t.set(age: 21)
+        end
+
+        expected_attributes = { name: 'Josh', id: '1', age: 21 }
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(expected_attributes)
+      end
+    end
+  end
 
   # UpdateTable
 
