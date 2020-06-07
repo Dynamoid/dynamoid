@@ -1102,6 +1102,93 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   # DescribeTable
 
   # UpdateItem
+  describe '#update_item' do
+    it 'updates an existing item' do
+      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+
+      Dynamoid.adapter.update_item(test_table1, '1') do |t|
+        t.set(name: 'Justin')
+      end
+
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(name: 'Justin', id: '1')
+    end
+
+    it 'creates a new item' do
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to be_nil
+
+      Dynamoid.adapter.update_item(test_table1, '1') do |t|
+        t.set(name: 'Justin')
+      end
+
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(name: 'Justin', id: '1')
+    end
+
+    context 'for attribute values' do
+      it 'adds attribute values' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+
+        Dynamoid.adapter.update_item(test_table1, '1') do |t|
+          t.add(age: 1, followers_count: 5)
+          t.add(hobbies: ['skying', 'climbing'].to_set)
+        end
+
+        expected_attributes = {
+          age: 1,
+          followers_count: 5,
+          hobbies: ['skying', 'climbing'].to_set
+        }
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).to include(expected_attributes)
+      end
+
+      it 'deletes attribute values' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', hobbies: ['skying', 'climbing'].to_set)
+
+        Dynamoid.adapter.update_item(test_table1, '1') do |t|
+          t.delete(hobbies: ['skying'].to_set)
+        end
+
+        expected_attributes = { hobbies: ['climbing'].to_set }
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).to include(expected_attributes)
+      end
+
+      it 'sets attribute values' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+
+        Dynamoid.adapter.update_item(test_table1, '1') do |t|
+          t.set(age: 21)
+        end
+
+        expected_attributes = { age: 21 }
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).to include(expected_attributes)
+      end
+    end
+
+    context 'updates item conditionally' do
+      it 'raises Exception if condition fails' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', age: 17)
+
+        expect do
+          Dynamoid.adapter.update_item(test_table1, '1', conditions: { if: { age: 18 }}) do |t|
+            t.set(email: 'justin@example.com')
+          end
+        end.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
+
+        excluded_attributes = { email: 'justin@example.com' }
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).to_not include(excluded_attributes)
+      end
+
+      it 'updates item if condition succeeds' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', age: 18)
+
+        Dynamoid.adapter.update_item(test_table1, '1', conditions: { if: { age: 18 }}) do |t|
+          t.set(email: 'justin@example.com')
+        end
+
+        expected_attributes = { email: 'justin@example.com' }
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).to include(expected_attributes)
+      end
+    end
+  end
 
   # UpdateTable
 
