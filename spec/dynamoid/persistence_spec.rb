@@ -1118,6 +1118,14 @@ describe Dynamoid::Persistence do
       end
     end
 
+    it 'does not output a deprecation warning' do
+      document_class.create_table
+
+      expect do
+        document_class.update_fields('some-fake-id', title: 'Title')
+      end.not_to output(/is deprecated/).to_stderr
+    end
+
     it 'does not create new document if it does not exist yet' do
       document_class.create_table
 
@@ -1243,6 +1251,13 @@ describe Dynamoid::Persistence do
         field :version, :integer
         field :published_on, :date
       end
+    end
+
+    it 'does not output a deprecation warning' do
+      obj = document_class.create(title: 'Old title')
+      expect do
+        document_class.upsert(obj.id, title: 'New title')
+      end.to_not output(/is deprecated/).to_stderr
     end
 
     it 'changes field value' do

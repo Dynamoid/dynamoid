@@ -4,7 +4,7 @@ module Dynamoid
   module Persistence
     class Upsert
       def self.call(*args)
-        new(*args).call
+        new(args.first, **args.last).call
       end
 
       def initialize(model_class, partition_key:, sort_key:, attributes:, conditions:)

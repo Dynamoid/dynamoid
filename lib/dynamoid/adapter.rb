@@ -155,9 +155,15 @@ module Dynamoid
     #
     # @since 0.2.0
     def method_missing(method, *args, &block)
-      return benchmark(method, *args) { adapter.send(method, *args, &block) } if adapter.respond_to?(method)
+      super unless adapter.respond_to?(method)
 
-      super
+      if args.last.is_a?(Hash)
+        return benchmark(method, *args[0..-2], **args.last) do
+          adapter.send(method, *args[0..-2], **args.last, &block)
+        end
+      end
+
+      benchmark(method, *args) { adapter.send(method, *args, &block) }
     end
 
     # Query the DynamoDB table. This employs DynamoDB's indexes so is generally faster than scanning, but is

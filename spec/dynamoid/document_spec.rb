@@ -339,6 +339,10 @@ describe Dynamoid::Document do
       end
     end
 
+    it 'does not output a deprecation warning' do
+      expect { model.create }.to_not output(/is deprecated/).to_stderr
+    end
+
     it 'sets default value at the updating' do
       obj = model.create
 
