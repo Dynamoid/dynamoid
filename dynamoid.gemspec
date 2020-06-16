@@ -44,7 +44,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'activemodel',      '>=4'
   spec.add_runtime_dependency 'aws-sdk-dynamodb', '~> 1.0'
   spec.add_runtime_dependency 'concurrent-ruby',  '>= 1.0'
-  spec.add_runtime_dependency 'null-logger'
 
   spec.add_development_dependency 'appraisal',  '~> 2.2'
   spec.add_development_dependency 'bundler'
