@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Dynamoid #:nodoc:
+module Dynamoid
   # This is the base module for all domain objects that need to be persisted to
   # the database as documents.
   module Document
