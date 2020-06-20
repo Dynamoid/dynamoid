@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-module Dynamoid #:nodoc:
+module Dynamoid
   # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not
   # specified with field, then they will be ignored.
   module Fields
     extend ActiveSupport::Concern
 
+    # @private
     # Types allowed in indexes:
     PERMITTED_KEY_TYPES = %i[
       number
@@ -265,6 +266,7 @@ module Dynamoid #:nodoc:
         end
       end
 
+      # @private
       def timestamps_enabled?
         options[:timestamps] || (options[:timestamps].nil? && Dynamoid::Config.timestamps)
       end

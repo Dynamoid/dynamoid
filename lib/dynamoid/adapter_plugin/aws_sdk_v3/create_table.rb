@@ -3,6 +3,7 @@
 require_relative 'until_past_table_status'
 
 module Dynamoid
+  # @private
   module AdapterPlugin
     class AwsSdkV3
       class CreateTable

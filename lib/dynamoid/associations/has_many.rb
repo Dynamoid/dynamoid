@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-module Dynamoid #:nodoc:
+module Dynamoid
   # The has_many association.
   module Associations
+    # @private
     class HasMany
       include ManyAssociation
 

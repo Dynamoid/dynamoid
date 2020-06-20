@@ -19,6 +19,7 @@ module Dynamoid
     attr_accessor :new_record
     alias new_record? new_record
 
+    # @private
     UNIX_EPOCH_DATE = Date.new(1970, 1, 1).freeze
 
     module ClassMethods

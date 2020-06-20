@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-module Dynamoid #:nodoc:
+module Dynamoid
   # The belongs_to association. For belongs_to, we reference only a single target instead of multiple records; that target is the
   # object to which the association object is associated.
   module Associations
+    # @private
     class BelongsTo
       include SingleAssociation
 

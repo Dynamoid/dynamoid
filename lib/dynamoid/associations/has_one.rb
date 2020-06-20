@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-module Dynamoid #:nodoc:
+module Dynamoid
   # The HasOne association.
   module Associations
+    # @private
     class HasOne
       include Association
       include SingleAssociation

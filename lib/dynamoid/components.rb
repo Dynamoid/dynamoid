@@ -3,6 +3,7 @@
 module Dynamoid
   # All modules that a Document is composed of are defined in this
   # module, to keep the document class from getting too cluttered.
+  # @private
   module Components
     extend ActiveSupport::Concern
 

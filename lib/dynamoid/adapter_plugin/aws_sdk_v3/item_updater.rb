@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Dynamoid
+  # @private
   module AdapterPlugin
     class AwsSdkV3
       # Mimics behavior of the yielded object on DynamoDB's update_item API (high level).

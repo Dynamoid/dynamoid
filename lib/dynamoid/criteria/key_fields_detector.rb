@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-module Dynamoid #:nodoc:
+module Dynamoid
   module Criteria
+    # @private
     class KeyFieldsDetector
       class Query
         def initialize(query_hash)

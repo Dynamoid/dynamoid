@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Dynamoid
+  # @private
   module Tasks
     module Database
       module_function

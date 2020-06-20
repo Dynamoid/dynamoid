@@ -2,6 +2,7 @@
 
 module Dynamoid
   module Criteria
+    # @private
     class NonexistentFieldsDetector
       def initialize(conditions, source)
         @conditions = conditions

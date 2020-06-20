@@ -9,6 +9,7 @@ require_relative 'aws_sdk_v3/table'
 require_relative 'aws_sdk_v3/until_past_table_status'
 
 module Dynamoid
+  # @private
   module AdapterPlugin
     # The AwsSdkV3 adapter provides support for the aws-sdk version 2 for ruby.
     class AwsSdkV3

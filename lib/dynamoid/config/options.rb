@@ -4,6 +4,7 @@
 module Dynamoid
   module Config
     # Encapsulates logic for setting options.
+    # @private
     module Options
       # Get the defaults or initialize a new empty hash.
       #

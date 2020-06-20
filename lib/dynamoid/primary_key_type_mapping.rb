@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Dynamoid
+  # @private
   class PrimaryKeyTypeMapping
     def self.dynamodb_type(type, options)
       if type.is_a?(Class)

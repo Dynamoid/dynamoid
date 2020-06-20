@@ -2,6 +2,7 @@
 
 module Dynamoid
   module Persistence
+    # @private
     class Upsert
       def self.call(*args)
         new(*args).call

@@ -22,6 +22,7 @@ module Dynamoid
       attribute_method_affix prefix: 'restore_', suffix: '!'
     end
 
+    # @private
     module ClassMethods
       def update_fields(*)
         if model = super
@@ -44,6 +45,7 @@ module Dynamoid
       end
     end
 
+    # @private
     def save(*)
       if status = super
         changes_applied
@@ -51,24 +53,28 @@ module Dynamoid
       status
     end
 
+    # @private
     def save!(*)
       super.tap do
         changes_applied
       end
     end
 
+    # @private
     def update(*)
       super.tap do
         clear_changes_information
       end
     end
 
+    # @private
     def update!(*)
       super.tap do
         clear_changes_information
       end
     end
 
+    # @private
     def reload(*)
       super.tap do
         clear_changes_information
@@ -141,7 +147,7 @@ module Dynamoid
     #  person.attribute_changed?(:name, to: 'Bob')
     #  person.attribute_changed?(:name, from: 'Alice', to: 'Bod')
     #
-    # @api private
+    # @private
     # @param attr [Symbol] attribute name
     # @param options [Hash] conditions on +from+ and +to+ value (optional)
     # @option options [Symbol] :from previous attribute value
@@ -159,7 +165,7 @@ module Dynamoid
     #  person.name = 'Bob'
     #  person.attribute_was(:name) # => "Alice"
     #
-    # @api private
+    # @private
     # @param attr [Symbol] attribute name
     def attribute_was(attr)
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
@@ -179,7 +185,7 @@ module Dynamoid
     #  person.save
     #  person.attribute_changed?(:name) # => true
     #
-    # @api private
+    # @private
     # @param attr [Symbol] attribute name
     # @return [true|false]
     def attribute_previously_changed?(attr)
@@ -193,7 +199,7 @@ module Dynamoid
     #  person.save
     #  person.attribute_previously_changed(:name) # => ["Alice", "Bob"]
     #
-    # @api private
+    # @private
     # @param attr [Symbol]
     # @return [Array]
     def attribute_previous_change(attr)
@@ -253,7 +259,7 @@ module Dynamoid
 
     # This is necessary because `changed_attributes` might be overridden in
     # other implemntations (e.g. in `ActiveRecord`)
-    alias attributes_changed_by_setter changed_attributes # :nodoc:
+    alias attributes_changed_by_setter changed_attributes
 
     # Force an attribute to have a particular "before" value
     def set_attribute_was(attr, old_value)
@@ -261,7 +267,7 @@ module Dynamoid
     end
 
     # Remove changes information for the provided attributes.
-    def clear_attribute_changes(attributes) # :doc:
+    def clear_attribute_changes(attributes)
       attributes_changed_by_setter.except!(*attributes)
     end
   end

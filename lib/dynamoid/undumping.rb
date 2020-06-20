@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Dynamoid
+  # @private
   module Undumping
     def self.undump_attributes(attributes, attributes_options)
       {}.tap do |h|
