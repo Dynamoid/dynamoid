@@ -629,15 +629,7 @@ module Dynamoid
 
         # Add range key
         if @key_fields_detector.range_key
-          opts[:range_key] = @key_fields_detector.range_key
-          if query[@key_fields_detector.range_key].present?
-            value = type_cast_condition_parameter(@key_fields_detector.range_key, query[@key_fields_detector.range_key])
-            opts.update(range_eq: value)
-          end
-
-          query.keys.select { |k| k.to_s =~ /^#{@key_fields_detector.range_key}\./ }.each do |key|
-            opts.merge!(range_hash(key))
-          end
+          add_range_key_to_range_query(query, opts)
         end
 
         (query.keys.map(&:to_sym) - [@key_fields_detector.hash_key.to_sym, @key_fields_detector.range_key.try(:to_sym)])
@@ -652,6 +644,18 @@ module Dynamoid
         end
 
         opts.merge(query_opts).merge(consistent_opts)
+      end
+
+      def add_range_key_to_range_query(query, opts)
+        opts[:range_key] = @key_fields_detector.range_key
+        if query[@key_fields_detector.range_key].present?
+          value = type_cast_condition_parameter(@key_fields_detector.range_key, query[@key_fields_detector.range_key])
+          opts.update(range_eq: value)
+        end
+
+        query.keys.select { |k| k.to_s =~ /^#{@key_fields_detector.range_key}\./ }.each do |key|
+          opts.merge!(range_hash(key))
+        end
       end
 
       # TODO: casting should be operator aware
