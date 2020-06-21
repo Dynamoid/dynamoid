@@ -22,12 +22,6 @@ module Dynamoid
         @consistent_read = false
         @scan_index_forward = true
 
-        # Honor STI and :type field if it presents
-        type = @source.inheritance_field
-        if @source.attributes.key?(type)
-          @query[:"#{type}.in"] = @source.deep_subclasses.map(&:name) << @source.name
-        end
-
         # we should re-initialize keys detector every time we change query
         @key_fields_detector = KeyFieldsDetector.new(@query, @source)
       end
@@ -621,6 +615,13 @@ module Dynamoid
 
       def range_query
         opts = {}
+        query = self.query
+
+        # Honor STI and :type field if it presents
+        if @source.attributes.key?(@source.inheritance_field) &&
+             @key_fields_detector.hash_key.to_sym != @source.inheritance_field.to_sym
+          query.update(sti_condition)
+        end
 
         # Add hash key
         opts[:hash_key] = @key_fields_detector.hash_key
@@ -714,6 +715,13 @@ module Dynamoid
       end
 
       def scan_query
+        query = self.query
+
+        # Honor STI and :type field if it presents
+        if sti_condition
+          query.update(sti_condition)
+        end
+
         {}.tap do |opts|
           query.keys.map(&:to_sym).each do |key|
             if key.to_s.include?('.')
@@ -735,6 +743,18 @@ module Dynamoid
         opts[:consistent_read] = true if @consistent_read
         opts[:project] = @project
         opts
+      end
+
+      def sti_condition
+        condition = {}
+        type = @source.inheritance_field
+
+        if @source.attributes.key?(type)
+          class_names = @source.deep_subclasses.map(&:name) << @source.name
+          condition[:"#{type}.in"] = class_names
+        end
+
+        condition
       end
     end
   end

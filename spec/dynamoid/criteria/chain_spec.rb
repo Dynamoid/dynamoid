@@ -1144,6 +1144,24 @@ describe Dynamoid::Criteria::Chain do
         end
       end
     end
+
+    # Regression
+    # https://github.com/Dynamoid/dynamoid/issues/435
+    context 'when inheritance field (:type by default) is a GSI hash key' do
+      it 'works without exception' do
+        UserWithGSI = new_class class_name: 'UserWithGSI' do
+          field :type
+
+          global_secondary_index hash_key: :type,
+                                 range_key: :created_at,
+                                 projected_attributes: :all
+        end
+        obj = UserWithGSI.create
+
+        actual = UserWithGSI.where(type: 'UserWithGSI').all.to_a
+        expect(actual).to eq [obj]
+      end
+    end
   end
 
   describe '#find_by_pages' do
