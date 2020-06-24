@@ -58,6 +58,14 @@ describe Dynamoid::Finders do
           obj = klass_with_date.create(published_on: date)
           expect(klass_with_date.find(obj.id, range_key: date)).to eql(obj)
         end
+
+        it 'raises MissingRangeKey when range key is not specified' do
+          obj = klass_with_composite_key.create(age: 12)
+
+          expect {
+            klass_with_composite_key.find(obj.id)
+          }.to raise_error(Dynamoid::Errors::MissingRangeKey)
+        end
       end
 
       it 'returns persisted? object' do
@@ -215,6 +223,14 @@ describe Dynamoid::Finders do
           expect(
             klass_with_date.find([[obj1.id, obj1.published_on], [obj2.id, obj2.published_on]])
           ).to match_array([obj1, obj2])
+        end
+
+        it 'raises MissingRangeKey when range key is not specified' do
+          obj1, obj2 = klass_with_composite_key.create([{ age: 1 }, { age: 2 }])
+
+          expect {
+            klass_with_composite_key.find([obj1.id, obj2.id])
+          }.to raise_error(Dynamoid::Errors::MissingRangeKey)
         end
       end
 
