@@ -62,6 +62,22 @@ describe Dynamoid::Document do
   end
 
   describe '#initialize' do
+    let(:klass) do
+      new_class do
+        field :foo
+      end
+    end
+
+    context 'when block specified' do
+      it 'calls a block and passes a model as argument' do
+        object = klass.new(foo: 'bar') do |obj|
+          obj.foo = 'baz'
+        end
+
+        expect(object.foo).to eq('baz')
+      end
+    end
+
     describe 'type casting' do
       let(:klass) do
         new_class do

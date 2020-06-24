@@ -162,22 +162,29 @@ module Dynamoid
       #
       # Initializes a new model and immediately saves it to DynamoDB.
       #
-      #   user = User.create(first_name: 'Mark', last_name: 'Tyler')
+      #   User.create(first_name: 'Mark', last_name: 'Tyler')
       #
       # Accepts both Hash and Array of Hashes and can create several models.
       #
-      #   users = User.create([{ first_name: 'Alice' }, { first_name: 'Bob' }])
+      #   User.create([{ first_name: 'Alice' }, { first_name: 'Bob' }])
+      #
+      # Creates a model and pass it into a block to set other attributes.
+      #
+      #   User.create(first_name: 'Mark') do |u|
+      #     u.age = 21
+      #   end
       #
       # Validates model and runs callbacks.
       #
       # @param attrs [Hash|Array[Hash]] Attributes of the models
+      # @param block [Proc] Block to process a document after initialization
       # @return [Dynamoid::Document] The created document
       # @since 0.2.0
-      def create(attrs = {})
+      def create(attrs = {}, &block)
         if attrs.is_a?(Array)
-          attrs.map { |attr| create(attr) }
+          attrs.map { |attr| create(attr, &block) }
         else
-          build(attrs).tap(&:save)
+          build(attrs, &block).tap(&:save)
         end
       end
 
@@ -189,13 +196,14 @@ module Dynamoid
       # models.
       #
       # @param attrs [Hash|Array[Hash]] Attributes with which to create the object.
+      # @param block [Proc] Block to process a document after initialization
       # @return [Dynamoid::Document] The created document
       # @since 0.2.0
-      def create!(attrs = {})
+      def create!(attrs = {}, &block)
         if attrs.is_a?(Array)
-          attrs.map { |attr| create!(attr) }
+          attrs.map { |attr| create!(attr, &block) }
         else
-          build(attrs).tap(&:save!)
+          build(attrs, &block).tap(&:save!)
         end
       end
 

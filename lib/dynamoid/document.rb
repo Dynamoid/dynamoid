@@ -91,6 +91,14 @@ module Dynamoid
 
       # Initialize a new object.
       #
+      #   User.build(name: 'A')
+      #
+      # Initialize an object and pass it into a block to set other attributes.
+      #
+      #   User.build(name: 'A') do |u|
+      #     u.age = 21
+      #   end
+      #
       # The only difference between +build+ and +new+ methods is that +build+
       # supports STI (Single table inheritance) and looks at the inheritance
       # field. So it can build a model of actual class. For instance:
@@ -107,11 +115,12 @@ module Dynamoid
       #
       #   Employee.build(name: 'Alice', type: 'Manager') # => #<Manager:0x00007f945756e3f0 ...>
       #
-      # @param attrs [Hash] Attributes with which to create the object.
+      # @param attrs [Hash] Attributes with which to create the document
+      # @param block [Proc] Block to process a document after initialization
       # @return [Dynamoid::Document] the new document
       # @since 0.2.0
-      def build(attrs = {})
-        choose_right_class(attrs).new(attrs)
+      def build(attrs = {}, &block)
+        choose_right_class(attrs).new(attrs, &block)
       end
 
       # Does this model exist in a table?
@@ -170,11 +179,20 @@ module Dynamoid
 
     # Initialize a new object.
     #
-    # @param attrs [Hash] Attributes with which to create the object.
+    #   User.new(name: 'A')
+    #
+    # Initialize an object and pass it into a block to set other attributes.
+    #
+    #   User.new(name: 'A') do |u|
+    #     u.age = 21
+    #   end
+    #
+    # @param attrs [Hash] Attributes with which to create the document
+    # @param block [Proc] Block to process a document after initialization
     # @return [Dynamoid::Document] the new document
     #
     # @since 0.2.0
-    def initialize(attrs = {})
+    def initialize(attrs = {}, &block)
       run_callbacks :initialize do
         @new_record = true
         @attributes ||= {}
@@ -192,6 +210,10 @@ module Dynamoid
         attrs_virtual = attrs.slice(*(attrs.keys - self.class.attributes.keys))
 
         load(attrs_with_defaults.merge(attrs_virtual))
+
+        if block
+          block.call(self)
+        end
       end
     end
 
