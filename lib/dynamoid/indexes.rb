@@ -12,7 +12,6 @@ module Dynamoid
     end
 
     module ClassMethods
-
       # Defines a Global Secondary index on a table. Keys can be specified as
       # hash-only, or hash & range.
       #
