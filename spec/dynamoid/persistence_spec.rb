@@ -622,6 +622,25 @@ describe Dynamoid::Persistence do
       expect(addresses[1].city).to eq 'New York'
     end
 
+    context 'when block specified' do
+      it 'calls a block and passes a model as argument' do
+        object = klass.create(city: 'a') do |obj|
+          obj.city = 'b'
+        end
+
+        expect(object.city).to eq('b')
+      end
+
+      it 'calls a block and passes each model as argument if there are multiple models' do
+        objects = klass.create([{ city: 'a' }, { city: 'b' }]) do |obj|
+          obj.city = obj.city * 2
+        end
+
+        expect(objects[0].city).to eq('aa')
+        expect(objects[1].city).to eq('bb')
+      end
+    end
+
     describe 'validation' do
       let(:klass_with_validation) do
         new_class do
@@ -787,6 +806,31 @@ describe Dynamoid::Persistence do
   end
 
   describe '.create!' do
+    let(:klass) do
+      new_class do
+        field :city
+      end
+    end
+
+    context 'when block specified' do
+      it 'calls a block and passes a model as argument' do
+        object = klass.create!(city: 'a') do |obj|
+          obj.city = 'b'
+        end
+
+        expect(object.city).to eq('b')
+      end
+
+      it 'calls a block and passes each model as argument if there are multiple models' do
+        objects = klass.create!([{ city: 'a' }, { city: 'b' }]) do |obj|
+          obj.city = obj.city * 2
+        end
+
+        expect(objects[0].city).to eq('aa')
+        expect(objects[1].city).to eq('bb')
+      end
+    end
+
     context 'validation' do
       let(:klass_with_validation) do
         new_class do
