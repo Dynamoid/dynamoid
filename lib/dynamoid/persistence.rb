@@ -661,7 +661,7 @@ module Dynamoid
     # default is 1). Only makes sense for number-based attributes.
     #
     #   user.increment(:followers_count)
-    #   user.increment(followers_count: 2)
+    #   user.increment(:followers_count, 2)
     #
     # @param attribute [Symbol] attribute name
     # @param by [Numeric] value to add (optional)
@@ -678,7 +678,7 @@ module Dynamoid
     # default is 1). Only makes sense for number-based attributes.
     #
     #   user.increment!(:followers_count)
-    #   user.increment!(followers_count: 2)
+    #   user.increment!(:followers_count, 2)
     #
     # Returns +true+ if a model was saved and +false+ otherwise.
     #
@@ -696,7 +696,7 @@ module Dynamoid
     # (by default is 1). Only makes sense for number-based attributes.
     #
     #   user.decrement(:followers_count)
-    #   user.decrement(followers_count: 2)
+    #   user.decrement(:followers_count, 2)
     #
     # @param attribute [Symbol] attribute name
     # @param by [Numeric] value to subtract (optional)
@@ -713,7 +713,7 @@ module Dynamoid
     # (by default is 1). Only makes sense for number-based attributes.
     #
     #   user.decrement!(:followers_count)
-    #   user.decrement!(followers_count: 2)
+    #   user.decrement!(:followers_count, 2)
     #
     # Returns +true+ if a model was saved and +false+ otherwise.
     #
