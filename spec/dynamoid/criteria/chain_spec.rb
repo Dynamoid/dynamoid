@@ -1818,7 +1818,7 @@ describe Dynamoid::Criteria::Chain do
 
       chain = Dynamoid::Criteria::Chain.new(klass_with_range_key)
       models = chain.where(id: 'the same id').scan_index_forward(true)
-      expect(models.map(&:name)).to eq ['a', 'b', 'c']
+      expect(models.map(&:name)).to eq %w[a b c]
     end
 
     it 'returns collection sorted in descending order by range key when called with false' do
@@ -1828,7 +1828,7 @@ describe Dynamoid::Criteria::Chain do
 
       chain = Dynamoid::Criteria::Chain.new(klass_with_range_key)
       models = chain.where(id: 'the same id').scan_index_forward(false)
-      expect(models.map(&:name)).to eq ['c', 'b', 'a']
+      expect(models.map(&:name)).to eq %w[c b a]
     end
 
     it 'overides previous calls' do
@@ -1838,7 +1838,7 @@ describe Dynamoid::Criteria::Chain do
 
       chain = Dynamoid::Criteria::Chain.new(klass_with_range_key)
       models = chain.where(id: 'the same id').scan_index_forward(false).scan_index_forward(true)
-      expect(models.map(&:name)).to eq ['a', 'b', 'c']
+      expect(models.map(&:name)).to eq %w[a b c]
     end
 
     context 'when Scan conditions' do
@@ -1849,7 +1849,7 @@ describe Dynamoid::Criteria::Chain do
 
         chain = Dynamoid::Criteria::Chain.new(klass_with_range_key)
         models = chain.where('name.gte': 'a').scan_index_forward(false)
-        expect(models.map(&:name)).not_to eq ['c', 'b', 'a']
+        expect(models.map(&:name)).not_to eq %w[c b a]
       end
     end
 
@@ -1859,7 +1859,7 @@ describe Dynamoid::Criteria::Chain do
           range :name
           field :age, :integer
 
-          local_secondary_index range_key: :age, name: :age_index,  projected_attributes: :all
+          local_secondary_index range_key: :age, name: :age_index, projected_attributes: :all
         end
       end
 
@@ -1893,7 +1893,7 @@ describe Dynamoid::Criteria::Chain do
 
         chain = Dynamoid::Criteria::Chain.new(klass_with_global_secondary_index)
         models = chain.where(age: 30).scan_index_forward(false)
-        expect(models.map(&:nickname)).to eq ['c', 'b', 'a']
+        expect(models.map(&:nickname)).to eq %w[c b a]
         expect(chain.key_fields_detector.index_name).to eq(:age_nickname_index)
       end
     end

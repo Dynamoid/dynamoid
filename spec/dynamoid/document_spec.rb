@@ -190,11 +190,11 @@ describe Dynamoid::Document do
 
   describe '#hash_key' do
     context 'when there is already an attribute with name `hash_key`' do
-       let(:klass) do
-         new_class do
-           field :hash_key
-         end
-       end
+      let(:klass) do
+        new_class do
+          field :hash_key
+        end
+      end
 
       it 'returns id value if hash_key attribute is not set' do
         obj = klass.new(id: 'id')
@@ -212,11 +212,11 @@ describe Dynamoid::Document do
     end
 
     context 'when hash key attribute name is `hash_key`' do
-       let(:klass) do
-         new_class do
-           table key: :hash_key
-         end
-       end
+      let(:klass) do
+        new_class do
+          table key: :hash_key
+        end
+      end
 
       it 'returns id value' do
         obj = klass.new(hash_key: 'hash key')
@@ -227,12 +227,12 @@ describe Dynamoid::Document do
 
   describe '#range_value' do
     context 'when there is already an attribute with name `range_key`' do
-       let(:klass) do
-         new_class do
-           range :name
-           field :range_value
-         end
-       end
+      let(:klass) do
+        new_class do
+          range :name
+          field :range_value
+        end
+      end
 
       it 'returns range key value if range_key attribute is not set' do
         obj = klass.new(name: 'name')
@@ -250,11 +250,11 @@ describe Dynamoid::Document do
     end
 
     context 'when range key attribute name is `range_value`' do
-       let(:klass) do
-         new_class do
-           range :range_value
-         end
-       end
+      let(:klass) do
+        new_class do
+          range :range_value
+        end
+      end
 
       it 'returns range key value' do
         obj = klass.new(range_value: 'range key')

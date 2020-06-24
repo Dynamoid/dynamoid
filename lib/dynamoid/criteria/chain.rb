@@ -619,7 +619,7 @@ module Dynamoid
 
         # Honor STI and :type field if it presents
         if @source.attributes.key?(@source.inheritance_field) &&
-             @key_fields_detector.hash_key.to_sym != @source.inheritance_field.to_sym
+           @key_fields_detector.hash_key.to_sym != @source.inheritance_field.to_sym
           query.update(sti_condition)
         end
 

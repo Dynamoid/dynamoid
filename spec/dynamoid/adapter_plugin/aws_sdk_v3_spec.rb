@@ -1129,19 +1129,19 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
         Dynamoid.adapter.update_item(test_table1, '1') do |t|
           t.add(age: 1, followers_count: 5)
-          t.add(hobbies: ['skying', 'climbing'].to_set)
+          t.add(hobbies: %w[skying climbing].to_set)
         end
 
         expected_attributes = {
           age: 1,
           followers_count: 5,
-          hobbies: ['skying', 'climbing'].to_set
+          hobbies: %w[skying climbing].to_set
         }
         expect(Dynamoid.adapter.get_item(test_table1, '1')).to include(expected_attributes)
       end
 
       it 'deletes attribute values' do
-        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', hobbies: ['skying', 'climbing'].to_set)
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', hobbies: %w[skying climbing].to_set)
 
         Dynamoid.adapter.update_item(test_table1, '1') do |t|
           t.delete(hobbies: ['skying'].to_set)
@@ -1168,7 +1168,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', age: 17)
 
         expect do
-          Dynamoid.adapter.update_item(test_table1, '1', conditions: { if: { age: 18 }}) do |t|
+          Dynamoid.adapter.update_item(test_table1, '1', conditions: { if: { age: 18 } }) do |t|
             t.set(email: 'justin@example.com')
           end
         end.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
@@ -1180,7 +1180,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       it 'updates item if condition succeeds' do
         Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', age: 18)
 
-        Dynamoid.adapter.update_item(test_table1, '1', conditions: { if: { age: 18 }}) do |t|
+        Dynamoid.adapter.update_item(test_table1, '1', conditions: { if: { age: 18 } }) do |t|
           t.set(email: 'justin@example.com')
         end
 
