@@ -44,8 +44,10 @@ module Dynamoid
       #
       # Its type determines how it is coerced when read in and out of the
       # datastore. You can specify +string+, +integer+, +number+, +set+, +array+,
-      # +map+, +datetime+, +date+, +serialized+, +raw+ and +boolean+ or specify a
-      # class that defines a serialization strategy.
+      # +map+, +datetime+, +date+, +serialized+, +raw+, +boolean+ and +binary+
+      # or specify a class that defines a serialization strategy.
+      #
+      # By default field type is +string+.
       #
       # Set can store elements of the same type only (it's a limitation of
       # DynamoDB itself). If a set should store elements only some particular
@@ -71,7 +73,7 @@ module Dynamoid
       #
       #   field :published_on, :datetime, store_as_string: true
       #
-      # Boolean field by default is stored as a string +t+ or 'f'. But DynamoDB
+      # Boolean field by default is stored as a string +t+ or +f+. But DynamoDB
       # supports boolean type natively. In order to switch to the native
       # boolean type an option +store_as_native_boolean+ should be specified:
       #
