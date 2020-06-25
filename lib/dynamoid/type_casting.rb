@@ -36,6 +36,7 @@ module Dynamoid
                           when :raw        then RawTypeCaster
                           when :serialized then SerializedTypeCaster
                           when :boolean    then BooleanTypeCaster
+                          when :binary     then BinaryTypeCaster
                           when Class       then CustomTypeCaster
                           end
 
@@ -280,6 +281,16 @@ module Dynamoid
           false
         else
           true
+        end
+      end
+    end
+
+    class BinaryTypeCaster < Base
+      def process(value)
+        if value.is_a? String
+          value.dup
+        else
+          value.to_s
         end
       end
     end

@@ -1491,4 +1491,21 @@ describe 'Dumping' do
       end
     end
   end
+
+  describe 'Binary field' do
+    let(:klass) do
+      new_class do
+        field :image, :binary
+      end
+    end
+
+    let(:binary_value) { "\x00\x88\xFF".dup.force_encoding('ASCII-8BIT') }
+
+    it "encodes a string in base64-encoded format" do
+      obj = klass.create(image: binary_value)
+
+      expect(reload(obj).image).to eql(binary_value)
+      expect(raw_attributes(obj)[:image]).to eql(Base64.strict_encode64(binary_value))
+    end
+  end
 end
