@@ -25,6 +25,10 @@ module Dynamoid
       # specified +raise_error: false+ option then +find+ will not raise the
       # exception.
       #
+      # When a document schema includes range key it always should be specified
+      # in +find+ method call. In case it's missing +MissingRangeKey+ exception
+      # will be raised.
+      #
       # Please note that +find+ doesn't preserve order of models in result when
       # passes multiple ids.
       #
@@ -114,6 +118,8 @@ module Dynamoid
 
       # @private
       def _find_all(ids, options = {})
+        raise Errors::MissingRangeKey if range_key && ids.any? { |pk, sk| sk.nil? }
+
         if range_key
           ids = ids.map do |pk, sk|
             sk_casted = TypeCasting.cast_field(sk, attributes[range_key])
@@ -156,6 +162,8 @@ module Dynamoid
 
       # @private
       def _find_by_id(id, options = {})
+        raise Errors::MissingRangeKey if range_key && options[:range_key].nil?
+
         if range_key
           key = options[:range_key]
           key_casted = TypeCasting.cast_field(key, attributes[range_key])
