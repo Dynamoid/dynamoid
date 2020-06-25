@@ -65,8 +65,8 @@ module Dynamoid
       # Build an array of values for Condition
       # Is used in ScanFilter and QueryFilter
       # https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
-      # @params [String] operator: value of RANGE_MAP or FIELD_MAP hash, e.g. "EQ", "LT" etc
-      # @params [Object] value: scalar value or array/set
+      # @param [String] operator value of RANGE_MAP or FIELD_MAP hash, e.g. "EQ", "LT" etc
+      # @param [Object] value scalar value or array/set
       def self.attribute_value_list(operator, value)
         # For BETWEEN and IN operators we should keep value as is (it should be already an array)
         # NULL and NOT_NULL require absence of attribute list
@@ -142,9 +142,9 @@ module Dynamoid
       #   end
       #
       # @param [String] table_name the name of the table
-      # @param [Array]  items to be processed
-      # @param [Hash]   additional options
-      # @param [Proc]   optional block
+      # @param [Array]  objects to be processed
+      # @param [Hash]   options additional options
+      # @yield [true|false] invokes an optional block with argument - whether there are unprocessed items
       #
       # See:
       # * http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
@@ -199,9 +199,9 @@ module Dynamoid
       #     end
       #   end
       #
-      # @param [Hash] table_ids the hash of tables and IDs to retrieve
+      # @param [Hash] table_names_with_ids the hash of tables and IDs to retrieve
       # @param [Hash] options to be passed to underlying BatchGet call
-      # @param [Proc] optional block can be passed to handle each batch of items
+      # @param [Proc] block optional block can be passed to handle each batch of items
       #
       # @return [Hash] a hash where keys are the table names and the values are the retrieved items
       #

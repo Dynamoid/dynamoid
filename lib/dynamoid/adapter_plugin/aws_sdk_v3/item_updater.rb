@@ -21,8 +21,8 @@ module Dynamoid
         # Adds the given values to the values already stored in the corresponding columns.
         # The column must contain a Set or a number.
         #
-        # @param [Hash] vals keys of the hash are the columns to update, vals are the values to
-        #               add. values must be a Set, Array, or Numeric
+        # @param [Hash] values keys of the hash are the columns to update, values
+        #                      are the values to add. values must be a Set, Array, or Numeric
         #
         def add(values)
           @additions.merge!(sanitize_attributes(values))
