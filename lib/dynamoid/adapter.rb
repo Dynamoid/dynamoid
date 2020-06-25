@@ -79,8 +79,8 @@ module Dynamoid
     #
     # @param [String] table the name of the table to write the object to
     # @param [Array] ids to fetch, can also be a string of just one id
-    # @param [Hash] options: Passed to the underlying query. The :range_key option is required whenever the table has a range key,
-    #                        unless multiple ids are passed in.
+    # @param [Hash] options Passed to the underlying query. The :range_key option is required whenever the table has a range key,
+    #                       unless multiple ids are passed in.
     #
     # @since 0.2.0
     def read(table, ids, options = {}, &blk)
@@ -95,7 +95,9 @@ module Dynamoid
     #
     # @param [String] table the name of the table to write the object to
     # @param [Array] ids to delete, can also be a string of just one id
-    # @param [Hash] range_key of the record to delete, can also be a string of just one range_key
+    # @param [Hash] options allowed only +range_key+ - range key or array of
+    #                       range keys of the record to delete, can also be
+    #                       a string of just one range_key, and +conditions+
     #
     def delete(table, ids, options = {})
       range_key = options[:range_key] # array of range keys that matches the ids passed in
@@ -116,7 +118,7 @@ module Dynamoid
     # Scans a table. Generally quite slow; try to avoid using scan if at all possible.
     #
     # @param [String] table the name of the table to write the object to
-    # @param [Hash] scan_hash a hash of attributes: matching records will be returned by the scan
+    # @param [Hash] query a hash of attributes: matching records will be returned by the scan
     #
     # @since 0.2.0
     def scan(table, query = {}, opts = {})

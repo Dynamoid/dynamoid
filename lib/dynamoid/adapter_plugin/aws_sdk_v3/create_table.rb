@@ -88,9 +88,9 @@ module Dynamoid
         # Builds aws attributes definitions based off of primary hash/range and
         # secondary indexes
         #
-        # @param key_data
-        # @option key_data [Hash] hash_key_schema - eg: {:id => :string}
-        # @option key_data [Hash] range_key_schema - eg: {:created_at => :number}
+        # @param key_schema
+        # @option key_schema [Hash] hash_key_schema - eg: {:id => :string}
+        # @option key_schema [Hash] range_key_schema - eg: {:created_at => :number}
         # @param [Hash] secondary_indexes
         # @option secondary_indexes [Array<Dynamoid::Indexes::Index>] :local_secondary_indexes
         # @option secondary_indexes [Array<Dynamoid::Indexes::Index>] :global_secondary_indexes
@@ -131,8 +131,8 @@ module Dynamoid
         end
 
         # Builds an attribute definitions based on hash key and range key
-        # @params [Hash] hash_key_schema - eg: {:id => :string}
-        # @params [Hash] range_key_schema - eg: {:created_at => :datetime}
+        # @param [Hash] hash_key_schema - eg: {:id => :string}
+        # @param [Hash] range_key_schema - eg: {:created_at => :datetime}
         # @return [Array]
         def build_attribute_definitions(hash_key_schema, range_key_schema = nil)
           attrs = []
@@ -153,8 +153,8 @@ module Dynamoid
         end
 
         # Builds an aws attribute definition based on name and dynamoid type
-        # @params [Symbol] name - eg: :id
-        # @params [Symbol] dynamoid_type - eg: :string
+        # @param [Symbol] name - eg: :id
+        # @param [Symbol] dynamoid_type - eg: :string
         # @return [Hash]
         def attribute_definition_element(name, dynamoid_type)
           aws_type = api_type(dynamoid_type)
