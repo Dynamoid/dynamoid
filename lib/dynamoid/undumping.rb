@@ -39,6 +39,7 @@ module Dynamoid
                        when :raw        then RawUndumper
                        when :serialized then SerializedUndumper
                        when :boolean    then BooleanUndumper
+                       when :binary     then BinaryUndumper
                        when Class       then CustomTypeUndumper
                        end
 
@@ -260,6 +261,12 @@ module Dynamoid
         else
           raise ArgumentError, 'Boolean column neither true nor false'
         end
+      end
+    end
+
+    class BinaryUndumper < Base
+      def process(value)
+        Base64.strict_decode64(value)
       end
     end
 

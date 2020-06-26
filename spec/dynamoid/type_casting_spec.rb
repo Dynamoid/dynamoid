@@ -653,6 +653,30 @@ describe 'Type casting' do
     end
   end
 
+  describe 'Binary field' do
+    let(:klass) do
+      new_class do
+        field :image, :binary
+      end
+    end
+
+    it 'converts to string with #to_s method' do
+      value = double('object')
+      allow(value).to receive(:to_s).and_return('string representation')
+
+      obj = klass.new(image: value)
+      expect(obj.image).to eql('string representation')
+    end
+
+    it 'dups a string' do
+      value = 'foo'
+      obj = klass.new(image: value)
+
+      expect(obj.image).to eql(value)
+      expect(obj.image).not_to equal(value)
+    end
+  end
+
   describe 'Serialized field' do
   end
 

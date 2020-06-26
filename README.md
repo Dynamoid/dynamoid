@@ -212,16 +212,17 @@ each field. Every field on the object must be included here; if you miss
 any they'll be completely bypassed during DynamoDB's initialization and
 will not appear on the model objects.
 
-By default, fields are assumed to be of type `:string`. Other built-in
-types are `:integer`, `:number`, `:set`, `:array`, `:map`, `:datetime`,
-`date`, `:boolean`, `:raw` and `:serialized`. `array` and `map` match
-List and Map DynamoDB types respectively. `raw` type means you can store
-Ruby Array, Hash, String and numbers. If built-in types do not suit you,
-you can use a custom field type represented by an arbitrary class,
-provided that the class supports a compatible serialization interface.
-The primary use case for using a custom field type is to represent your
-business logic with high-level types, while ensuring portability or
-backward-compatibility of the serialized representation.
+By default, fields are assumed to be of type `string`. Other built-in
+types are `integer`, `number`, `set`, `array`, `map`, `datetime`,
+`date`, `boolean`, `binary`, `raw` and `serialized`. `array` and
+`map` match List and Map DynamoDB types respectively. `raw` type means
+you can store Ruby Array, Hash, String and numbers. If built-in types do
+not suit you, you can use a custom field type represented by an
+arbitrary class, provided that the class supports a compatible
+serialization interface.  The primary use case for using a custom field
+type is to represent your business logic with high-level types, while
+ensuring portability or backward-compatibility of the serialized
+representation.
 
 #### Note on boolean type
 

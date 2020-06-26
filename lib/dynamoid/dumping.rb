@@ -36,6 +36,7 @@ module Dynamoid
                      when :serialized then SerializedDumper
                      when :raw        then RawDumper
                      when :boolean    then BooleanDumper
+                     when :binary     then BinaryDumper
                      when Class       then CustomTypeDumper
                      end
 
@@ -285,6 +286,13 @@ module Dynamoid
             value.to_s[0] # => "f" or "t"
           end
         end
+      end
+    end
+
+    # string -> string
+    class BinaryDumper < Base
+      def process(value)
+        Base64.strict_encode64(value)
       end
     end
 
