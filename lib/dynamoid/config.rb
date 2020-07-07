@@ -54,6 +54,7 @@ module Dynamoid
       constant: BackoffStrategies::ConstantBackoff,
       exponential: BackoffStrategies::ExponentialBackoff
     }
+    option :log_formatter, default: nil
     option :http_continue_timeout, default: nil # specify if you'd like to overwrite Aws Configure - default: 1
     option :http_idle_timeout, default: nil     #                                                  - default: 5
     option :http_open_timeout, default: nil     #                                                  - default: 15
