@@ -109,12 +109,14 @@ module Dynamoid
           end
         end
 
-        # https://github.com/aws/aws-sdk-ruby/blob/master/gems/aws-sdk-core/lib/aws-sdk-core/plugins/logging.rb
-        # https://github.com/aws/aws-sdk-ruby/blob/master/gems/aws-sdk-core/lib/aws-sdk-core/log/formatter.rb
-        formatter = Aws::Log::Formatter.new(':operation | Request :http_request_body | Response :http_response_body')
         @connection_hash[:logger] = Dynamoid::Config.logger
         @connection_hash[:log_level] = :debug
-        @connection_hash[:log_formatter] = formatter
+
+        # https://github.com/aws/aws-sdk-ruby/blob/master/gems/aws-sdk-core/lib/aws-sdk-core/plugins/logging.rb
+        # https://github.com/aws/aws-sdk-ruby/blob/master/gems/aws-sdk-core/lib/aws-sdk-core/log/formatter.rb
+        if Dynamoid::Config.log_formatter
+          @connection_hash[:log_formatter] = Dynamoid::Config.log_formatter
+        end
 
         @connection_hash
       end

@@ -1069,7 +1069,7 @@ Listed below are all configuration options.
 * `models_dir` - `dynamoid:create_tables` rake task loads DynamoDb
   models from this directory. Default is `./app/models`.
 * `application_timezone` - Dynamoid converts all `datetime` fields to
-* specified time zone when loads data from the storage.
+  specified time zone when loads data from the storage.
   Acceptable values - `:utc`, `:local` (to use system time zone) and
   time zone name e.g. `Eastern Time (US & Canada)`. Default is `utc`
 * `dynamodb_timezone` - When a datetime field is stored in string format
@@ -1089,6 +1089,11 @@ Listed below are all configuration options.
   `nil`
 * `backoff_strategies`: is a hash and contains all available strategies.
   Default is { constant: ..., exponential: ...}
+* `log_formatter`: overrides default AWS SDK formatter. There are
+  several canned formatters: `Aws::Log::Formatter.default`,
+  `Aws::Log::Formatter.colored` and `Aws::Log::Formatter.short`. Please
+  look into `Aws::Log::Formatter` AWS SDK documentation in order to
+  provide own formatter.
 * `http_continue_timeout`: The number of seconds to wait for a
   100-continue HTTP response before sending the request body. Default
   option value is `nil`. If not specified effected value is `1`
