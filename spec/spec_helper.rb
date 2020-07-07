@@ -10,6 +10,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'rspec'
 require 'dynamoid'
+require 'dynamoid/log/formatter'
 require 'pry'
 require 'byebug' if ENV['DEBUG']
 
@@ -27,6 +28,7 @@ Dynamoid.configure do |config|
   config.warn_on_scan = false
   config.sync_retry_wait_seconds = 0
   config.sync_retry_max_times = 3
+  config.log_formatter = Dynamoid::Log::Formatter::Debug.new
 end
 
 Dynamoid.logger.level = Logger::FATAL
