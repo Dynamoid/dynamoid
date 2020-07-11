@@ -1,18 +1,49 @@
 # HEAD
 
-## Breaking
-
 ## Features
 
 ## Improvements
 
 ## Fixes
 
+
 ---
 
 
 
-# 3.5 / 2020-04-04
+# 3.6.0 / 2020-07-13
+
+
+## Features
+
+* [#458](https://github.com/Dynamoid/dynamoid/pull/458) Added `binary` field type
+* [#459](https://github.com/Dynamoid/dynamoid/pull/459) Added `log_formatter` config option and changed default logging format
+
+## Improvements
+
+* [#423](https://github.com/Dynamoid/dynamoid/pull/423) Added warning when generated for a field methods override existing ones
+* [#429](https://github.com/Dynamoid/dynamoid/pull/429) Added `raise_error` option for `find` method
+* [#440](https://github.com/Dynamoid/dynamoid/pull/440) Optimized performance of `first` method when there are only conditions on key attribute in a query (@mrkamel)
+* [#445](https://github.com/Dynamoid/dynamoid/pull/445) Support `limit` parameter in `first` method (@mrkamel)
+* [#450](https://github.com/Dynamoid/dynamoid/pull/450) Got rid of `null-logger` gem to make Dynamoid dependencies license suitable for commercial use (@yakjuly)
+* [#454](https://github.com/Dynamoid/dynamoid/pull/454) Added block argument to `create`/`create!` methods
+* [#456](https://github.com/Dynamoid/dynamoid/pull/456) Detect when `find` method requires a range key argument and raise `Dynamoid::Errors::MissingRangeKey` exception if it's missing
+* YARD documentation:
+  * added missing documentation so now all the public methods are documented
+  * hid all the private methods and classes
+
+## Fixes
+
+* [#425](https://github.com/Dynamoid/dynamoid/pull/425) Fixed typos in the README.md file (@omarsotillo)
+* [#432](https://github.com/Dynamoid/dynamoid/pull/432) Support tables that use "hash_key" as their partition key name (@remomueller)
+* [#434](https://github.com/Dynamoid/dynamoid/pull/434) Support tables that have attribute with name "range_value"
+* [#453](https://github.com/Dynamoid/dynamoid/pull/453) Fixed issue with using `type` attribute as a GSI hash key
+
+---
+
+
+
+# 3.5.0 / 2020-04-04
 
 
 ## Features
