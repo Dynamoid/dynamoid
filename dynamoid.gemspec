@@ -39,6 +39,7 @@ Gem::Specification.new do |spec|
     'bug_tracker_uri'   => 'https://github.com/Dynamoid/dynamoid/issues',
     'changelog_uri'     => "https://github.com/Dynamoid/dynamoid/tree/v#{Dynamoid::VERSION}/CHANGELOG.md",
     'source_code_uri'   => "https://github.com/Dynamoid/dynamoid/tree/v#{Dynamoid::VERSION}",
+    'documentation_uri' => "https://rubydoc.info/gems/dynamoid/#{Dynamoid::VERSION}",
   }
 
   spec.add_runtime_dependency 'activemodel',      '>=4'
