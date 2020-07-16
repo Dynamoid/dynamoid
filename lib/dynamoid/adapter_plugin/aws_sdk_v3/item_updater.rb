@@ -59,9 +59,9 @@ module Dynamoid
           end
           @deletions.each do |k, v|
             ret[k.to_s] = {
-              action: DELETE,
-              value: v
+              action: DELETE
             }
+            ret[k.to_s][:value] = v unless v.nil?
           end
           @updates.each do |k, v|
             ret[k.to_s] = {
