@@ -1151,6 +1151,16 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         expect(Dynamoid.adapter.get_item(test_table1, '1')).to include(expected_attributes)
       end
 
+      it 'deletes attributes' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', hobbies: %w[skying climbing].to_set)
+
+        Dynamoid.adapter.update_item(test_table1, '1') do |t|
+          t.delete(hobbies: nil)
+        end
+
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).not_to include(:hobbies)
+      end
+
       it 'sets attribute values' do
         Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
