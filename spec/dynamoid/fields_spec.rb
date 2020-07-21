@@ -381,5 +381,13 @@ describe Dynamoid::Fields do
         expect(obj.attributes[:count]).to eql(101)
       end
     end
+
+    it 'raises an UnknownAttribute error if the attribute is not on the model' do
+      obj = new_class.new
+
+      expect {
+        obj.write_attribute(:name, 'Alex')
+      }.to raise_error Dynamoid::Errors::UnknownAttribute
+    end
   end
 end

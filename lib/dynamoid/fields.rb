@@ -309,6 +309,10 @@ module Dynamoid
     def write_attribute(name, value)
       name = name.to_sym
 
+      unless attribute_is_present_on_model?(name)
+        raise Dynamoid::Errors::UnknownAttribute.new("Attribute #{name} is not part of the model")
+      end
+
       if association = @associations[name]
         association.reset
       end
@@ -404,6 +408,11 @@ module Dynamoid
       if self.class.attributes[type] && send(type).nil?
         send("#{type}=", self.class.name)
       end
+    end
+
+    def attribute_is_present_on_model?(attribute_name)
+      setter = "#{attribute_name}=".to_sym
+      respond_to?(setter)
     end
   end
 end

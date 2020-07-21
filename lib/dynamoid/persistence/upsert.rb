@@ -17,13 +17,15 @@ module Dynamoid
       end
 
       def call
+        UpdateValidations.validate_attributes_exist(@model_class, @attributes)
+
         if Dynamoid::Config.timestamps
           @attributes[:updated_at] ||= DateTime.now.in_time_zone(Time.zone)
         end
 
         raw_attributes = update_item
         @model_class.new(undump_attributes(raw_attributes))
-      rescue Dynamoid::Errors::ConditionalCheckFailedException
+      rescue Dynamoid::Errors::ConditionalCheckFailedException, Dynamoid::Errors::UnknownAttribute
       end
 
       private

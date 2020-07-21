@@ -8,6 +8,7 @@ require 'dynamoid/persistence/import'
 require 'dynamoid/persistence/update_fields'
 require 'dynamoid/persistence/upsert'
 require 'dynamoid/persistence/save'
+require 'dynamoid/persistence/update_validations'
 
 # encoding: utf-8
 module Dynamoid
@@ -497,6 +498,8 @@ module Dynamoid
     def update_attributes(attributes)
       attributes.each { |attribute, value| write_attribute(attribute, value) }
       save
+    rescue Dynamoid::Errors::UnknownAttribute
+      false
     end
 
     # Update multiple attributes at once, saving the object once the updates
@@ -506,6 +509,9 @@ module Dynamoid
     #
     # Raises a +Dynamoid::Errors::DocumentNotValid+ exception if some vaidation
     # fails.
+    #
+    # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+    # attributes is not on the model
     #
     # @param attributes [Hash] a hash of attributes to update
     def update_attributes!(attributes)
@@ -526,6 +532,8 @@ module Dynamoid
     def update_attribute(attribute, value)
       write_attribute(attribute, value)
       save
+    rescue Dynamoid::Errors::UnknownAttribute
+      false
     end
 
     # Update a model.
