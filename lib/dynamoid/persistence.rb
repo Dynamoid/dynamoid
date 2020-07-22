@@ -277,6 +277,9 @@ module Dynamoid
       # +update_fields+ uses the +UpdateItem+ operation so it saves changes and
       # loads an updated document back with one HTTP request.
       #
+      # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+      # attributes is not on the model
+      #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
       # @param attrs [Hash]
@@ -324,6 +327,9 @@ module Dynamoid
       #
       # +upsert+ uses the +UpdateItem+ operation so it saves changes and loads
       # an updated document back with one HTTP request.
+      #
+      # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+      # attributes is not on the model
       #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
@@ -492,14 +498,15 @@ module Dynamoid
     #
     #   user.update_attributes(age: 27, last_name: 'Tylor')
     #
+    # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+    # attributes is not on the model
+    #
     # @param attributes [Hash] a hash of attributes to update
     # @return [true|false] Whether updating successful or not
     # @since 0.2.0
     def update_attributes(attributes)
       attributes.each { |attribute, value| write_attribute(attribute, value) }
       save
-    rescue Dynamoid::Errors::UnknownAttribute
-      false
     end
 
     # Update multiple attributes at once, saving the object once the updates
@@ -525,6 +532,9 @@ module Dynamoid
     #
     #   user.update_attribute(:last_name, 'Tylor')
     #
+    # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+    # attributes is not on the model
+    #
     # @param attribute [Symbol] attribute name to update
     # @param value [Object] the value to assign it
     # @return [Dynamoid::Document] self
@@ -532,8 +542,6 @@ module Dynamoid
     def update_attribute(attribute, value)
       write_attribute(attribute, value)
       save
-    rescue Dynamoid::Errors::UnknownAttribute
-      false
     end
 
     # Update a model.

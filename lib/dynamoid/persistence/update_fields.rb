@@ -25,7 +25,7 @@ module Dynamoid
 
         raw_attributes = update_item
         @model_class.new(undump_attributes(raw_attributes))
-      rescue Dynamoid::Errors::ConditionalCheckFailedException, Dynamoid::Errors::UnknownAttribute
+      rescue Dynamoid::Errors::ConditionalCheckFailedException
       end
 
       private
