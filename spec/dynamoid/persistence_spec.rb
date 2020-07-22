@@ -928,6 +928,17 @@ describe Dynamoid::Persistence do
       end.to change { d.reload.name }.to('[Updated]')
     end
 
+    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+      klass = new_class do
+        field :name
+      end
+
+      obj = klass.create(name: 'Alex')
+      expect {
+        klass.update!(obj.id, age: 26)
+      }.to raise_error Dynamoid::Errors::UnknownAttribute
+    end
+
     describe 'timestamps' do
       it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
         d = document_class.create(name: 'Document#1')
@@ -1045,6 +1056,18 @@ describe Dynamoid::Persistence do
       expect do
         klass.update(d.id, '2018-01-14'.to_date, name: '[Updated]')
       end.to change { d.reload.name }.to('[Updated]')
+    end
+
+    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+      klass = new_class do
+        field :name
+      end
+
+      obj = klass.create(name: 'Alex')
+
+      expect do
+        klass.update(obj.id, name: 'New name', age: 26)
+      end.to raise_error Dynamoid::Errors::UnknownAttribute
     end
 
     describe 'timestamps' do
@@ -1278,6 +1301,14 @@ describe Dynamoid::Persistence do
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
       end
     end
+
+    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+      obj = document_class.create(title: 'New Document')
+
+      expect {
+        document_class.update_fields(obj.id, { title: 'New title', publisher: 'New publisher' } )
+      }.to raise_error Dynamoid::Errors::UnknownAttribute
+    end
   end
 
   describe '.upsert' do
@@ -1454,6 +1485,14 @@ describe Dynamoid::Persistence do
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
       end
+    end
+
+    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+      obj = document_class.create(title: 'New Document')
+
+      expect {
+        document_class.upsert(obj.id, { title: 'New title', publisher: 'New publisher' } )
+      }.to raise_error Dynamoid::Errors::UnknownAttribute
     end
   end
 
@@ -1977,6 +2016,19 @@ describe Dynamoid::Persistence do
         end.not_to raise_error
       end
     end
+
+    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+      klass = new_class do
+        field :age, :integer
+        field :name, :string
+      end
+
+      obj = klass.create!(name: 'Alex', age: 26)
+
+      expect {
+        obj.update_attribute(:city, 'Dublin')
+      }.to raise_error(Dynamoid::Errors::UnknownAttribute)
+    end
   end
 
   describe '#update_attributes' do
@@ -2068,6 +2120,14 @@ describe Dynamoid::Persistence do
         end.not_to raise_error
       end
     end
+
+    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+      obj = klass.create!(name: 'Alex', age: 26)
+
+      expect {
+        obj.update_attributes!(city: 'Dublin', age: 27)
+      }.to raise_error(Dynamoid::Errors::UnknownAttribute)
+    end
   end
 
   describe '#update_attributes!' do
@@ -2108,6 +2168,14 @@ describe Dynamoid::Persistence do
 
       expect(obj.age).to eql 11
       expect(klass.find(obj.id).age).to eql 26
+    end
+
+    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+      obj = klass.create!(name: 'Alex', age: 26)
+
+      expect {
+        obj.update_attributes!(city: 'Dublin', age: 27)
+      }.to raise_error(Dynamoid::Errors::UnknownAttribute)
     end
 
     describe 'type casting' do

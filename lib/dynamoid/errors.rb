@@ -75,5 +75,7 @@ module Dynamoid
     class InvalidQuery < Error; end
 
     class UnsupportedKeyType < Error; end
+
+    class UnknownAttribute < Error; end
   end
 end

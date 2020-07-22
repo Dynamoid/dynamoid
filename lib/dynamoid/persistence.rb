@@ -8,6 +8,7 @@ require 'dynamoid/persistence/import'
 require 'dynamoid/persistence/update_fields'
 require 'dynamoid/persistence/upsert'
 require 'dynamoid/persistence/save'
+require 'dynamoid/persistence/update_validations'
 
 # encoding: utf-8
 module Dynamoid
@@ -276,6 +277,9 @@ module Dynamoid
       # +update_fields+ uses the +UpdateItem+ operation so it saves changes and
       # loads an updated document back with one HTTP request.
       #
+      # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+      # attributes is not on the model
+      #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
       # @param attrs [Hash]
@@ -323,6 +327,9 @@ module Dynamoid
       #
       # +upsert+ uses the +UpdateItem+ operation so it saves changes and loads
       # an updated document back with one HTTP request.
+      #
+      # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+      # attributes is not on the model
       #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
@@ -491,6 +498,9 @@ module Dynamoid
     #
     #   user.update_attributes(age: 27, last_name: 'Tylor')
     #
+    # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+    # attributes is not on the model
+    #
     # @param attributes [Hash] a hash of attributes to update
     # @return [true|false] Whether updating successful or not
     # @since 0.2.0
@@ -507,6 +517,9 @@ module Dynamoid
     # Raises a +Dynamoid::Errors::DocumentNotValid+ exception if some vaidation
     # fails.
     #
+    # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+    # attributes is not on the model
+    #
     # @param attributes [Hash] a hash of attributes to update
     def update_attributes!(attributes)
       attributes.each { |attribute, value| write_attribute(attribute, value) }
@@ -518,6 +531,9 @@ module Dynamoid
     # Returns +true+ if saving is successful and +false+ otherwise.
     #
     #   user.update_attribute(:last_name, 'Tylor')
+    #
+    # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+    # attributes is not on the model
     #
     # @param attribute [Symbol] attribute name to update
     # @param value [Object] the value to assign it
