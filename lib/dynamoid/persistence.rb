@@ -9,6 +9,7 @@ require 'dynamoid/persistence/update_fields'
 require 'dynamoid/persistence/upsert'
 require 'dynamoid/persistence/save'
 require 'dynamoid/persistence/update_validations'
+require 'dynamoid/persistence/transact'
 
 # encoding: utf-8
 module Dynamoid
@@ -157,6 +158,17 @@ module Dynamoid
       # @return [Array] Created models
       def import(array_of_attributes)
         Import.call(self, array_of_attributes)
+      end
+
+      # perfom multiple atomic operations synchronously
+      #
+      # similar to +import+ transact is a low-level method and won't have
+      # mechanisms like callback and validation
+      #
+      # users = User.transact({condition_check: {}, put: {}, delete: {}, update: {}})
+      #
+      def transact(list_of_operations)
+        Transact.call(self, list_of_operations)
       end
 
       # Create a model.
