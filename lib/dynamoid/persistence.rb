@@ -166,7 +166,8 @@ module Dynamoid
       # mechanisms like callback and validation
       #
       # users = User.transact({condition_check: {}, put: {}, delete: {}, update: {}})
-      #
+      # @param array_of_attributes [Array<Hash>]
+      # @return [Array] Created models
       def transact(list_of_operations)
         Transact.call(self, list_of_operations)
       end
