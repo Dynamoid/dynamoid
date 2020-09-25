@@ -1267,7 +1267,7 @@ class User
 end
 
 Dynamoid.config.logger.level = :debug
-Dynamoid.config.endpoint = 'localhost:8000'
+Dynamoid.config.endpoint = 'http://localhost:8000'
 
 User.create(name: 'Alex')
 
