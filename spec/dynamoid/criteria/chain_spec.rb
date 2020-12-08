@@ -1803,6 +1803,82 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  describe '#with_index' do
+    context 'when Local Secondary Index (LSI) used' do
+      let(:klass_with_local_secondary_index) do
+        new_class do
+          range :owner_id
+
+          field :age, :integer
+
+          local_secondary_index range_key: :age,
+            name: :age_index, projected_attributes: :all
+        end
+      end
+
+      before do
+        klass_with_local_secondary_index.create(id: 'the same id', owner_id: 'a', age: 3)
+        klass_with_local_secondary_index.create(id: 'the same id', owner_id: 'c', age: 2)
+        klass_with_local_secondary_index.create(id: 'the same id', owner_id: 'b', age: 1)
+      end
+
+      it 'sorts the results in ascending order' do
+        chain = Dynamoid::Criteria::Chain.new(klass_with_local_secondary_index)
+        models = chain.where(id: 'the same id').with_index(:age_index).scan_index_forward(true)
+        expect(models.map(&:owner_id)).to eq %w[b c a]
+      end
+
+      it 'sorts the results in desc order' do
+        chain = Dynamoid::Criteria::Chain.new(klass_with_local_secondary_index)
+        models = chain.where(id: 'the same id').with_index(:age_index).scan_index_forward(false)
+        expect(models.map(&:owner_id)).to eq %w[a c b]
+      end
+    end
+
+    context 'when Global Secondary Index (GSI) used' do
+      let(:klass_with_global_secondary_index) do
+        new_class do
+          range :owner_id
+
+          field :age, :integer
+
+          global_secondary_index hash_key: :owner_id, range_key: :age,
+            name: :age_index, projected_attributes: :all
+        end
+      end
+
+      before do
+        klass_with_global_secondary_index.create(id: 'the same id', owner_id: 'a', age: 3)
+        klass_with_global_secondary_index.create(id: 'the same id', owner_id: 'c', age: 2)
+        klass_with_global_secondary_index.create(id: 'other id',    owner_id: 'a', age: 1)
+      end
+
+      let(:chain) { Dynamoid::Criteria::Chain.new(klass_with_global_secondary_index)  }
+
+      it 'sorts the results in ascending order' do
+        models = chain.where(owner_id: 'a').with_index(:age_index).scan_index_forward(true)
+        expect(models.map(&:age)).to eq [1, 3]
+      end
+
+      it 'sorts the results in desc order' do
+        models = chain.where(owner_id: 'a').with_index(:age_index).scan_index_forward(false)
+        expect(models.map(&:age)).to eq [3, 1]
+      end
+
+      it 'works with string names' do
+        models = chain.where(owner_id: 'a').with_index('age_index').scan_index_forward(false)
+        expect(models.map(&:age)).to eq [3, 1]
+      end
+
+      it 'raises an error when an unknown index is passed' do
+        expect do
+          chain.where(owner_id: 'a').with_index(:missing_index)
+        end.to raise_error Dynamoid::Errors::InvalidIndex, /Unknown index/
+      end
+    end
+
+  end
+
   describe '#scan_index_forward' do
     let(:klass_with_range_key) do
       new_class do

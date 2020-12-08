@@ -110,7 +110,7 @@ module Dynamoid
         query.update(args.symbolize_keys)
 
         # we should re-initialize keys detector every time we change query
-        @key_fields_detector = KeyFieldsDetector.new(@query, @source)
+        @key_fields_detector = KeyFieldsDetector.new(@query, @source, forced_index_name: @forced_index_name)
 
         self
       end
@@ -355,6 +355,36 @@ module Dynamoid
       # @return [Dynamoid::Criteria::Chain]
       def scan_index_forward(scan_index_forward)
         @scan_index_forward = scan_index_forward
+        self
+      end
+
+      # Force the index name to use for queries.
+      #
+      # By default allows the library to select the most appropriate index.
+      # Sometimes you have more than one index which will fulfill your query's
+      # needs. When this case occurs you may want to force an order. This occurs
+      # when you are searching by hash key, but not specifying a range key.
+      #
+      #  class Comment
+      #    include Dynamoid::Document
+      #
+      #    table key: :post_id
+      #    range_key :author_id
+      #
+      #    field :post_date, :datetime
+      #
+      #    global_secondary_index name: :time_sorted_comments, hash_key: :post_id, range_key: post_date, projected_attributes: :all
+      #  end
+      #
+      #
+      #   Comment.where(post_id: id).with_index(:time_sorted_comments).scan_index_forward(false)
+      #
+      # @return [Dynamoid::Criteria::Chain]
+      def with_index(index_name)
+        raise Dynamoid::Errors::InvalidIndex, "Unknown index #{index_name}" unless @source.find_index_by_name(index_name)
+
+        @forced_index_name = index_name
+        @key_fields_detector = KeyFieldsDetector.new(@query, @source, forced_index_name: index_name)
         self
       end
 
