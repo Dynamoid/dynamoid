@@ -24,10 +24,11 @@ module Dynamoid
         end
       end
 
-      def initialize(query, source)
+      def initialize(query, source, forced_index_name: nil)
         @query = query
         @source = source
         @query = Query.new(query)
+        @forced_index_name = forced_index_name
         @result = find_keys_in_query
       end
 
@@ -54,6 +55,8 @@ module Dynamoid
       private
 
       def find_keys_in_query
+        return match_forced_index if @forced_index_name
+
         match_table_and_sort_key ||
           match_local_secondary_index ||
           match_global_secondary_index_and_sort_key ||
@@ -132,6 +135,16 @@ module Dynamoid
             index_name: gsi.name,
           }
         end
+      end
+
+      def match_forced_index
+        idx = @source.find_index_by_name(@forced_index_name)
+
+        {
+          hash_key: idx.hash_key,
+          range_key: idx.range_key,
+          index_name: idx.name,
+        }
       end
     end
   end

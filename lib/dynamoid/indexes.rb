@@ -154,6 +154,16 @@ module Dynamoid
         index
       end
 
+      # Returns an index by its name
+      #
+      # @param name [string, symbol] the name of the index to lookup
+      # @return [Dynamoid::Indexes::Index, nil] index object or nil if it isn't found
+      def find_index_by_name(name)
+        string_name = name.to_s
+        indexes.each_value.detect{ |i| i.name.to_s == string_name }
+      end
+
+
       # Returns true iff the provided hash[,range] key combo is a local
       # secondary index.
       #
