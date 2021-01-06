@@ -161,6 +161,17 @@ module Dynamoid
           define_method("#{named}=") { |value| write_attribute(named, value) }
           define_method("#{named}_before_type_cast") { read_attribute_before_type_cast(named) }
         end
+
+        if options[:alias]
+          alias_name = options[:alias].to_s
+
+          generated_methods.module_eval do
+            alias_method alias_name, named
+            alias_method "#{alias_name}=", "#{named}="
+            alias_method "#{alias_name}?", "#{named}?"
+            alias_method "#{alias_name}_before_type_cast", "#{named}_before_type_cast"
+          end
+        end
       end
 
       # Declare a table range key.
