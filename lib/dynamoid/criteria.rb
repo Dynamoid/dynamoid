@@ -9,7 +9,7 @@ module Dynamoid
 
     # @private
     module ClassMethods
-      %i[where all first last each record_limit scan_limit batch start scan_index_forward find_by_pages project pluck].each do |meth|
+      %i[where consistent all first last delete_all destroy_all each record_limit scan_limit batch start scan_index_forward find_by_pages project pluck].each do |meth|
         # Return a criteria chain in response to a method that will begin or end a chain. For more information,
         # see Dynamoid::Criteria::Chain.
         #
