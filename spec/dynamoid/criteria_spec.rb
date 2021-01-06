@@ -2,6 +2,9 @@
 
 require 'spec_helper'
 
+# This file contains legacy specs. They should be revised and moved to the
+# criteria_new_spec.rb file.
+
 describe Dynamoid::Criteria do
   let!(:user1) { User.create(name: 'Josh', email: 'josh@joshsymonds.com', admin: true) }
   let!(:user2) { User.create(name: 'Justin', email: 'justin@joshsymonds.com', admin: false) }
