@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'dynamoid/fields/declare'
+
 module Dynamoid
   # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not
   # specified with field, then they will be ignored.
@@ -132,46 +134,12 @@ module Dynamoid
       #
       # @since 0.2.0
       def field(name, type = :string, options = {})
-        named = name.to_s
         if type == :float
           Dynamoid.logger.warn("Field type :float, which you declared for '#{name}', is deprecated in favor of :number.")
           type = :number
         end
-        self.attributes = attributes.merge(name => { type: type }.merge(options))
 
-        # should be called before `define_attribute_methods` method because it defines a getter itself
-        warn_about_method_overriding(name, name)
-        warn_about_method_overriding("#{named}=", name)
-        warn_about_method_overriding("#{named}?", name)
-        warn_about_method_overriding("#{named}_before_type_cast?", name)
-
-        define_attribute_method(name) # Dirty API
-
-        generated_methods.module_eval do
-          define_method(named) { read_attribute(named) }
-          define_method("#{named}?") do
-            value = read_attribute(named)
-            case value
-            when true        then true
-            when false, nil  then false
-            else
-              !value.nil?
-            end
-          end
-          define_method("#{named}=") { |value| write_attribute(named, value) }
-          define_method("#{named}_before_type_cast") { read_attribute_before_type_cast(named) }
-        end
-
-        if options[:alias]
-          alias_name = options[:alias].to_s
-
-          generated_methods.module_eval do
-            alias_method alias_name, named
-            alias_method "#{alias_name}=", "#{named}="
-            alias_method "#{alias_name}?", "#{named}?"
-            alias_method "#{alias_name}_before_type_cast", "#{named}_before_type_cast"
-          end
-        end
+        Dynamoid::Fields::Declare.new(self, name, type, options).call
       end
 
       # Declare a table range key.
@@ -284,19 +252,12 @@ module Dynamoid
         options[:timestamps] || (options[:timestamps].nil? && Dynamoid::Config.timestamps)
       end
 
-      private
-
+      # @private
       def generated_methods
         @generated_methods ||= begin
           Module.new.tap do |mod|
             include(mod)
           end
-        end
-      end
-
-      def warn_about_method_overriding(method_name, field_name)
-        if instance_methods.include?(method_name.to_sym)
-          Dynamoid.logger.warn("Method #{method_name} generated for the field #{field_name} overrides already existing method")
         end
       end
     end
