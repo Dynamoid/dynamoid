@@ -128,6 +128,19 @@ module Dynamoid
       #   user.age # => 21 - integer
       #   user.age_before_type_cast # => '21' - string
       #
+      # There is also an option +alias+ which allows to use another name for a
+      # field:
+      #
+      #   class User
+      #     include Dynamoid::Document
+      #
+      #     field :firstName, :string, alias: :first_name
+      #   end
+      #
+      #   user = User.new(firstName: 'Michael')
+      #   user.firstName # Michael
+      #   user.first_name # Michael
+      #
       # @param name [Symbol] name of the field
       # @param type [Symbol] type of the field (optional)
       # @param options [Hash] any additional options for the field type (optional)
