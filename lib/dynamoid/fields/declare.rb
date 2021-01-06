@@ -43,6 +43,7 @@ module Dynamoid
       end
 
       def generate_instance_methods
+        # only local variable is visible in `module_eval` block
         name = @name
 
         @source.generated_methods.module_eval do
@@ -62,8 +63,10 @@ module Dynamoid
       end
 
       def generate_instance_methods_for_alias
-        alias_name = @options[:alias].to_sym
+        # only local variable is visible in `module_eval` block
         name = @name
+
+        alias_name = @options[:alias].to_sym
 
         @source.generated_methods.module_eval do
           alias_method alias_name, name
