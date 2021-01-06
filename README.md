@@ -126,7 +126,7 @@ end
 Dynamoid supports Ruby >= 2.3 and Rails >= 4.2.
 
 Its compatibility is tested against following Ruby versions: 2.3, 2.4,
-2.5 and 2.6, JRuby 9.2.8.0 and against Rails versions: 4.2, 5.0, 5.1,
+2.5, 2.6 and 2.7, JRuby 9.2.8.0 and against Rails versions: 4.2, 5.0, 5.1,
 5.2 and 6.0.
 
 ## Setup
@@ -614,7 +614,7 @@ well.
 
 ### Dirty API
 
-Dynamoid supports Dirty API which equivalents to [Rails 5.2
+Dynamoid supports Dirty API which is equivalent to [Rails 5.2
 `ActiveModel::Dirty`](https://api.rubyonrails.org/v5.2/classes/ActiveModel/Dirty.html).
 There is only one limitation - change in place of field isn't detected
 automatically.
