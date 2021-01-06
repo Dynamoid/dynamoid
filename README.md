@@ -652,7 +652,7 @@ u.email = 'josh@joshsymonds.com'
 u.save
 ```
 
-Save forces persistence to the datastore: a unique ID is also assigned,
+Save forces persistence to the data store: a unique ID is also assigned,
 but it is a string and not an auto-incrementing number.
 
 ```ruby

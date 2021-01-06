@@ -45,15 +45,15 @@ module Dynamoid
       #   end
       #
       # Its type determines how it is coerced when read in and out of the
-      # datastore. You can specify +string+, +integer+, +number+, +set+, +array+,
+      # data store. You can specify +string+, +integer+, +number+, +set+, +array+,
       # +map+, +datetime+, +date+, +serialized+, +raw+, +boolean+ and +binary+
       # or specify a class that defines a serialization strategy.
       #
       # By default field type is +string+.
       #
       # Set can store elements of the same type only (it's a limitation of
-      # DynamoDB itself). If a set should store elements only some particular
-      # type +of+ option should be specified:
+      # DynamoDB itself). If a set should store elements only of some particular
+      # type then +of+ option should be specified:
       #
       #   field :hobbies, :set, of: :string
       #
