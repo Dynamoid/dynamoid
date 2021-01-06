@@ -365,6 +365,26 @@ field :actions_taken, :integer, default: 0
 field :joined_at, :datetime, default: -> { Time.now }
 ```
 
+#### Aliases
+
+It might be helpful to define an alias for already existing field when
+naming convention used for a table differs from conventions common in
+Ruby:
+
+```ruby
+field firstName, :string, alias: :first_name
+```
+
+This way there will be generated
+setters/getters/`<name>?`/`<name>_before_type_cast` methods for both
+original field name (`firstName`) and an alias (`first_name`).
+
+```ruby
+user = User.new(first_name: 'Michael')
+user.first_name # => 'Michael'
+user.firstName # => 'Michael'
+```
+
 #### Custom Types
 
 To use a custom type for a field, suppose you have a `Money` type.
