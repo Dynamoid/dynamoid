@@ -6,7 +6,40 @@ describe Dynamoid::Fields do
   let(:address) { Address.new }
 
   describe '.field' do
-    context 'generated method overrided existing one' do
+    context 'when :alias option specified' do
+      let(:klass) do
+        new_class do
+          field :Name, :string, alias: :name
+        end
+      end
+
+      it 'generates getter and setter for alias' do
+        object = klass.new
+
+        object.Name = 'Alex'
+        expect(object.name).to eq('Alex')
+
+        object.name = 'Michael'
+        expect(object.name).to eq('Michael')
+      end
+
+      it 'generates <name>? method' do
+        object = klass.new
+
+        expect(object.name?).to eq false
+        object.name = 'Alex'
+        expect(object.name?).to eq true
+      end
+
+      it 'generates <name>_before_type_cast method' do
+        object = klass.new(name: :Alex)
+
+        expect(object.name).to eq 'Alex'
+        expect(object.name_before_type_cast).to eq :Alex
+      end
+    end
+
+    context 'when new generated method overrides existing one' do
       let(:module_with_methods) do
         Module.new do
           def foo; end

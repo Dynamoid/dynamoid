@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'dynamoid/fields/declare'
+
 module Dynamoid
   # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not
   # specified with field, then they will be ignored.
@@ -43,15 +45,15 @@ module Dynamoid
       #   end
       #
       # Its type determines how it is coerced when read in and out of the
-      # datastore. You can specify +string+, +integer+, +number+, +set+, +array+,
+      # data store. You can specify +string+, +integer+, +number+, +set+, +array+,
       # +map+, +datetime+, +date+, +serialized+, +raw+, +boolean+ and +binary+
       # or specify a class that defines a serialization strategy.
       #
       # By default field type is +string+.
       #
       # Set can store elements of the same type only (it's a limitation of
-      # DynamoDB itself). If a set should store elements only some particular
-      # type +of+ option should be specified:
+      # DynamoDB itself). If a set should store elements only of some particular
+      # type then +of+ option should be specified:
       #
       #   field :hobbies, :set, of: :string
       #
@@ -126,41 +128,31 @@ module Dynamoid
       #   user.age # => 21 - integer
       #   user.age_before_type_cast # => '21' - string
       #
+      # There is also an option +alias+ which allows to use another name for a
+      # field:
+      #
+      #   class User
+      #     include Dynamoid::Document
+      #
+      #     field :firstName, :string, alias: :first_name
+      #   end
+      #
+      #   user = User.new(firstName: 'Michael')
+      #   user.firstName # Michael
+      #   user.first_name # Michael
+      #
       # @param name [Symbol] name of the field
       # @param type [Symbol] type of the field (optional)
       # @param options [Hash] any additional options for the field type (optional)
       #
       # @since 0.2.0
       def field(name, type = :string, options = {})
-        named = name.to_s
         if type == :float
           Dynamoid.logger.warn("Field type :float, which you declared for '#{name}', is deprecated in favor of :number.")
           type = :number
         end
-        self.attributes = attributes.merge(name => { type: type }.merge(options))
 
-        # should be called before `define_attribute_methods` method because it defines a getter itself
-        warn_about_method_overriding(name, name)
-        warn_about_method_overriding("#{named}=", name)
-        warn_about_method_overriding("#{named}?", name)
-        warn_about_method_overriding("#{named}_before_type_cast?", name)
-
-        define_attribute_method(name) # Dirty API
-
-        generated_methods.module_eval do
-          define_method(named) { read_attribute(named) }
-          define_method("#{named}?") do
-            value = read_attribute(named)
-            case value
-            when true        then true
-            when false, nil  then false
-            else
-              !value.nil?
-            end
-          end
-          define_method("#{named}=") { |value| write_attribute(named, value) }
-          define_method("#{named}_before_type_cast") { read_attribute_before_type_cast(named) }
-        end
+        Dynamoid::Fields::Declare.new(self, name, type, options).call
       end
 
       # Declare a table range key.
@@ -273,19 +265,12 @@ module Dynamoid
         options[:timestamps] || (options[:timestamps].nil? && Dynamoid::Config.timestamps)
       end
 
-      private
-
+      # @private
       def generated_methods
         @generated_methods ||= begin
           Module.new.tap do |mod|
             include(mod)
           end
-        end
-      end
-
-      def warn_about_method_overriding(method_name, field_name)
-        if instance_methods.include?(method_name.to_sym)
-          Dynamoid.logger.warn("Method #{method_name} generated for the field #{field_name} overrides already existing method")
         end
       end
     end
