@@ -126,8 +126,8 @@ end
 Dynamoid supports Ruby >= 2.3 and Rails >= 4.2.
 
 Its compatibility is tested against following Ruby versions: 2.3, 2.4,
-2.5, 2.6 and 2.7, JRuby 9.2.8.0 and against Rails versions: 4.2, 5.0, 5.1,
-5.2 and 6.0.
+2.5, 2.6, 2.7 and 3.0, JRuby 9.2.x and against Rails versions: 4.2, 5.0, 5.1,
+5.2, 6.0 and 6.1.
 
 ## Setup
 
@@ -1342,12 +1342,12 @@ environment.
 
 If you want to run all the specs that travis runs, use `bundle exec
 wwtd`, but first you will need to setup all the rubies, for each of `%w(
-2.0.0-p648 2.1.10 2.2.6 2.3.3 2.4.1 jruby-9.1.8.0 )`. When you run
+2.3.8 2.4.6 2.5.5 2.6.3 2.7.0 3.0.0 9.2.14.0)`. When you run
 `bundle exec wwtd` it will take care of starting and stopping the local
 dynamodb instance.
 
 ```shell
-rvm use 2.0.0-p648
+rvm use 3.0.0
 gem install rubygems-update
 gem install bundler
 bundle install
