@@ -25,7 +25,7 @@ matrix:
     - rvm: ruby-2.7.0
       gemfile: gemfiles/rails_5_2.gemfile
 
-    # Rails 6
+    # Rails 6.0
     # It requires Ruby 2.5 and above
     - rvm: ruby-2.5.3
       gemfile: gemfiles/rails_6_0.gemfile
@@ -35,6 +35,17 @@ matrix:
       gemfile: gemfiles/rails_6_0.gemfile
     - rvm: jruby-9.2.14.0
       gemfile: gemfiles/rails_6_0.gemfile
+
+    # Rails 6.1
+    # It requires Ruby 2.5 and above
+    - rvm: ruby-2.5.3
+      gemfile: gemfiles/rails_6_1.gemfile
+    - rvm: ruby-2.6.3
+      gemfile: gemfiles/rails_6_1.gemfile
+    - rvm: ruby-2.7.0
+      gemfile: gemfiles/rails_6_1.gemfile
+    - rvm: jruby-9.2.14.0
+      gemfile: gemfiles/rails_6_1.gemfile
 
 ### BUILD LIFECYCLE STEPS ###
 
