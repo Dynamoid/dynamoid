@@ -33,6 +33,17 @@ matrix:
     - rvm: ruby-2.4.6
       gemfile: gemfiles/rails_6_1.gemfile
 
+    # Rails supports Ruby 3 since 6.0 only so skip all the other versions
+    - rvm: ruby-3.0.0
+      gemfile: gemfiles/rails_4_2.gemfile
+    - rvm: ruby-3.0.0
+      gemfile: gemfiles/rails_5_0.gemfile
+    - rvm: ruby-3.0.0
+      gemfile: gemfiles/rails_5_1.gemfile
+    - rvm: ruby-3.0.0
+      gemfile: gemfiles/rails_5_2.gemfile
+
+
 ### BUILD LIFECYCLE STEPS ###
 
 before_install:
