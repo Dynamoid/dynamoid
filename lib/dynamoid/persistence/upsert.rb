@@ -4,8 +4,8 @@ module Dynamoid
   module Persistence
     # @private
     class Upsert
-      def self.call(*args)
-        new(*args).call
+      def self.call(*args, **options)
+        new(*args, **options).call
       end
 
       def initialize(model_class, partition_key:, sort_key:, attributes:, conditions:)

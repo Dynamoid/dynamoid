@@ -15,6 +15,13 @@ module Dynamoid
         #
         # @since 0.2.0
         define_method(meth) do |*args, &blk|
+          # Don't use keywork arguments delegating (with **kw). It works in
+          # different way in different Ruby versions: <= 2.6, 2.7, 3.0 and in some
+          # future 3.x versions. Providing that there are no downstream methods
+          # with keyword arguments in Chain.
+          #
+          # https://eregon.me/blog/2019/11/10/the-delegation-challenge-of-ruby27.html
+
           chain = Dynamoid::Criteria::Chain.new(self)
           if args
             chain.send(meth, *args, &blk)
