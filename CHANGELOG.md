@@ -2,10 +2,19 @@
 
 ## Features
 
+* [#476](https://github.com/Dynamoid/dynamoid/pull/476) Added `#with_index` method to force an index in query (@bmalinconico)
+* [#481](https://github.com/Dynamoid/dynamoid/pull/481) Added `alias` option to the `field` method to declare a field alias and use more conventional name to set and get value
+
 ## Improvements
+
+* [#482](https://github.com/Dynamoid/dynamoid/pull/482) Support Ruby 3.0 and Rails 6.1
+* [#461](https://github.com/Dynamoid/dynamoid/pull/461) Allow to delete item attribute with `#update` method (@jkirsteins)
+* [#463](https://github.com/Dynamoid/dynamoid/pull/463) Raise `UnknownAttribute` exception when specified not declared attribute name (@AlexGascon)
 
 ## Fixes
 
+* [#480](https://github.com/Dynamoid/dynamoid/pull/480) Repair `.consistent`/`.delete_all`/`.destroy_all` calls directly on a model class
+* Fixes in Readme.md: [#470](https://github.com/Dynamoid/dynamoid/pull/470) (@rromanchuk), [#473](https://github.com/Dynamoid/dynamoid/pull/473) (@Rulikkk)
 
 ---
 
