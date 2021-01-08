@@ -1224,11 +1224,11 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         )
         .and_call_original
 
-      Dynamoid.adapter.update_time_to_live(table_name: table_name, attribute: :ttl)
+      Dynamoid.adapter.update_time_to_live(table_name, :ttl)
     end
 
     it 'updates a table schema' do
-      Dynamoid.adapter.update_time_to_live(table_name: table_name, attribute: :ttl)
+      Dynamoid.adapter.update_time_to_live(table_name, :ttl)
 
       response = Dynamoid.adapter.client.describe_time_to_live(table_name: table_name)
       expect(response.time_to_live_description.time_to_live_status).to eq 'ENABLED'

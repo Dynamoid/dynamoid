@@ -50,7 +50,10 @@ module Dynamoid
       class PresenceValidator < ActiveModel::EachValidator
         # Validate the record for the record and value.
         def validate_each(record, attr_name, value)
-          record.errors.add(attr_name, :blank, options) if not_present?(value)
+          # Use keyword argument `options` because it was a Hash in Rails < 6.1
+          # and became a keyword argument in 6.1.  This way it works in both
+          # cases.
+          record.errors.add(attr_name, :blank, **options) if not_present?(value)
         end
 
         private

@@ -23,7 +23,7 @@ module Dynamoid
         options[:range_key] = range_value
       end
 
-      self.attributes = self.class.find(hash_key, options).attributes
+      self.attributes = self.class.find(hash_key, **options).attributes
       @associations.values.each(&:reset)
       self
     end

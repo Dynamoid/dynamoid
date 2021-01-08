@@ -158,8 +158,14 @@ module Dynamoid
     #
     # @since 0.2.0
     def method_missing(method, *args, &block)
-      return benchmark(method, *args) { adapter.send(method, *args, &block) } if adapter.respond_to?(method)
+      # Don't use keywork arguments delegating (with **kw). It works in
+      # different way in different Ruby versions: <= 2.6, 2.7, 3.0 and in some
+      # future 3.x versions. Providing that there are no downstream methods
+      # with keyword arguments in adapter.
+      #
+      # https://eregon.me/blog/2019/11/10/the-delegation-challenge-of-ruby27.html
 
+      return benchmark(method, *args) { adapter.send(method, *args, &block) } if adapter.respond_to?(method)
       super
     end
 

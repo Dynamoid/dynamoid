@@ -12,6 +12,15 @@ module Dynamoid
   # @private
   module AdapterPlugin
     # The AwsSdkV3 adapter provides support for the aws-sdk version 2 for ruby.
+
+    # Note: Don't use keyword arguments in public methods as far as method
+    # calls on adapter are delegated to the plugin.
+    #
+    # There are breaking changes in Ruby related to delegating keyword
+    # arguments so we have decided just to avoid them when use delegation.
+    #
+    # https://eregon.me/blog/2019/11/10/the-delegation-challenge-of-ruby27.html
+
     class AwsSdkV3
       EQ = 'EQ'
       RANGE_MAP = {
@@ -281,7 +290,7 @@ module Dynamoid
         false
       end
 
-      def update_time_to_live(table_name:, attribute:)
+      def update_time_to_live(table_name, attribute)
         request = {
           table_name: table_name,
           time_to_live_specification: {

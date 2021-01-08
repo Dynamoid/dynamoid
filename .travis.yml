@@ -6,33 +6,43 @@ rvm:
   - ruby-2.4.6
   - ruby-2.5.5
   - ruby-2.6.3
-  - jruby-9.2.8.0
+  - ruby-2.7.0
+  - ruby-3.0.0
+  - jruby-9.2.14.0
 gemfile:
   - gemfiles/rails_4_2.gemfile
   - gemfiles/rails_5_0.gemfile
   - gemfiles/rails_5_1.gemfile
   - gemfiles/rails_5_2.gemfile
-  - gemfiles/rails_5_2.gemfile
+  - gemfiles/rails_6_0.gemfile
+  - gemfiles/rails_6_1.gemfile
 
+# https://docs.travis-ci.com/user/build-matrix
 matrix:
-  include:
-    # Ruby 2.7
-    # Rails works with Ruby 2.7 only from Rails 5.0
-    - rvm: ruby-2.7.0
+  exclude:
+
+    # Rails 6.0 requires Ruby 2.5 and above
+    - rvm: ruby-2.3.8
+      gemfile: gemfiles/rails_6_0.gemfile
+    - rvm: ruby-2.4.6
+      gemfile: gemfiles/rails_6_0.gemfile
+
+    # Rails 6.1 requires Ruby 2.5 and above
+    - rvm: ruby-2.3.8
+      gemfile: gemfiles/rails_6_1.gemfile
+    - rvm: ruby-2.4.6
+      gemfile: gemfiles/rails_6_1.gemfile
+
+    # Rails supports Ruby 3 since 6.0 only so skip all the other versions
+    - rvm: ruby-3.0.0
+      gemfile: gemfiles/rails_4_2.gemfile
+    - rvm: ruby-3.0.0
       gemfile: gemfiles/rails_5_0.gemfile
-    - rvm: ruby-2.7.0
+    - rvm: ruby-3.0.0
       gemfile: gemfiles/rails_5_1.gemfile
-    - rvm: ruby-2.7.0
+    - rvm: ruby-3.0.0
       gemfile: gemfiles/rails_5_2.gemfile
 
-    # Rails 6
-    # It requires Ruby 2.5 and above
-    - rvm: ruby-2.5.3
-      gemfile: gemfiles/rails_6_0.gemfile
-    - rvm: ruby-2.6.3
-      gemfile: gemfiles/rails_6_0.gemfile
-    - rvm: ruby-2.7.0
-      gemfile: gemfiles/rails_6_0.gemfile
 
 ### BUILD LIFECYCLE STEPS ###
 
