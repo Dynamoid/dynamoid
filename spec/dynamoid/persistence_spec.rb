@@ -2597,6 +2597,38 @@ describe Dynamoid::Persistence do
         expect { a1.destroy }.to_not raise_error
       end
     end
+
+    context 'with associations' do
+      let!(:user) { User.create }
+      let!(:camel_case) { user.camel_case.create }
+      let!(:magazine) { user.books.create }
+      let!(:monthly) { user.monthly.create }
+      let!(:subscription) { user.subscriptions.create }
+
+      it 'updates belongs_to association' do
+        expect do
+          user.delete
+        end.to change { CamelCase.find(camel_case.id).users.target }.from([user]).to([])
+      end
+
+      it 'updates has_many association' do
+        expect do
+          user.delete
+        end.to change { Magazine.find(magazine.title).owner.target }.from(user).to(nil)
+      end
+
+      it 'updates has_one association' do
+        expect do
+          user.delete
+        end.to change { Subscription.find(monthly.id).customer.target }.from(user).to(nil)
+      end
+
+      it 'updates has_and_belongs_to_many association' do
+        expect do
+          user.delete
+        end.to change { Subscription.find(subscription.id).users.target }.from([user]).to([])
+      end
+    end
   end
 
   describe '.import' do

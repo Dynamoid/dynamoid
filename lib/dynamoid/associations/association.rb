@@ -58,6 +58,12 @@ module Dynamoid
         :set
       end
 
+      def disassociate_source
+        Array(target).each do |target_entry|
+          target_entry.send(target_association).disassociate(source.hash_key) if target_entry && target_association
+        end
+      end
+
       private
 
       # The target class name, either inferred through the association's name or specified in options.
