@@ -801,20 +801,13 @@ module Dynamoid
 
       @destroyed = true
 
-      Dynamoid.adapter.delete(self.class.table_name, hash_key, options).tap { update_asociations }
+      Dynamoid.adapter.delete(self.class.table_name, hash_key, options)
+
+      self.class.associations.each do |name, options|
+        send(name).disassociate_source
+      end
     rescue Dynamoid::Errors::ConditionalCheckFailedException
       raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
-    end
-
-    private
-
-    def update_asociations
-      self.class.associations.each do |name, options|
-        begin
-          send(name).disassociate_source
-        rescue Aws::DynamoDB::Errors::ResourceNotFoundException
-        end
-      end
     end
   end
 end
