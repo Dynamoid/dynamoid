@@ -109,7 +109,7 @@ module Dynamoid
       def find_target
         return if source_ids.empty?
 
-        target_class.find(source_ids.first)
+        target_class.find(source_ids.first, raise_error: false)
       end
 
       def target=(object)

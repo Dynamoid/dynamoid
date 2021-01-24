@@ -25,7 +25,9 @@ module Dynamoid
       # @private
       # @since 0.2.0
       def find_target
-        Array(target_class.find(source_ids.to_a))
+        return [] if source_ids.empty?
+
+        Array(target_class.find(source_ids.to_a, raise_error: false))
       end
 
       # @private
