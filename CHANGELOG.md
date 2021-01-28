@@ -14,6 +14,7 @@
 ## Fixes
 
 * [#480](https://github.com/Dynamoid/dynamoid/pull/480) Repair `.consistent`/`.delete_all`/`.destroy_all` calls directly on a model class
+* [#484](https://github.com/Dynamoid/dynamoid/pull/484) Fix broken foreign keys after model deleting (@kkan)
 * Fixes in Readme.md: [#470](https://github.com/Dynamoid/dynamoid/pull/470) (@rromanchuk), [#473](https://github.com/Dynamoid/dynamoid/pull/473) (@Rulikkk)
 
 ---

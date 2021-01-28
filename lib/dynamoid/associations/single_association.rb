@@ -28,7 +28,7 @@ module Dynamoid
       # unsaved changes will be saved. Doesn't delete an associated model from
       # DynamoDB.
       def delete
-        target.send(target_association).disassociate(source.hash_key) if target && target_association
+        disassociate_source
         disassociate
         target
       end
@@ -90,7 +90,7 @@ module Dynamoid
 
       # @private
       def associate(hash_key)
-        target.send(target_association).disassociate(source.hash_key) if target && target_association
+        disassociate_source
         source.update_attribute(source_attribute, Set[hash_key])
       end
 
@@ -109,7 +109,7 @@ module Dynamoid
       def find_target
         return if source_ids.empty?
 
-        target_class.find(source_ids.first)
+        target_class.find(source_ids.first, raise_error: false)
       end
 
       def target=(object)

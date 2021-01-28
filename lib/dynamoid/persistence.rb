@@ -802,6 +802,10 @@ module Dynamoid
       @destroyed = true
 
       Dynamoid.adapter.delete(self.class.table_name, hash_key, options)
+
+      self.class.associations.each do |name, options|
+        send(name).disassociate_source
+      end
     rescue Dynamoid::Errors::ConditionalCheckFailedException
       raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
     end
