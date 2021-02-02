@@ -1,5 +1,12 @@
 # HEAD
 
+---
+
+
+
+# 3.7.0 / 2021-02-02
+
+
 ## Features
 
 * [#476](https://github.com/Dynamoid/dynamoid/pull/476) Added `#with_index` method to force an index in query (@bmalinconico)
