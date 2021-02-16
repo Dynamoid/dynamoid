@@ -14,6 +14,7 @@ module Dynamoid
       number
       integer
       string
+      date
       datetime
       serialized
     ].freeze
