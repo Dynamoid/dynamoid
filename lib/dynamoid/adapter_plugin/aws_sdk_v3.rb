@@ -67,7 +67,7 @@ module Dynamoid
       }
       BATCH_WRITE_ITEM_REQUESTS_LIMIT = 25
 
-      CONNECTION_CONFIG_OPTIONS = %i[endpoint region http_continue_timeout http_idle_timeout http_open_timeout http_read_timeout].freeze
+      CONNECTION_CONFIG_OPTIONS = %i[endpoint region http_continue_timeout http_idle_timeout http_open_timeout http_read_timeout http_proxy].freeze
 
       attr_reader :table_cache
 
@@ -282,6 +282,11 @@ module Dynamoid
       # @option options [Boolean] sync Wait for table status to be ACTIVE?
       # @since 1.0.0
       def create_table(table_name, key = :id, options = {})
+        unless Dynamoid.config.create_table_enabled
+          Dynamoid.logger.error "Table #{table_name} is not created as create_table_enabled is disabled"
+          return false
+        end
+
         Dynamoid.logger.info "Creating #{table_name} table. This could take a while."
         CreateTable.new(client, table_name, key, options).call
         true
