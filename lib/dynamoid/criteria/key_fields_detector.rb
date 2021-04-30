@@ -37,7 +37,7 @@ module Dynamoid
       end
 
       def key_present?
-        @result.present? && @query.contain?([hash_key])
+        @result.present? && @query.contain_with_eq_operator?(hash_key)
       end
 
       def hash_key
