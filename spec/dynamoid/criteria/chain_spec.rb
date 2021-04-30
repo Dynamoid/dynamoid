@@ -1851,7 +1851,7 @@ describe Dynamoid::Criteria::Chain do
         klass_with_global_secondary_index.create(id: 'other id',    owner_id: 'a', age: 1)
         klass_with_global_secondary_index.create(id: 'the same id', owner_id: 'a', age: 3)
         klass_with_global_secondary_index.create(id: 'the same id', owner_id: 'c', age: 2)
-        klass_with_global_secondary_index.create(id: 'third', owner_id: 'b', age: 20)
+        klass_with_global_secondary_index.create(id: 'no age', owner_id: 'b')
       end
 
       let(:chain) { Dynamoid::Criteria::Chain.new(klass_with_global_secondary_index)  }
@@ -1879,7 +1879,7 @@ describe Dynamoid::Criteria::Chain do
 
       it 'allows scanning the index' do
         models = chain.with_index(:age_index)
-        expect(models.map(&:age)).to eq [20, 3, 2, 1]
+        expect(models.map(&:id)).not_to include 'no age'
       end
     end
 
