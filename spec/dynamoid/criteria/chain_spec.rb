@@ -1848,9 +1848,10 @@ describe Dynamoid::Criteria::Chain do
       end
 
       before do
+        klass_with_global_secondary_index.create(id: 'other id',    owner_id: 'a', age: 1)
         klass_with_global_secondary_index.create(id: 'the same id', owner_id: 'a', age: 3)
         klass_with_global_secondary_index.create(id: 'the same id', owner_id: 'c', age: 2)
-        klass_with_global_secondary_index.create(id: 'other id',    owner_id: 'a', age: 1)
+        klass_with_global_secondary_index.create(id: 'third', owner_id: 'b', age: 20)
       end
 
       let(:chain) { Dynamoid::Criteria::Chain.new(klass_with_global_secondary_index)  }
@@ -1874,6 +1875,11 @@ describe Dynamoid::Criteria::Chain do
         expect do
           chain.where(owner_id: 'a').with_index(:missing_index)
         end.to raise_error Dynamoid::Errors::InvalidIndex, /Unknown index/
+      end
+
+      it 'allows scanning the index' do
+        models = chain.with_index(:age_index)
+        expect(models.map(&:age)).to eq [20, 3, 2, 1]
       end
     end
 
