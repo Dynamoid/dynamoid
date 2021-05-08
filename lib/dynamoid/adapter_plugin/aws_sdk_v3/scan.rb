@@ -48,7 +48,8 @@ module Dynamoid
           request = options.slice(
             :consistent_read,
             :exclusive_start_key,
-            :select
+            :select,
+            :index_name
           ).compact
 
           # Deal with various limits and batching

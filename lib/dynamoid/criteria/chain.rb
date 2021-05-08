@@ -770,6 +770,7 @@ module Dynamoid
 
       def scan_opts
         opts = {}
+        opts[:index_name] = @key_fields_detector.index_name if @key_fields_detector.index_name
         opts[:record_limit] = @record_limit if @record_limit
         opts[:scan_limit] = @scan_limit if @scan_limit
         opts[:batch_size] = @batch_size if @batch_size
