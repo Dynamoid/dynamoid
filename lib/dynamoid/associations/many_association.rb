@@ -177,7 +177,8 @@ module Dynamoid
       # @since 0.2.0
       def delete_all
         objs = target
-        source.update_attribute(source_attribute, nil)
+        source.write_attribute(source_attribute, nil)
+        source.save(skip_callbacks: true)
         objs.each(&:delete)
       end
 

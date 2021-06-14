@@ -478,16 +478,25 @@ module Dynamoid
       self.class.create_table(sync: true)
 
       @_touch_record = options[:touch]
+      skip_callbacks = options[:skip_callbacks]
 
       if new_record?
-        run_callbacks(:create) do
-          run_callbacks(:save) do
-            Save.call(self)
+        if skip_callbacks
+          Save.call(self)
+        else
+          run_callbacks(:create) do
+            run_callbacks(:save) do
+              Save.call(self)
+            end
           end
         end
       else
-        run_callbacks(:save) do
+        if skip_callbacks
           Save.call(self)
+        else
+          run_callbacks(:save) do
+            Save.call(self)
+          end
         end
       end
     end
@@ -505,8 +514,12 @@ module Dynamoid
     # @return [true|false] Whether updating successful or not
     # @since 0.2.0
     def update_attributes(attributes)
-      attributes.each { |attribute, value| write_attribute(attribute, value) }
+      write_attributes(attributes)
       save
+    end
+
+    def write_attributes(attributes)
+      attributes.each { |attribute, value| write_attribute(attribute, value) }
     end
 
     # Update multiple attributes at once, saving the object once the updates
@@ -522,7 +535,7 @@ module Dynamoid
     #
     # @param attributes [Hash] a hash of attributes to update
     def update_attributes!(attributes)
-      attributes.each { |attribute, value| write_attribute(attribute, value) }
+      write_attributes(attributes)
       save!
     end
 
