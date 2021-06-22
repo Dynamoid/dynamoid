@@ -86,7 +86,16 @@ module Dynamoid
           def unprocessed_ids(table)
             # unprocessed_keys Hash contains as values instances of
             # Aws::DynamoDB::Types::KeysAndAttributes
-            @api_response.unprocessed_keys[table.name].keys.map { |h| h[table.hash_key.to_s] }
+            @api_response.unprocessed_keys[table.name].keys.map do |h|
+              # If a table has a composite key then we need to return an array
+              # of [hash_key, composite_key]. Otherwise just return hash key's
+              # value.
+              if table.range_key.nil?
+                h[table.hash_key.to_s]
+              else
+                [h[table.hash_key.to_s], h[table.range_key.to_s]]
+              end
+            end
           end
 
           def items_grouped_by_table

@@ -499,7 +499,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(items.size).to eq 101
     end
 
-    it 'loads unprocessed items' do
+    it 'loads unprocessed items for a table without a composite key' do
       # BatchGetItem has following limitations:
       # * up to 100 items at once
       # * up to 16 MB at once
@@ -531,6 +531,40 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
       expect(items.size).to eq 100
       expect(items.map { |h| h[:id] }).to match_array(ids)
+    end
+
+    it 'loads unprocessed items for a table with a composite key' do
+      # BatchGetItem has following limitations:
+      # * up to 100 items at once
+      # * up to 16 MB at once
+      # * one item size up to 400 KB (common limitation)
+      #
+      # To reach limits we will write as large data as possible
+      # and then read it back
+      #
+      # 100 * 400 KB = ~40 MB
+      # 40 MB / 16 MB ~ 3
+      # So we expect BatchGetItem to be called 3 times
+      #
+      # '15' is an experimentally found value
+      # it includes the size of ('id' + 'age') + some not documented overhead
+
+      ids = (1..100).map { |id| [id.to_s, id] }
+
+      ids.each do |id, age|
+        text = '#' * (400.kilobytes - 15)
+        Dynamoid.adapter.put_item(table_with_composite_key, id: id, age: age, name: text)
+      end
+
+      expect(Dynamoid.adapter.client).to receive(:batch_get_item)
+        .exactly(3)
+        .times.and_call_original
+
+      results = Dynamoid.adapter.batch_get_item(table_with_composite_key => ids)
+      items = results[table_with_composite_key]
+
+      expect(items.size).to eq(100)
+      expect(items.map { |h| [h[:id], h[:age]] }).to match_array(ids)
     end
 
     context 'when called with block' do
