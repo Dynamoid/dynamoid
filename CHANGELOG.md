@@ -4,6 +4,17 @@
 
 
 
+# 3.7.1 / 2021-06-30
+
+## Fixes
+
+* [#484](https://github.com/Dynamoid/dynamoid/pull/484) Fix model deletion - update cached foreign keys in associated models when delete a model
+* [#492](https://github.com/Dynamoid/dynamoid/pull/492) Fix using `:date` field as an index hash/range key (@yoshida-eth0)
+* [#503](https://github.com/Dynamoid/dynamoid/pull/503) Fix explicit forcing index with `#with_index` method when perform Scan operation (@bmalinconico)
+* [#511](https://github.com/Dynamoid/dynamoid/pull/511) Fix `BatchGetItem` operation when partial result returned (so there are unprocessed keys) and table has a range key. The fix affects `.find_all` method only (@Bajena)
+
+
+
 # 3.7.0 / 2021-02-02
 
 
