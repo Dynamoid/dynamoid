@@ -1311,7 +1311,7 @@ describe Dynamoid::Persistence do
       obj = document_class.create(title: 'New Document')
 
       expect {
-        document_class.update_fields(obj.id, { title: 'New title', publisher: 'New publisher' } )
+        document_class.update_fields(obj.id, { title: 'New title', publisher: 'New publisher' })
       }.to raise_error Dynamoid::Errors::UnknownAttribute
     end
   end
@@ -1496,7 +1496,7 @@ describe Dynamoid::Persistence do
       obj = document_class.create(title: 'New Document')
 
       expect {
-        document_class.upsert(obj.id, { title: 'New title', publisher: 'New publisher' } )
+        document_class.upsert(obj.id, { title: 'New title', publisher: 'New publisher' })
       }.to raise_error Dynamoid::Errors::UnknownAttribute
     end
   end
@@ -2740,6 +2740,20 @@ describe Dynamoid::Persistence do
           expect(Subscription.find(target_model.id).users_ids).to eq nil
         end
       end
+    end
+  end
+
+  describe '.transact' do
+    before do
+      Address.create_table
+    end
+
+    it 'process transaction' do
+      expect do
+        Address.transact([{
+                           put: { city: 'Chicago' }
+                         }, { put: { city: 'New York' } }])
+      end.to change { Address.count }.by(2)
     end
   end
 
