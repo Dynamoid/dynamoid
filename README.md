@@ -1,6 +1,6 @@
 # Dynamoid
 
-[![Build Status](https://travis-ci.org/Dynamoid/dynamoid.svg?branch=master)](https://travis-ci.org/Dynamoid/dynamoid)
+[![Build Status](https://github.com/Dynamoid/dynamoid/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Dynamoid/dynamoid/actions/workflows/ci.yml/badge.svg?branch=master)
 [![Code Climate](https://codeclimate.com/github/Dynamoid/dynamoid.svg)](https://codeclimate.com/github/Dynamoid/dynamoid)
 [![Coverage Status](https://coveralls.io/repos/github/Dynamoid/dynamoid/badge.svg?branch=master)](https://coveralls.io/github/Dynamoid/dynamoid?branch=master)
 [![CodeTriage Helpers](https://www.codetriage.com/dynamoid/dynamoid/badges/users.svg)](https://www.codetriage.com/dynamoid/dynamoid)
