@@ -28,6 +28,9 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Bob')
       expect(obj.changed?).to eq false
 
+      obj.name = 'Bob'
+      expect(obj.changed?).to eq false
+
       obj = model.new
       expect(obj.changed?).to eq false
     end
@@ -45,6 +48,9 @@ describe Dynamoid::Dirty do
 
     it 'returns [] when there are no unsaved changes' do
       obj = model.create(name: 'Alex')
+      expect(obj.changed).to eq []
+
+      obj.name = 'Alex'
       expect(obj.changed).to eq []
 
       obj = model.new
@@ -68,6 +74,9 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Alex')
       expect(obj.changed_attributes).to eq({})
 
+      obj.name = 'Alex'
+      expect(obj.changed_attributes).to eq({})
+
       obj = model.new
       expect(obj.changed_attributes).to eq({})
     end
@@ -85,6 +94,9 @@ describe Dynamoid::Dirty do
 
     it 'returns {} when there are no unsaved changes' do
       obj = model.create(name: 'Alex')
+      expect(obj.changes).to eq({})
+
+      obj.name = 'Alex'
       expect(obj.changes).to eq({})
 
       obj = model.new
@@ -133,6 +145,9 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Bob')
       expect(obj.name_changed?).to eq false
 
+      obj.name = 'Bob'
+      expect(obj.name_changed?).to eq false
+
       obj = model.new
       expect(obj.name_changed?).to eq false # in Rails => nil
     end
@@ -150,6 +165,9 @@ describe Dynamoid::Dirty do
 
     it 'returns nil when attribute does not have unsaved value' do
       obj = model.create(name: 'Alex')
+      expect(obj.name_change).to eq(nil)
+
+      obj.name = 'Alex'
       expect(obj.name_change).to eq(nil)
 
       obj = model.new

@@ -294,6 +294,7 @@ module Dynamoid
     # @since 0.2.0
     def write_attribute(name, value)
       name = name.to_sym
+      old_value = read_attribute(name)
 
       unless attribute_is_present_on_model?(name)
         raise Dynamoid::Errors::UnknownAttribute.new("Attribute #{name} is not part of the model")
@@ -303,11 +304,11 @@ module Dynamoid
         association.reset
       end
 
-      attribute_will_change!(name) # Dirty API
-
       @attributes_before_type_cast[name] = value
 
       value_casted = TypeCasting.cast_field(value, self.class.attributes[name])
+      attribute_will_change!(name) if old_value != value_casted # Dirty API
+
       attributes[name] = value_casted
     end
     alias []= write_attribute
@@ -368,7 +369,7 @@ module Dynamoid
     # @since 0.2.0
     def set_updated_at
       # @_touch_record=false means explicit disabling
-      if self.class.timestamps_enabled? && !updated_at_changed? && @_touch_record != false
+      if self.class.timestamps_enabled? && changed? && !updated_at_changed? && @_touch_record != false
         self.updated_at = DateTime.now.in_time_zone(Time.zone)
       end
     end
