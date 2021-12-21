@@ -294,6 +294,7 @@ module Dynamoid
     # @since 0.2.0
     def write_attribute(name, value)
       name = name.to_sym
+      old_value = __send__(name)
 
       unless attribute_is_present_on_model?(name)
         raise Dynamoid::Errors::UnknownAttribute.new("Attribute #{name} is not part of the model")
@@ -303,12 +304,12 @@ module Dynamoid
         association.reset
       end
 
-      attribute_will_change!(name) # Dirty API
-
       @attributes_before_type_cast[name] = value
 
       value_casted = TypeCasting.cast_field(value, self.class.attributes[name])
       attributes[name] = value_casted
+
+      attribute_will_change!(name) if old_value != value_casted # Dirty API
     end
     alias []= write_attribute
 
