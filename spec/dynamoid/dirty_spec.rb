@@ -96,7 +96,7 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Alex')
       expect(obj.changes).to eq({})
 
-      obj = model.name = 'Alex'
+      obj.name = 'Alex'
       expect(obj.changes).to eq({})
 
       obj = model.new
