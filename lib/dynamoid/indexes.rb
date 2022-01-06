@@ -86,7 +86,7 @@ module Dynamoid
       #     range :created_at, :datetime
       #     field :author_id
       #
-      #     local_secondary_index hash_key: :author_id
+      #     local_secondary_index range_key: :author_id
       #   end
       #
       # The full example with all the options being specified:
