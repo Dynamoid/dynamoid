@@ -19,7 +19,7 @@ module Dynamoid
       def call
         UpdateValidations.validate_attributes_exist(@model_class, @attributes)
 
-        if Dynamoid::Config.timestamps
+        if @model_class.timestamps_enabled?
           @attributes[:updated_at] ||= DateTime.now.in_time_zone(Time.zone)
         end
 
