@@ -1263,6 +1263,15 @@ describe Dynamoid::Persistence do
           document_class.update_fields(obj.id, title: 'New title')
         end.not_to raise_error
       end
+
+      it 'does not set updated_at if Config.timestamps=true and table timestamps=false', config: { timestamps: true } do
+        document_class.table timestamps: false
+
+        obj = document_class.create(title: 'Old title')
+        document_class.update_fields(obj.id, title: 'New title')
+
+        expect(obj.reload.attributes).to_not have_key(:updated_at)
+      end
     end
 
     describe 'type casting' do
@@ -1447,6 +1456,15 @@ describe Dynamoid::Persistence do
         expect do
           document_class.upsert(obj.id, title: 'New title')
         end.not_to raise_error
+      end
+
+      it 'does not set updated_at if Config.timestamps=true and table timestamps=false', config: { timestamps: true } do
+        document_class.table timestamps: false
+
+        obj = document_class.create(title: 'Old title')
+        document_class.upsert(obj.id, title: 'New title')
+
+        expect(obj.reload.attributes).to_not have_key(:updated_at)
       end
     end
 
