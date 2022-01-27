@@ -77,10 +77,10 @@ module Dynamoid
 
       # Return the count of items for this class.
       #
-      # It returns aproximate value based on DynamoDB statistic. DynamoDB
-      # updates it periodicaly so the value can be no accurate.
+      # It returns approximate value based on DynamoDB statistic. DynamoDB
+      # updates it periodically so the value can be no accurate.
       #
-      # It's a reletivly cheap operation and doesn't read all the items in a
+      # It's a reletively cheap operation and doesn't read all the items in a
       # table. It makes just one HTTP request to DynamoDB.
       #
       # @return [Integer] items count in a table
@@ -220,7 +220,7 @@ module Dynamoid
     # Check equality of two models.
     #
     # A model is equal to another model only if their primary keys (hash key
-    # and optionaly range key) are equal.
+    # and optionally range key) are equal.
     #
     # @return [true|false]
     # @since 0.2.0
