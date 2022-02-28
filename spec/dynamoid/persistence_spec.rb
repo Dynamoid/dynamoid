@@ -733,6 +733,17 @@ describe Dynamoid::Persistence do
         end.to output('run after_update').to_stdout
       end
 
+      it 'runs before_save callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_save { print 'run before_save' }
+        end
+
+        expect do
+          klass_with_callback.create(name: 'Alex')
+        end.to output('run before_save').to_stdout
+      end
+
       it 'runs after_save callbacks' do
         klass_with_callback = new_class do
           field :name
