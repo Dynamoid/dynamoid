@@ -486,8 +486,10 @@ module Dynamoid
           end
         end
       else
-        run_callbacks(:save) do
-          Save.call(self)
+        run_callbacks(:update) do
+          run_callbacks(:save) do
+            Save.call(self)
+          end
         end
       end
     end
