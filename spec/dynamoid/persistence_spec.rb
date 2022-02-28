@@ -724,7 +724,7 @@ describe Dynamoid::Persistence do
       it 'runs after_update callback' do
         klass_with_callback = new_class do
           field :name
-          after_update { print 'run after_create' }
+          after_update { print 'run after_update' }
         end
 
         expect do
