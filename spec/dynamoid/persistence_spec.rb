@@ -709,6 +709,30 @@ describe Dynamoid::Persistence do
         end.to output('run after_create').to_stdout
       end
 
+      it 'runs before_update callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_update { print 'run before_update' }
+        end
+
+        expect do
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.update_attributes(name: 'Alexey')
+        end.to output('run before_update').to_stdout
+      end
+
+      it 'runs after_update callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_update { print 'run after_update' }
+        end
+
+        expect do
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.update_attributes(name: 'Alexey')
+        end.to output('run after_update').to_stdout
+      end
+
       it 'runs before_save callback' do
         klass_with_callback = new_class do
           field :name
@@ -1744,7 +1768,7 @@ describe Dynamoid::Persistence do
       end
 
       context 'persisted model' do
-        it 'runs before_create callback' do
+        it 'does not run before_create callback' do
           klass_with_callback = new_class do
             field :name
             before_create { print 'run before_create' }
@@ -1756,7 +1780,7 @@ describe Dynamoid::Persistence do
           expect { obj.save }.not_to output('run before_create').to_stdout
         end
 
-        it 'runs after_create callback' do
+        it 'does not run after_create callback' do
           klass_with_callback = new_class do
             field :name
             after_create { print 'run after_create' }
@@ -1766,6 +1790,24 @@ describe Dynamoid::Persistence do
           obj.name = 'Bob'
 
           expect { obj.save }.not_to output('run after_create').to_stdout
+        end
+
+        it 'does not run before_update callback' do
+          klass_with_callback = new_class do
+            field :name
+            before_update { print 'run before_update' }
+          end
+
+          expect { klass_with_callback.create(name: 'Alex') }.not_to output('run before_update').to_stdout
+        end
+
+        it 'does not run after_update callback' do
+          klass_with_callback = new_class do
+            field :name
+            after_update { print 'run after_update' }
+          end
+
+          expect { klass_with_callback.create(name: 'Alex') }.not_to output('run after_update').to_stdout
         end
       end
 
