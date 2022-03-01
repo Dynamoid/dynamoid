@@ -709,30 +709,6 @@ describe Dynamoid::Persistence do
         end.to output('run after_create').to_stdout
       end
 
-      it 'runs before_update callback' do
-        klass_with_callback = new_class do
-          field :name
-          before_update { print 'run before_update' }
-        end
-
-        expect do
-          obj = klass_with_callback.create(name: 'Alex')
-          obj.update_attributes(name: 'Alexey')
-        end.to output('run before_update').to_stdout
-      end
-
-      it 'runs after_update callback' do
-        klass_with_callback = new_class do
-          field :name
-          after_update { print 'run after_update' }
-        end
-
-        expect do
-          obj = klass_with_callback.create(name: 'Alex')
-          obj.update_attributes(name: 'Alexey')
-        end.to output('run after_update').to_stdout
-      end
-
       it 'runs before_save callback' do
         klass_with_callback = new_class do
           field :name
@@ -2192,6 +2168,53 @@ describe Dynamoid::Persistence do
       expect {
         obj.update_attributes!(city: 'Dublin', age: 27)
       }.to raise_error(Dynamoid::Errors::UnknownAttribute)
+    end
+
+    describe 'callbacks' do
+      it 'runs before_update callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_update { print 'run before_update' }
+        end
+
+        expect do
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.update_attributes(name: 'Alexey')
+        end.to output('run before_update').to_stdout
+      end
+
+      it 'runs after_update callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_update { print 'run after_update' }
+        end
+
+        expect do
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.update_attributes(name: 'Alexey')
+        end.to output('run after_update').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callbacks = new_class do
+          field :name
+
+          before_update { print 'run before_update' }
+          after_update { print 'run after_update' }
+
+          before_save { print 'run before_save' }
+          after_save { print 'run after_save' }
+        end
+        model = klass_with_callbacks.create(name: 'John')
+
+        expected_output = \
+          "run before_update" +
+          "run before_save" +
+          "run after_save" +
+          "run after_update"
+
+        expect { model.update_attributes(name: 'Mike') }.to output(expected_output).to_stdout
+      end
     end
   end
 
