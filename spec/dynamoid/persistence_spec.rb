@@ -709,30 +709,6 @@ describe Dynamoid::Persistence do
         end.to output('run after_create').to_stdout
       end
 
-      it 'runs before_update callback' do
-        klass_with_callback = new_class do
-          field :name
-          before_update { print 'run before_update' }
-        end
-
-        expect do
-          obj = klass_with_callback.create(name: 'Alex')
-          obj.update_attributes(name: 'Alexey')
-        end.to output('run before_update').to_stdout
-      end
-
-      it 'runs after_update callback' do
-        klass_with_callback = new_class do
-          field :name
-          after_update { print 'run after_update' }
-        end
-
-        expect do
-          obj = klass_with_callback.create(name: 'Alex')
-          obj.update_attributes(name: 'Alexey')
-        end.to output('run after_update').to_stdout
-      end
-
       it 'runs before_save callback' do
         klass_with_callback = new_class do
           field :name
@@ -768,6 +744,24 @@ describe Dynamoid::Persistence do
         expect do
           klass_with_callback.create(name: 'Alex')
         end.to output('run before_create').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callbacks = new_class do
+          before_create { print 'run before_create' }
+          after_create { print 'run after_create' }
+
+          before_save { print 'run before_save' }
+          after_save { print 'run after_save' }
+        end
+
+        expected_output = \
+          "run before_create" +
+          "run before_save" +
+          "run after_save" +
+          "run after_create"
+
+        expect { klass_with_callbacks.create }.to output(expected_output).to_stdout
       end
     end
 
@@ -1023,6 +1017,57 @@ describe Dynamoid::Persistence do
         obj2 = klass.update!(obj.id, count: '101')
         expect(obj2.attributes[:count]).to eql(101)
         expect(raw_attributes(obj2)[:count]).to eql(101)
+      end
+    end
+
+    describe 'callbacks' do
+      it 'runs before_update callback' do
+        klass = new_class do
+          field :name
+
+          before_update { print 'run before_update' }
+        end
+
+        model = klass.create(name: 'Document#1')
+
+        expect do
+          klass.update!(model.id, name: '[Updated]')
+        end.to output('run before_update').to_stdout
+      end
+
+      it 'runs after_update callback' do
+        klass = new_class do
+          field :name
+
+          after_update { print 'run after_update' }
+        end
+
+        model = klass.create(name: 'Document#1')
+
+        expect do
+          klass.update!(model.id, name: '[Updated]')
+        end.to output('run after_update').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callbacks = new_class do
+          field :name
+
+          before_update { print 'run before_update' }
+          after_update { print 'run after_update' }
+
+          before_save { print 'run before_save' }
+          after_save { print 'run after_save' }
+        end
+        model = klass_with_callbacks.create(name: 'John')
+
+        expected_output = \
+          "run before_update" +
+          "run before_save" +
+          "run after_save" +
+          "run after_update"
+
+        expect { klass_with_callbacks.update!(model.id, name: '[Updated]') }.to output(expected_output).to_stdout
       end
     end
   end
@@ -2094,6 +2139,53 @@ describe Dynamoid::Persistence do
         obj.update_attribute(:city, 'Dublin')
       }.to raise_error(Dynamoid::Errors::UnknownAttribute)
     end
+
+    describe 'callbacks' do
+      it 'runs before_update callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_update { print 'run before_update' }
+        end
+
+        expect do
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.update_attribute(:name, 'Alexey')
+        end.to output('run before_update').to_stdout
+      end
+
+      it 'runs after_update callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_update { print 'run after_update' }
+        end
+
+        expect do
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.update_attribute(:name, 'Alexey')
+        end.to output('run after_update').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callbacks = new_class do
+          field :name
+
+          before_update { print 'run before_update' }
+          after_update { print 'run after_update' }
+
+          before_save { print 'run before_save' }
+          after_save { print 'run after_save' }
+        end
+        model = klass_with_callbacks.create(name: 'John')
+
+        expected_output = \
+          "run before_update" +
+          "run before_save" +
+          "run after_save" +
+          "run after_update"
+
+        expect { model.update_attribute(:name, 'Mike') }.to output(expected_output).to_stdout
+      end
+    end
   end
 
   describe '#update_attributes' do
@@ -2190,8 +2282,55 @@ describe Dynamoid::Persistence do
       obj = klass.create!(name: 'Alex', age: 26)
 
       expect {
-        obj.update_attributes!(city: 'Dublin', age: 27)
+        obj.update_attributes(city: 'Dublin', age: 27)
       }.to raise_error(Dynamoid::Errors::UnknownAttribute)
+    end
+
+    describe 'callbacks' do
+      it 'runs before_update callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_update { print 'run before_update' }
+        end
+
+        expect do
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.update_attributes(name: 'Alexey')
+        end.to output('run before_update').to_stdout
+      end
+
+      it 'runs after_update callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_update { print 'run after_update' }
+        end
+
+        expect do
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.update_attributes(name: 'Alexey')
+        end.to output('run after_update').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callbacks = new_class do
+          field :name
+
+          before_update { print 'run before_update' }
+          after_update { print 'run after_update' }
+
+          before_save { print 'run before_save' }
+          after_save { print 'run after_save' }
+        end
+        model = klass_with_callbacks.create(name: 'John')
+
+        expected_output = \
+          "run before_update" +
+          "run before_save" +
+          "run after_save" +
+          "run after_update"
+
+        expect { model.update_attributes(name: 'Mike') }.to output(expected_output).to_stdout
+      end
     end
   end
 
@@ -2292,6 +2431,53 @@ describe Dynamoid::Persistence do
         expect do
           obj.update_attributes!(title: 'New title')
         end.not_to raise_error
+      end
+    end
+
+    describe 'callbacks' do
+      it 'runs before_update callback' do
+        klass_with_callback = new_class do
+          field :name
+          before_update { print 'run before_update' }
+        end
+
+        expect do
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.update_attributes!(name: 'Alexey')
+        end.to output('run before_update').to_stdout
+      end
+
+      it 'runs after_update callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_update { print 'run after_update' }
+        end
+
+        expect do
+          obj = klass_with_callback.create(name: 'Alex')
+          obj.update_attributes!(name: 'Alexey')
+        end.to output('run after_update').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callbacks = new_class do
+          field :name
+
+          before_update { print 'run before_update' }
+          after_update { print 'run after_update' }
+
+          before_save { print 'run before_save' }
+          after_save { print 'run after_save' }
+        end
+        model = klass_with_callbacks.create(name: 'John')
+
+        expected_output = \
+          "run before_update" +
+          "run before_save" +
+          "run after_save" +
+          "run after_update"
+
+        expect { model.update_attributes!(name: 'Mike') }.to output(expected_output).to_stdout
       end
     end
   end
@@ -2615,6 +2801,36 @@ describe Dynamoid::Persistence do
         }.not_to raise_error
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
+      end
+    end
+
+    describe 'callbacks' do
+      it 'runs before_update callback' do
+        klass_with_callback = new_class do
+          field :count, :integer
+          before_update { print 'run before_update' }
+        end
+        model = klass_with_callback.create(name: 'John')
+
+        expect do
+          model.update do |t|
+            t.add(count: 3)
+          end
+        end.to output('run before_update').to_stdout
+      end
+
+      it 'runs after_update callback' do
+        klass_with_callback = new_class do
+          field :count, :integer
+          before_update { print 'run after_update' }
+        end
+        model = klass_with_callback.create(name: 'John')
+
+        expect do
+          model.update do |t|
+            t.add(count: 3)
+          end
+        end.to output('run after_update').to_stdout
       end
     end
   end
