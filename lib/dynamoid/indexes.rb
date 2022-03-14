@@ -290,37 +290,29 @@ module Dynamoid
         end
       end
 
-      def validate_range_key
-        if @range_key.present?
-          range_field_attributes = @dynamoid_class.attributes[@range_key]
-          if range_field_attributes.present?
-            range_key_type_dynamodb_type = dynamodb_type(range_field_attributes[:type], range_field_attributes)
-            if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(range_key_type_dynamodb_type)
-              @range_key_schema = {
-                @range_key => range_key_type_dynamodb_type
-              }
-            else
-              errors.add(:range_key, 'Index :range_key is not a valid key type')
-            end
-          else
-            errors.add(:range_key, "No such field #{@range_key} defined on table")
-          end
-        end
-      end
 
       def validate_hash_key
-        hash_field_attributes = @dynamoid_class.attributes[@hash_key]
-        if hash_field_attributes.present?
-          hash_field_dynamodb_type = dynamodb_type(hash_field_attributes[:type], hash_field_attributes)
-          if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(hash_field_dynamodb_type)
-            @hash_key_schema = {
-              @hash_key => hash_field_dynamodb_type
-            }
-          else
-            errors.add(:hash_key, 'Index :hash_key is not a valid key type')
-          end
+        validate_index_key(:hash_key, @hash_key)
+      end
+
+      def validate_range_key
+        validate_index_key(:range_key, @range_key)
+      end
+
+      def validate_index_key(key_param, key_val)
+        return if key_val.blank?
+
+        key_field_attributes = @dynamoid_class.attributes[key_val]
+        if key_field_attributes.blank?
+          errors.add(key_param, "No such field #{key_val} defined on table")
+          return
+        end
+
+        key_dynamodb_type = dynamodb_type(key_field_attributes[:type], key_field_attributes)
+        if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(key_dynamodb_type)
+          self.send("#{key_param}_schema=", { key_val => key_dynamodb_type })
         else
-          errors.add(:hash_key, "No such field #{@hash_key} defined on table")
+          errors.add(key_param, "Index :#{key_param} is not a valid key type")
         end
       end
 
