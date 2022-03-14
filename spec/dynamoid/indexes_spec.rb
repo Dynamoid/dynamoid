@@ -370,6 +370,40 @@ describe Dynamoid::Indexes do
             )
           end
         end
+
+        context 'with custom type key params' do
+          let(:doc_class) do
+            new_class do
+
+              class CustomType
+                def dynamoid_dump
+                  name
+                end
+
+                def self.dynamoid_load(string)
+                  new(string.to_s)
+                end
+              end
+
+              field :custom_type_field, CustomType
+              field :custom_type_range_field, CustomType
+            end
+          end
+
+          let(:index) do
+            Dynamoid::Indexes::Index.new(
+              dynamoid_class: doc_class,
+              hash_key: :custom_type_field,
+              range_key: :custom_type_range_field,
+              type: :global_secondary
+            )
+          end
+
+          it 'sets the correct key_schema' do
+            expect(index.hash_key_schema).to eql({ custom_type_field: :string })
+            expect(index.range_key_schema).to eql({ custom_type_range_field: :string })
+          end
+        end
       end
     end
 

@@ -294,10 +294,10 @@ module Dynamoid
         if @range_key.present?
           range_field_attributes = @dynamoid_class.attributes[@range_key]
           if range_field_attributes.present?
-            range_key_type = range_field_attributes[:type]
-            if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(range_key_type)
+            range_key_type_dynamodb_type = dynamodb_type(range_field_attributes[:type], range_field_attributes)
+            if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(range_key_type_dynamodb_type)
               @range_key_schema = {
-                @range_key => PrimaryKeyTypeMapping.dynamodb_type(range_key_type, range_field_attributes)
+                @range_key => range_key_type_dynamodb_type
               }
             else
               errors.add(:range_key, 'Index :range_key is not a valid key type')
@@ -311,10 +311,10 @@ module Dynamoid
       def validate_hash_key
         hash_field_attributes = @dynamoid_class.attributes[@hash_key]
         if hash_field_attributes.present?
-          hash_field_type = hash_field_attributes[:type]
-          if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(hash_field_type)
+          hash_field_dynamodb_type = dynamodb_type(hash_field_attributes[:type], hash_field_attributes)
+          if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(hash_field_dynamodb_type)
             @hash_key_schema = {
-              @hash_key => PrimaryKeyTypeMapping.dynamodb_type(hash_field_type, hash_field_attributes)
+              @hash_key => hash_field_dynamodb_type
             }
           else
             errors.add(:hash_key, 'Index :hash_key is not a valid key type')
@@ -322,6 +322,12 @@ module Dynamoid
         else
           errors.add(:hash_key, "No such field #{@hash_key} defined on table")
         end
+      end
+
+      def dynamodb_type(field_type, options)
+        PrimaryKeyTypeMapping.dynamodb_type(field_type, options)
+      rescue Errors::UnsupportedKeyType
+        field_type
       end
     end
   end
