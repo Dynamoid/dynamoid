@@ -4,6 +4,14 @@ module Dynamoid
   module Indexes
     extend ActiveSupport::Concern
 
+    # @private
+    # Types allowed in indexes:
+    PERMITTED_KEY_DYNAMODB_TYPES = %i[
+      string
+      binary
+      number
+    ].freeze
+
     included do
       class_attribute :local_secondary_indexes, instance_accessor: false
       class_attribute :global_secondary_indexes, instance_accessor: false
@@ -309,7 +317,7 @@ module Dynamoid
         end
 
         key_dynamodb_type = dynamodb_type(key_field_attributes[:type], key_field_attributes)
-        if Dynamoid::Fields::PERMITTED_KEY_TYPES.include?(key_dynamodb_type)
+        if PERMITTED_KEY_DYNAMODB_TYPES.include?(key_dynamodb_type)
           self.send("#{key_param}_schema=", { key_val => key_dynamodb_type })
         else
           errors.add(key_param, "Index :#{key_param} is not a valid key type")

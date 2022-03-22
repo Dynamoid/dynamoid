@@ -8,17 +8,6 @@ module Dynamoid
   module Fields
     extend ActiveSupport::Concern
 
-    # @private
-    # Types allowed in indexes:
-    PERMITTED_KEY_TYPES = %i[
-      number
-      integer
-      string
-      date
-      datetime
-      serialized
-    ].freeze
-
     # Initialize the attributes we know the class has, in addition to our magic attributes: id, created_at, and updated_at.
     included do
       class_attribute :attributes, instance_accessor: false
