@@ -1360,10 +1360,12 @@ environment.
     bin/stop_dynamodblocal
     ```
 
+If you run into issues, please try these steps first.
+NOTE: You can use any version manager: rvm, rbenv, chruby, asdf-ruby
 ```shell
-rvm use 3.0.0
-gem install rubygems-update
-gem install bundler
+asdf install ruby 3.1.1
+asdf local ruby 3.1.1
+gem update --system
 bundle install
 ```
 
