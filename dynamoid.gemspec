@@ -51,8 +51,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'coveralls'
   spec.add_development_dependency 'overcommit'
-  # Since 0.13.0 pry is incompatible with old versions of pry-byebug.
-  # We use these old versions of pry-byebug to run tests on Ruby 2.3 which new versions don't support
   spec.add_development_dependency 'pry', '~> 0.14.1'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec'
