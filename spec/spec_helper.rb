@@ -1,24 +1,32 @@
 # frozen_string_literal: true
 
+# Standard Libs
+# N/A
+
+# Engine Conditional Libs
 if RUBY_ENGINE == 'jruby'
   # Workaround for JRuby CI failure https://github.com/jruby/jruby/issues/6547#issuecomment-774104996
   require 'i18n/backend'
   require 'i18n/backend/simple'
 end
 
-require 'coveralls'
-require 'active_support/testing/time_helpers.rb'
+# Third Party Libs
+require 'active_support/isolated_execution_state'
+require 'active_support/testing/time_helpers'
+require 'rspec'
+require 'pry'
+require 'byebug' if ENV['DEBUG']
 
+# Load Code Coverage as the last thing before this gem
+require 'coveralls'
 Coveralls.wear!
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
-require 'rspec'
+# This Gem
 require 'dynamoid'
 require 'dynamoid/log/formatter'
-require 'pry'
-require 'byebug' if ENV['DEBUG']
 
 ENV['ACCESS_KEY'] ||= 'abcd'
 ENV['SECRET_KEY'] ||= '1234'
