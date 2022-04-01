@@ -58,6 +58,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec'
   # 'rubocop', '1.12.1' # Last version compatible with Ruby 2.4
   # 'rubocop', '0.81.0' # Last version compatible with Ruby 2.3
-  spec.add_development_dependency 'rubocop', '0.81.0'
+  spec.add_development_dependency 'rubocop', '1.26.1'
   spec.add_development_dependency 'yard'
 end
