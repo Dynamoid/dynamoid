@@ -11,7 +11,8 @@ if RUBY_ENGINE == 'jruby'
 end
 
 # Third Party Libs
-require 'active_support/isolated_execution_state'
+# https://guides.rubyonrails.org/active_support_core_extensions.html#stand-alone-active-support
+require 'active_support'
 require 'active_support/testing/time_helpers'
 require 'rspec'
 require 'pry'
