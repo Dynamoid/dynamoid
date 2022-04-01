@@ -35,12 +35,13 @@ Gem::Specification.new do |spec|
   spec.licenses = ['MIT']
   spec.require_paths = ['lib']
 
-  spec.metadata = {
-    'bug_tracker_uri'   => 'https://github.com/Dynamoid/dynamoid/issues',
-    'changelog_uri'     => "https://github.com/Dynamoid/dynamoid/tree/v#{Dynamoid::VERSION}/CHANGELOG.md",
-    'source_code_uri'   => "https://github.com/Dynamoid/dynamoid/tree/v#{Dynamoid::VERSION}",
-    'documentation_uri' => "https://rubydoc.info/gems/dynamoid/#{Dynamoid::VERSION}",
-  }
+  spec.metadata["homepage_uri"] = spec.homepage
+  spec.metadata["source_code_uri"] = "https://github.com/Dynamoid/dynamoid/tree/v#{spec.version}"
+  spec.metadata["changelog_uri"] = "https://github.com/Dynamoid/dynamoid/blob/v#{spec.version}/CHANGELOG.md"
+  spec.metadata["bug_tracker_uri"] = "https://github.com/Dynamoid/dynamoid/issues"
+  spec.metadata["documentation_uri"] = "https://www.rubydoc.info/gems/dynamoid/#{spec.version}"
+  spec.metadata["wiki_uri"] = "https://github.com/Dynamoid/dynamoid/wiki"
+  spec.metadata["rubygems_mfa_required"] = "true"
 
   spec.add_runtime_dependency 'activemodel', '>=4'
   spec.add_runtime_dependency 'aws-sdk-dynamodb', '~> 1.0'
