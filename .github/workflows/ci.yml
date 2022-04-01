@@ -16,30 +16,45 @@ jobs:
       fail-fast: false
 
       matrix:
-        ruby: [2.3, 2.4, 2.5, 2.6, 2.7, 3.0]
+        ruby:
+          - "2.3"
+          - "2.4"
+          - "2.5"
+          - "2.6"
+          - "2.7"
+          - "3.0"
+          - "3.1"
         gemfile: [rails_4_2, rails_5_0, rails_5_1, rails_5_2, rails_6_0, rails_6_1]
         exclude:
 
           # Rails 6.0 requires Ruby 2.5 and above.
           - gemfile: rails_6_0
-            ruby: 2.3
+            ruby: "2.3"
           - gemfile: rails_6_0
-            ruby: 2.4
+            ruby: "2.4"
 
           # Rails 6.1 requires Ruby 2.5 and above.
           - gemfile: rails_6_1
-            ruby: 2.3
+            ruby: "2.3"
           - gemfile: rails_6_1
-            ruby: 2.4
+            ruby: "2.4"
 
           # Rails supports Ruby 3.0 since 6.0 only. So skip all the other Rails versions.
-          - ruby: 3.0
+          - ruby: "3.0"
             gemfile: rails_4_2
-          - ruby: 3.0
+          - ruby: "3.0"
             gemfile: rails_5_0
-          - ruby: 3.0
+          - ruby: "3.0"
             gemfile: rails_5_1
-          - ruby: 3.0
+          - ruby: "3.0"
+            gemfile: rails_5_2
+          - ruby: "3.1"
+            gemfile: rails_4_2
+          - ruby: "3.1"
+            gemfile: rails_5_0
+          - ruby: "3.1"
+            gemfile: rails_5_1
+          - ruby: "3.1"
             gemfile: rails_5_2
 
     name: ${{ matrix.gemfile }}, Ruby ${{ matrix.ruby }}
