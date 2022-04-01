@@ -1373,7 +1373,9 @@ gem install bundler
 bundle install
 ```
 
-## Copyright
+## Security
+
+See [SECURITY.md][security].
 
 ## License
 
@@ -1386,3 +1388,5 @@ See [LICENSE][license] for the official [Copyright Notice][copyright-notice-expl
 [license]: https://github.com/Dynamoid/dynamoid/blob/main/LICENSE.txt
 
 [license-ref]: https://opensource.org/licenses/MIT
+
+[security]: https://github.com/Dynamoid/dynamoid/blob/main/SECURITY.md
