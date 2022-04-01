@@ -7,6 +7,15 @@
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](https://www.rubydoc.info/github/Dynamoid/dynamoid/frames)
 [![Inline docs](http://inch-ci.org/github/Dynamoid/Dynamoid.svg?branch=master)](http://inch-ci.org/github/Dynamoid/Dynamoid)
 ![GitHub](https://img.shields.io/github/license/Dynamoid/dynamoid.svg)
+[![GitMoji][🖐gitmoji-img]][🖐gitmoji]
+[![SemVer 2.0.0][🧮semver-img]][semver]
+[![Keep-A-Changelog 1.0.0][📗keep-changelog-img]][📗keep-changelog]
+
+[🖐gitmoji]: https://gitmoji.dev
+[🖐gitmoji-img]: https://img.shields.io/badge/gitmoji-3.9.0-FFDD67.svg?style=flat
+[🧮semver-img]: https://img.shields.io/badge/semver-2.0.0-FFDD67.svg?style=flat
+[📗keep-changelog]: https://keepachangelog.com/en/1.0.0/
+[📗keep-changelog-img]: https://img.shields.io/badge/keep--a--changelog-1.0.0-FFDD67.svg?style=flat
 
 Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It
 provides similar functionality to ActiveRecord and improves on Amazon's
@@ -1386,3 +1395,5 @@ See [LICENSE][license] for the official [Copyright Notice][copyright-notice-expl
 [license-ref]: https://opensource.org/licenses/MIT
 
 [security]: https://github.com/Dynamoid/dynamoid/blob/main/SECURITY.md
+
+[semver]: http://semver.org/
