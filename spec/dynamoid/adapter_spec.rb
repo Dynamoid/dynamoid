@@ -88,8 +88,9 @@ describe Dynamoid::Adapter do
     end
 
     it 'reads through the adapter for one ID and a range key' do
-      expect(subject).to receive(:get_item).with(test_table, single_id, range_key: 2.0).and_return(true)
-      subject.read(test_table, single_id, range_key: 2.0)
+      allow(subject).to receive(:get_item).and_return(true)
+      subject.read(test_table, single_id, range_key: 'boot')
+      expect(subject).to have_received(:get_item).with(test_table, single_id, {range_key: 'boot'})
     end
   end
 
