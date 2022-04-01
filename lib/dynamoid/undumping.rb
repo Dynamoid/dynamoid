@@ -240,7 +240,7 @@ module Dynamoid
         if @options[:serializer]
           @options[:serializer].load(value)
         else
-          YAML.load(value)
+          YAML.safe_load(value, permitted_classes: [Symbol, Set, Date, Time])
         end
       end
     end
