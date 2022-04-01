@@ -1335,7 +1335,7 @@ DynamoDB running locally. Follow these steps to setup your test
 environment.
 
  * First download and unpack the latest version of DynamoDB. We have a
-   script that will do this for you if you use homebrew on a Mac.
+   script that will do this for you if you use bash, and homebrew on a Mac.
 
     ```shell
     bin/setup
@@ -1359,12 +1359,6 @@ environment.
     ```shell
     bin/stop_dynamodblocal
     ```
-
-If you want to run all the specs that travis runs, use `bundle exec
-wwtd`, but first you will need to setup all the rubies, for each of `%w(
-2.3.8 2.4.6 2.5.5 2.6.3 2.7.0 3.0.0 9.2.14.0)`. When you run
-`bundle exec wwtd` it will take care of starting and stopping the local
-dynamodb instance.
 
 ```shell
 rvm use 3.0.0
