@@ -7,6 +7,15 @@
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](https://www.rubydoc.info/github/Dynamoid/dynamoid/frames)
 [![Inline docs](http://inch-ci.org/github/Dynamoid/Dynamoid.svg?branch=master)](http://inch-ci.org/github/Dynamoid/Dynamoid)
 ![GitHub](https://img.shields.io/github/license/Dynamoid/dynamoid.svg)
+[![GitMoji][🖐gitmoji-img]][🖐gitmoji]
+[![SemVer 2.0.0][🧮semver-img]][semver]
+[![Keep-A-Changelog 1.0.0][📗keep-changelog-img]][📗keep-changelog]
+
+[🖐gitmoji]: https://gitmoji.dev
+[🖐gitmoji-img]: https://img.shields.io/badge/gitmoji-3.9.0-FFDD67.svg?style=flat
+[🧮semver-img]: https://img.shields.io/badge/semver-2.0.0-FFDD67.svg?style=flat
+[📗keep-changelog]: https://keepachangelog.com/en/1.0.0/
+[📗keep-changelog-img]: https://img.shields.io/badge/keep--a--changelog-1.0.0-FFDD67.svg?style=flat
 
 Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It
 provides similar functionality to ActiveRecord and improves on Amazon's
@@ -1335,7 +1344,7 @@ DynamoDB running locally. Follow these steps to setup your test
 environment.
 
  * First download and unpack the latest version of DynamoDB. We have a
-   script that will do this for you if you use homebrew on a Mac.
+   script that will do this for you if you use bash, and homebrew on a Mac.
 
     ```shell
     bin/setup
@@ -1360,25 +1369,31 @@ environment.
     bin/stop_dynamodblocal
     ```
 
-If you want to run all the specs that travis runs, use `bundle exec
-wwtd`, but first you will need to setup all the rubies, for each of `%w(
-2.3.8 2.4.6 2.5.5 2.6.3 2.7.0 3.0.0 9.2.14.0)`. When you run
-`bundle exec wwtd` it will take care of starting and stopping the local
-dynamodb instance.
-
+If you run into issues, please try these steps first.
+NOTE: You can use any version manager: rvm, rbenv, chruby, asdf-ruby
 ```shell
-rvm use 3.0.0
-gem install rubygems-update
-gem install bundler
+asdf install ruby 3.1.1
+asdf local ruby 3.1.1
+gem update --system
 bundle install
 ```
 
-## Copyright
+## Security
 
-Copyright (c) 2012 Josh Symonds.
+See [SECURITY.md][security].
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+## License
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The gem is available as open source under the terms of
+the [MIT License][license] [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)][license-ref].
+See [LICENSE][license] for the official [Copyright Notice][copyright-notice-explainer].
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+[copyright-notice-explainer]: https://opensource.stackexchange.com/questions/5778/why-do-licenses-such-as-the-mit-license-specify-a-single-year
+
+[license]: https://github.com/Dynamoid/dynamoid/blob/main/LICENSE.txt
+
+[license-ref]: https://opensource.org/licenses/MIT
+
+[security]: https://github.com/Dynamoid/dynamoid/blob/main/SECURITY.md
+
+[semver]: http://semver.org/

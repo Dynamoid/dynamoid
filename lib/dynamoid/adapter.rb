@@ -78,7 +78,7 @@ module Dynamoid
     # that the batch get will acquire the correct record.
     #
     # @param [String] table the name of the table to write the object to
-    # @param [Array] ids to fetch, can also be a string of just one id
+    # @param [String, Array] ids to fetch; can also be a string of just one id
     # @param [Hash] options Passed to the underlying query. The :range_key option is required whenever the table has a range key,
     #                       unless multiple ids are passed in.
     #
@@ -94,7 +94,7 @@ module Dynamoid
     # Delete an item from a table.
     #
     # @param [String] table the name of the table to write the object to
-    # @param [Array] ids to delete, can also be a string of just one id
+    # @param [String, Array] ids to delete; can also be a string of just one id
     # @param [Hash] options allowed only +range_key+ - range key or array of
     #                       range keys of the record to delete, can also be
     #                       a string of just one range_key, and +conditions+
