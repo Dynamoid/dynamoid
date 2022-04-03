@@ -1390,10 +1390,10 @@ See [LICENSE][license] for the official [Copyright Notice][copyright-notice-expl
 
 [copyright-notice-explainer]: https://opensource.stackexchange.com/questions/5778/why-do-licenses-such-as-the-mit-license-specify-a-single-year
 
-[license]: https://github.com/Dynamoid/dynamoid/blob/main/LICENSE.txt
+[license]: https://github.com/Dynamoid/dynamoid/blob/master/LICENSE.txt
 
 [license-ref]: https://opensource.org/licenses/MIT
 
-[security]: https://github.com/Dynamoid/dynamoid/blob/main/SECURITY.md
+[security]: https://github.com/Dynamoid/dynamoid/blob/master/SECURITY.md
 
 [semver]: http://semver.org/
