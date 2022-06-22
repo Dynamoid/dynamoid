@@ -568,7 +568,7 @@ module Dynamoid
 
       def issue_scan_warning
         Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
-        Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.downcase}.rb:"
+        Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.underscore}.rb:"
         Dynamoid.logger.warn "* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'"
         Dynamoid.logger.warn "* local_secondary_index range_key: 'some-name'"
         Dynamoid.logger.warn "Not indexed attributes: #{query.keys.sort.collect { |name| ":#{name}" }.join(', ')}"
