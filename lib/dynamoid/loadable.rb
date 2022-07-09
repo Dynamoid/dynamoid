@@ -24,7 +24,10 @@ module Dynamoid
       end
 
       self.attributes = self.class.find(hash_key, **options).attributes
+
       @associations.values.each(&:reset)
+      @new_record = false
+
       self
     end
   end

@@ -54,5 +54,18 @@ describe Dynamoid::Loadable do
 
       expect { obj.reload }.to change { obj.name }.from('Old value').to('New value')
     end
+
+    # https://github.com/Dynamoid/dynamoid/issues/564
+    it 'marks model as persisted if not saved model is already persisted and successfuly reloaded' do
+      klass = new_class do
+        field :message
+      end
+
+      object = klass.create(message: 'a')
+      copy = klass.new(id: object.id)
+
+      expect { copy.reload }.to change { copy.new_record? }.from(true).to(false)
+      expect(copy.message).to eq 'a'
+    end
   end
 end
