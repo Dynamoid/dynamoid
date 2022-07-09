@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+* [#567](https://github.com/Dynamoid/dynamoid/pull/567) Fix `#reload` and mark reloaded model as persisted
 ### Added
 * [#536](https://github.com/Dynamoid/dynamoid/pull/536) Modernization
   * Support for Ruby 3.1
