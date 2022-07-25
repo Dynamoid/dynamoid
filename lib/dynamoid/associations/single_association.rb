@@ -16,7 +16,9 @@ module Dynamoid
 
         associate(object.hash_key)
         self.target = object
-        object.send(target_association).associate(source.hash_key) if target_association
+        if target_association
+          object.send(target_association).associate(source.hash_key)
+        end
         object
       end
 
@@ -68,9 +70,9 @@ module Dynamoid
       #
       # @private
       # @since 0.2.0
-      def method_missing(method, *args)
+      def method_missing(method, *args, **kwargs)
         if target.respond_to?(method)
-          target.send(method, *args)
+          target.send(method, *args, **kwargs)
         else
           super
         end
