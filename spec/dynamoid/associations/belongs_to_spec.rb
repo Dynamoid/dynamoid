@@ -30,11 +30,23 @@ describe Dynamoid::Associations::BelongsTo do
       expect(user.books).to include magazine
     end
 
-    it 'behaves like the object it is trying to be' do
-      expect(magazine.subscriptions).to include subscription
-      subscription.magazine.update_attribute(:size, 101)
+    context 'proxied behavior' do
+      let(:proxy) do
+        expect(magazine.subscriptions).to include(subscription)
+        subscription.magazine
+      end
 
-      expect(Magazine.first.size).to eq 101
+      it 'forwards dynamoid methods' do
+        proxy.update_attribute(:size, 101)
+
+        expect(Magazine.first.size).to eq 101
+      end
+
+      it 'forwards business-logic methods' do
+        expect(proxy.respond_to?(:publish)).to eq true
+        expect(proxy.publish(advertisements: 10)).to eq 10
+        expect(proxy.publish(advertisements: 10, free_issue: true) { |c| c *= 42 }).to eq 840
+      end
     end
   end
 

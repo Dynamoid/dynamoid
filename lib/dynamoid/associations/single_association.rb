@@ -68,12 +68,17 @@ module Dynamoid
       #
       # @private
       # @since 0.2.0
-      def method_missing(method, *args)
+      def method_missing(method, *args, **kwargs, &block)
         if target.respond_to?(method)
-          target.send(method, *args)
+          target.send(method, *args, **kwargs, &block)
         else
           super
         end
+      end
+
+      # @private
+      def respond_to_missing?(method_name, include_private = false)
+        target.respond_to?(method_name, include_private) || super
       end
 
       # @private
