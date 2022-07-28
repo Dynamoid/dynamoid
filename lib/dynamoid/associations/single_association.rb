@@ -64,16 +64,35 @@ module Dynamoid
         target == other
       end
 
-      # Delegate methods we don't find directly to the target.
-      #
-      # @private
-      # @since 0.2.0
-      def method_missing(method, *args)
-        if target.respond_to?(method)
-          target.send(method, *args)
-        else
-          super
+      if ::RUBY_VERSION < '2.7'
+        # Delegate methods we don't find directly to the target.
+        #
+        # @private
+        # @since 0.2.0
+        def method_missing(method, *args, &block)
+          if target.respond_to?(method)
+            target.send(method, *args, &block)
+          else
+            super
+          end
         end
+      else
+        # Delegate methods we don't find directly to the target.
+        #
+        # @private
+        # @since 0.2.0
+        def method_missing(method, *args, **kwargs, &block)
+          if target.respond_to?(method)
+            target.send(method, *args, **kwargs, &block)
+          else
+            super
+          end
+        end
+      end
+
+      # @private
+      def respond_to_missing?(method_name, include_private = false)
+        target.respond_to?(method_name, include_private) || super
       end
 
       # @private
