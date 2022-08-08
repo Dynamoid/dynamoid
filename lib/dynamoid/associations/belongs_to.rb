@@ -39,8 +39,14 @@ module Dynamoid
       #
       # @since 0.2.0
       def target_association
-        has_many_key_name = options[:inverse_of] || source.class.to_s.underscore.pluralize.to_sym
+        has_many_key_name = options[:inverse_of] || source.class.to_s.pluralize.underscore.to_sym
         has_one_key_name = options[:inverse_of] || source.class.to_s.underscore.to_sym
+
+        if target_class.module_parent != Object && (target_class.module_parent == source.class.module_parent)
+          has_many_key_name = source.class.to_s.demodulize.pluralize.underscore.to_sym
+          has_one_key_name = source.class.to_s.demodulize.underscore.to_sym
+        end
+
         unless target_class.associations[has_many_key_name].nil?
           return has_many_key_name if target_class.associations[has_many_key_name][:type] == :has_many
         end
