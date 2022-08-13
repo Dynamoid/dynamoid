@@ -416,11 +416,6 @@ describe Dynamoid::Persistence do
       end
 
       it 'sets up TTL for table' do
-        # Run the spec when a fix in rspec-mock is released
-        # - https://github.com/rspec/rspec-mocks/issues/1306
-        # - https://github.com/rspec/rspec-mocks/pull/1385
-        skip "There is an issue with Ruby 3.0 and rspec-mocks related to keyword arguments"
-
         expect(Dynamoid.adapter).to receive(:update_time_to_live)
           .with(class_with_expiration.table_name, :ttl)
           .and_call_original
