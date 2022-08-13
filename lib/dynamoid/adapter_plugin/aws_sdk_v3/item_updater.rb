@@ -35,11 +35,15 @@ module Dynamoid
         #
         # Removes values from the sets of the given columns
         #
-        # @param [Hash] values keys of the hash are the columns, values are Arrays/Sets of items
-        #               to remove
+        # @param [Hash|Symbol|String] values keys of the hash are the columns, values are Arrays/Sets of items
+        #                                    to remove
         #
         def delete(values)
-          @deletions.merge!(sanitize_attributes(values))
+          if values.is_a?(Hash)
+            @deletions.merge!(sanitize_attributes(values))
+          else
+            @deletions.merge!(values.to_s => nil)
+          end
         end
 
         #

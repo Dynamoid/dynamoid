@@ -656,6 +656,12 @@ module Dynamoid
     #     t.delete(age: nil)
     #   end
     #
+    # or even without useless value at all:
+    #
+    #   user.update do |t|
+    #     t.delete(:age)
+    #   end
+    #
     # Operation +set+ just changes an attribute value:
     #
     #   user.update do |t|

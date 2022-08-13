@@ -1186,13 +1186,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       it 'deletes attributes' do
-        Dynamoid.adapter.put_item(test_table1, id: '1', hobbies: %w[skying climbing].to_set)
+        Dynamoid.adapter.put_item(test_table1, id: '1', hobbies: %w[skying climbing].to_set, category_id: 1)
 
         Dynamoid.adapter.update_item(test_table1, '1') do |t|
           t.delete(hobbies: nil)
+          t.delete(:category_id)
         end
 
-        expect(Dynamoid.adapter.get_item(test_table1, '1')).not_to include(:hobbies)
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).not_to include(:hobbies, :category_id)
       end
 
       it 'sets attribute values' do
