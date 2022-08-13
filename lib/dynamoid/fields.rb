@@ -209,6 +209,8 @@ module Dynamoid
       #
       # @since 0.4.0
       def table(options)
+        self.options = options
+
         # a default 'id' column is created when Dynamoid::Document is included
         unless attributes.key? hash_key
           remove_field :id
