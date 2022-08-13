@@ -452,7 +452,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
     end
 
-    context 'when composite key' do
+    context 'when composite primary key' do
       it 'accepts one id passed as singular value' do
         skip 'It is not supported and needed yet'
 
@@ -499,7 +499,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(items.size).to eq 101
     end
 
-    it 'loads unprocessed items for a table without a composite key' do
+    it 'loads unprocessed items for a table without a range key' do
       # BatchGetItem has following limitations:
       # * up to 100 items at once
       # * up to 16 MB at once
@@ -533,7 +533,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(items.map { |h| h[:id] }).to match_array(ids)
     end
 
-    it 'loads unprocessed items for a table with a composite key' do
+    it 'loads unprocessed items for a table with a range key' do
       # BatchGetItem has following limitations:
       # * up to 100 items at once
       # * up to 16 MB at once
