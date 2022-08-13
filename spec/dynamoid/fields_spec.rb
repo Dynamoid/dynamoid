@@ -403,6 +403,16 @@ describe Dynamoid::Fields do
   end
 
   describe '#write_attribute' do
+    it 'writes attribute on the model' do
+      klass = new_class do
+        field :count, :integer
+      end
+
+      obj = klass.new
+      obj.write_attribute(:count, 10)
+      expect(obj.attributes[:count]).to eql(10)
+    end
+
     describe 'type casting' do
       it 'type casts attributes' do
         klass = new_class do
@@ -421,6 +431,28 @@ describe Dynamoid::Fields do
       expect {
         obj.write_attribute(:name, 'Alex')
       }.to raise_error Dynamoid::Errors::UnknownAttribute
+    end
+
+    it 'marks an attribute as changed' do
+      klass = new_class do
+        field :name
+      end
+
+      obj = klass.new
+      obj.write_attribute(:name, 'Alex')
+      expect(obj.name_changed?).to eq true
+    end
+
+    it 'does not mark an attribute as changed if new value equals the old one' do
+      klass = new_class do
+        field :name
+      end
+
+      obj = klass.create(name: 'Alex')
+      obj = klass.find(obj.id)
+
+      obj.write_attribute(:name, 'Alex')
+      expect(obj.name_changed?).to eq false
     end
   end
 end

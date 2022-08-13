@@ -28,10 +28,11 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Bob')
       expect(obj.changed?).to eq false
 
-      obj.name = 'Bob'
+      obj = model.new
       expect(obj.changed?).to eq false
 
-      obj = model.new
+      obj = model.create(name: 'Bob')
+      obj.name = 'Bob'
       expect(obj.changed?).to eq false
     end
   end
@@ -50,10 +51,11 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Alex')
       expect(obj.changed).to eq []
 
-      obj.name = 'Alex'
+      obj = model.new
       expect(obj.changed).to eq []
 
-      obj = model.new
+      obj = model.create(name: 'Alex')
+      obj.name = 'Alex'
       expect(obj.changed).to eq []
     end
   end
@@ -74,10 +76,11 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Alex')
       expect(obj.changed_attributes).to eq({})
 
-      obj.name = 'Alex'
+      obj = model.new
       expect(obj.changed_attributes).to eq({})
 
-      obj = model.new
+      obj = model.create(name: 'Alex')
+      obj.name = 'Alex'
       expect(obj.changed_attributes).to eq({})
     end
   end
@@ -96,10 +99,11 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Alex')
       expect(obj.changes).to eq({})
 
-      obj.name = 'Alex'
+      obj = model.new
       expect(obj.changes).to eq({})
 
-      obj = model.new
+      obj = model.create(name: 'Alex')
+      obj.name = 'Alex'
       expect(obj.changes).to eq({})
     end
   end
@@ -145,11 +149,12 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Bob')
       expect(obj.name_changed?).to eq false
 
-      obj.name = 'Bob'
-      expect(obj.name_changed?).to eq false
-
       obj = model.new
       expect(obj.name_changed?).to eq false # in Rails => nil
+
+      obj = model.create(name: 'Bob')
+      obj.name = 'Bob'
+      expect(obj.name_changed?).to eq false
     end
   end
 
@@ -167,10 +172,11 @@ describe Dynamoid::Dirty do
       obj = model.create(name: 'Alex')
       expect(obj.name_change).to eq(nil)
 
-      obj.name = 'Alex'
+      obj = model.new
       expect(obj.name_change).to eq(nil)
 
-      obj = model.new
+      obj = model.create(name: 'Alex')
+      obj.name = 'Alex'
       expect(obj.name_change).to eq(nil)
     end
   end

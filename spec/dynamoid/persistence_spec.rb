@@ -989,6 +989,14 @@ describe Dynamoid::Persistence do
           document_class.update!(doc.id, name: '[Updated]')
         end.not_to raise_error
       end
+
+      it 'does not change updated_at if attributes were assigned the same values' do
+        doc = document_class.create(name: 'Document#1', updated_at: Time.now - 1)
+
+        expect do
+          document_class.update!(doc.id, name: doc.name)
+        end.not_to change { doc.reload.updated_at }
+      end
     end
 
     describe 'type casting' do
@@ -1170,6 +1178,14 @@ describe Dynamoid::Persistence do
         expect do
           document_class.update(doc.id, name: '[Updated]')
         end.not_to raise_error
+      end
+
+      it 'does not change updated_at if attributes were assigned the same values' do
+        doc = document_class.create(name: 'Document#1', updated_at: Time.now - 1)
+
+        expect do
+          document_class.update(doc.id, name: doc.name)
+        end.not_to change { doc.reload.updated_at }
       end
     end
 
@@ -2015,6 +2031,19 @@ describe Dynamoid::Persistence do
 
           expect { obj.save }.not_to raise_error
         end
+
+        it 'does not change updated_at if there are no changes' do
+          obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
+
+          expect { obj.save }.not_to change { obj.updated_at }
+        end
+
+        it 'does not change updated_at if attributes were assigned the same values' do
+          obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
+          obj.title = obj.title
+
+          expect { obj.save }.not_to change { obj.updated_at }
+        end
       end
     end
 
@@ -2119,6 +2148,15 @@ describe Dynamoid::Persistence do
         expect do
           obj.update_attribute(:title, 'New title')
         end.not_to raise_error
+      end
+
+      it 'does not change updated_at if attributes were assigned the same values' do
+        obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
+        obj.title = obj.title
+
+        expect do
+          obj.update_attribute(:title, 'Old title')
+        end.not_to change { obj.updated_at }
       end
     end
 
@@ -2270,6 +2308,15 @@ describe Dynamoid::Persistence do
         expect do
           obj.update_attributes(title: 'New title')
         end.not_to raise_error
+      end
+
+      it 'does not change updated_at if attributes were assigned the same values' do
+        obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
+        obj.title = obj.title
+
+        expect do
+          obj.update_attributes(title: 'Old title')
+        end.not_to change { obj.updated_at }
       end
     end
 
@@ -2426,6 +2473,15 @@ describe Dynamoid::Persistence do
         expect do
           obj.update_attributes!(title: 'New title')
         end.not_to raise_error
+      end
+
+      it 'does not change updated_at if attributes were assigned the same values' do
+        obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
+        obj.title = obj.title
+
+        expect do
+          obj.update_attributes!(title: 'Old title')
+        end.not_to change { obj.updated_at }
       end
     end
 
