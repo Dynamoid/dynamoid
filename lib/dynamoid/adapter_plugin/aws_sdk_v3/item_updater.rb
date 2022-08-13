@@ -6,6 +6,10 @@ module Dynamoid
     class AwsSdkV3
       # Mimics behavior of the yielded object on DynamoDB's update_item API (high level).
       class ItemUpdater
+        ADD    = 'ADD'
+        DELETE = 'DELETE'
+        PUT    = 'PUT'
+
         attr_reader :table, :key, :range_key
 
         def initialize(table, key, range_key = nil)
@@ -48,29 +52,31 @@ module Dynamoid
         #
         # Returns an AttributeUpdates hash suitable for passing to the V2 Client API
         #
-        def to_h
-          ret = {}
+        def attribute_updates
+          result = {}
 
           @additions.each do |k, v|
-            ret[k.to_s] = {
+            result[k] = {
               action: ADD,
               value: v
             }
           end
+
           @deletions.each do |k, v|
-            ret[k.to_s] = {
+            result[k] = {
               action: DELETE
             }
-            ret[k.to_s][:value] = v unless v.nil?
+            result[k][:value] = v unless v.nil?
           end
+
           @updates.each do |k, v|
-            ret[k.to_s] = {
+            result[k] = {
               action: PUT,
               value: v
             }
           end
 
-          ret
+          result
         end
 
         private
@@ -80,10 +86,6 @@ module Dynamoid
             v.is_a?(Hash) ? v.stringify_keys : v
           end
         end
-
-        ADD    = 'ADD'
-        DELETE = 'DELETE'
-        PUT    = 'PUT'
       end
     end
   end

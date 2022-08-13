@@ -416,14 +416,15 @@ module Dynamoid
         conditions = options.delete(:conditions)
         table = describe_table(table_name)
 
-        yield(iu = ItemUpdater.new(table, key, range_key))
+        item_updater = ItemUpdater.new(table, key, range_key)
+        yield(item_updater)
 
         raise "non-empty options: #{options}" unless options.empty?
 
         begin
           result = client.update_item(table_name: table_name,
                                       key: key_stanza(table, key, range_key),
-                                      attribute_updates: iu.to_h,
+                                      attribute_updates: item_updater.attribute_updates,
                                       expected: expected_stanza(conditions),
                                       return_values: 'ALL_NEW')
           result_item_to_hash(result[:attributes])

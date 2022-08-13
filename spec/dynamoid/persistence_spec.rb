@@ -2664,7 +2664,7 @@ describe Dynamoid::Persistence do
     end
   end
 
-  describe '#decrement' do
+  describe '#decrement!' do
     let(:document_class) do
       new_class do
         field :age, :integer
@@ -2717,9 +2717,13 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context 'update' do
+  context '#update!' do
+    # TODO: add some specs
+  end
+
+  describe '#update' do
     before :each do
-      @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'john')
+      @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'John')
     end
 
     it 'runs before_update callbacks when doing #update' do
@@ -2738,14 +2742,16 @@ describe Dynamoid::Persistence do
       end
     end
 
-    it 'support add/delete operation on a field' do
+    it 'supports add/delete/set operations on a field' do
       @tweet.update do |t|
         t.add(count: 3)
         t.delete(tags: Set.new(['db']))
+        t.set(user_name: 'Alex')
       end
 
       expect(@tweet.count).to eq(8)
       expect(@tweet.tags.to_a).to eq(['sql'])
+      expect(@tweet.user_name).to eq ('Alex')
     end
 
     it 'checks the conditions on update' do

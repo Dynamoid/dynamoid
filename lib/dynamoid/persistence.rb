@@ -597,10 +597,18 @@ module Dynamoid
     # @param conditions [Hash] Conditions on model attributes to make a conditional update (optional)
     def update!(conditions = {})
       run_callbacks(:update) do
-        options = range_key ? { range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
+        options = {}
+        if range_key
+          value = read_attribute(range_key)
+          attribute_options = self.class.attributes[range_key]
+          options[:range_key] = Dumping.dump_field(value, attribute_options)
+        end
 
         begin
-          new_attrs = Dynamoid.adapter.update_item(self.class.table_name, hash_key, options.merge(conditions: conditions)) do |t|
+          table_name = self.class.table_name
+          update_item_options = options.merge(conditions: conditions)
+
+          new_attrs = Dynamoid.adapter.update_item(table_name, hash_key, update_item_options) do |t|
             t.add(lock_version: 1) if self.class.attributes[:lock_version]
 
             if Dynamoid::Config.timestamps
@@ -639,6 +647,13 @@ module Dynamoid
     #
     #   user.update do |t|
     #     t.delete(hobbies: ['skying'])
+    #   end
+    #
+    # If it's applied to a scalar attribute then the item's attribute is
+    # removed at all:
+    #
+    #   user.update do |t|
+    #     t.delete(age: nil)
     #   end
     #
     # Operation +set+ just changes an attribute value:

@@ -1175,7 +1175,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       it 'deletes attribute values' do
-        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', hobbies: %w[skying climbing].to_set)
+        Dynamoid.adapter.put_item(test_table1, id: '1', hobbies: %w[skying climbing].to_set)
 
         Dynamoid.adapter.update_item(test_table1, '1') do |t|
           t.delete(hobbies: ['skying'].to_set)
@@ -1186,7 +1186,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       it 'deletes attributes' do
-        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', hobbies: %w[skying climbing].to_set)
+        Dynamoid.adapter.put_item(test_table1, id: '1', hobbies: %w[skying climbing].to_set)
 
         Dynamoid.adapter.update_item(test_table1, '1') do |t|
           t.delete(hobbies: nil)
