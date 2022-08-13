@@ -5,7 +5,8 @@ module Dynamoid
     extend ActiveSupport::Concern
 
     # @private
-    # Types allowed in indexes:
+    # @see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html#HowItWorks.CoreComponents.PrimaryKey
+    # Types allowed in indexes
     PERMITTED_KEY_DYNAMODB_TYPES = %i[
       string
       binary
