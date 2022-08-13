@@ -112,7 +112,7 @@ module Dynamoid
 
         if created_successfuly && self.options[:expires]
           attribute = self.options[:expires][:field]
-          Dynamoid.adapter.update_time_to_live(table_name, attribute)
+          Dynamoid.adapter.update_time_to_live(options[:table_name], attribute)
         end
       end
 

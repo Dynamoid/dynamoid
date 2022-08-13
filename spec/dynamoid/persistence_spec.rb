@@ -427,6 +427,16 @@ describe Dynamoid::Persistence do
 
         class_with_expiration.create_table
       end
+
+      it 'sets up TTL for table with specified table_name' do
+        table_name = "#{class_with_expiration.table_name}_alias"
+
+        expect(Dynamoid.adapter).to receive(:update_time_to_live)
+          .with(table_name, :ttl)
+          .and_call_original
+
+        class_with_expiration.create_table(table_name: table_name)
+      end
     end
 
     describe 'capacity mode' do
