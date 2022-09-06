@@ -77,5 +77,7 @@ module Dynamoid
     class UnsupportedKeyType < Error; end
 
     class UnknownAttribute < Error; end
+
+    class SubclassNotFound < Error; end
   end
 end
