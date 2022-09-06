@@ -386,11 +386,12 @@ module Dynamoid
 
     def set_inheritance_field
       # actually it does only following logic:
-      # self.type ||= self.class.name if self.class.attributes[:type]
+      # self.type ||= self.class.sti_name if self.class.attributes[:type]
+      return if self.class.abstract_class?
 
       type = self.class.inheritance_field
       if self.class.attributes[type] && send(type).nil?
-        send("#{type}=", self.class.name)
+        send("#{type}=", self.class.sti_name)
       end
     end
 
