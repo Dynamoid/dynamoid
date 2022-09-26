@@ -1386,6 +1386,12 @@ bundle install
 
 See [SECURITY.md][security].
 
+## Related links
+
+This documentation may be useful for the contributors:
+- <https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/welcome.html>
+- <https://docs.aws.amazon.com/sdk-for-ruby/v3/api/index.html>
+
 ## License
 
 The gem is available as open source under the terms of
