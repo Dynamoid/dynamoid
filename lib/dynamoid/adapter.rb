@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-# require only 'concurrent/atom' once this issue is resolved:
-#   https://github.com/ruby-concurrency/concurrent-ruby/pull/377
-require 'concurrent'
+require 'concurrent/atom'
 require 'dynamoid/adapter_plugin/aws_sdk_v3'
 
-# encoding: utf-8
 module Dynamoid
   # Adapter's value-add:
   # 1) For the rest of Dynamoid, the gateway to DynamoDB.
