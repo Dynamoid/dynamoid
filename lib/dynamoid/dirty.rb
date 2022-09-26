@@ -25,17 +25,15 @@ module Dynamoid
     # @private
     module ClassMethods
       def update_fields(*)
-        if model = super
-          model.send(:clear_changes_information)
+        super.tap do |model|
+          model.send(:clear_changes_information) if model
         end
-        model
       end
 
       def upsert(*)
-        if model = super
-          model.send(:clear_changes_information)
+        super.tap do |model|
+          model.send(:clear_changes_information) if model
         end
-        model
       end
 
       def from_database(*)
@@ -47,10 +45,9 @@ module Dynamoid
 
     # @private
     def save(*)
-      if status = super
-        changes_applied
+      super.tap do |status|
+        changes_applied if status
       end
-      status
     end
 
     # @private
