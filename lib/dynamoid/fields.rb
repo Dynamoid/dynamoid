@@ -285,6 +285,7 @@ module Dynamoid
     #
     # @param name [Symbol] the name of the field
     # @param value [Object] the value to assign to that field
+    # @return [Dynamoid::Document] self
     #
     # @since 0.2.0
     def write_attribute(name, value)
@@ -305,6 +306,7 @@ module Dynamoid
       attribute_will_change!(name) if old_value != value_casted # Dirty API
 
       attributes[name] = value_casted
+      self
     end
     alias []= write_attribute
 

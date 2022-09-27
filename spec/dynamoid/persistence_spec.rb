@@ -75,6 +75,23 @@ describe Dynamoid::Persistence do
       end
     end
 
+    it 'creates a table' do
+      klass = new_class
+
+      tables = Dynamoid.adapter.list_tables
+      expect(tables.include?(klass.table_name)).to eq false
+
+      klass.create_table
+
+      tables = Dynamoid.adapter.list_tables
+      expect(tables.include?(klass.table_name)).to eq true
+    end
+
+    it 'returns self' do
+      klass = new_class
+      expect(klass.create_table).to eq(klass)
+    end
+
     describe 'partition key attribute type' do
       it 'maps :string to String' do
         klass = new_class(partition_key: { name: :id, type: :string })
@@ -407,7 +424,7 @@ describe Dynamoid::Persistence do
       end
     end
 
-    describe 'expires (Time To Live)' do
+    describe 'expiring (Time To Live)' do
       let(:class_with_expiration) do
         new_class do
           table expires: { field: :ttl, after: 60 }
@@ -501,11 +518,25 @@ describe Dynamoid::Persistence do
 
   describe 'delete_table' do
     it 'deletes the table' do
-      Address.create_table
-      Address.delete_table
+      klass = new_class
+      klass.create_table
 
       tables = Dynamoid.adapter.list_tables
-      expect(tables.include?(Address.table_name)).to be_falsey
+      expect(tables.include?(klass.table_name)).to eq true
+
+      klass.delete_table
+
+      tables = Dynamoid.adapter.list_tables
+      expect(tables.include?(klass.table_name)).to eq false
+    end
+
+    it 'returns self' do
+      klass = new_class
+      klass.create_table
+
+      result = klass.delete_table
+
+      expect(result).to eq klass
     end
   end
 
@@ -1663,6 +1694,12 @@ describe Dynamoid::Persistence do
       expect(obj.reload.links_count).to eql(7)
     end
 
+    it 'returns self' do
+      obj = document_class.create!(links_count: 2)
+
+      expect(document_class.inc(obj.id, links_count: 5)).to eq(document_class)
+    end
+
     describe 'timestamps' do
       it 'does not change updated_at', config: { timestamps: true } do
         obj = document_class.create!
@@ -2131,6 +2168,17 @@ describe Dynamoid::Persistence do
       obj.update_attribute(:age, -1)
 
       expect(klass.find(obj.id).age).to eq(-1)
+    end
+
+    it 'returns self' do
+      klass = new_class do
+        field :age, :integer
+      end
+
+      obj = klass.create(age: 18)
+      result = obj.update_attribute(:age, 20)
+
+      expect(result).to eq(obj)
     end
 
     describe 'type casting' do
@@ -2752,6 +2800,16 @@ describe Dynamoid::Persistence do
 
   context '#update!' do
     # TODO: add some specs
+
+    it 'returns self' do
+      klass = new_class do
+        field :age, :integer
+      end
+
+      obj = klass.create
+      result = obj.update! { |t| t.set(age: 21) }
+      expect(result).to eq obj
+    end
   end
 
   describe '#update' do
@@ -2930,6 +2988,20 @@ describe Dynamoid::Persistence do
   end
 
   context 'delete' do
+    it 'deletes an item' do
+      klass = new_class
+      obj = klass.create
+
+      expect { obj.delete }.to change { klass.exists? obj.id }.from(true).to(false)
+    end
+
+    it 'returns self' do
+      klass = new_class
+      obj = klass.create
+
+      expect(obj.delete).to eq obj
+    end
+
     it 'uses dumped value of sort key to call DeleteItem' do
       klass = new_class do
         range :activated_on, :date
@@ -3352,6 +3424,38 @@ describe Dynamoid::Persistence do
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
       end
+    end
+  end
+
+  describe '#touch' do
+    it 'sets updated_at attribute with current time' do
+      klass = new_class
+
+      obj = klass.create
+
+      travel 1.hour do
+        obj.touch
+        expect(obj.updated_at.to_i).to eq(Time.now.to_i)
+      end
+    end
+
+    it 'saves the model' do
+      klass = new_class
+
+      obj = klass.create
+
+      travel 1.hour do
+        obj.touch
+
+        obj_persistes = klass.find(obj.id)
+        expect(obj_persistes.updated_at.to_i).to eq(Time.now.to_i)
+      end
+    end
+
+    it 'returns self' do
+      klass = new_class
+      obj = klass.create
+      expect(obj.touch).to eq obj
     end
   end
 

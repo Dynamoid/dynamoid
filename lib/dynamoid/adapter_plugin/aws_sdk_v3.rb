@@ -163,30 +163,28 @@ module Dynamoid
       def batch_write_item(table_name, objects, options = {})
         items = objects.map { |o| sanitize_item(o) }
 
-        begin
-          while items.present?
-            batch = items.shift(BATCH_WRITE_ITEM_REQUESTS_LIMIT)
-            requests = batch.map { |item| { put_request: { item: item } } }
+        while items.present?
+          batch = items.shift(BATCH_WRITE_ITEM_REQUESTS_LIMIT)
+          requests = batch.map { |item| { put_request: { item: item } } }
 
-            response = client.batch_write_item(
-              {
-                request_items: {
-                  table_name => requests
-                },
-                return_consumed_capacity: 'TOTAL',
-                return_item_collection_metrics: 'SIZE'
-              }.merge!(options)
-            )
+          response = client.batch_write_item(
+            {
+              request_items: {
+                table_name => requests
+              },
+              return_consumed_capacity: 'TOTAL',
+              return_item_collection_metrics: 'SIZE'
+            }.merge!(options)
+          )
 
-            yield(response.unprocessed_items.present?) if block_given?
+          yield(response.unprocessed_items.present?) if block_given?
 
-            if response.unprocessed_items.present?
-              items += response.unprocessed_items[table_name].map { |r| r.put_request.item }
-            end
+          if response.unprocessed_items.present?
+            items += response.unprocessed_items[table_name].map { |r| r.put_request.item }
           end
-        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
-          raise Dynamoid::Errors::ConditionalCheckFailedException, e
         end
+      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
+        raise Dynamoid::Errors::ConditionalCheckFailedException, e
       end
 
       # Get many items at once from DynamoDB. More efficient than getting each item individually.
@@ -258,17 +256,15 @@ module Dynamoid
           end
         end
 
-        begin
-          requests.map do |request_items|
-            client.batch_write_item(
-              request_items: request_items,
-              return_consumed_capacity: 'TOTAL',
-              return_item_collection_metrics: 'SIZE'
-            )
-          end
-        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
-          raise Dynamoid::Errors::ConditionalCheckFailedException, e
+        requests.each do |items|
+          client.batch_write_item(
+            request_items: items,
+            return_consumed_capacity: 'TOTAL',
+            return_item_collection_metrics: 'SIZE'
+          )
         end
+      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
+        raise Dynamoid::Errors::ConditionalCheckFailedException, e
       end
 
       # Create a table on DynamoDB. This usually takes a long time to complete.
@@ -421,16 +417,14 @@ module Dynamoid
 
         raise "non-empty options: #{options}" unless options.empty?
 
-        begin
-          result = client.update_item(table_name: table_name,
-                                      key: key_stanza(table, key, range_key),
-                                      attribute_updates: item_updater.attribute_updates,
-                                      expected: expected_stanza(conditions),
-                                      return_values: 'ALL_NEW')
-          result_item_to_hash(result[:attributes])
-        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
-          raise Dynamoid::Errors::ConditionalCheckFailedException, e
-        end
+        result = client.update_item(table_name: table_name,
+                                    key: key_stanza(table, key, range_key),
+                                    attribute_updates: item_updater.attribute_updates,
+                                    expected: expected_stanza(conditions),
+                                    return_values: 'ALL_NEW')
+        result_item_to_hash(result[:attributes])
+      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
+        raise Dynamoid::Errors::ConditionalCheckFailedException, e
       end
 
       # List all tables on DynamoDB.
@@ -460,17 +454,15 @@ module Dynamoid
         options ||= {}
         item = sanitize_item(object)
 
-        begin
-          client.put_item(
-            {
-              table_name: table_name,
-              item: item,
-              expected: expected_stanza(options)
-            }.merge!(options)
-          )
-        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
-          raise Dynamoid::Errors::ConditionalCheckFailedException, e
-        end
+        client.put_item(
+          {
+            table_name: table_name,
+            item: item,
+            expected: expected_stanza(options)
+          }.merge!(options)
+        )
+      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
+        raise Dynamoid::Errors::ConditionalCheckFailedException, e
       end
 
       # Query the DynamoDB table. This employs DynamoDB's indexes so is generally faster than scanning, but is

@@ -114,6 +114,8 @@ module Dynamoid
           attribute = self.options[:expires][:field]
           Dynamoid.adapter.update_time_to_live(table_name, attribute)
         end
+
+        self
       end
 
       # Deletes the table for the model.
@@ -122,8 +124,10 @@ module Dynamoid
       # is deleted completely.
       #
       # Subsequent method calls for the same table will be ignored.
+      # @return [Model class] self
       def delete_table
         Dynamoid.adapter.delete_table(table_name)
+        self
       end
 
       # @private
@@ -377,6 +381,7 @@ module Dynamoid
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
       # @param counters [Hash] value to increase by
+      # @return [Model class] self
       def inc(hash_key_value, range_key_value = nil, counters)
         options = if range_key
                     value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
@@ -394,6 +399,8 @@ module Dynamoid
             t.add(k => value_dumped)
           end
         end
+
+        self
       end
     end
 
@@ -408,11 +415,13 @@ module Dynamoid
     #   user.touch(:last_login_at)
     #
     # @param name [Symbol] attribute name to update (optional)
+    # @return [Dynamoid::Document] self
     def touch(name = nil)
       now = DateTime.now
       self.updated_at = now
       attributes[name] = now if name
       save
+      self
     end
 
     # Is this object persisted in DynamoDB?
@@ -482,17 +491,11 @@ module Dynamoid
 
       @_touch_record = options[:touch]
 
-      if new_record?
-        run_callbacks(:create) do
-          run_callbacks(:save) do
-            Save.call(self)
-          end
-        end
-      else
-        run_callbacks(:update) do
-          run_callbacks(:save) do
-            Save.call(self)
-          end
+      create_or_update = new_record? ? :create : :update
+
+      run_callbacks(create_or_update) do
+        run_callbacks(:save) do
+          Save.call(self)
         end
       end
     end
@@ -543,11 +546,13 @@ module Dynamoid
     # @param attribute [Symbol] attribute name to update
     # @param value [Object] the value to assign it
     # @return [Dynamoid::Document] self
+    #
     # @since 0.2.0
     def update_attribute(attribute, value)
       # final implementation is in the Dynamoid::Validation module
       write_attribute(attribute, value)
       save
+      self
     end
 
     # Update a model.
@@ -561,7 +566,7 @@ module Dynamoid
     # collections if attribute is a collection (one of +array+, +set+ or
     # +map+).
     #
-    #   user.update do |t|
+    #   user.update! do |t|
     #     t.add(age: 1, followers_count: 5)
     #     t.add(hobbies: ['skying', 'climbing'])
     #   end
@@ -569,13 +574,13 @@ module Dynamoid
     # Operation +delete+ is applied to collection attribute types and
     # substructs one collection from another.
     #
-    #   user.update do |t|
+    #   user.update! do |t|
     #     t.delete(hobbies: ['skying'])
     #   end
     #
     # Operation +set+ just changes an attribute value:
     #
-    #   user.update do |t|
+    #   user.update! do |t|
     #     t.set(age: 21)
     #   end
     #
@@ -590,7 +595,7 @@ module Dynamoid
     #
     # Can update a model conditionaly:
     #
-    #   user.update(if: { age: 20 }) do |t|
+    #   user.update!(if: { age: 20 }) do |t|
     #     t.add(age: 1)
     #   end
     #
@@ -603,6 +608,7 @@ module Dynamoid
     # fail.
     #
     # @param conditions [Hash] Conditions on model attributes to make a conditional update (optional)
+    # @return [Dynamoid::Document] self
     def update!(conditions = {})
       run_callbacks(:update) do
         options = {}
@@ -632,6 +638,8 @@ module Dynamoid
           raise Dynamoid::Errors::StaleObjectError.new(self, 'update')
         end
       end
+
+      self
     end
 
     # Update a model.
@@ -695,6 +703,7 @@ module Dynamoid
     # fail.
     #
     # @param conditions [Hash] Conditions on model attributes to make a conditional update (optional)
+    # @return [true|false] - whether conditions are met and updating is successful
     def update(conditions = {}, &block)
       update!(conditions, &block)
       true
@@ -779,9 +788,9 @@ module Dynamoid
     # Supports optimistic locking with the +lock_version+ attribute and doesn't
     # delete a model if it's already changed.
     #
-    # Returns +true+ if deleted successfully and +false+ otherwise.
+    # Returns +self+ if deleted successfully and +false+ otherwise.
     #
-    # @return [true|false] whether deleted successfully
+    # @return [Dynamoid::Document|false] whether deleted successfully
     # @since 0.2.0
     def destroy
       ret = run_callbacks(:destroy) do
@@ -814,6 +823,7 @@ module Dynamoid
     # Raises +Dynamoid::Errors::StaleObjectError+ exception if cannot delete a
     # model.
     #
+    # @return [Dynamoid::Document] self
     # @since 0.2.0
     def delete
       options = range_key ? { range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
@@ -837,6 +847,8 @@ module Dynamoid
       self.class.associations.each do |name, options|
         send(name).disassociate_source
       end
+
+      self
     rescue Dynamoid::Errors::ConditionalCheckFailedException
       raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
     end

@@ -413,6 +413,16 @@ describe Dynamoid::Fields do
       expect(obj.attributes[:count]).to eql(10)
     end
 
+    it 'returns self' do
+      klass = new_class do
+        field :count, :integer
+      end
+
+      obj = klass.new
+      result = obj.write_attribute(:count, 10)
+      expect(result).to eql(obj)
+    end
+
     describe 'type casting' do
       it 'type casts attributes' do
         klass = new_class do

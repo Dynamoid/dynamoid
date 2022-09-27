@@ -41,6 +41,7 @@ module Dynamoid
     def update_attribute(attribute, value)
       write_attribute(attribute, value)
       save(validate: false)
+      self
     end
 
     module ClassMethods
