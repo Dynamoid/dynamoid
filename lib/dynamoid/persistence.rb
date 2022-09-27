@@ -625,7 +625,7 @@ module Dynamoid
           new_attrs = Dynamoid.adapter.update_item(table_name, hash_key, update_item_options) do |t|
             t.add(lock_version: 1) if self.class.attributes[:lock_version]
 
-            if Dynamoid::Config.timestamps
+            if self.class.timestamps_enabled?
               time_now = DateTime.now.in_time_zone(Time.zone)
               time_now_dumped = Dumping.dump_field(time_now, self.class.attributes[:updated_at])
               t.set(updated_at: time_now_dumped)

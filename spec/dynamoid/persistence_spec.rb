@@ -2932,6 +2932,15 @@ describe Dynamoid::Persistence do
           obj.update { |d| d.set(title: 'New title') }
         end.not_to raise_error
       end
+
+      it 'does not set updated_at if Config.timestamps=true and table timestamps=false', config: { timestamps: true } do
+        klass.table timestamps: false
+
+        obj = klass.create(title: 'Old title')
+        obj.update { |d| d.set(title: 'New title') }
+
+        expect(obj.reload.attributes).to_not have_key(:updated_at)
+      end
     end
 
     context ':raw field' do
