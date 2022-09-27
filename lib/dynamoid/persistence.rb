@@ -365,6 +365,9 @@ module Dynamoid
       #
       #   User.inc('1', 'Tylor', age: 2)
       #
+      # It's an atomic operation it does not interfere with other write
+      # requests.
+      #
       # Uses efficient low-level +UpdateItem+ operation and does only one HTTP
       # request.
       #
@@ -575,10 +578,14 @@ module Dynamoid
     #     t.set(age: 21)
     #   end
     #
-    # All the operations works like +ADD+, +DELETE+ and +PUT+ actions supported
+    # All the operations work like +ADD+, +DELETE+ and +PUT+ actions supported
     # by +AttributeUpdates+
     # {parameter}[https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.AttributeUpdates.html]
     # of +UpdateItem+ operation.
+    #
+    # It's an atomic operation. So adding or deleting elements in a collection
+    # or incrementing or decrementing a numeric field is atomic and does not
+    # interfere with other write requests.
     #
     # Can update a model conditionaly:
     #
