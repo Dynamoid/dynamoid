@@ -3,13 +3,6 @@
 # Standard Libs
 # N/A
 
-# Engine Conditional Libs
-if RUBY_ENGINE == 'jruby'
-  # Workaround for JRuby CI failure https://github.com/jruby/jruby/issues/6547#issuecomment-774104996
-  require 'i18n/backend'
-  require 'i18n/backend/simple'
-end
-
 # Third Party Libs
 # https://guides.rubyonrails.org/active_support_core_extensions.html#stand-alone-active-support
 require 'active_support'

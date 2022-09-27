@@ -17,12 +17,6 @@ module Dynamoid
     end
 
     module ClassMethods
-      # @private
-      def table(options = {})
-        self.options = options
-        super if defined? super
-      end
-
       def attr_readonly(*read_only_attributes)
         self.read_only_attributes.concat read_only_attributes.map(&:to_s)
       end

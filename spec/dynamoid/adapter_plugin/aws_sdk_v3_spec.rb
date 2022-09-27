@@ -452,7 +452,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
     end
 
-    context 'when composite key' do
+    context 'when composite primary key' do
       it 'accepts one id passed as singular value' do
         skip 'It is not supported and needed yet'
 
@@ -499,7 +499,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(items.size).to eq 101
     end
 
-    it 'loads unprocessed items for a table without a composite key' do
+    it 'loads unprocessed items for a table without a range key' do
       # BatchGetItem has following limitations:
       # * up to 100 items at once
       # * up to 16 MB at once
@@ -533,7 +533,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(items.map { |h| h[:id] }).to match_array(ids)
     end
 
-    it 'loads unprocessed items for a table with a composite key' do
+    it 'loads unprocessed items for a table with a range key' do
       # BatchGetItem has following limitations:
       # * up to 100 items at once
       # * up to 16 MB at once
@@ -1175,7 +1175,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       it 'deletes attribute values' do
-        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', hobbies: %w[skying climbing].to_set)
+        Dynamoid.adapter.put_item(test_table1, id: '1', hobbies: %w[skying climbing].to_set)
 
         Dynamoid.adapter.update_item(test_table1, '1') do |t|
           t.delete(hobbies: ['skying'].to_set)
@@ -1186,13 +1186,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       it 'deletes attributes' do
-        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', hobbies: %w[skying climbing].to_set)
+        Dynamoid.adapter.put_item(test_table1, id: '1', hobbies: %w[skying climbing].to_set, category_id: 1)
 
         Dynamoid.adapter.update_item(test_table1, '1') do |t|
           t.delete(hobbies: nil)
+          t.delete(:category_id)
         end
 
-        expect(Dynamoid.adapter.get_item(test_table1, '1')).not_to include(:hobbies)
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).not_to include(:hobbies, :category_id)
       end
 
       it 'sets attribute values' do

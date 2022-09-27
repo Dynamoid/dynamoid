@@ -477,6 +477,10 @@ Second argument, type, is optional. Default type is `string`.
 Just like in ActiveRecord (or your other favorite ORM), Dynamoid uses
 associations to create links between models.
 
+**WARNING:** Associations are not supported for models with compound
+primary key. If a model declares a range key it should not declare any
+association itself and be referenced by an association in another model.
+
 The only supported associations (so far) are `has_many`, `has_one`,
 `has_and_belongs_to_many`, and `belongs_to`. Associations are very
 simple to create: just specify the type, the name, and then any options
@@ -1082,7 +1086,7 @@ Listed below are all configuration options.
   when referring to them. Isn't thread safe. Default is `false`.
   `Use Dynamoid::Middleware::IdentityMap` to clear identity map for each HTTP request
 * `timestamps` - by default Dynamoid sets `created_at` and `updated_at`
-  fields for model creation and updating. You can disable this
+  fields at model creation and updating. You can disable this
   behavior by setting `false` value
 * `sync_retry_max_times` - when Dynamoid creates or deletes table
   synchronously it checks for completion specified times. Default is 60
@@ -1381,6 +1385,12 @@ bundle install
 ## Security
 
 See [SECURITY.md][security].
+
+## Related links
+
+This documentation may be useful for the contributors:
+- <https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/welcome.html>
+- <https://docs.aws.amazon.com/sdk-for-ruby/v3/api/index.html>
 
 ## License
 

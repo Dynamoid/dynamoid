@@ -75,6 +75,23 @@ describe Dynamoid::Persistence do
       end
     end
 
+    it 'creates a table' do
+      klass = new_class
+
+      tables = Dynamoid.adapter.list_tables
+      expect(tables.include?(klass.table_name)).to eq false
+
+      klass.create_table
+
+      tables = Dynamoid.adapter.list_tables
+      expect(tables.include?(klass.table_name)).to eq true
+    end
+
+    it 'returns self' do
+      klass = new_class
+      expect(klass.create_table).to eq(klass)
+    end
+
     describe 'partition key attribute type' do
       it 'maps :string to String' do
         klass = new_class(partition_key: { name: :id, type: :string })
@@ -407,7 +424,7 @@ describe Dynamoid::Persistence do
       end
     end
 
-    describe 'expires (Time To Live)' do
+    describe 'expiring (Time To Live)' do
       let(:class_with_expiration) do
         new_class do
           table expires: { field: :ttl, after: 60 }
@@ -416,11 +433,6 @@ describe Dynamoid::Persistence do
       end
 
       it 'sets up TTL for table' do
-        # Run the spec when a fix in rspec-mock is released
-        # - https://github.com/rspec/rspec-mocks/issues/1306
-        # - https://github.com/rspec/rspec-mocks/pull/1385
-        skip "There is an issue with Ruby 3.0 and rspec-mocks related to keyword arguments"
-
         expect(Dynamoid.adapter).to receive(:update_time_to_live)
           .with(class_with_expiration.table_name, :ttl)
           .and_call_original
@@ -516,11 +528,25 @@ describe Dynamoid::Persistence do
 
   describe 'delete_table' do
     it 'deletes the table' do
-      Address.create_table
-      Address.delete_table
+      klass = new_class
+      klass.create_table
 
       tables = Dynamoid.adapter.list_tables
-      expect(tables.include?(Address.table_name)).to be_falsey
+      expect(tables.include?(klass.table_name)).to eq true
+
+      klass.delete_table
+
+      tables = Dynamoid.adapter.list_tables
+      expect(tables.include?(klass.table_name)).to eq false
+    end
+
+    it 'returns self' do
+      klass = new_class
+      klass.create_table
+
+      result = klass.delete_table
+
+      expect(result).to eq klass
     end
   end
 
@@ -1004,6 +1030,14 @@ describe Dynamoid::Persistence do
           document_class.update!(doc.id, name: '[Updated]')
         end.not_to raise_error
       end
+
+      it 'does not change updated_at if attributes were assigned the same values' do
+        doc = document_class.create(name: 'Document#1', updated_at: Time.now - 1)
+
+        expect do
+          document_class.update!(doc.id, name: doc.name)
+        end.not_to change { doc.reload.updated_at }
+      end
     end
 
     describe 'type casting' do
@@ -1185,6 +1219,14 @@ describe Dynamoid::Persistence do
         expect do
           document_class.update(doc.id, name: '[Updated]')
         end.not_to raise_error
+      end
+
+      it 'does not change updated_at if attributes were assigned the same values' do
+        doc = document_class.create(name: 'Document#1', updated_at: Time.now - 1)
+
+        expect do
+          document_class.update(doc.id, name: doc.name)
+        end.not_to change { doc.reload.updated_at }
       end
     end
 
@@ -1662,6 +1704,12 @@ describe Dynamoid::Persistence do
       expect(obj.reload.links_count).to eql(7)
     end
 
+    it 'returns self' do
+      obj = document_class.create!(links_count: 2)
+
+      expect(document_class.inc(obj.id, links_count: 5)).to eq(document_class)
+    end
+
     describe 'timestamps' do
       it 'does not change updated_at', config: { timestamps: true } do
         obj = document_class.create!
@@ -2030,6 +2078,19 @@ describe Dynamoid::Persistence do
 
           expect { obj.save }.not_to raise_error
         end
+
+        it 'does not change updated_at if there are no changes' do
+          obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
+
+          expect { obj.save }.not_to change { obj.updated_at }
+        end
+
+        it 'does not change updated_at if attributes were assigned the same values' do
+          obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
+          obj.title = obj.title
+
+          expect { obj.save }.not_to change { obj.updated_at }
+        end
       end
     end
 
@@ -2086,6 +2147,50 @@ describe Dynamoid::Persistence do
   end
 
   describe '#update_attribute' do
+    it 'changes the attribute value' do
+      klass = new_class do
+        field :age, :integer
+      end
+
+      obj = klass.create(age: 18)
+
+      expect { obj.update_attribute(:age, 20) }.to change { obj.age }.from(18).to(20)
+    end
+
+    it 'persists the model' do
+      klass = new_class do
+        field :age, :integer
+      end
+
+      obj = klass.create(age: 18)
+      obj.update_attribute(:age, 20)
+
+      expect(klass.find(obj.id).age).to eq(20)
+    end
+
+    it 'skips validation and saves not valid models' do
+      klass = new_class do
+        field :age, :integer
+        validates :age, numericality: { greater_than: 0 }
+      end
+
+      obj = klass.create(age: 18)
+      obj.update_attribute(:age, -1)
+
+      expect(klass.find(obj.id).age).to eq(-1)
+    end
+
+    it 'returns self' do
+      klass = new_class do
+        field :age, :integer
+      end
+
+      obj = klass.create(age: 18)
+      result = obj.update_attribute(:age, 20)
+
+      expect(result).to eq(obj)
+    end
+
     describe 'type casting' do
       it 'type casts attributes' do
         klass = new_class do
@@ -2134,6 +2239,15 @@ describe Dynamoid::Persistence do
         expect do
           obj.update_attribute(:title, 'New title')
         end.not_to raise_error
+      end
+
+      it 'does not change updated_at if attributes were assigned the same values' do
+        obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
+        obj.title = obj.title
+
+        expect do
+          obj.update_attribute(:title, 'Old title')
+        end.not_to change { obj.updated_at }
       end
     end
 
@@ -2285,6 +2399,15 @@ describe Dynamoid::Persistence do
         expect do
           obj.update_attributes(title: 'New title')
         end.not_to raise_error
+      end
+
+      it 'does not change updated_at if attributes were assigned the same values' do
+        obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
+        obj.title = obj.title
+
+        expect do
+          obj.update_attributes(title: 'Old title')
+        end.not_to change { obj.updated_at }
       end
     end
 
@@ -2441,6 +2564,15 @@ describe Dynamoid::Persistence do
         expect do
           obj.update_attributes!(title: 'New title')
         end.not_to raise_error
+      end
+
+      it 'does not change updated_at if attributes were assigned the same values' do
+        obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
+        obj.title = obj.title
+
+        expect do
+          obj.update_attributes!(title: 'Old title')
+        end.not_to change { obj.updated_at }
       end
     end
 
@@ -2623,7 +2755,7 @@ describe Dynamoid::Persistence do
     end
   end
 
-  describe '#decrement' do
+  describe '#decrement!' do
     let(:document_class) do
       new_class do
         field :age, :integer
@@ -2676,9 +2808,23 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context 'update' do
+  context '#update!' do
+    # TODO: add some specs
+
+    it 'returns self' do
+      klass = new_class do
+        field :age, :integer
+      end
+
+      obj = klass.create
+      result = obj.update! { |t| t.set(age: 21) }
+      expect(result).to eq obj
+    end
+  end
+
+  describe '#update' do
     before :each do
-      @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'john')
+      @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'John')
     end
 
     it 'runs before_update callbacks when doing #update' do
@@ -2697,14 +2843,16 @@ describe Dynamoid::Persistence do
       end
     end
 
-    it 'support add/delete operation on a field' do
+    it 'supports add/delete/set operations on a field' do
       @tweet.update do |t|
         t.add(count: 3)
         t.delete(tags: Set.new(['db']))
+        t.set(user_name: 'Alex')
       end
 
       expect(@tweet.count).to eq(8)
       expect(@tweet.tags.to_a).to eq(['sql'])
+      expect(@tweet.user_name).to eq ('Alex')
     end
 
     it 'checks the conditions on update' do
@@ -2794,6 +2942,15 @@ describe Dynamoid::Persistence do
           obj.update { |d| d.set(title: 'New title') }
         end.not_to raise_error
       end
+
+      it 'does not set updated_at if Config.timestamps=true and table timestamps=false', config: { timestamps: true } do
+        klass.table timestamps: false
+
+        obj = klass.create(title: 'Old title')
+        obj.update { |d| d.set(title: 'New title') }
+
+        expect(obj.reload.attributes).to_not have_key(:updated_at)
+      end
     end
 
     context ':raw field' do
@@ -2850,6 +3007,20 @@ describe Dynamoid::Persistence do
   end
 
   context 'delete' do
+    it 'deletes an item' do
+      klass = new_class
+      obj = klass.create
+
+      expect { obj.delete }.to change { klass.exists? obj.id }.from(true).to(false)
+    end
+
+    it 'returns self' do
+      klass = new_class
+      obj = klass.create
+
+      expect(obj.delete).to eq obj
+    end
+
     it 'uses dumped value of sort key to call DeleteItem' do
       klass = new_class do
         range :activated_on, :date
@@ -3272,6 +3443,38 @@ describe Dynamoid::Persistence do
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
       end
+    end
+  end
+
+  describe '#touch' do
+    it 'sets updated_at attribute with current time' do
+      klass = new_class
+
+      obj = klass.create
+
+      travel 1.hour do
+        obj.touch
+        expect(obj.updated_at.to_i).to eq(Time.now.to_i)
+      end
+    end
+
+    it 'saves the model' do
+      klass = new_class
+
+      obj = klass.create
+
+      travel 1.hour do
+        obj.touch
+
+        obj_persistes = klass.find(obj.id)
+        expect(obj_persistes.updated_at.to_i).to eq(Time.now.to_i)
+      end
+    end
+
+    it 'returns self' do
+      klass = new_class
+      obj = klass.create
+      expect(obj.touch).to eq obj
     end
   end
 
