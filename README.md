@@ -1086,7 +1086,7 @@ Listed below are all configuration options.
   when referring to them. Isn't thread safe. Default is `false`.
   `Use Dynamoid::Middleware::IdentityMap` to clear identity map for each HTTP request
 * `timestamps` - by default Dynamoid sets `created_at` and `updated_at`
-  fields for model creation and updating. You can disable this
+  fields at model creation and updating. You can disable this
   behavior by setting `false` value
 * `sync_retry_max_times` - when Dynamoid creates or deletes table
   synchronously it checks for completion specified times. Default is 60
