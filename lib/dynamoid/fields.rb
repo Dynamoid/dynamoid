@@ -217,14 +217,18 @@ module Dynamoid
           field(hash_key)
         end
 
+        # The created_at/updated_at fields are declared in the `included` callback first.
+        # At that moment the only known setting is `Dynamoid::Config.timestamps`.
+        # Now `options[:timestamps]` may override the global setting for a model.
+        # So we need to make decision again and declare the fields or rollback thier declaration.
+        #
+        # Do not replace with `#timestamps_enabled?`.
         if options[:timestamps] && !Dynamoid::Config.timestamps
-          # Timestamp fields weren't declared in `included` hook because they
-          # are disabled globaly
+          # The fields weren't declared in `included` callback because they are disabled globaly
           field :created_at, :datetime
           field :updated_at, :datetime
         elsif options[:timestamps] == false && Dynamoid::Config.timestamps
-          # Timestamp fields were declared in `included` hook but they are
-          # disabled for a table
+          # The fields were declared in `included` callback but they are disabled for a table
           remove_field :created_at
           remove_field :updated_at
         end
