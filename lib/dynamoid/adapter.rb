@@ -41,7 +41,7 @@ module Dynamoid
 
     # Shows how long it takes a method to run on the adapter. Useful for generating logged output.
     #
-    # @param [Symbol] method the name of the method to appear in the log
+    # @param [Symbol|String] method the name of the method to appear in the log
     # @param [Array] args the arguments to the method to appear in the log
     # @yield the actual code to benchmark
     #
@@ -147,7 +147,7 @@ module Dynamoid
       #
       # @since 0.2.0
       define_method(m) do |*args, &blk|
-        benchmark(m.to_s, *args) { adapter.send(m, *args, &blk) }
+        benchmark(m, *args) { adapter.send(m, *args, &blk) }
       end
     end
 
