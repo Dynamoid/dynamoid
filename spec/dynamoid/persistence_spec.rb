@@ -2100,6 +2100,39 @@ describe Dynamoid::Persistence do
   end
 
   describe '#update_attribute' do
+    it 'changes the attribute value' do
+      klass = new_class do
+        field :age, :integer
+      end
+
+      obj = klass.create(age: 18)
+
+      expect { obj.update_attribute(:age, 20) }.to change { obj.age }.from(18).to(20)
+    end
+
+    it 'persists the model' do
+      klass = new_class do
+        field :age, :integer
+      end
+
+      obj = klass.create(age: 18)
+      obj.update_attribute(:age, 20)
+
+      expect(klass.find(obj.id).age).to eq(20)
+    end
+
+    it 'skips validation and saves not valid models' do
+      klass = new_class do
+        field :age, :integer
+        validates :age, numericality: { greater_than: 0 }
+      end
+
+      obj = klass.create(age: 18)
+      obj.update_attribute(:age, -1)
+
+      expect(klass.find(obj.id).age).to eq(-1)
+    end
+
     describe 'type casting' do
       it 'type casts attributes' do
         klass = new_class do
