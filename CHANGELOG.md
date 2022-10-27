@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Fix `#update` and `#update!` - take into account the table-specific `timestamps` option for setting the `updated_at` attribute
   * Fix `#update_attribute` - skip validation
   * Return `self` in some public methods to enable methods chaining
+* [#601](https://github.com/Dynamoid/dynamoid/pull/601) Fix `#first` and `#pluck` methods: do not mutate query parameters and affect other query methods.
 
 ### Added
 * [#531](https://github.com/Dynamoid/dynamoid/pull/531) Run `before_update` and `after_update` callbacks at saving a model (@a5-stable)
