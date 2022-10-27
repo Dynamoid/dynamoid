@@ -1460,7 +1460,7 @@ describe Dynamoid::Criteria::Chain do
       document = model.create(name: 'Bob', age: 5)
 
       chain = Dynamoid::Criteria::Chain.new(model)
-      expect(chain).to receive(:scan_limit).with(1).and_call_original
+      expect_any_instance_of(Dynamoid::Criteria::Chain).to receive(:scan_limit).with(1).and_call_original
       expect(chain.first).to eq(document)
     end
 
@@ -1470,7 +1470,7 @@ describe Dynamoid::Criteria::Chain do
       document3 = model.create(name: 'Bob', age: 7)
 
       chain = Dynamoid::Criteria::Chain.new(model)
-      expect(chain).to receive(:scan_limit).with(2).and_call_original
+      expect_any_instance_of(Dynamoid::Criteria::Chain).to receive(:scan_limit).with(2).and_call_original
       expect(chain.first(2).to_set).to eq([document1, document2].to_set)
     end
 
@@ -1478,7 +1478,7 @@ describe Dynamoid::Criteria::Chain do
       document = model.create(name: 'Bob', age: 5)
 
       chain = Dynamoid::Criteria::Chain.new(model)
-      expect(chain).to receive(:record_limit).with(1).and_call_original
+      expect_any_instance_of(Dynamoid::Criteria::Chain).to receive(:record_limit).with(1).and_call_original
       expect(chain.where(name: 'Bob', age: 5).first).to eq(document)
     end
 
@@ -1488,7 +1488,7 @@ describe Dynamoid::Criteria::Chain do
       document3 = model.create(name: 'Bob', age: 7)
 
       chain = Dynamoid::Criteria::Chain.new(model)
-      expect(chain).to receive(:record_limit).with(2).and_call_original
+      expect_any_instance_of(Dynamoid::Criteria::Chain).to receive(:record_limit).with(2).and_call_original
       expect(chain.where(name: 'Bob').first(2)).to eq([document1, document2])
     end
 
@@ -1496,7 +1496,7 @@ describe Dynamoid::Criteria::Chain do
       document = model.create(name: 'Bob', city: 'New York', age: 5)
 
       chain = Dynamoid::Criteria::Chain.new(model)
-      expect(chain).not_to receive(:record_limit)
+      expect_any_instance_of(Dynamoid::Criteria::Chain).not_to receive(:record_limit)
       expect(chain.where(age: 5).first).to eq(document)
     end
 
@@ -1504,7 +1504,7 @@ describe Dynamoid::Criteria::Chain do
       document = model.create(name: 'Bob', city: 'New York', age: 5)
 
       chain = Dynamoid::Criteria::Chain.new(model)
-      expect(chain).not_to receive(:record_limit)
+      expect_any_instance_of(Dynamoid::Criteria::Chain).not_to receive(:record_limit)
       expect(chain.where(city: 'New York').first).to eq(document)
       expect(chain.where(name: 'Bob', city: 'New York').first).to eq(document)
       expect(chain.where(name: 'Bob', age: 5, city: 'New York').first).to eq(document)
@@ -1515,7 +1515,7 @@ describe Dynamoid::Criteria::Chain do
       document2 = model.create(name: 'Alice', age: 6)
 
       chain = Dynamoid::Criteria::Chain.new(model)
-      expect(chain).not_to receive(:record_limit)
+      expect_any_instance_of(Dynamoid::Criteria::Chain).not_to receive(:record_limit)
       expect(chain.where('name.gt': 'Alice').first).to eq(document1)
     end
 
@@ -1539,6 +1539,37 @@ describe Dynamoid::Criteria::Chain do
       document4 = model.create(name: 'Alice', age: 8)
 
       expect(model.where(name: 'Alice').first.age).to eq(6)
+    end
+
+    context 'scope is reused' do
+      it 'does not affect other query methods when no key conditions' do
+        klass = new_class do
+          field :name
+        end
+
+        klass.create!(name: 'Alice')
+        klass.create!(name: 'Lucy')
+
+        scope = klass.where({})
+        expect(scope.first).to be_present
+        expect(scope.count).to eq 2
+        expect(scope.to_a.size).to eq 2
+      end
+
+      it 'does not affect other query methods when passed key conditions' do
+        klass = new_class do
+          range :name
+        end
+
+        klass.create!(id: '1', name: 'Alice')
+        klass.create!(id: '1', name: 'Anne')
+        klass.create!(id: '1', name: 'Lucy')
+
+        scope = klass.where(id: '1')
+        expect(scope.first).to be_present
+        expect(scope.count).to eq 3
+        expect(scope.all.to_a.size).to eq 3
+      end
     end
   end
 

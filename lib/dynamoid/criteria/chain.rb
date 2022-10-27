@@ -187,10 +187,10 @@ module Dynamoid
       def first(*args)
         n = args.first || 1
 
-        return scan_limit(n).to_a.first(*args) if @query.blank?
+        return self.dup.scan_limit(n).to_a.first(*args) if @query.blank?
         return super if @key_fields_detector.non_key_present?
 
-        record_limit(n).to_a.first(*args)
+        self.dup.record_limit(n).to_a.first(*args)
       end
 
       # Returns the last item matching the criteria.
