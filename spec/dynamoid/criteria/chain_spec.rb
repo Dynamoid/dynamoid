@@ -1735,6 +1735,44 @@ describe Dynamoid::Criteria::Chain do
 
       expect(model.pluck(:created_at)).to eq(['03-04-2020 23:40:00'.to_time])
     end
+
+    context 'scope is reused' do
+      it 'does not affect other query methods when there is one field to fetch' do
+        klass = new_class do
+          field :name
+          field :age, :integer
+        end
+
+        klass.create!(name: 'Alice', age: 11)
+        scope = klass.where({})
+
+        scope.pluck(:name)
+        array = scope.all.to_a
+
+        object = array[0]
+        expect(object.name).to eq 'Alice'
+        expect(object.age).to eq 11
+      end
+
+      it 'does not affect other query methods when there are several fields to fetch' do
+        klass = new_class do
+          field :name
+          field :age, :integer
+          field :tag_id
+        end
+
+        klass.create!(name: 'Alice', age: 11, tag_id: '719')
+        scope = klass.where({})
+
+        scope.pluck(:name, :age)
+        array = scope.all.to_a
+
+        object = array[0]
+        expect(object.name).to eq 'Alice'
+        expect(object.age).to eq 11
+        expect(object.tag_id).to eq '719'
+      end
+    end
   end
 
   describe 'User' do
