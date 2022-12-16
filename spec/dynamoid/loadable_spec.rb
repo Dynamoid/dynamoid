@@ -3,7 +3,6 @@
 require 'spec_helper'
 
 describe Dynamoid::Loadable do
-
   context '.reload' do
     let(:address) { Address.create }
     let(:message) { Message.create(text: 'Nice, supporting datetime range!', time: Time.now.to_datetime) }

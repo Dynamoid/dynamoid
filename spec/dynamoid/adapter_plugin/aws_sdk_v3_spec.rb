@@ -1252,13 +1252,13 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       allow(Dynamoid.adapter.client).to receive(:update_time_to_live).and_call_original
       Dynamoid.adapter.update_time_to_live(table_name, :ttl)
       expect(Dynamoid.adapter.client).to have_received(:update_time_to_live)
-                                          .with(
-                                            table_name: table_name,
-                                            time_to_live_specification: {
-                                              attribute_name: :ttl,
-                                              enabled: true,
-                                            }
-                                          )
+        .with(
+          table_name: table_name,
+          time_to_live_specification: {
+            attribute_name: :ttl,
+            enabled: true,
+          }
+        )
     end
 
     it 'updates a table schema' do

@@ -6,11 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
-
+* [#610](https://github.com/Dynamoid/dynamoid/pull/610) Specs in JRuby
 ### Added
-
 ### Changed
-
+* [#610](https://github.com/Dynamoid/dynamoid/pull/610) Switch to [`rubocop-lts`](https://rubocop-lts.gitlab.io/) (@pboling)
 ### Removed
 
 ## 3.8.0

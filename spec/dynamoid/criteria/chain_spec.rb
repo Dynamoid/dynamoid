@@ -1923,7 +1923,7 @@ describe Dynamoid::Criteria::Chain do
         klass_with_global_secondary_index.create(id: 'no age', owner_id: 'b')
       end
 
-      let(:chain) { Dynamoid::Criteria::Chain.new(klass_with_global_secondary_index)  }
+      let(:chain) { Dynamoid::Criteria::Chain.new(klass_with_global_secondary_index) }
 
       it 'sorts the results in ascending order' do
         models = chain.where(owner_id: 'a').with_index(:age_index).scan_index_forward(true)
@@ -1951,7 +1951,6 @@ describe Dynamoid::Criteria::Chain do
         expect(models.map(&:id)).not_to include 'no age'
       end
     end
-
   end
 
   describe '#scan_index_forward' do

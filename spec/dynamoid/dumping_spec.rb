@@ -1274,17 +1274,20 @@ describe 'Dumping' do
     end
 
     it 'stores float value Number' do
-      obj = klass.create(count: 10.001)
+      # NOTE: Set as string to avoid error on JRuby:
+      #         Aws::DynamoDB::Errors::ValidationException:
+      #           DynamoDB only supports precision up to 38 digits
+      obj = klass.create(count: "10.001")
 
-      expect(reload(obj).count).to eql(BigDecimal('10.001'))
-      expect(raw_attributes(obj)[:count]).to eql(BigDecimal('10.001'))
+      expect(reload(obj).count).to eql(BigDecimal('10.001', 5))
+      expect(raw_attributes(obj)[:count]).to eql(BigDecimal('10.001', 5))
     end
 
     it 'stores BigDecimal value as Number' do
-      obj = klass.create(count: BigDecimal('10.001'))
+      obj = klass.create(count: BigDecimal('10.001', 5))
 
-      expect(reload(obj).count).to eql(BigDecimal('10.001'))
-      expect(raw_attributes(obj)[:count]).to eql(BigDecimal('10.001'))
+      expect(reload(obj).count).to eql(BigDecimal('10.001', 5))
+      expect(raw_attributes(obj)[:count]).to eql(BigDecimal('10.001', 5))
     end
 
     it 'stores nil value' do
@@ -1501,7 +1504,7 @@ describe 'Dumping' do
 
     let(:binary_value) { "\x00\x88\xFF".dup.force_encoding('ASCII-8BIT') }
 
-    it "encodes a string in base64-encoded format" do
+    it 'encodes a string in base64-encoded format' do
       obj = klass.create(image: binary_value)
 
       expect(reload(obj).image).to eql(binary_value)
