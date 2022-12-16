@@ -14,22 +14,22 @@ describe 'Dumping' do
       it "saves false as 'f'" do
         obj = klass.create(active: false)
 
-        expect(reload(obj).active).to eql(false)
+        expect(reload(obj).active).to be(false)
         expect(raw_attributes(obj)[:active]).to eql('f')
       end
 
       it "saves true as 't'" do
         obj = klass.create(active: true)
 
-        expect(reload(obj).active).to eql(true)
+        expect(reload(obj).active).to be(true)
         expect(raw_attributes(obj)[:active]).to eql('t')
       end
 
       it 'stores nil value' do
         obj = klass.create(active: nil)
 
-        expect(reload(obj).active).to eql(nil)
-        expect(raw_attributes(obj)[:active]).to eql(nil)
+        expect(reload(obj).active).to be(nil)
+        expect(raw_attributes(obj)[:active]).to be(nil)
       end
     end
 
@@ -43,30 +43,30 @@ describe 'Dumping' do
       it 'saves false as false' do
         obj = klass.create(active: false)
 
-        expect(reload(obj).active).to eql(false)
-        expect(raw_attributes(obj)[:active]).to eql(false)
+        expect(reload(obj).active).to be(false)
+        expect(raw_attributes(obj)[:active]).to be(false)
       end
 
       it 'saves true as true' do
         obj = klass.create(active: true)
 
-        expect(reload(obj).active).to eql(true)
-        expect(raw_attributes(obj)[:active]).to eql(true)
+        expect(reload(obj).active).to be(true)
+        expect(raw_attributes(obj)[:active]).to be(true)
       end
 
       it 'saves and loads boolean field correctly' do
         obj = klass.create(active: true)
-        expect(reload(obj).active).to eql true
+        expect(reload(obj).active).to be true
 
         obj = klass.create(active: false)
-        expect(reload(obj).active).to eql false
+        expect(reload(obj).active).to be false
       end
 
       it 'stores nil value' do
         obj = klass.create(active: nil)
 
-        expect(reload(obj).active).to eql(nil)
-        expect(raw_attributes(obj)[:active]).to eql(nil)
+        expect(reload(obj).active).to be(nil)
+        expect(raw_attributes(obj)[:active]).to be(nil)
       end
     end
 
@@ -78,8 +78,8 @@ describe 'Dumping' do
 
         obj = klass.create(active: true)
 
-        expect(raw_attributes(obj)[:active]).to eql(true)
-        expect(reload(obj).active).to eql(true)
+        expect(raw_attributes(obj)[:active]).to be(true)
+        expect(reload(obj).active).to be(true)
       end
 
       context 'store_boolean_as_native=true' do
@@ -91,8 +91,8 @@ describe 'Dumping' do
 
           obj = klass.create(active: true)
 
-          expect(raw_attributes(obj)[:active]).to eql(true)
-          expect(reload(obj).active).to eql(true)
+          expect(raw_attributes(obj)[:active]).to be(true)
+          expect(reload(obj).active).to be(true)
         end
 
         it 'is stored as boolean if field option store_as_native_boolean=true',
@@ -103,8 +103,8 @@ describe 'Dumping' do
 
           obj = klass.create(active: true)
 
-          expect(raw_attributes(obj)[:active]).to eql(true)
-          expect(reload(obj).active).to eql(true)
+          expect(raw_attributes(obj)[:active]).to be(true)
+          expect(reload(obj).active).to be(true)
         end
 
         it 'is stored as string if field option store_as_native_boolean=false',
@@ -116,7 +116,7 @@ describe 'Dumping' do
           obj = klass.create(active: true)
 
           expect(raw_attributes(obj)[:active]).to eql('t')
-          expect(reload(obj).active).to eql(true)
+          expect(reload(obj).active).to be(true)
         end
       end
 
@@ -130,7 +130,7 @@ describe 'Dumping' do
           obj = klass.create(active: true)
 
           expect(raw_attributes(obj)[:active]).to eql('t')
-          expect(reload(obj).active).to eql(true)
+          expect(reload(obj).active).to be(true)
         end
 
         it 'is stored as boolean if field option store_as_native_boolean=true',
@@ -141,8 +141,8 @@ describe 'Dumping' do
 
           obj = klass.create(active: true)
 
-          expect(raw_attributes(obj)[:active]).to eql(true)
-          expect(reload(obj).active).to eql(true)
+          expect(raw_attributes(obj)[:active]).to be(true)
+          expect(reload(obj).active).to be(true)
         end
 
         it 'is stored as string if field option store_as_native_boolean=false',
@@ -154,7 +154,7 @@ describe 'Dumping' do
           obj = klass.create(active: true)
 
           expect(raw_attributes(obj)[:active]).to eql('t')
-          expect(reload(obj).active).to eql(true)
+          expect(reload(obj).active).to be(true)
         end
       end
     end
@@ -186,8 +186,8 @@ describe 'Dumping' do
       it 'stores nil value' do
         obj = klass.create(sent_at: nil)
 
-        expect(reload(obj).sent_at).to eql(nil)
-        expect(raw_attributes(obj)[:sent_at]).to eql(nil)
+        expect(reload(obj).sent_at).to be(nil)
+        expect(raw_attributes(obj)[:sent_at]).to be(nil)
       end
     end
 
@@ -249,7 +249,7 @@ describe 'Dumping' do
         obj = klass.create(sent_at: nil)
 
         expect(reload(obj).sent_at).to eq(nil)
-        expect(raw_attributes(obj)[:sent_at]).to eql(nil)
+        expect(raw_attributes(obj)[:sent_at]).to be(nil)
       end
     end
 
@@ -388,8 +388,8 @@ describe 'Dumping' do
 
         obj = klass.create(signed_up_on: nil)
 
-        expect(reload(obj).signed_up_on).to eql(nil)
-        expect(raw_attributes(obj)[:signed_up_on]).to eql(nil)
+        expect(reload(obj).signed_up_on).to be(nil)
+        expect(raw_attributes(obj)[:signed_up_on]).to be(nil)
       end
     end
 
@@ -402,7 +402,7 @@ describe 'Dumping' do
         obj = klass.create(signed_up_on: '2017-09-25'.to_date)
 
         expect(reload(obj).signed_up_on).to eql('2017-09-25'.to_date)
-        expect(raw_attributes(obj)[:signed_up_on]).to eql(17_434)
+        expect(raw_attributes(obj)[:signed_up_on]).to be(17_434)
       end
 
       it 'stores in number format when global option :store_date_as_string is false' do
@@ -414,7 +414,7 @@ describe 'Dumping' do
         Dynamoid.config.store_date_as_string = false
 
         obj = klass.create(signed_up_on: '2017-09-25'.to_date)
-        expect(raw_attributes(obj)[:signed_up_on]).to eql(17_434)
+        expect(raw_attributes(obj)[:signed_up_on]).to be(17_434)
 
         Dynamoid.config.store_date_as_string = store_date_as_string
       end
@@ -428,7 +428,7 @@ describe 'Dumping' do
         Dynamoid.config.store_date_as_string = true
 
         obj = klass.create(signed_up_on: '2017-09-25'.to_date)
-        expect(raw_attributes(obj)[:signed_up_on]).to eql(17_434)
+        expect(raw_attributes(obj)[:signed_up_on]).to be(17_434)
 
         Dynamoid.config.store_date_as_string = store_date_as_string
       end
@@ -440,8 +440,8 @@ describe 'Dumping' do
 
         obj = klass.create(signed_up_on: nil)
 
-        expect(reload(obj).signed_up_on).to eql(nil)
-        expect(raw_attributes(obj)[:signed_up_on]).to eql(nil)
+        expect(reload(obj).signed_up_on).to be(nil)
+        expect(raw_attributes(obj)[:signed_up_on]).to be(nil)
       end
     end
   end
@@ -479,15 +479,15 @@ describe 'Dumping' do
     it 'stores empty set as nil' do
       obj = klass.create(set_value: Set.new)
 
-      expect(reload(obj).set_value).to eql(nil)
-      expect(raw_attributes(obj)[:set_value]).to eql(nil)
+      expect(reload(obj).set_value).to be(nil)
+      expect(raw_attributes(obj)[:set_value]).to be(nil)
     end
 
     it 'stores nil value' do
       obj = klass.create(set_value: nil)
 
-      expect(reload(obj).set_value).to eql(nil)
-      expect(raw_attributes(obj)[:set_value]).to eql(nil)
+      expect(reload(obj).set_value).to be(nil)
+      expect(raw_attributes(obj)[:set_value]).to be(nil)
     end
 
     describe 'typed set' do
@@ -769,8 +769,8 @@ describe 'Dumping' do
     it 'stores nil value' do
       obj = klass.create(tags: nil)
 
-      expect(reload(obj).tags).to eql(nil)
-      expect(raw_attributes(obj)[:tags]).to eql(nil)
+      expect(reload(obj).tags).to be(nil)
+      expect(raw_attributes(obj)[:tags]).to be(nil)
     end
 
     describe 'typed array' do
@@ -1105,8 +1105,8 @@ describe 'Dumping' do
 
       obj = klass.create(name: '')
 
-      expect(reload(obj).name).to eql(nil)
-      expect(raw_attributes(obj)[:name]).to eql(nil)
+      expect(reload(obj).name).to be(nil)
+      expect(raw_attributes(obj)[:name]).to be(nil)
     end
 
     it 'is used as default field type' do
@@ -1127,8 +1127,8 @@ describe 'Dumping' do
 
       obj = klass.create(name: nil)
 
-      expect(reload(obj).name).to eql(nil)
-      expect(raw_attributes(obj)[:name]).to eql(nil)
+      expect(reload(obj).name).to be(nil)
+      expect(raw_attributes(obj)[:name]).to be(nil)
     end
   end
 
@@ -1186,8 +1186,8 @@ describe 'Dumping' do
     it 'stores nil value' do
       obj = klass.create(config: nil)
 
-      expect(reload(obj).config).to eql(nil)
-      expect(raw_attributes(obj)[:config]).to eql(nil)
+      expect(reload(obj).config).to be(nil)
+      expect(raw_attributes(obj)[:config]).to be(nil)
     end
 
     describe 'Hash' do
@@ -1247,15 +1247,15 @@ describe 'Dumping' do
     it 'stores integer value as Integer' do
       obj = klass.create(count: 10)
 
-      expect(reload(obj).count).to eql(10)
-      expect(raw_attributes(obj)[:count]).to eql(10)
+      expect(reload(obj).count).to be(10)
+      expect(raw_attributes(obj)[:count]).to be(10)
     end
 
     it 'stores nil value' do
       obj = klass.create(count: nil)
 
-      expect(reload(obj).count).to eql(nil)
-      expect(raw_attributes(obj)[:count]).to eql(nil)
+      expect(reload(obj).count).to be(nil)
+      expect(raw_attributes(obj)[:count]).to be(nil)
     end
   end
 
@@ -1290,8 +1290,8 @@ describe 'Dumping' do
     it 'stores nil value' do
       obj = klass.create(count: nil)
 
-      expect(reload(obj).count).to eql(nil)
-      expect(raw_attributes(obj)[:count]).to eql(nil)
+      expect(reload(obj).count).to be(nil)
+      expect(raw_attributes(obj)[:count]).to be(nil)
     end
   end
 
@@ -1347,8 +1347,8 @@ describe 'Dumping' do
 
       obj = klass.create(options: nil)
 
-      expect(reload(obj).options).to eql(nil)
-      expect(raw_attributes(obj)[:options]).to eql(nil)
+      expect(reload(obj).options).to be(nil)
+      expect(raw_attributes(obj)[:options]).to be(nil)
     end
   end
 
@@ -1501,7 +1501,7 @@ describe 'Dumping' do
 
     let(:binary_value) { "\x00\x88\xFF".dup.force_encoding('ASCII-8BIT') }
 
-    it "encodes a string in base64-encoded format" do
+    it 'encodes a string in base64-encoded format' do
       obj = klass.create(image: binary_value)
 
       expect(reload(obj).image).to eql(binary_value)

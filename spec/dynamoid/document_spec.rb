@@ -87,7 +87,7 @@ describe Dynamoid::Document do
 
       it 'type casts attributes' do
         obj = klass.new(count: '101')
-        expect(obj.attributes[:count]).to eql(101)
+        expect(obj.attributes[:count]).to be(101)
       end
     end
   end
@@ -96,8 +96,8 @@ describe Dynamoid::Document do
     it 'checks if there is a document with specified primary key' do
       address = Address.create(city: 'Chicago')
 
-      expect(Address.exists?(address.id)).to be_truthy
-      expect(Address.exists?('does-not-exist')).to be_falsey
+      expect(Address).to exist(address.id)
+      expect(Address).not_to exist('does-not-exist')
     end
 
     it 'supports an array of primary keys' do
@@ -105,22 +105,22 @@ describe Dynamoid::Document do
       address_2 = Address.create(city: 'New York')
       address_3 = Address.create(city: 'Los Angeles')
 
-      expect(Address.exists?([address_1.id, address_2.id])).to be_truthy
-      expect(Address.exists?([address_1.id, 'does-not-exist'])).to be_falsey
+      expect(Address).to exist([address_1.id, address_2.id])
+      expect(Address).not_to exist([address_1.id, 'does-not-exist'])
     end
 
     it 'supports hash with conditions' do
       address = Address.create(city: 'Chicago')
 
-      expect(Address.exists?(city: address.city)).to be_truthy
-      expect(Address.exists?(city: 'does-not-exist')).to be_falsey
+      expect(Address).to exist(city: address.city)
+      expect(Address).not_to exist(city: 'does-not-exist')
     end
 
     it 'checks if there any document in table at all if called without argument' do
       Address.create_table(sync: true)
       expect(Address.count).to eq 0
 
-      expect { Address.create }.to change { Address.exists? }.from(false).to(true)
+      expect { Address.create }.to change(Address, :exists?).from(false).to(true)
     end
   end
 
@@ -134,7 +134,7 @@ describe Dynamoid::Document do
   it 'has default table options' do
     address = Address.create
 
-    expect(address.id).to_not be_nil
+    expect(address.id).not_to be_nil
     expect(Address.table_name).to eq 'dynamoid_tests_addresses'
     expect(Address.hash_key).to eq :id
     expect(Address.read_capacity).to eq 100
@@ -146,7 +146,7 @@ describe Dynamoid::Document do
     tweet = Tweet.create(group: 12_345)
 
     expect { tweet.id }.to raise_error(NoMethodError)
-    expect(tweet.tweet_id).to_not be_nil
+    expect(tweet.tweet_id).not_to be_nil
     expect(Tweet.table_name).to eq 'dynamoid_tests_twitters'
     expect(Tweet.hash_key).to eq :tweet_id
     expect(Tweet.read_capacity).to eq 200
@@ -238,15 +238,15 @@ describe Dynamoid::Document do
     end
 
     it 'is not equal to another document with different key(s)' do
-      expect(document).to_not eq different
+      expect(document).not_to eq different
     end
 
     it 'is not equal to an object that is not a document' do
-      expect(document).to_not eq 'test'
+      expect(document).not_to eq 'test'
     end
 
     it 'is not equal to nil' do
-      expect(document).to_not eq nil
+      expect(document).not_to eq nil
     end
 
     it 'hashes documents with the keys to the same value' do
@@ -273,11 +273,11 @@ describe Dynamoid::Document do
       document = Tweet.create(tweet_id: 'x', group: 'abc')
       different = Tweet.create(tweet_id: 'x', group: 'xyz')
 
-      expect(document).to_not eq different
+      expect(document).not_to eq different
     end
   end
 
-  context '#count' do
+  describe '#count' do
     it 'returns the number of documents in the table' do
       document = Tweet.create(tweet_id: 'x', group: 'abc')
       different = Tweet.create(tweet_id: 'x', group: 'xyz')

@@ -187,10 +187,10 @@ module Dynamoid
       def first(*args)
         n = args.first || 1
 
-        return self.dup.scan_limit(n).to_a.first(*args) if @query.blank?
+        return dup.scan_limit(n).to_a.first(*args) if @query.blank?
         return super if @key_fields_detector.non_key_present?
 
-        self.dup.record_limit(n).to_a.first(*args)
+        dup.record_limit(n).to_a.first(*args)
       end
 
       # Returns the last item matching the criteria.
@@ -487,7 +487,7 @@ module Dynamoid
       def pluck(*args)
         fields = args.map(&:to_sym)
 
-        scope = self.dup
+        scope = dup
         scope.project(*fields)
 
         if fields.many?

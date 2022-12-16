@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.configure do |config|
-  config.around(:each) do |example|
+  config.around do |example|
     included_models_before = Dynamoid.included_models.dup
     example.run
     Dynamoid.included_models.replace(included_models_before)

@@ -844,7 +844,7 @@ module Dynamoid
 
       Dynamoid.adapter.delete(self.class.table_name, hash_key, options)
 
-      self.class.associations.each do |name, options|
+      self.class.associations.each do |name, _options|
         send(name).disassociate_source
       end
 

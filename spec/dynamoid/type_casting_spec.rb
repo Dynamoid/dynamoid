@@ -12,84 +12,84 @@ describe 'Type casting' do
 
     it 'converts nil to nil' do
       obj = klass.new(active: nil)
-      expect(obj.active).to eql(nil)
+      expect(obj.active).to be(nil)
     end
 
     it 'converts "" to nil' do
       obj = klass.new(active: '')
-      expect(obj.active).to eql(nil)
+      expect(obj.active).to be(nil)
     end
 
     it 'converts true to true' do
       obj = klass.new(active: true)
-      expect(obj.active).to eql(true)
+      expect(obj.active).to be(true)
     end
 
     it 'converts any not empty string to true' do
       obj = klass.new(active: 'something')
-      expect(obj.active).to eql(true)
+      expect(obj.active).to be(true)
     end
 
     it 'converts any random object to true' do
       obj = klass.new(active: [])
-      expect(obj.active).to eql(true)
+      expect(obj.active).to be(true)
 
       obj = klass.new(active: {})
-      expect(obj.active).to eql(true)
+      expect(obj.active).to be(true)
 
       obj = klass.new(active: :something)
-      expect(obj.active).to eql(true)
+      expect(obj.active).to be(true)
 
       obj = klass.new(active: Object.new)
-      expect(obj.active).to eql(true)
+      expect(obj.active).to be(true)
 
       obj = klass.new(active: 42)
-      expect(obj.active).to eql(true)
+      expect(obj.active).to be(true)
     end
 
     it 'converts false to false' do
       obj = klass.new(active: false)
-      expect(obj.active).to eql(false)
+      expect(obj.active).to be(false)
     end
 
     it 'converts 0 to false' do
       obj = klass.new(active: 0)
-      expect(obj.active).to eql(false)
+      expect(obj.active).to be(false)
     end
 
     it 'converts "0" to false' do
       obj = klass.new(active: '0')
-      expect(obj.active).to eql(false)
+      expect(obj.active).to be(false)
     end
 
     it 'converts "f" to false' do
       obj = klass.new(active: 'f')
-      expect(obj.active).to eql(false)
+      expect(obj.active).to be(false)
     end
 
     it 'converts "F" to false' do
       obj = klass.new(active: 'F')
-      expect(obj.active).to eql(false)
+      expect(obj.active).to be(false)
     end
 
     it 'converts "false" to false' do
       obj = klass.new(active: 'false')
-      expect(obj.active).to eql(false)
+      expect(obj.active).to be(false)
     end
 
     it 'converts "FALSE" to false' do
       obj = klass.new(active: 'FALSE')
-      expect(obj.active).to eql(false)
+      expect(obj.active).to be(false)
     end
 
     it 'converts "off" to false' do
       obj = klass.new(active: 'off')
-      expect(obj.active).to eql(false)
+      expect(obj.active).to be(false)
     end
 
     it 'converts "OFF" to false' do
       obj = klass.new(active: 'OFF')
-      expect(obj.active).to eql(false)
+      expect(obj.active).to be(false)
     end
   end
 
@@ -132,33 +132,33 @@ describe 'Type casting' do
 
     it 'converts string with not well formatted date or datetime to nil' do
       obj = klass.new(created_at: '')
-      expect(obj.created_at).to eql(nil)
+      expect(obj.created_at).to be(nil)
 
       obj = klass.new(created_at: '  ')
-      expect(obj.created_at).to eql(nil)
+      expect(obj.created_at).to be(nil)
 
       obj = klass.new(created_at: 'abc')
-      expect(obj.created_at).to eql(nil)
+      expect(obj.created_at).to be(nil)
 
       obj = klass.new(created_at: '2018-08')
-      expect(obj.created_at).to eql(nil)
+      expect(obj.created_at).to be(nil)
     end
 
     it 'converts any random object to nil' do
       obj = klass.new(created_at: nil)
-      expect(obj.created_at).to eql(nil)
+      expect(obj.created_at).to be(nil)
 
       obj = klass.new(created_at: :abc)
-      expect(obj.created_at).to eql(nil)
+      expect(obj.created_at).to be(nil)
 
       obj = klass.new(created_at: [])
-      expect(obj.created_at).to eql(nil)
+      expect(obj.created_at).to be(nil)
 
       obj = klass.new(created_at: {})
-      expect(obj.created_at).to eql(nil)
+      expect(obj.created_at).to be(nil)
 
       obj = klass.new(created_at: true)
-      expect(obj.created_at).to eql(nil)
+      expect(obj.created_at).to be(nil)
     end
   end
 
@@ -191,33 +191,33 @@ describe 'Type casting' do
 
     it 'converts string with not well formatted date or datetime to nil' do
       obj = klass.new(published_on: '')
-      expect(obj.published_on).to eql(nil)
+      expect(obj.published_on).to be(nil)
 
       obj = klass.new(published_on: '  ')
-      expect(obj.published_on).to eql(nil)
+      expect(obj.published_on).to be(nil)
 
       obj = klass.new(published_on: 'abc')
-      expect(obj.published_on).to eql(nil)
+      expect(obj.published_on).to be(nil)
 
       obj = klass.new(published_on: '2018-08')
-      expect(obj.published_on).to eql(nil)
+      expect(obj.published_on).to be(nil)
     end
 
     it 'converts any random object to nil' do
       obj = klass.new(published_on: nil)
-      expect(obj.published_on).to eql(nil)
+      expect(obj.published_on).to be(nil)
 
       obj = klass.new(published_on: :abc)
-      expect(obj.published_on).to eql(nil)
+      expect(obj.published_on).to be(nil)
 
       obj = klass.new(published_on: [])
-      expect(obj.published_on).to eql(nil)
+      expect(obj.published_on).to be(nil)
 
       obj = klass.new(published_on: {})
-      expect(obj.published_on).to eql(nil)
+      expect(obj.published_on).to be(nil)
 
       obj = klass.new(published_on: true)
-      expect(obj.published_on).to eql(nil)
+      expect(obj.published_on).to be(nil)
     end
   end
 
@@ -239,13 +239,13 @@ describe 'Type casting' do
 
     it 'converts any random object to nil' do
       obj = klass.new(items: 'a')
-      expect(obj.items).to eql(nil)
+      expect(obj.items).to be(nil)
 
       obj = klass.new(items: 13)
-      expect(obj.items).to eql(nil)
+      expect(obj.items).to be(nil)
 
       obj = klass.new(items: Time.now)
-      expect(obj.items).to eql(nil)
+      expect(obj.items).to be(nil)
     end
 
     it 'dups Set' do
@@ -333,13 +333,13 @@ describe 'Type casting' do
 
     it 'converts any random object to nil' do
       obj = klass.new(items: 'a')
-      expect(obj.items).to eql(nil)
+      expect(obj.items).to be(nil)
 
       obj = klass.new(items: 13)
-      expect(obj.items).to eql(nil)
+      expect(obj.items).to be(nil)
 
       obj = klass.new(items: Mutex.new)
-      expect(obj.items).to eql(nil)
+      expect(obj.items).to be(nil)
     end
 
     it 'dups Array' do
@@ -504,66 +504,66 @@ describe 'Type casting' do
 
     it 'converts to integer with #to_i method' do
       obj = klass.new(age: 23)
-      expect(obj.age).to eql(23)
+      expect(obj.age).to be(23)
 
       obj = klass.new(age: 23.999)
-      expect(obj.age).to eql(23)
+      expect(obj.age).to be(23)
 
       obj = klass.new(age: '1abc')
-      expect(obj.age).to eql(1)
+      expect(obj.age).to be(1)
 
       obj = klass.new(age: '0x1a')
-      expect(obj.age).to eql(0)
+      expect(obj.age).to be(0)
 
       obj = klass.new(age: Time.at(204_973_019))
-      expect(obj.age).to eql(204_973_019)
+      expect(obj.age).to be(204_973_019)
     end
 
     it 'converts true to 1' do
       obj = klass.new(age: true)
-      expect(obj.age).to eql(1)
+      expect(obj.age).to be(1)
     end
 
     it 'converts false to 0' do
       obj = klass.new(age: false)
-      expect(obj.age).to eql(0)
+      expect(obj.age).to be(0)
     end
 
     it 'converts nil to nil' do
       obj = klass.new(age: nil)
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
     end
 
     it 'converts "" to nil' do
       obj = klass.new(age: '')
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
     end
 
     it 'converts string with whytespaces to nil' do
       obj = klass.new(age: ' ')
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
     end
 
     it 'converts random object to nil' do
       obj = klass.new(age: {})
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
 
       obj = klass.new(age: [])
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
 
       obj = klass.new(age: Date.today)
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
 
       obj = klass.new(age: :'26')
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
     end
 
     it 'converts NaN and INFINITY to nil' do
       obj = klass.new(age: Float::NAN)
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
 
       obj = klass.new(age: Float::INFINITY)
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
     end
   end
 
@@ -610,46 +610,46 @@ describe 'Type casting' do
 
     it 'converts true to 1' do
       obj = klass.new(age: true)
-      expect(obj.age).to eql(1)
+      expect(obj.age).to be(1)
     end
 
     it 'converts false to 0' do
       obj = klass.new(age: false)
-      expect(obj.age).to eql(0)
+      expect(obj.age).to be(0)
     end
 
     it 'converts nil to nil' do
       obj = klass.new(age: nil)
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
     end
 
     it 'converts "" to nil' do
       obj = klass.new(age: '')
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
     end
 
     it 'converts string with whytespaces to nil' do
       obj = klass.new(age: ' ')
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
     end
 
     it 'converts random object to nil' do
       obj = klass.new(age: {})
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
 
       obj = klass.new(age: [])
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
 
       obj = klass.new(age: Date.today)
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
     end
 
     it 'converts NaN and INFINITY to nil' do
       obj = klass.new(age: Float::NAN)
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
 
       obj = klass.new(age: Float::INFINITY)
-      expect(obj.age).to eql(nil)
+      expect(obj.age).to be(nil)
     end
   end
 
@@ -692,7 +692,7 @@ describe 'Type casting' do
 
     it 'does not process it' do
       obj = klass.new(active: true)
-      expect(obj.active).to eql(true)
+      expect(obj.active).to be(true)
     end
   end
 

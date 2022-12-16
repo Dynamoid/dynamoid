@@ -120,8 +120,8 @@ describe Dynamoid::Criteria do
     objects = klass.create([{}, {}, {}])
 
     pages = []
-    klass.find_by_pages do |models, options|
-      pages << models  # actually there is only one page
+    klass.find_by_pages do |models, _options|
+      pages << models # actually there is only one page
     end
 
     expect(pages.flatten).to match_array(objects)

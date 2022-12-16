@@ -71,9 +71,9 @@ Create `config/initializers/aws.rb` as follows:
 
 ```ruby
 Aws.config.update({
-  region: 'us-west-2',
+                    region: 'us-west-2',
   credentials: Aws::Credentials.new('REPLACE_WITH_ACCESS_KEY_ID', 'REPLACE_WITH_SECRET_ACCESS_KEY'),
-})
+                  })
 ```
 
 Alternatively, if you don't want Aws connection settings to be
@@ -97,16 +97,16 @@ elsewhere in your project, etc.), you may do so:
 require 'dynamoid'
 
 credentials = Aws::AssumeRoleCredentials.new(
-    region: region,
-    access_key_id: key,
-    secret_access_key: secret,
-    role_arn: role_arn,
-    role_session_name: 'our-session'
-  )
+  region: region,
+  access_key_id: key,
+  secret_access_key: secret,
+  role_arn: role_arn,
+  role_session_name: 'our-session'
+)
 
 Dynamoid.configure do |config|
   config.region = 'us-west-2',
-  config.credentials = credentials
+                  config.credentials = credentials
 end
 ```
 
@@ -360,7 +360,6 @@ class User
   field :number, :number
   field :joined_at, :datetime
   field :hash, :serialized
-
 end
 ```
 
@@ -406,7 +405,7 @@ class Money
     'serialized representation as a string'
   end
 
-  def self.dynamoid_load(serialized_str)
+  def self.dynamoid_load(_serialized_str)
     # parse serialized representation and return a Money instance
     Money.new(1.23)
   end
@@ -431,7 +430,7 @@ serializing. Example:
 class Money; end
 
 class MoneyAdapter
-  def self.dynamoid_load(money_serialized_str)
+  def self.dynamoid_load(_money_serialized_str)
     Money.new(1.23)
   end
 
@@ -684,14 +683,14 @@ address.save
 To create multiple documents at once:
 
 ```ruby
-User.create([{name: 'Josh'}, {name: 'Nick'}])
+User.create([{ name: 'Josh' }, { name: 'Nick' }])
 ```
 
 There is an efficient and low-level way to create multiple documents
 (without validation and callbacks running):
 
 ```ruby
-users = User.import([{name: 'Josh'}, {name: 'Nick'}])
+users = User.import([{ name: 'Josh' }, { name: 'Nick' }])
 ```
 
 ### Querying
@@ -849,13 +848,13 @@ operators are available: `gt`, `lt`, `gte`, `lte`, `begins_with`,
 `between` as well as equality:
 
 ```ruby
-Address.where(latitude: 10212)
-Address.where('latitude.gt': 10212)
-Address.where('latitude.lt': 10212)
-Address.where('latitude.gte': 10212)
-Address.where('latitude.lte': 10212)
+Address.where(latitude: 10_212)
+Address.where('latitude.gt': 10_212)
+Address.where('latitude.lt': 10_212)
+Address.where('latitude.gte': 10_212)
+Address.where('latitude.lte': 10_212)
 Address.where('city.begins_with': 'Lon')
-Address.where('latitude.between': [10212, 20000])
+Address.where('latitude.between': [10_212, 20_000])
 ```
 
 You are able to filter results on the DynamoDB side and specify
@@ -863,7 +862,7 @@ conditions for non-key fields. Following additional operators are
 available: `in`, `contains`, `not_contains`, `null`, `not_null`:
 
 ```ruby
-Address.where('city.in': ['London', 'Edenburg', 'Birmingham'])
+Address.where('city.in': %w[London Edenburg Birmingham])
 Address.where('city.contains': ['on'])
 Address.where('city.not_contains': ['ing'])
 Address.where('postcode.null': false)
@@ -1253,7 +1252,7 @@ module DynamoidReset
   def self.all
     Dynamoid.adapter.list_tables.each do |table|
       # Only delete tables in our namespace
-      if table =~ /^#{Dynamoid::Config.namespace}/
+      if /^#{Dynamoid::Config.namespace}/.match?(table)
         Dynamoid.adapter.delete_table(table)
       end
     end
@@ -1282,6 +1281,7 @@ accidentally by adding the following to your test environment setup:
 
 ```ruby
 raise "Tests should be run in 'test' environment only" if Rails.env != 'test'
+
 Dynamoid.configure do |config|
   config.namespace = "#{Rails.application.railtie_name}_#{Rails.env}"
 end

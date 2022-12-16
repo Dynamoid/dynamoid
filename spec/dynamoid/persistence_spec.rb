@@ -20,8 +20,8 @@ describe Dynamoid::Persistence do
       it 'checks if a table already exists' do
         Address.create_table(table_name: Address.table_name)
 
-        expect(Address.table_exists?(Address.table_name)).to be_truthy
-        expect(Address.table_exists?('crazytable')).to be_falsey
+        expect(Address).to be_table_exists(Address.table_name)
+        expect(Address).not_to be_table_exists('crazytable')
       end
     end
   end
@@ -578,7 +578,7 @@ describe Dynamoid::Persistence do
 
       it 'returns false when destroy fails (due to callback)' do
         a = klass.create!
-        expect(a.destroy).to eql false
+        expect(a.destroy).to be false
         expect(klass.first.id).to eql a.id
       end
     end
@@ -587,7 +587,7 @@ describe Dynamoid::Persistence do
       it 'deletes the item' do
         address.save!
         address.destroy!
-        expect(Address.count).to eql 0
+        expect(Address.count).to be 0
       end
 
       it 'raises exception when destroy fails (due to callback)' do
@@ -647,7 +647,7 @@ describe Dynamoid::Persistence do
     it 'creates a new document' do
       address = klass.create(city: 'Chicago')
 
-      expect(address.new_record).to eql false
+      expect(address.new_record).to be false
       expect(address.id).to be_present
 
       address_saved = klass.find(address.id)
@@ -792,10 +792,10 @@ describe Dynamoid::Persistence do
         end
 
         expected_output = \
-          "run before_create" +
-          "run before_save" +
-          "run after_save" +
-          "run after_create"
+          'run before_create' \
+          'run before_save' \
+          'run after_save' \
+          'run after_create'
 
         expect { klass_with_callbacks.create }.to output(expected_output).to_stdout
       end
@@ -919,7 +919,7 @@ describe Dynamoid::Persistence do
           rescue StandardError
             nil
           end
-        end.to change { klass_with_validation.count }.by(1)
+        end.to change(klass_with_validation, :count).by(1)
 
         obj = klass_with_validation.last
         expect(obj.city).to eq 'Chicago'
@@ -1059,8 +1059,8 @@ describe Dynamoid::Persistence do
 
         obj = klass.create(count: 100)
         obj2 = klass.update!(obj.id, count: '101')
-        expect(obj2.attributes[:count]).to eql(101)
-        expect(raw_attributes(obj2)[:count]).to eql(101)
+        expect(obj2.attributes[:count]).to be(101)
+        expect(raw_attributes(obj2)[:count]).to be(101)
       end
     end
 
@@ -1106,10 +1106,10 @@ describe Dynamoid::Persistence do
         model = klass_with_callbacks.create(name: 'John')
 
         expected_output = \
-          "run before_update" +
-          "run before_save" +
-          "run after_save" +
-          "run after_update"
+          'run before_update' \
+          'run before_save' \
+          'run after_save' \
+          'run after_update'
 
         expect { klass_with_callbacks.update!(model.id, name: '[Updated]') }.to output(expected_output).to_stdout
       end
@@ -1249,8 +1249,8 @@ describe Dynamoid::Persistence do
 
         obj = klass.create(count: 100)
         obj2 = klass.update(obj.id, count: '101')
-        expect(obj2.attributes[:count]).to eql(101)
-        expect(raw_attributes(obj2)[:count]).to eql(101)
+        expect(obj2.attributes[:count]).to be(101)
+        expect(raw_attributes(obj2)[:count]).to be(101)
       end
     end
   end
@@ -1316,7 +1316,7 @@ describe Dynamoid::Persistence do
 
       expect do
         document_class.update_fields('some-fake-id', title: 'Title')
-      end.not_to change { document_class.count }
+      end.not_to change(document_class, :count)
     end
 
     it 'accepts range key if it is declared' do
@@ -1391,7 +1391,7 @@ describe Dynamoid::Persistence do
         obj = document_class.create(title: 'Old title')
         document_class.update_fields(obj.id, title: 'New title')
 
-        expect(obj.reload.attributes).to_not have_key(:updated_at)
+        expect(obj.reload.attributes).not_to have_key(:updated_at)
       end
     end
 
@@ -1414,8 +1414,8 @@ describe Dynamoid::Persistence do
 
         obj = klass.create(count: 100)
         obj2 = klass.update_fields(obj.id, count: '101')
-        expect(obj2.attributes[:count]).to eql(101)
-        expect(raw_attributes(obj2)[:count]).to eql(101)
+        expect(obj2.attributes[:count]).to be(101)
+        expect(raw_attributes(obj2)[:count]).to be(101)
       end
     end
 
@@ -1441,7 +1441,7 @@ describe Dynamoid::Persistence do
       obj = document_class.create(title: 'New Document')
 
       expect {
-        document_class.update_fields(obj.id, { title: 'New title', publisher: 'New publisher' } )
+        document_class.update_fields(obj.id, { title: 'New title', publisher: 'New publisher' })
       }.to raise_error Dynamoid::Errors::UnknownAttribute
     end
   end
@@ -1507,7 +1507,7 @@ describe Dynamoid::Persistence do
 
       expect do
         document_class.upsert('not-existed-id', title: 'Title')
-      end.to change { document_class.count }
+      end.to change(document_class, :count)
 
       obj = document_class.find('not-existed-id')
       expect(obj.title).to eq 'Title'
@@ -1585,7 +1585,7 @@ describe Dynamoid::Persistence do
         obj = document_class.create(title: 'Old title')
         document_class.upsert(obj.id, title: 'New title')
 
-        expect(obj.reload.attributes).to_not have_key(:updated_at)
+        expect(obj.reload.attributes).not_to have_key(:updated_at)
       end
     end
 
@@ -1608,8 +1608,8 @@ describe Dynamoid::Persistence do
 
         obj = klass.create(count: 100)
         obj2 = klass.upsert(obj.id, count: '101')
-        expect(obj2.attributes[:count]).to eql(101)
-        expect(raw_attributes(obj2)[:count]).to eql(101)
+        expect(obj2.attributes[:count]).to be(101)
+        expect(raw_attributes(obj2)[:count]).to be(101)
       end
     end
 
@@ -1635,7 +1635,7 @@ describe Dynamoid::Persistence do
       obj = document_class.create(title: 'New Document')
 
       expect {
-        document_class.upsert(obj.id, { title: 'New title', publisher: 'New publisher' } )
+        document_class.upsert(obj.id, { title: 'New title', publisher: 'New publisher' })
       }.to raise_error Dynamoid::Errors::UnknownAttribute
     end
   end
@@ -1676,8 +1676,8 @@ describe Dynamoid::Persistence do
       obj = document_class.create!(links_count: 2, mentions_count: 31)
       document_class.inc(obj.id, links_count: 5, mentions_count: 9)
 
-      expect(document_class.find(obj.id).links_count).to eql(7)
-      expect(document_class.find(obj.id).mentions_count).to eql(40)
+      expect(document_class.find(obj.id).links_count).to be(7)
+      expect(document_class.find(obj.id).mentions_count).to be(40)
     end
 
     it 'accepts sort key if it is declared' do
@@ -1689,7 +1689,7 @@ describe Dynamoid::Persistence do
       obj = class_with_sort_key.create!(author_name: 'Mike', links_count: 2)
       class_with_sort_key.inc(obj.id, 'Mike', links_count: 5)
 
-      expect(obj.reload.links_count).to eql(7)
+      expect(obj.reload.links_count).to be(7)
     end
 
     it 'uses dumped value of sort key to call UpdateItem' do
@@ -1701,7 +1701,7 @@ describe Dynamoid::Persistence do
       obj = class_with_sort_key.create!(published_on: '2018-10-07'.to_date, links_count: 2)
       class_with_sort_key.inc(obj.id, '2018-10-07'.to_date, links_count: 5)
 
-      expect(obj.reload.links_count).to eql(7)
+      expect(obj.reload.links_count).to be(7)
     end
 
     it 'returns self' do
@@ -1731,7 +1731,7 @@ describe Dynamoid::Persistence do
         obj = class_with_sort_key.create!(published_on: '2018-10-07'.to_date, links_count: 2)
         class_with_sort_key.inc(obj.id, '2018-10-07', links_count: 5)
 
-        expect(obj.reload.links_count).to eql(7)
+        expect(obj.reload.links_count).to be(7)
       end
 
       it 'type casts attributes' do
@@ -2199,8 +2199,8 @@ describe Dynamoid::Persistence do
 
         obj = klass.create
         obj.update_attribute(:count, '101')
-        expect(obj.attributes[:count]).to eql(101)
-        expect(raw_attributes(obj)[:count]).to eql(101)
+        expect(obj.attributes[:count]).to be(101)
+        expect(raw_attributes(obj)[:count]).to be(101)
       end
     end
 
@@ -2302,10 +2302,10 @@ describe Dynamoid::Persistence do
         model = klass_with_callbacks.create(name: 'John')
 
         expected_output = \
-          "run before_update" +
-          "run before_save" +
-          "run after_save" +
-          "run after_update"
+          'run before_update' \
+          'run before_save' \
+          'run after_save' \
+          'run after_update'
 
         expect { model.update_attribute(:name, 'Mike') }.to output(expected_output).to_stdout
       end
@@ -2324,8 +2324,8 @@ describe Dynamoid::Persistence do
       obj = klass.create!(name: 'Mike', age: 26)
       obj.update_attributes(age: 27)
 
-      expect(obj.age).to eql 27
-      expect(klass.find(obj.id).age).to eql 27
+      expect(obj.age).to be 27
+      expect(klass.find(obj.id).age).to be 27
     end
 
     it 'saves document if it is not persisted yet' do
@@ -2333,8 +2333,8 @@ describe Dynamoid::Persistence do
       obj.update_attributes(age: 27)
 
       expect(obj).to be_persisted
-      expect(obj.age).to eql 27
-      expect(klass.find(obj.id).age).to eql 27
+      expect(obj.age).to be 27
+      expect(klass.find(obj.id).age).to be 27
     end
 
     it 'does not save document if validaton fails' do
@@ -2346,8 +2346,8 @@ describe Dynamoid::Persistence do
       obj = klass.create!(name: 'Mike', age: 26)
       obj.update_attributes(age: 11)
 
-      expect(obj.age).to eql 11
-      expect(klass.find(obj.id).age).to eql 26
+      expect(obj.age).to be 11
+      expect(klass.find(obj.id).age).to be 26
     end
 
     describe 'type casting' do
@@ -2359,8 +2359,8 @@ describe Dynamoid::Persistence do
         obj = klass.create
         obj.update_attributes(count: '101')
 
-        expect(obj.attributes[:count]).to eql(101)
-        expect(raw_attributes(obj)[:count]).to eql(101)
+        expect(obj.attributes[:count]).to be(101)
+        expect(raw_attributes(obj)[:count]).to be(101)
       end
     end
 
@@ -2457,10 +2457,10 @@ describe Dynamoid::Persistence do
         model = klass_with_callbacks.create(name: 'John')
 
         expected_output = \
-          "run before_update" +
-          "run before_save" +
-          "run after_save" +
-          "run after_update"
+          'run before_update' \
+          'run before_save' \
+          'run after_save' \
+          'run after_update'
 
         expect { model.update_attributes(name: 'Mike') }.to output(expected_output).to_stdout
       end
@@ -2479,8 +2479,8 @@ describe Dynamoid::Persistence do
       obj = klass.create!(name: 'Mike', age: 26)
       obj.update_attributes!(age: 27)
 
-      expect(obj.age).to eql 27
-      expect(klass.find(obj.id).age).to eql 27
+      expect(obj.age).to be 27
+      expect(klass.find(obj.id).age).to be 27
     end
 
     it 'saves document if it is not persisted yet' do
@@ -2488,8 +2488,8 @@ describe Dynamoid::Persistence do
       obj.update_attributes!(age: 27)
 
       expect(obj).to be_persisted
-      expect(obj.age).to eql 27
-      expect(klass.find(obj.id).age).to eql 27
+      expect(obj.age).to be 27
+      expect(klass.find(obj.id).age).to be 27
     end
 
     it 'raises DocumentNotValid error if validaton fails' do
@@ -2503,8 +2503,8 @@ describe Dynamoid::Persistence do
         obj.update_attributes!(age: 11)
       }.to raise_error(Dynamoid::Errors::DocumentNotValid)
 
-      expect(obj.age).to eql 11
-      expect(klass.find(obj.id).age).to eql 26
+      expect(obj.age).to be 11
+      expect(klass.find(obj.id).age).to be 26
     end
 
     it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
@@ -2524,8 +2524,8 @@ describe Dynamoid::Persistence do
         obj = klass.create
         obj.update_attributes!(count: '101')
 
-        expect(obj.attributes[:count]).to eql(101)
-        expect(raw_attributes(obj)[:count]).to eql(101)
+        expect(obj.attributes[:count]).to be(101)
+        expect(raw_attributes(obj)[:count]).to be(101)
       end
     end
 
@@ -2614,10 +2614,10 @@ describe Dynamoid::Persistence do
         model = klass_with_callbacks.create(name: 'John')
 
         expected_output = \
-          "run before_update" +
-          "run before_save" +
-          "run after_save" +
-          "run after_update"
+          'run before_update' \
+          'run before_save' \
+          'run after_save' \
+          'run after_update'
 
         expect { model.update_attributes!(name: 'Mike') }.to output(expected_output).to_stdout
       end
@@ -2695,7 +2695,7 @@ describe Dynamoid::Persistence do
       end
       obj = class_with_validation.new(age: 10)
 
-      expect(obj.increment!(:age, 1)).to eql(true)
+      expect(obj.increment!(:age, 1)).to be(true)
     end
 
     it 'returns false if document is invalid' do
@@ -2705,7 +2705,7 @@ describe Dynamoid::Persistence do
       end
       obj = class_with_validation.new(age: 10)
 
-      expect(obj.increment!(:age, 10)).to eql(false)
+      expect(obj.increment!(:age, 10)).to be(false)
     end
 
     it 'saves changes' do
@@ -2787,7 +2787,7 @@ describe Dynamoid::Persistence do
       end
       obj = class_with_validation.new(age: 20)
 
-      expect(obj.decrement!(:age, 1)).to eql(true)
+      expect(obj.decrement!(:age, 1)).to be(true)
     end
 
     it 'returns false if document is invalid' do
@@ -2797,7 +2797,7 @@ describe Dynamoid::Persistence do
       end
       obj = class_with_validation.new(age: 20)
 
-      expect(obj.decrement!(:age, 10)).to eql(false)
+      expect(obj.decrement!(:age, 10)).to be(false)
     end
 
     it 'saves changes' do
@@ -2808,7 +2808,7 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context '#update!' do
+  describe '#update!' do
     # TODO: add some specs
 
     it 'returns self' do
@@ -2823,7 +2823,7 @@ describe Dynamoid::Persistence do
   end
 
   describe '#update' do
-    before :each do
+    before do
       @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'John')
     end
 
@@ -2852,7 +2852,7 @@ describe Dynamoid::Persistence do
 
       expect(@tweet.count).to eq(8)
       expect(@tweet.tags.to_a).to eq(['sql'])
-      expect(@tweet.user_name).to eq ('Alex')
+      expect(@tweet.user_name).to eq 'Alex'
     end
 
     it 'checks the conditions on update' do
@@ -2949,7 +2949,7 @@ describe Dynamoid::Persistence do
         obj = klass.create(title: 'Old title')
         obj.update { |d| d.set(title: 'New title') }
 
-        expect(obj.reload.attributes).to_not have_key(:updated_at)
+        expect(obj.reload.attributes).not_to have_key(:updated_at)
       end
     end
 
@@ -3036,7 +3036,7 @@ describe Dynamoid::Persistence do
     context 'with lock version' do
       it 'deletes a record if lock version matches' do
         address.save!
-        expect { address.destroy }.to_not raise_error
+        expect { address.destroy }.not_to raise_error
       end
 
       it 'does not delete a record if lock version does not match' do
@@ -3055,7 +3055,7 @@ describe Dynamoid::Persistence do
         a1 = address
         a1.lock_version = 100
 
-        expect { a1.destroy }.to_not raise_error
+        expect { a1.destroy }.not_to raise_error
       end
     end
 
@@ -3210,7 +3210,7 @@ describe Dynamoid::Persistence do
     it 'creates multiple documents' do
       expect do
         Address.import([{ city: 'Chicago' }, { city: 'New York' }])
-      end.to change { Address.count }.by(2)
+      end.to change(Address, :count).by(2)
     end
 
     it 'returns created documents' do
@@ -3344,8 +3344,8 @@ describe Dynamoid::Persistence do
 
       objects = klass.import([{ count: '101' }])
       obj = objects[0]
-      expect(obj.attributes[:count]).to eql(101)
-      expect(raw_attributes(obj)[:count]).to eql(101)
+      expect(obj.attributes[:count]).to be(101)
+      expect(raw_attributes(obj)[:count]).to be(101)
     end
 
     context 'backoff is specified' do
@@ -3370,7 +3370,7 @@ describe Dynamoid::Persistence do
       it 'creates multiple documents' do
         expect do
           Address.import([{ city: 'Chicago' }, { city: 'New York' }])
-        end.to change { Address.count }.by(2)
+        end.to change(Address, :count).by(2)
       end
 
       it 'uses specified backoff when some items are not processed' do
@@ -3418,7 +3418,7 @@ describe Dynamoid::Persistence do
         ]
         allow(Dynamoid.adapter.client).to receive(:batch_write_item).and_return(*responses)
 
-        expect(backoff_strategy).to receive(:call).exactly(2).times.and_call_original
+        expect(backoff_strategy).to receive(:call).twice.and_call_original
         klass.import(items)
         expect(@counter).to eq 2
       end

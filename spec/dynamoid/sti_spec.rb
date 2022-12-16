@@ -153,7 +153,7 @@ RSpec.describe 'STI' do
 
     it 'ignores `type` field at all' do
       b = B.create!
-      expect(b.type).to eql(nil)
+      expect(b.type).to be(nil)
 
       b = B.create!(type: 'Integer')
       expect(A.find(b.id)).to eql b

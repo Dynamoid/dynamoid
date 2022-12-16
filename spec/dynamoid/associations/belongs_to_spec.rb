@@ -136,7 +136,7 @@ describe Dynamoid::Associations::BelongsTo do
         magazine = Magazine.create
         subscription.magazine = magazine
 
-        expect(magazine.subscriptions.target[0].object_id).to_not eq(subscription.object_id)
+        expect(magazine.subscriptions.target[0].object_id).not_to eq(subscription.object_id)
       end
     end
 
@@ -198,7 +198,7 @@ describe Dynamoid::Associations::BelongsTo do
         magazine = Magazine.create
 
         sponsor.magazine = magazine
-        expect(magazine.sponsor.target.object_id).to_not eq(sponsor.object_id)
+        expect(magazine.sponsor.target.object_id).not_to eq(sponsor.object_id)
       end
     end
   end
@@ -294,7 +294,7 @@ describe Dynamoid::Associations::BelongsTo do
   end
 
   describe 'foreign_key option' do
-    before :each do
+    before do
       @directory_class = directory_class = new_class(table_name: :directories)
 
       @file_class = file_class = new_class(table_name: :files) do

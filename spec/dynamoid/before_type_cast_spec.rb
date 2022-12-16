@@ -69,19 +69,19 @@ RSpec.describe 'Before type cast' do
     it 'returns attribute original value' do
       obj = klass.new(admin: 1)
 
-      expect(obj.read_attribute_before_type_cast(:admin)).to eql(1)
+      expect(obj.read_attribute_before_type_cast(:admin)).to be(1)
     end
 
     it 'accepts string as well as symbol argument' do
       obj = klass.new(admin: 1)
 
-      expect(obj.read_attribute_before_type_cast('admin')).to eql(1)
+      expect(obj.read_attribute_before_type_cast('admin')).to be(1)
     end
 
     it 'returns nil if there is no such attribute' do
       obj = klass.new
 
-      expect(obj.read_attribute_before_type_cast(:first_name)).to eql(nil)
+      expect(obj.read_attribute_before_type_cast(:first_name)).to be(nil)
     end
   end
 
@@ -108,7 +108,7 @@ RSpec.describe 'Before type cast' do
     it 'returns attribute original value' do
       obj = klass.new(admin: 0)
 
-      expect(obj.admin_before_type_cast).to eql(0)
+      expect(obj.admin_before_type_cast).to be(0)
     end
   end
 end

@@ -118,7 +118,7 @@ module Dynamoid
 
       # @private
       def _find_all(ids, options = {})
-        raise Errors::MissingRangeKey if range_key && ids.any? { |pk, sk| sk.nil? }
+        raise Errors::MissingRangeKey if range_key && ids.any? { |_pk, sk| sk.nil? }
 
         if range_key
           ids = ids.map do |pk, sk|
@@ -294,7 +294,7 @@ module Dynamoid
       # @private
       # @since 0.2.0
       def method_missing(method, *args)
-        if method =~ /find/
+        if /find/.match?(method)
           ActiveSupport::Deprecation.warn("[Dynamoid] .#{method} is deprecated! Call .where instead of")
 
           finder = method.to_s.split('_by_').first
@@ -303,7 +303,7 @@ module Dynamoid
           chain = Dynamoid::Criteria::Chain.new(self)
           chain = chain.where({}.tap { |h| attributes.each_with_index { |attr, index| h[attr.to_sym] = args[index] } })
 
-          if finder =~ /all/
+          if /all/.match?(finder)
             chain.all
           else
             chain.first
