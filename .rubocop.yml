@@ -2,6 +2,7 @@
 inherit_from:
   - .rubocop_performance.yml
   - .rubocop_rspec.yml
+  - .rubocop_thread_safety.yml
   - .rubocop_todo.yml
 
 inherit_gem:
@@ -13,6 +14,7 @@ require:
   - rubocop-performance
   - rubocop-rake
   - rubocop-rspec
+  - rubocop-thread_safety
 
 # It's the lowest supported Ruby version
 AllCops:
