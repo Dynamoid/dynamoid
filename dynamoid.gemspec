@@ -34,12 +34,14 @@ Gem::Specification.new do |spec|
   spec.homepage = 'http://github.com/Dynamoid/dynamoid'
   spec.licenses = ['MIT']
   spec.require_paths = ['lib']
+  spec.required_ruby_version = '>= 2.3.0'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = "https://github.com/Dynamoid/dynamoid/tree/v#{spec.version}"
   spec.metadata['changelog_uri'] = "https://github.com/Dynamoid/dynamoid/blob/v#{spec.version}/CHANGELOG.md"
   spec.metadata['bug_tracker_uri'] = 'https://github.com/Dynamoid/dynamoid/issues'
   spec.metadata['documentation_uri'] = "https://www.rubydoc.info/gems/dynamoid/#{spec.version}"
+  spec.metadata['funding_uri'] = 'https://opencollective.com/dynamoid'
   spec.metadata['wiki_uri'] = 'https://github.com/Dynamoid/dynamoid/wiki'
   spec.metadata['rubygems_mfa_required'] = 'true'
 
@@ -59,6 +61,8 @@ Gem::Specification.new do |spec|
   # 'rubocop-lts' is for Ruby 2.3+, see https://rubocop-lts.gitlab.io/
   spec.add_development_dependency 'rubocop-lts', '~> 10.0'
   spec.add_development_dependency 'rubocop-md'
+  spec.add_development_dependency 'rubocop-performance'
+  spec.add_development_dependency 'rubocop-rake'
   spec.add_development_dependency 'rubocop-rspec'
   spec.add_development_dependency 'yard'
 end
