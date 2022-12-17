@@ -41,6 +41,7 @@ Gem::Specification.new do |spec|
   spec.metadata['changelog_uri'] = "https://github.com/Dynamoid/dynamoid/blob/v#{spec.version}/CHANGELOG.md"
   spec.metadata['bug_tracker_uri'] = 'https://github.com/Dynamoid/dynamoid/issues'
   spec.metadata['documentation_uri'] = "https://www.rubydoc.info/gems/dynamoid/#{spec.version}"
+  spec.metadata['funding_uri'] = 'https://opencollective.com/dynamoid'
   spec.metadata['wiki_uri'] = 'https://github.com/Dynamoid/dynamoid/wiki'
   spec.metadata['rubygems_mfa_required'] = 'true'
 
