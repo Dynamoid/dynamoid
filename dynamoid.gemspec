@@ -61,6 +61,7 @@ Gem::Specification.new do |spec|
   # 'rubocop-lts' is for Ruby 2.3+, see https://rubocop-lts.gitlab.io/
   spec.add_development_dependency 'rubocop-lts', '~> 10.0'
   spec.add_development_dependency 'rubocop-md'
+  spec.add_development_dependency 'rubocop-performance'
   spec.add_development_dependency 'rubocop-rake'
   spec.add_development_dependency 'rubocop-rspec'
   spec.add_development_dependency 'yard'
