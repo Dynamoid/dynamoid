@@ -22,26 +22,25 @@ task test: :spec
 ruby_version = Gem::Version.new(RUBY_VERSION)
 minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && RUBY_ENGINE == engine }
 linting = minimum_version.call('2.7')
+def rubocop_task(warning)
+  desc 'rubocop task stub'
+  task :rubocop do
+    warn warning
+  end
+end
 
 if linting
   begin
     require 'rubocop/rake_task'
     RuboCop::RakeTask.new do |task|
-      task.options = ['-D'] # Display the name of the failing cops
+      task.options = ['-DESP'] # Display the name of the failing cops
     end
   rescue LoadError
-    desc 'rubocop task stub'
-    task :rubocop do
-      warn 'RuboCop is unexpectedly disabled. Have you run bundle install?'
-    end
+    rubocop_task("RuboCop is unexpectedly disabled locally for #{RUBY_ENGINE}-#{RUBY_VERSION}. Have you run bundle install?")
   end
 else
-  desc 'rubocop task stub (too old ruby)'
-  task :rubocop do
-    warn "RuboCop is disabled for #{RUBY_ENGINE}-#{RUBY_VERSION}"
-  end
+  rubocop_task("RuboCop is disabled locally for #{RUBY_ENGINE}-#{RUBY_VERSION}.\nIf you need it locally on #{RUBY_ENGINE}-#{RUBY_VERSION}, run BUNDLE_GEMFILE=gemfiles/style.gemfile bundle install && BUNDLE_GEMFILE=gemfiles/style.gemfile bundle exec rubocop")
 end
-
 
 require 'yard'
 YARD::Rake::YardocTask.new do |t|
