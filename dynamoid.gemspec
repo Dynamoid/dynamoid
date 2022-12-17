@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
     'Peter Boling',
     'Andrew Konchin'
   ]
-  spec.email = ['peter.boling@gmail.com', 'brian@stellaservice.com', 'andry.konchin@gmail.com']
+  spec.email = ['andry.konchin@gmail.com', 'peter.boling@gmail.com', 'brian@stellaservice.com']
 
   spec.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   spec.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
