@@ -16,6 +16,7 @@ if RUN_COVERAGE
     enable_coverage :branch
     primary_coverage :branch
     add_filter 'spec'
+    # Why exclude version.rb? See: https://github.com/simplecov-ruby/simplecov/issues/557#issuecomment-410105995
     add_filter 'lib/dynamoid/version.rb'
     track_files '**/*.rb'
 
