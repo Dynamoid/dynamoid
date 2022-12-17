@@ -6,7 +6,7 @@
 [![CodeTriage Helpers](https://www.codetriage.com/dynamoid/dynamoid/badges/users.svg)](https://www.codetriage.com/dynamoid/dynamoid)
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](https://www.rubydoc.info/github/Dynamoid/dynamoid/frames)
 [![Inline docs](http://inch-ci.org/github/Dynamoid/Dynamoid.svg?branch=master)](http://inch-ci.org/github/Dynamoid/Dynamoid)
-![GitHub](https://img.shields.io/github/license/Dynamoid/dynamoid.svg)
+[![License](https://img.shields.io/github/license/Dynamoid/dynamoid.svg)](https://github.com/Dynamoid/dynamoid/blob/master/LICENSE.txt)
 [![GitMoji][🖐gitmoji-img]][🖐gitmoji]
 [![SemVer 2.0.0][🧮semver-img]][semver]
 [![Keep-A-Changelog 1.0.0][📗keep-changelog-img]][📗keep-changelog]
