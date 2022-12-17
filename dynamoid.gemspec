@@ -25,12 +25,19 @@ Gem::Specification.new do |spec|
     'Peter Boling',
     'Andrew Konchin'
   ]
-  spec.email = ['peter.boling@gmail.com', 'brian@stellaservice.com', 'andry.konchin@gmail.com']
+  spec.email = ['andry.konchin@gmail.com', 'peter.boling@gmail.com', 'brian@stellaservice.com']
 
   spec.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   spec.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
   # Ignore not commited files
-  spec.files = Dir['CHANGELOG.md', 'README.md', 'LICENSE.txt', 'lib/**/*'] & `git ls-files`.split("\n")
+  spec.files = Dir[
+    'CHANGELOG.md',
+    'dynamoid.gemspec',
+    'lib/**/*',
+    'LICENSE.txt',
+    'README.md',
+    'SECURITY.md'
+  ]
   spec.homepage = 'http://github.com/Dynamoid/dynamoid'
   spec.licenses = ['MIT']
   spec.require_paths = ['lib']
@@ -61,6 +68,7 @@ Gem::Specification.new do |spec|
   # 'rubocop-lts' is for Ruby 2.3+, see https://rubocop-lts.gitlab.io/
   spec.add_development_dependency 'rubocop-lts', '~> 10.0'
   spec.add_development_dependency 'rubocop-md'
+  spec.add_development_dependency 'rubocop-packaging'
   spec.add_development_dependency 'rubocop-performance'
   spec.add_development_dependency 'rubocop-rake'
   spec.add_development_dependency 'rubocop-rspec'
