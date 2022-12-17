@@ -2,6 +2,9 @@
 
 source 'https://rubygems.org'
 
+# Some tests require Rails.
+gem 'activemodel', '~> 7.0.2'
+
 gem 'codecov', '~> 0.6', require: false # For CodeCov
 gem 'simplecov', '~> 0.21', require: false
 gem 'simplecov-cobertura', require: false # XML for Jenkins
