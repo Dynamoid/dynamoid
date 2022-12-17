@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * [#613](https://github.com/Dynamoid/dynamoid/pull/613) Add `rubocop-performance` and `rubocop-rake` (@pboling)
   * Added `funding_uri` set to open collective: https://opencollective.com/dynamoid
   * Added `required_ruby_version` as `>= 2.3.0` (which was already the minimum supported version of Ruby)
+* [#616](https://github.com/Dynamoid/dynamoid/pull/616) Upgrade `simplecov` (& remove `coveralls`) (@pboling)
+  * Setup GitHub actions for Code Coverage
+  * Setup GitHub actions for RuboCop linting
 ### Changed
 * [#610](https://github.com/Dynamoid/dynamoid/pull/610) Switch to [`rubocop-lts`](https://rubocop-lts.gitlab.io/) (@pboling)
 ### Removed
