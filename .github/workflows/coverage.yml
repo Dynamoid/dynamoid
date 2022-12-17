@@ -39,7 +39,8 @@ jobs:
           - "2.7"
 
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.experimental || endsWith(matrix.ruby, 'head') }}
+    env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/coverage.gemfile
     steps:
       - uses: amancevice/setup-code-climate@v0
         name: CodeClimate Install

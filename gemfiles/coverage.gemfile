@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'codecov', '~> 0.6', require: false # For CodeCov
+gem 'simplecov', '~> 0.21', require: false
+gem 'simplecov-cobertura', require: false # XML for Jenkins
+gem 'simplecov-json', require: false # For CodeClimate
+gem 'simplecov-lcov', '~> 0.8', require: false
+
+gemspec path: '../'

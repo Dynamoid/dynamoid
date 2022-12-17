@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+# NOTE: This Gemfile is only relevant to local development.
+#       It allows during local development:
+#         - code coverage reports to be generated
+#         - style linting to be run with RuboCop & extensions
+#       All CI builds use files in gemfiles/*.
 source 'https://rubygems.org'
 
 # Specify your gem's dependencies in dynamoid.gemspec

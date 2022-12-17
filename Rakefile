@@ -19,17 +19,29 @@ end
 desc 'alias test task to spec'
 task test: :spec
 
-begin
-  require 'rubocop/rake_task'
-  RuboCop::RakeTask.new do |task|
-    task.options = ['-D'] # Display the name of the failing cops
+ruby_version = Gem::Version.new(RUBY_VERSION)
+minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && RUBY_ENGINE == engine }
+linting = minimum_version.call('2.7')
+
+if linting
+  begin
+    require 'rubocop/rake_task'
+    RuboCop::RakeTask.new do |task|
+      task.options = ['-D'] # Display the name of the failing cops
+    end
+  rescue LoadError
+    desc 'rubocop task stub'
+    task :rubocop do
+      warn 'RuboCop is unexpectedly disabled. Have you run bundle install?'
+    end
   end
-rescue LoadError
-  desc 'rubocop task stub'
+else
+  desc 'rubocop task stub (too old ruby)'
   task :rubocop do
-    warn 'RuboCop is disabled'
+    warn "RuboCop is disabled for #{RUBY_ENGINE}-#{RUBY_VERSION}"
   end
 end
+
 
 require 'yard'
 YARD::Rake::YardocTask.new do |t|

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 # To get coverage
-# On Local, default (HTML) output, it just works, coverage is turned on:
+# On Local, default (HTML) output coverage is turned on with Ruby 2.6+:
 #   bundle exec rspec spec
-# On Local, all output formats:
+# On Local, all output formats with Ruby 2.6+:
 #   COVER_ALL=true bundle exec rspec spec
 #
 # On CI, all output formats, the ENV variables CI is always set,
@@ -28,5 +28,5 @@ if RUN_COVERAGE
     minimum_coverage(line: 90, branch: 89)
   end
 else
-  puts "Not running coverage on #{RUBY_ENGINE} #{RUBY_VERSION}"
+  puts "Not running coverage on #{RUBY_VERSION}-#{RUBY_ENGINE}"
 end
