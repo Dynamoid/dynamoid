@@ -8,6 +8,7 @@ inherit_gem:
 
 require:
   - rubocop-md
+  - rubocop-rake
   - rubocop-rspec
 
 # It's the lowest supported Ruby version
