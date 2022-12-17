@@ -33,7 +33,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   # @param [Symbol] request_type the name of the request, either :query or :scan
   #
   shared_examples 'correctly handling limits' do |request_type|
-    before(:each) do
+    before do
       @request_type = request_type
     end
 
@@ -50,7 +50,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     context 'multiple name entities' do
-      before(:each) do
+      before do
         (1..4).each do |i|
           Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: i.to_f)
           Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Pascal', range: (i + 4).to_f)
@@ -88,14 +88,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       it 'obeys correct scan limit with filter' do
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(1).times.and_call_original
+        expect(Dynamoid.adapter.client).to receive(request_type).once.and_call_original
         expect(
           dynamo_request(test_table3, request_params.merge(name: { eq: 'Josh' }), scan_limit: 2).count
         ).to eq(2)
       end
 
       it 'obeys correct scan limit over record limit with filter' do
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(1).times.and_call_original
+        expect(Dynamoid.adapter.client).to receive(request_type).once.and_call_original
         expect(
           dynamo_request(
             test_table3,
@@ -107,14 +107,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       it 'obeys correct scan limit with filter with some return' do
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(1).times.and_call_original
+        expect(Dynamoid.adapter.client).to receive(request_type).once.and_call_original
         expect(
           dynamo_request(test_table3, request_params.merge(name: { eq: 'Pascal' }), scan_limit: 5).count
         ).to eq(1)
       end
 
       it 'obeys correct scan limit and batch size with filter with some return' do
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(2).times.and_call_original
+        expect(Dynamoid.adapter.client).to receive(request_type).twice.and_call_original
         expect(
           dynamo_request(
             test_table3,
@@ -163,7 +163,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     # even if we hit response data size limits
     #
     context 'large records still returns as much data' do
-      before(:each) do
+      before do
         # 64 of these items will exceed the 1MB result record_limit thus query won't return all results on first loop
         # We use :age since :range won't work for filtering in queries
         200.times do |i|
@@ -193,7 +193,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       it 'returns correct for record limit' do
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(2).times.and_call_original
+        expect(Dynamoid.adapter.client).to receive(request_type).twice.and_call_original
         expect(
           dynamo_request(test_table3, request_params.merge(age: { gte: 5.0 }), record_limit: 100).count
         ).to eq(100)
@@ -216,7 +216,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       it 'returns correct with batching and record limit beyond data size limit' do
         # Since we hit limit once, we need to make sure the second request only
         # requests for as many as we have left for our record limit.
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(2).times.and_call_original
+        expect(Dynamoid.adapter.client).to receive(request_type).twice.and_call_original
         expect(
           dynamo_request(test_table3, request_params, record_limit: 83, batch_size: 100).count
         ).to eq(83)
@@ -245,7 +245,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: i.to_f)
       end
 
-      expect(Dynamoid.adapter.client).to receive(request_type).exactly(2).times.and_call_original
+      expect(Dynamoid.adapter.client).to receive(request_type).twice.and_call_original
       # In faulty code, the record limit would adjust limit to 2 thus on second page
       # we would get the 5th Josh (range value 6.0) whereas correct implementation would
       # adjust limit to 1 since can only scan 1 more record therefore would see Pascal
@@ -310,7 +310,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   # Tests scan_index_forwards flag behavior on range queries
   #
   shared_examples 'correct ordering' do
-    before(:each) do
+    before do
       Dynamoid.adapter.put_item(test_table4, id: '1', order: 1, range: 1.0)
       Dynamoid.adapter.put_item(test_table4, id: '1', order: 2, range: 2.0)
       Dynamoid.adapter.put_item(test_table4, id: '1', order: 3, range: 3.0)
@@ -820,7 +820,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       expect(Dynamoid.adapter.client).to receive(:batch_write_item)
-        .exactly(2).times.and_call_original
+        .twice.and_call_original
       Dynamoid.adapter.batch_delete_item(test_table1 => (0..25).map(&:to_s))
 
       results = Dynamoid.adapter.scan(test_table1).flat_map { |i| i }
@@ -834,7 +834,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       expect(Dynamoid.adapter.client).to receive(:batch_write_item)
-        .exactly(2).times.and_call_original
+        .twice.and_call_original
       Dynamoid.adapter.batch_delete_item(
         test_table1 => (0..12).map(&:to_s),
         test_table2 => (0..12).map(&:to_s)
@@ -870,7 +870,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         items = (1..26).map { |i| { id: i.to_s } }
 
         expect(Dynamoid.adapter.client).to receive(:batch_write_item)
-          .exactly(2).times.and_call_original
+          .twice.and_call_original
 
         Dynamoid.adapter.batch_write_item(test_table1, items)
       end
@@ -950,11 +950,13 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
     context 'when calling ListTables with more than 200 tables' do
       let!(:count_before) { Dynamoid.adapter.list_tables.size }
+
       before do
         201.times do |n|
           Dynamoid.adapter.create_table("dynamoid_tests_ALotOfTables#{n}", [:id])
         end
       end
+
       after do
         201.times do |n|
           Dynamoid.adapter.delete_table("dynamoid_tests_ALotOfTables#{n}")
@@ -1219,7 +1221,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         end.to raise_error(Dynamoid::Errors::ConditionalCheckFailedException)
 
         excluded_attributes = { email: 'justin@example.com' }
-        expect(Dynamoid.adapter.get_item(test_table1, '1')).to_not include(excluded_attributes)
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).not_to include(excluded_attributes)
       end
 
       it 'updates item if condition succeeds' do
@@ -1271,7 +1273,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   end
 
   # connection_config
-  context '#connectin_config' do
+  describe '#connectin_config' do
     subject { described_class.new.connection_config }
 
     before do

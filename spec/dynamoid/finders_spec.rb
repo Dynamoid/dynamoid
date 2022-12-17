@@ -412,7 +412,7 @@ describe Dynamoid::Finders do
       expect(array).to be_empty
     end
 
-    it 'should find on a query that is not indexed' do
+    it 'finds on a query that is not indexed' do
       user = User.create(password: 'Test')
 
       array = User.find_all_by_password('Test').to_a
@@ -420,7 +420,7 @@ describe Dynamoid::Finders do
       expect(array).to eq [user]
     end
 
-    it 'should find on a query on multiple attributes that are not indexed' do
+    it 'finds on a query on multiple attributes that are not indexed' do
       user = User.create(password: 'Test', name: 'Josh')
 
       array = User.find_all_by_password_and_name('Test', 'Josh').to_a
@@ -428,7 +428,7 @@ describe Dynamoid::Finders do
       expect(array).to eq [user]
     end
 
-    it 'should return an empty array when fields exist but nothing is found' do
+    it 'returns an empty array when fields exist but nothing is found' do
       User.create_table
       array = User.find_all_by_password('Test').to_a
 
@@ -494,6 +494,7 @@ describe Dynamoid::Finders do
         expect(last_bar.name).to eql last_visit.name
         expect(last_bar.bar_id).to eql last_visit.bar_id
       end
+
       it 'honors :scan_index_forward => false' do
         time = DateTime.now
         first_visit = Bar.create(name: 'Drank', visited_at: time - 1.day)
@@ -512,6 +513,7 @@ describe Dynamoid::Finders do
         expect(last_bar.name).to eql first_visit.name
         expect(last_bar.bar_id).to eql first_visit.bar_id
       end
+
       it 'queries gsi with hash key' do
         time = DateTime.now
         p1 = Post.create(post_id: 1, posted_at: time, length: '10')
@@ -551,7 +553,7 @@ describe Dynamoid::Finders do
       end
 
       describe 'numeric comparisons' do
-        before(:each) do
+        before do
           @time = DateTime.now
           p1 = Post.create(post_id: 1, posted_at: @time, name: 'post')
           p2 = Post.create(post_id: 2, posted_at: @time + 1.day, name: 'post')

@@ -20,8 +20,8 @@ describe Dynamoid::Persistence do
       it 'checks if a table already exists' do
         Address.create_table(table_name: Address.table_name)
 
-        expect(Address.table_exists?(Address.table_name)).to be_truthy
-        expect(Address.table_exists?('crazytable')).to be_falsey
+        expect(Address).to be_table_exists(Address.table_name)
+        expect(Address).not_to be_table_exists('crazytable')
       end
     end
   end
@@ -919,7 +919,7 @@ describe Dynamoid::Persistence do
           rescue StandardError
             nil
           end
-        end.to change { klass_with_validation.count }.by(1)
+        end.to change(klass_with_validation, :count).by(1)
 
         obj = klass_with_validation.last
         expect(obj.city).to eq 'Chicago'
@@ -1316,7 +1316,7 @@ describe Dynamoid::Persistence do
 
       expect do
         document_class.update_fields('some-fake-id', title: 'Title')
-      end.not_to change { document_class.count }
+      end.not_to change(document_class, :count)
     end
 
     it 'accepts range key if it is declared' do
@@ -1391,7 +1391,7 @@ describe Dynamoid::Persistence do
         obj = document_class.create(title: 'Old title')
         document_class.update_fields(obj.id, title: 'New title')
 
-        expect(obj.reload.attributes).to_not have_key(:updated_at)
+        expect(obj.reload.attributes).not_to have_key(:updated_at)
       end
     end
 
@@ -1507,7 +1507,7 @@ describe Dynamoid::Persistence do
 
       expect do
         document_class.upsert('not-existed-id', title: 'Title')
-      end.to change { document_class.count }
+      end.to change(document_class, :count)
 
       obj = document_class.find('not-existed-id')
       expect(obj.title).to eq 'Title'
@@ -1585,7 +1585,7 @@ describe Dynamoid::Persistence do
         obj = document_class.create(title: 'Old title')
         document_class.upsert(obj.id, title: 'New title')
 
-        expect(obj.reload.attributes).to_not have_key(:updated_at)
+        expect(obj.reload.attributes).not_to have_key(:updated_at)
       end
     end
 
@@ -2808,7 +2808,7 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context '#update!' do
+  describe '#update!' do
     # TODO: add some specs
 
     it 'returns self' do
@@ -2823,7 +2823,7 @@ describe Dynamoid::Persistence do
   end
 
   describe '#update' do
-    before :each do
+    before do
       @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'John')
     end
 
@@ -2949,7 +2949,7 @@ describe Dynamoid::Persistence do
         obj = klass.create(title: 'Old title')
         obj.update { |d| d.set(title: 'New title') }
 
-        expect(obj.reload.attributes).to_not have_key(:updated_at)
+        expect(obj.reload.attributes).not_to have_key(:updated_at)
       end
     end
 
@@ -3036,7 +3036,7 @@ describe Dynamoid::Persistence do
     context 'with lock version' do
       it 'deletes a record if lock version matches' do
         address.save!
-        expect { address.destroy }.to_not raise_error
+        expect { address.destroy }.not_to raise_error
       end
 
       it 'does not delete a record if lock version does not match' do
@@ -3055,7 +3055,7 @@ describe Dynamoid::Persistence do
         a1 = address
         a1.lock_version = 100
 
-        expect { a1.destroy }.to_not raise_error
+        expect { a1.destroy }.not_to raise_error
       end
     end
 
@@ -3210,7 +3210,7 @@ describe Dynamoid::Persistence do
     it 'creates multiple documents' do
       expect do
         Address.import([{ city: 'Chicago' }, { city: 'New York' }])
-      end.to change { Address.count }.by(2)
+      end.to change(Address, :count).by(2)
     end
 
     it 'returns created documents' do
@@ -3370,7 +3370,7 @@ describe Dynamoid::Persistence do
       it 'creates multiple documents' do
         expect do
           Address.import([{ city: 'Chicago' }, { city: 'New York' }])
-        end.to change { Address.count }.by(2)
+        end.to change(Address, :count).by(2)
       end
 
       it 'uses specified backoff when some items are not processed' do
@@ -3418,7 +3418,7 @@ describe Dynamoid::Persistence do
         ]
         allow(Dynamoid.adapter.client).to receive(:batch_write_item).and_return(*responses)
 
-        expect(backoff_strategy).to receive(:call).exactly(2).times.and_call_original
+        expect(backoff_strategy).to receive(:call).twice.and_call_original
         klass.import(items)
         expect(@counter).to eq 2
       end

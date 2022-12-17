@@ -1,0 +1,32 @@
+RSpec/FilePath:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/NamedSubject:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/VerifiedDoubles:
+  Enabled: false
+
+RSpec/MessageSpies:
+  Enabled: false
+
+RSpec/InstanceVariable:
+  Enabled: false
+
+RSpec/NestedGroups:
+  Enabled: false
+  
+RSpec/ExpectInHook:
+  Enabled: false
+
+# NOTE: for many tests of equality `eql` works, while `be` does not, because
+#        expected #<Fixnum:...> => 101
+#            got #<BigDecimal:...> => 101.0 (0.101e3)
+RSpec/BeEql:
+  Enabled: false

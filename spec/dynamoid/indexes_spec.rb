@@ -11,6 +11,7 @@ describe Dynamoid::Indexes do
     it 'has a local secondary indexes hash' do
       expect(doc_class).to respond_to(:local_secondary_indexes)
     end
+
     it 'has a global secondary indexes hash' do
       expect(doc_class).to respond_to(:global_secondary_indexes)
     end
@@ -18,7 +19,7 @@ describe Dynamoid::Indexes do
 
   describe '.global_secondary_index' do
     context 'with a correct definition' do
-      before(:each) do
+      before do
         @dummy_index = double('Dynamoid::Indexes::Index')
         allow(Dynamoid::Indexes::Index).to receive(:new).and_return(@dummy_index)
       end
@@ -104,6 +105,7 @@ describe Dynamoid::Indexes do
           doc_class.global_secondary_index
         end.to raise_error(Dynamoid::Errors::InvalidIndex, /empty index/)
       end
+
       it 'with no :hash_key, throws an error' do
         expect do
           doc_class.global_secondary_index(range_key: :something)
@@ -116,7 +118,7 @@ describe Dynamoid::Indexes do
 
   describe '.local_secondary_index' do
     context 'with correct parameters' do
-      before(:each) do
+      before do
         @dummy_index = double('Dynamoid::Indexes::Index')
         allow(Dynamoid::Indexes::Index).to receive(:new).and_return(@dummy_index)
       end
@@ -141,6 +143,7 @@ describe Dynamoid::Indexes do
         }
         expect(Dynamoid::Indexes::Index).to have_received(:new).with(index_opts)
       end
+
       it 'adds the index to the local_secondary_indexes hash' do
         test_class = doc_class_with_lsi
         index_key = 'some_hash_field_secondary_range_field'
@@ -357,6 +360,7 @@ describe Dynamoid::Indexes do
               write_capacity: 200
             )
           end
+
           it 'sets the provided attributes' do
             expect(other_index.dynamoid_class).to eq(doc_class)
             expect(other_index.name).to eq(:mont_blanc)
