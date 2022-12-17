@@ -13,6 +13,7 @@ require:
   - rubocop-performance
   - rubocop-rake
   - rubocop-rspec
+  - rubocop-thread_safety
 
 # It's the lowest supported Ruby version
 AllCops:
