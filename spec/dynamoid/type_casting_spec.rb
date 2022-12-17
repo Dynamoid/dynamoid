@@ -581,7 +581,7 @@ describe 'Type casting' do
       # NOTE: 23.9 as a float becomes in JRuby 9.4.0.0:
       #       0.2389999999999999857891452847979962825775146484375e2
       # So we use a string here.
-      obj = klass.new(age: "23.9")
+      obj = klass.new(age: '23.9')
       expect(obj.age).to eql(BigDecimal('23.9'))
 
       obj = klass.new(age: '23')

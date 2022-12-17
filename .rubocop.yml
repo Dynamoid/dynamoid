@@ -4,6 +4,9 @@ inherit_from: .rubocop_todo.yml
 inherit_gem:
   rubocop-lts: rubocop-lts.yml
 
+require:
+  - rubocop-md
+
 # It's the lowest supported Ruby version
 AllCops:
   DisplayCopNames: true # Display the name of the failing cops
@@ -53,7 +56,7 @@ Style/UnlessElse:
   Enabled: false
 
 # We aren't so brave to tackle all these issues right now
-Metrics/LineLength:
+Layout/LineLength:
   Enabled: false
 Metrics/BlockLength:
   Enabled: false
