@@ -1277,7 +1277,7 @@ describe 'Dumping' do
       # NOTE: Set as string to avoid error on JRuby 9.4.0.0:
       #         Aws::DynamoDB::Errors::ValidationException:
       #           DynamoDB only supports precision up to 38 digits
-      obj = klass.create(count: "10.001")
+      obj = klass.create(count: '10.001')
 
       expect(reload(obj).count).to eql(BigDecimal('10.001', 5))
       expect(raw_attributes(obj)[:count]).to eql(BigDecimal('10.001', 5))
