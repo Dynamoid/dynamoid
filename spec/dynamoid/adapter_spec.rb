@@ -26,7 +26,7 @@ describe Dynamoid::Adapter do
 
   describe 'connection management' do
     it 'does not auto-establish a connection' do
-      expect_any_instance_of(described_class.adapter_plugin_class).to_not receive(:connect!)
+      expect_any_instance_of(described_class.adapter_plugin_class).not_to receive(:connect!)
       subject
     end
 
@@ -54,7 +54,7 @@ describe Dynamoid::Adapter do
       # cache
       subject.tables
 
-      expect(subject).to_not receive(:list_tables)
+      expect(subject).not_to receive(:list_tables)
       subject.create_table('test_table', 'key')
       expect(subject.tables).to include('test_table')
     end

@@ -28,7 +28,7 @@ describe Dynamoid::Associations::HasOne do
   it 'returns only one object when associated' do
     magazine.sponsor.create
 
-    expect(magazine.sponsor).to_not be_a_kind_of Array
+    expect(magazine.sponsor).not_to be_a_kind_of Array
   end
 
   it 'delegates equality to its source record' do

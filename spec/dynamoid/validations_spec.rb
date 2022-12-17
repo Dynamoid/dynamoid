@@ -14,7 +14,7 @@ describe Dynamoid::Validations do
     expect(doc.save).to be_falsey
     expect(doc.new_record).to be_truthy
     doc.name = 'secret'
-    expect(doc.save).to_not be_falsey
+    expect(doc.save).not_to be_falsey
     expect(doc.errors).to be_empty
   end
 
@@ -24,7 +24,7 @@ describe Dynamoid::Validations do
     doc = doc_class.new
     expect(doc.save).to be_falsey
     doc.flag = false
-    expect(doc.save).to_not be_falsey
+    expect(doc.save).not_to be_falsey
     expect(doc.errors).to be_empty
   end
 
