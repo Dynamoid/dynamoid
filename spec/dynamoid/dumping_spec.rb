@@ -1502,7 +1502,8 @@ describe 'Dumping' do
       end
     end
 
-    let(:binary_value) { "\x00\x88\xFF".dup.force_encoding('ASCII-8BIT') }
+    let(:unfrozen_string) { +"\x00\x88\xFF" }
+    let(:binary_value) { unfrozen_string.force_encoding('ASCII-8BIT') }
 
     it 'encodes a string in base64-encoded format' do
       obj = klass.create(image: binary_value)

@@ -206,7 +206,7 @@ module Dynamoid
         load(attrs_with_defaults.merge(attrs_virtual))
 
         if block
-          block.call(self)
+          yield(self)
         end
       end
     end
