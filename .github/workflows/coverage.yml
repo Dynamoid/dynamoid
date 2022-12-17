@@ -64,8 +64,17 @@ jobs:
         if: matrix.ruby == '2.7' && github.event_name != 'pull_request' && always()
         continue-on-error: ${{ matrix.experimental != 'false' }}
 
-      - name: Run tests
-        run: bundle exec rake test
+      - name: Start dynamodb-local
+        run: |
+          docker-compose up -d
+
+      - name: Run RSpec tests
+        run: |
+          bundle exec rspec
+
+      - name: Stop dynamodb-local
+        run: |
+          docker-compose down
 
       - name: CodeClimate Post-build Notification
         run: cc-test-reporter after-build
