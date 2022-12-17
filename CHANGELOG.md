@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
+* [#601](https://github.com/Dynamoid/dynamoid/pull/601) Fix `#first` and `#pluck` query methods (@andrykonchin)
 * [#610](https://github.com/Dynamoid/dynamoid/pull/610) Specs in JRuby; Support for JRuby 9.4.0.0 (@pboling)
 ### Added
 * [#611](https://github.com/Dynamoid/dynamoid/pull/611) Add `rubocop-md` (@pboling)
@@ -16,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * [#616](https://github.com/Dynamoid/dynamoid/pull/616) Upgrade `simplecov` (& remove `coveralls`) (@pboling)
   * Setup GitHub actions for Code Coverage
   * Setup GitHub actions for RuboCop linting
+  * Automate coverage feedback on Pull Requests via GitHub Actions and CodeCov
+* [#618](https://github.com/Dynamoid/dynamoid/pull/618) Upgrade README Badges (@pboling)
 ### Changed
 * [#610](https://github.com/Dynamoid/dynamoid/pull/610) Switch to [`rubocop-lts`](https://rubocop-lts.gitlab.io/) (@pboling)
 ### Removed
