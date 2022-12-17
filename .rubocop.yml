@@ -1,7 +1,8 @@
 # We chose not to make these changes
 inherit_from:
-  - .rubocop_todo.yml
+  - .rubocop_performance.yml
   - .rubocop_rspec.yml
+  - .rubocop_todo.yml
 
 inherit_gem:
   rubocop-lts: rubocop-lts.yml
