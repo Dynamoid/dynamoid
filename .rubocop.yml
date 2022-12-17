@@ -2,6 +2,7 @@
 inherit_from:
   - .rubocop_performance.yml
   - .rubocop_rspec.yml
+  - .rubocop_thread_safety.yml
   - .rubocop_todo.yml
 
 inherit_gem:
