@@ -147,7 +147,7 @@ DEPENDENCIES
   bundler
   codecov (~> 0.6)
   dynamoid!
-  overcommit (~> 0.59)
+  overcommit
   pry (~> 0.12.0)
   pry-byebug
   pry-debugger-jruby
