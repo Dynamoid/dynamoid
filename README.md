@@ -1,20 +1,18 @@
 # Dynamoid
 
-[![Build Status](https://github.com/Dynamoid/dynamoid/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Dynamoid/dynamoid/actions/workflows/ci.yml?query=branch%3Amaster)
-[![Code Climate](https://codeclimate.com/github/Dynamoid/dynamoid.svg)](https://codeclimate.com/github/Dynamoid/dynamoid)
-[![Coverage Status](https://coveralls.io/repos/github/Dynamoid/dynamoid/badge.svg?branch=master)](https://coveralls.io/github/Dynamoid/dynamoid?branch=master)
-[![CodeTriage Helpers](https://www.codetriage.com/dynamoid/dynamoid/badges/users.svg)](https://www.codetriage.com/dynamoid/dynamoid)
-[![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](https://www.rubydoc.info/github/Dynamoid/dynamoid/frames)
-[![License](https://img.shields.io/github/license/Dynamoid/dynamoid.svg)](https://github.com/Dynamoid/dynamoid/blob/master/LICENSE.txt)
+[![Gem Version][⛳️version-img]][⛳️gem]
+[![Supported Build Status][🏘sup-wf-img]][🏘sup-wf]
+[![Maintainability][⛳cclim-maint-img♻️]][⛳cclim-maint]
+[![Coveralls][🏘coveralls-img]][🏘coveralls]
+[![CodeCov][🖇codecov-img♻️]][🖇codecov]
+[![Helpers][🖇triage-help-img]][🖇triage-help]
+[![Contributors][🖐contributors-img]][🖐contributors]
+[![RubyDoc.info][🚎yard-img]][🚎yard]
+[![License][🖇src-license-img]][🖇src-license]
 [![GitMoji][🖐gitmoji-img]][🖐gitmoji]
-[![SemVer 2.0.0][🧮semver-img]][semver]
+[![SemVer 2.0.0][🧮semver-img]][🧮semver]
 [![Keep-A-Changelog 1.0.0][📗keep-changelog-img]][📗keep-changelog]
-
-[🖐gitmoji]: https://gitmoji.dev
-[🖐gitmoji-img]: https://img.shields.io/badge/gitmoji-3.9.0-FFDD67.svg?style=flat
-[🧮semver-img]: https://img.shields.io/badge/semver-2.0.0-FFDD67.svg?style=flat
-[📗keep-changelog]: https://keepachangelog.com/en/1.0.0/
-[📗keep-changelog-img]: https://img.shields.io/badge/keep--a--changelog-1.0.0-FFDD67.svg?style=flat
+[![Sponsor Project][🖇sponsor-img]][🖇sponsor]
 
 Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It
 provides similar functionality to ActiveRecord and improves on Amazon's
@@ -1405,4 +1403,29 @@ See [LICENSE][license] for the official [Copyright Notice][copyright-notice-expl
 
 [security]: https://github.com/Dynamoid/dynamoid/blob/master/SECURITY.md
 
-[semver]: http://semver.org/
+[⛳️gem]: https://rubygems.org/gems/dynamoid
+[⛳️version-img]: http://img.shields.io/gem/v/dynamoid.svg
+[⛳cclim-maint]: https://codeclimate.com/github/Dynamoid/dynamoid/maintainability
+[⛳cclim-maint-img♻️]: https://api.codeclimate.com/v1/badges/27fd8b6b7ff338fa4914/maintainability
+[🏘coveralls]: https://coveralls.io/github/Dynamoid/dynamoid?branch=master
+[🏘coveralls-img]: https://coveralls.io/repos/github/Dynamoid/dynamoid/badge.svg?branch=master
+[🖇codecov]: https://codecov.io/gh/Dynamoid/dynamoid
+[🖇codecov-img♻️]: https://codecov.io/gh/Dynamoid/dynamoid/branch/master/graph/badge.svg?token=84WeeoxaN9
+[🖇src-license]: https://github.com/Dynamoid/dynamoid/blob/master/LICENSE.txt
+[🖇src-license-img]: https://img.shields.io/badge/License-MIT-green.svg
+[🖐gitmoji]: https://gitmoji.dev
+[🖐gitmoji-img]: https://img.shields.io/badge/gitmoji-3.9.0-FFDD67.svg?style=flat
+[🚎yard]: https://www.rubydoc.info/gems/dynamoid
+[🚎yard-img]: https://img.shields.io/badge/yard-docs-blue.svg?style=flat
+[🧮semver]: http://semver.org/
+[🧮semver-img]: https://img.shields.io/badge/semver-2.0.0-FFDD67.svg?style=flat
+[🖐contributors]: https://github.com/Dynamoid/dynamoid/graphs/contributors
+[🖐contributors-img]: https://img.shields.io/github/contributors-anon/Dynamoid/dynamoid
+[📗keep-changelog]: https://keepachangelog.com/en/1.0.0/
+[📗keep-changelog-img]: https://img.shields.io/badge/keep--a--changelog-1.0.0-FFDD67.svg?style=flat
+[🖇sponsor-img]: https://img.shields.io/opencollective/all/dynamoid
+[🖇sponsor]: https://opencollective.com/dynamoid
+[🖇triage-help]: https://www.codetriage.com/dynamoid/dynamoid
+[🖇triage-help-img]: https://www.codetriage.com/dynamoid/dynamoid/badges/users.svg
+[🏘sup-wf]: https://github.com/Dynamoid/dynamoid/actions/workflows/ci.yml?query=branch%3Amaster
+[🏘sup-wf-img]: https://github.com/Dynamoid/dynamoid/actions/workflows/ci.yml/badge.svg?branch=master
