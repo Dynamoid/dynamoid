@@ -1,11 +1,14 @@
 # We chose not to make these changes
-inherit_from: .rubocop_todo.yml
+inherit_from:
+  - .rubocop_todo.yml
+  - .rubocop_rspec.yml
 
 inherit_gem:
   rubocop-lts: rubocop-lts.yml
 
 require:
   - rubocop-md
+  - rubocop-rspec
 
 # It's the lowest supported Ruby version
 AllCops:
