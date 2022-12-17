@@ -12,10 +12,14 @@ gemspec
 
 ruby_version = Gem::Version.new(RUBY_VERSION)
 minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && RUBY_ENGINE == engine }
+committing = minimum_version.call('2.4')
 linting = minimum_version.call('2.7')
 coverage = minimum_version.call('2.7')
 
 platforms :mri do
+  if committing
+    gem 'overcommit'
+  end
   if linting
     gem 'rubocop-md', require: false
     gem 'rubocop-packaging', require: false
