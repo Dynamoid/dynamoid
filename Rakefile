@@ -16,6 +16,20 @@ require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new(:spec) do |spec|
   spec.pattern = FileList['spec/**/*_spec.rb']
 end
+desc 'alias test task to spec'
+task test: :spec
+
+begin
+  require 'rubocop/rake_task'
+  RuboCop::RakeTask.new do |task|
+    task.options = ['-D'] # Display the name of the failing cops
+  end
+rescue LoadError
+  desc 'rubocop task stub'
+  task :rubocop do
+    warn 'RuboCop is disabled'
+  end
+end
 
 require 'yard'
 YARD::Rake::YardocTask.new do |t|
@@ -40,4 +54,4 @@ task :publish do
   `git checkout master`
 end
 
-task default: :spec
+task default: %i[test rubocop]
