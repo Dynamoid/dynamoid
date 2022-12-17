@@ -30,7 +30,14 @@ Gem::Specification.new do |spec|
   spec.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   spec.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
   # Ignore not commited files
-  spec.files = Dir['CHANGELOG.md', 'README.md', 'LICENSE.txt', 'lib/**/*'] & `git ls-files`.split("\n")
+  spec.files = Dir[
+    'CHANGELOG.md',
+    'dynamoid.gemspec',
+    'lib/**/*',
+    'LICENSE.txt',
+    'README.md',
+    'SECURITY.md'
+  ]
   spec.homepage = 'http://github.com/Dynamoid/dynamoid'
   spec.licenses = ['MIT']
   spec.require_paths = ['lib']
