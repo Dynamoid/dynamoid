@@ -358,7 +358,7 @@ describe Dynamoid::Fields do
     end
 
     it 'acts as a :number field' do
-      # NOTE: Set as string to avoid error on JRuby:
+      # NOTE: Set as string to avoid error on JRuby 9.4.0.0:
       #         Aws::DynamoDB::Errors::ValidationException:
       #           DynamoDB only supports precision up to 38 digits
       doc.distance_m = "5.33"

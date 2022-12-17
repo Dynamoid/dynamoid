@@ -1274,7 +1274,7 @@ describe 'Dumping' do
     end
 
     it 'stores float value Number' do
-      # NOTE: Set as string to avoid error on JRuby:
+      # NOTE: Set as string to avoid error on JRuby 9.4.0.0:
       #         Aws::DynamoDB::Errors::ValidationException:
       #           DynamoDB only supports precision up to 38 digits
       obj = klass.create(count: "10.001")
