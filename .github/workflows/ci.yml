@@ -62,8 +62,6 @@ jobs:
             ruby: "2.5"
           - gemfile: rails_7_0
             ruby: "2.6"
-          - gemfile: rails_7_0
-            ruby: jruby
 
           # Rails 6.1 requires Ruby 2.5 and above.
           - gemfile: rails_6_1
@@ -93,6 +91,24 @@ jobs:
           - ruby: "3.1"
             gemfile: rails_5_1
           - ruby: "3.1"
+            gemfile: rails_5_2
+          - ruby: "jruby"
+            gemfile: rails_4_2
+          - ruby: "jruby"
+            gemfile: rails_5_0
+          - ruby: "jruby"
+            gemfile: rails_5_1
+          - ruby: "jruby"
+            gemfile: rails_5_2
+
+        include:
+          - ruby: "jruby-9.3.9.0"
+            gemfile: rails_4_2
+          - ruby: "jruby-9.3.9.0"
+            gemfile: rails_5_0
+          - ruby: "jruby-9.3.9.0"
+            gemfile: rails_5_1
+          - ruby: "jruby-9.3.9.0"
             gemfile: rails_5_2
 
     name: ${{ matrix.gemfile }}, Ruby ${{ matrix.ruby }}

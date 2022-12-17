@@ -792,10 +792,10 @@ describe Dynamoid::Persistence do
         end
 
         expected_output = \
-          "run before_create" +
-          "run before_save" +
-          "run after_save" +
-          "run after_create"
+          'run before_create' \
+          'run before_save' \
+          'run after_save' \
+          'run after_create'
 
         expect { klass_with_callbacks.create }.to output(expected_output).to_stdout
       end
@@ -1106,10 +1106,10 @@ describe Dynamoid::Persistence do
         model = klass_with_callbacks.create(name: 'John')
 
         expected_output = \
-          "run before_update" +
-          "run before_save" +
-          "run after_save" +
-          "run after_update"
+          'run before_update' \
+          'run before_save' \
+          'run after_save' \
+          'run after_update'
 
         expect { klass_with_callbacks.update!(model.id, name: '[Updated]') }.to output(expected_output).to_stdout
       end
@@ -1441,7 +1441,7 @@ describe Dynamoid::Persistence do
       obj = document_class.create(title: 'New Document')
 
       expect {
-        document_class.update_fields(obj.id, { title: 'New title', publisher: 'New publisher' } )
+        document_class.update_fields(obj.id, { title: 'New title', publisher: 'New publisher' })
       }.to raise_error Dynamoid::Errors::UnknownAttribute
     end
   end
@@ -1635,7 +1635,7 @@ describe Dynamoid::Persistence do
       obj = document_class.create(title: 'New Document')
 
       expect {
-        document_class.upsert(obj.id, { title: 'New title', publisher: 'New publisher' } )
+        document_class.upsert(obj.id, { title: 'New title', publisher: 'New publisher' })
       }.to raise_error Dynamoid::Errors::UnknownAttribute
     end
   end
@@ -2302,10 +2302,10 @@ describe Dynamoid::Persistence do
         model = klass_with_callbacks.create(name: 'John')
 
         expected_output = \
-          "run before_update" +
-          "run before_save" +
-          "run after_save" +
-          "run after_update"
+          'run before_update' \
+          'run before_save' \
+          'run after_save' \
+          'run after_update'
 
         expect { model.update_attribute(:name, 'Mike') }.to output(expected_output).to_stdout
       end
@@ -2457,10 +2457,10 @@ describe Dynamoid::Persistence do
         model = klass_with_callbacks.create(name: 'John')
 
         expected_output = \
-          "run before_update" +
-          "run before_save" +
-          "run after_save" +
-          "run after_update"
+          'run before_update' \
+          'run before_save' \
+          'run after_save' \
+          'run after_update'
 
         expect { model.update_attributes(name: 'Mike') }.to output(expected_output).to_stdout
       end
@@ -2614,10 +2614,10 @@ describe Dynamoid::Persistence do
         model = klass_with_callbacks.create(name: 'John')
 
         expected_output = \
-          "run before_update" +
-          "run before_save" +
-          "run after_save" +
-          "run after_update"
+          'run before_update' \
+          'run before_save' \
+          'run after_save' \
+          'run after_update'
 
         expect { model.update_attributes!(name: 'Mike') }.to output(expected_output).to_stdout
       end
@@ -2852,7 +2852,7 @@ describe Dynamoid::Persistence do
 
       expect(@tweet.count).to eq(8)
       expect(@tweet.tags.to_a).to eq(['sql'])
-      expect(@tweet.user_name).to eq ('Alex')
+      expect(@tweet.user_name).to eq 'Alex'
     end
 
     it 'checks the conditions on update' do

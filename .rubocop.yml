@@ -1,15 +1,28 @@
 # We chose not to make these changes
 inherit_from: .rubocop_todo.yml
 
+inherit_gem:
+  rubocop-lts: rubocop-lts.yml
+
 # It's the lowest supported Ruby version
 AllCops:
-  TargetRubyVersion: 2.4
+  DisplayCopNames: true # Display the name of the failing cops
 
 # It's a matter of taste
 Layout/ParameterAlignment:
   EnforcedStyle: with_fixed_indentation
 Layout/HashAlignment:
   Enabled: false
+Lint/RaiseException:
+  Enabled: true
+Lint/StructNewOverride:
+  Enabled: true
+Style/HashEachMethods:
+  Enabled: true
+Style/HashTransformKeys:
+  Enabled: true
+Style/HashTransformValues:
+  Enabled: true
 Style/GuardClause:
   Enabled: false
 Style/FormatStringToken:

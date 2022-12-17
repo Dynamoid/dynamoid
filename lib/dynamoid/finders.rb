@@ -118,7 +118,7 @@ module Dynamoid
 
       # @private
       def _find_all(ids, options = {})
-        raise Errors::MissingRangeKey if range_key && ids.any? { |pk, sk| sk.nil? }
+        raise Errors::MissingRangeKey if range_key && ids.any? { |_pk, sk| sk.nil? }
 
         if range_key
           ids = ids.map do |pk, sk|

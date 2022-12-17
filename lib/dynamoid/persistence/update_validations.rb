@@ -9,7 +9,7 @@ module Dynamoid
 
         attributes.each do |attr_name, _|
           unless model_attributes.include?(attr_name)
-            raise Dynamoid::Errors::UnknownAttribute.new("Attribute #{attr_name} does not exist in #{model_class}")
+            raise Dynamoid::Errors::UnknownAttribute, "Attribute #{attr_name} does not exist in #{model_class}"
           end
         end
       end

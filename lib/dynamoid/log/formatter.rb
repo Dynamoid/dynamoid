@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module Dynamoid
   module Log
     module Formatter
-
       # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/Log/Formatter.html
       # https://docs.aws.amazon.com/sdk-for-ruby/v2/api/Seahorse/Client/Response.html
       # https://aws.amazon.com/ru/blogs/developer/logging-requests/

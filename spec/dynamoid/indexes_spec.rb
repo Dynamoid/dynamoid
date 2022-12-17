@@ -374,7 +374,6 @@ describe Dynamoid::Indexes do
         context 'with custom type key params' do
           let(:doc_class) do
             new_class do
-
               class CustomType
                 def dynamoid_dump
                   name

@@ -35,13 +35,13 @@ Gem::Specification.new do |spec|
   spec.licenses = ['MIT']
   spec.require_paths = ['lib']
 
-  spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/Dynamoid/dynamoid/tree/v#{spec.version}"
-  spec.metadata["changelog_uri"] = "https://github.com/Dynamoid/dynamoid/blob/v#{spec.version}/CHANGELOG.md"
-  spec.metadata["bug_tracker_uri"] = "https://github.com/Dynamoid/dynamoid/issues"
-  spec.metadata["documentation_uri"] = "https://www.rubydoc.info/gems/dynamoid/#{spec.version}"
-  spec.metadata["wiki_uri"] = "https://github.com/Dynamoid/dynamoid/wiki"
-  spec.metadata["rubygems_mfa_required"] = "true"
+  spec.metadata['homepage_uri'] = spec.homepage
+  spec.metadata['source_code_uri'] = "https://github.com/Dynamoid/dynamoid/tree/v#{spec.version}"
+  spec.metadata['changelog_uri'] = "https://github.com/Dynamoid/dynamoid/blob/v#{spec.version}/CHANGELOG.md"
+  spec.metadata['bug_tracker_uri'] = 'https://github.com/Dynamoid/dynamoid/issues'
+  spec.metadata['documentation_uri'] = "https://www.rubydoc.info/gems/dynamoid/#{spec.version}"
+  spec.metadata['wiki_uri'] = 'https://github.com/Dynamoid/dynamoid/wiki'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 
   spec.add_runtime_dependency 'activemodel', '>=4'
   spec.add_runtime_dependency 'aws-sdk-dynamodb', '~> 1.0'
@@ -56,8 +56,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'pry', '~> 0.12.0'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec'
-  # 'rubocop', '1.12.1' # Last version compatible with Ruby 2.4
-  # 'rubocop', '0.81.0' # Last version compatible with Ruby 2.3
-  spec.add_development_dependency 'rubocop', '0.81.0'
+  # 'rubocop-lts' is for Ruby 2.3+, see https://rubocop-lts.gitlab.io/
+  spec.add_development_dependency 'rubocop-lts', '~> 10.0'
   spec.add_development_dependency 'yard'
 end

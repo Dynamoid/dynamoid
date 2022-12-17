@@ -293,7 +293,7 @@ module Dynamoid
       old_value = read_attribute(name)
 
       unless attribute_is_present_on_model?(name)
-        raise Dynamoid::Errors::UnknownAttribute.new("Attribute #{name} is not part of the model")
+        raise Dynamoid::Errors::UnknownAttribute, "Attribute #{name} is not part of the model"
       end
 
       if association = @associations[name]

@@ -9,14 +9,14 @@ require 'active_support'
 require 'active_support/testing/time_helpers'
 require 'rspec'
 require 'pry'
-require 'byebug' if ENV['DEBUG']
+
+# Debugging
+DEBUG = ENV['DEBUG'] == 'true'
+require 'byebug' if DEBUG
 
 # Load Code Coverage as the last thing before this gem
 require 'coveralls'
 Coveralls.wear!
-
-$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
-$LOAD_PATH.unshift(File.dirname(__FILE__))
 
 # This Gem
 require 'dynamoid'

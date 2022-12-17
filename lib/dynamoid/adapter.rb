@@ -163,6 +163,7 @@ module Dynamoid
       # https://eregon.me/blog/2019/11/10/the-delegation-challenge-of-ruby27.html
 
       return benchmark(method, *args) { adapter.send(method, *args, &block) } if adapter.respond_to?(method)
+
       super
     end
 
