@@ -158,7 +158,7 @@ DEPENDENCIES
   rubocop-packaging (~> 0.1)
   rubocop-performance (~> 1.6)
   rubocop-rake (~> 0.5)
-  rubocop-rspec (~> 1.41)
+  rubocop-rspec (~> 1.38)
   simplecov (~> 0.21)
   simplecov-cobertura
   simplecov-json

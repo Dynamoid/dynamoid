@@ -70,6 +70,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop-packaging', '~> 0.1'
   spec.add_development_dependency 'rubocop-performance', '~> 1.6'
   spec.add_development_dependency 'rubocop-rake', '~> 0.5'
-  spec.add_development_dependency 'rubocop-rspec', '~> 1.41'
+  spec.add_development_dependency 'rubocop-rspec', '~> 1.38'
   spec.add_development_dependency 'yard'
 end
