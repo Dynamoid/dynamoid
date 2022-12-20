@@ -33,8 +33,8 @@ module Dynamoid
       def update_item
         Dynamoid.adapter.update_item(@model_class.table_name, @partition_key, options_to_update_item) do |t|
           @attributes.each do |k, v|
-            value_casted = TypeCasting.cast_field(v, @model_class.attributes[k])
-            value_dumped = Dumping.dump_field(value_casted, @model_class.attributes[k])
+            value_casted = TypeCasting.cast_field(v, @model_class.attributes)
+            value_dumped = Dumping.dump_field(value_casted, @model_class.attributes)
 
             t.set(k => value_dumped)
           end
@@ -45,8 +45,8 @@ module Dynamoid
         options = {}
 
         if @model_class.range_key
-          value_casted = TypeCasting.cast_field(@sort_key, @model_class.attributes[@model_class.range_key])
-          value_dumped = Dumping.dump_field(value_casted, @model_class.attributes[@model_class.range_key])
+          value_casted = TypeCasting.cast_field(@sort_key, @model_class.attributes)
+          value_dumped = Dumping.dump_field(value_casted, @model_class.attributes)
           options[:range_key] = value_dumped
         end
 
