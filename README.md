@@ -966,7 +966,7 @@ To idempotently create-but-not-update a record, apply the `unless_exists` condit
 to its keys when you upsert.
 
 ```ruby
-Address.upsert(id, { city: 'Chicago' }, if: {unless_exists: [:id]})
+Address.upsert(id, { city: 'Chicago' }, if: { unless_exists: [:id] })
 ```
 
 ### Deleting
