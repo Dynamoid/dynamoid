@@ -961,6 +961,14 @@ Address.upsert(id, city: 'Chicago')
 Address.upsert(id, { city: 'Chicago' }, if: { deliverable: true })
 ```
 
+By default, `#upsert` will update all attributes of the document if it already exists.
+To idempotently create-but-not-update a record, apply the `unless_exists` condition
+to its keys when you upsert.
+
+```ruby
+Address.upsert(id, { city: 'Chicago' }, if: { unless_exists: [:id] })
+```
+
 ### Deleting
 
 In order to delete some items `delete_all` method should be used. Any
