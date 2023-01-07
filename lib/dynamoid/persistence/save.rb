@@ -20,7 +20,7 @@ module Dynamoid
 
         @model.created_at ||= DateTime.now.in_time_zone(Time.zone) if @model.class.timestamps_enabled?
 
-        if @model.class.timestamps_enabled? && @model.changed? && !@model.updated_at_changed? && @touch != false
+        if @model.class.timestamps_enabled? && !@model.updated_at_changed? && !(@touch == false && @model.persisted?)
           @model.updated_at = DateTime.now.in_time_zone(Time.zone)
         end
 
