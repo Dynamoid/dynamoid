@@ -4,16 +4,25 @@ module Dynamoid
   module Persistence
     # @private
     class Save
-      def self.call(model)
-        new(model).call
+      def self.call(model, **options)
+        new(model, **options).call
       end
 
-      def initialize(model)
+      def initialize(model, touch: nil)
         @model = model
+        @touch = touch # touch=false means explicit disabling of updating the `updated_at` attribute
       end
 
       def call
         @model.hash_key = SecureRandom.uuid if @model.hash_key.blank?
+
+        return true unless @model.changed?
+
+        @model.created_at ||= DateTime.now.in_time_zone(Time.zone) if @model.class.timestamps_enabled?
+
+        if @model.class.timestamps_enabled? && @model.changed? && !@model.updated_at_changed? && @touch != false
+          @model.updated_at = DateTime.now.in_time_zone(Time.zone)
+        end
 
         # Add an optimistic locking check if the lock_version column exists
         if @model.class.attributes[:lock_version]

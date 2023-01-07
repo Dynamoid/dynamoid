@@ -1903,7 +1903,7 @@ describe Dynamoid::Persistence do
     end
   end
 
-  describe '.save' do
+  describe '#save' do
     let(:klass) do
       new_class do
         field :name
@@ -1967,6 +1967,34 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'does not make a request to persist a model if there is no any changed attribute' do
+      klass = new_class do
+        field :name
+      end
+
+      expect(Dynamoid.adapter).to receive(:write).and_call_original
+      obj = klass.create(name: 'Alex')
+
+      obj_loaded = klass.find(obj.id)
+
+      expect(Dynamoid.adapter).not_to receive(:write)
+
+      obj.save
+      obj_loaded.save
+    end
+
+    it 'returns true if there is no any changed attribute' do
+      klass = new_class do
+        field :name
+      end
+
+      obj = klass.create(name: 'Alex')
+      obj_loaded = klass.find(obj.id)
+
+      expect(obj.save).to eql(true)
+      expect(obj_loaded.save).to eql(true)
     end
 
     describe 'partition key value' do
