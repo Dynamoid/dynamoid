@@ -1710,6 +1710,51 @@ describe Dynamoid::Persistence do
       expect(document_class.inc(obj.id, links_count: 5)).to eq(document_class)
     end
 
+    it 'updates `updated_at` attribute when touch: true option passed' do
+      obj = document_class.create!(links_count: 2, updated_at: Time.now - 1.day)
+
+      expect { document_class.inc(obj.id, links_count: 5) }.not_to change { document_class.find(obj.id).updated_at }
+      expect { document_class.inc(obj.id, links_count: 5, touch: true) }.to change { document_class.find(obj.id).updated_at }
+    end
+
+    it 'updates `updated_at` and the specified attributes when touch: name option passed' do
+      klass = new_class do
+        field :links_count, :integer
+        field :viewed_at, :datetime
+      end
+
+      obj = klass.create!(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+
+      expect do
+        expect do
+          klass.inc(obj.id, links_count: 5, touch: :viewed_at)
+        end.to change { klass.find(obj.id).updated_at }
+      end.to change { klass.find(obj.id).viewed_at }
+    end
+
+    it 'updates `updated_at` and the specified attributes when touch: [<name>*] option passed' do
+      klass = new_class do
+        field :links_count, :integer
+        field :viewed_at, :datetime
+        field :tagged_at, :datetime
+      end
+
+      obj = klass.create!(
+        age: 21,
+        viewed_at: Time.now - 1.day,
+        tagged_at: Time.now - 3.days,
+        updated_at: Time.now - 2.days
+      )
+
+      expect do
+        expect do
+          expect do
+            klass.inc(obj.id, links_count: 5, touch: %i[viewed_at tagged_at])
+          end.to change { klass.find(obj.id).updated_at }
+        end.to change { klass.find(obj.id).viewed_at }
+      end.to change { klass.find(obj.id).tagged_at }
+    end
+
     describe 'timestamps' do
       it 'does not change updated_at', config: { timestamps: true } do
         obj = document_class.create!

@@ -378,9 +378,18 @@ module Dynamoid
       # Doesn't run validations and callbacks. Doesn't update +created_at+ and
       # +updated_at+ as well.
       #
+      # When `:touch` option is passed the timestamp columns are updating. If
+      # attribute names are passed, they are updated along with updated_at
+      # attribute:
+      #
+      #   User.inc('1', age: 2, touch: true)
+      #   User.inc('1', age: 2, touch: :viewed_at)
+      #   User.inc('1', age: 2, touch: [:viewed_at, :accessed_at])
+      #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
       # @param counters [Hash] value to increase by
+      # @option counters [true | Symbol | Array[Symbol]] :touch to update update_at attribute and optionally the specified ones
       # @return [Model class] self
       def inc(hash_key_value, range_key_value = nil, counters)
         options = if range_key
@@ -391,12 +400,29 @@ module Dynamoid
                     {}
                   end
 
+        touch = counters.delete(:touch)
+
         Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
           counters.each do |k, v|
             value_casted = TypeCasting.cast_field(v, attributes[k])
             value_dumped = Dumping.dump_field(value_casted, attributes[k])
 
             t.add(k => value_dumped)
+          end
+
+          if touch
+            names = []
+            names << :updated_at if timestamps_enabled?
+            names += Array.wrap(touch) if touch != true
+
+            value = DateTime.now.in_time_zone(Time.zone)
+
+            names.each do |name|
+              value_casted = TypeCasting.cast_field(value, attributes[name])
+              value_dumped = Dumping.dump_field(value_casted, attributes[name])
+
+              t.set(name => value_dumped)
+            end
           end
         end
 
