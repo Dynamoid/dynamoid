@@ -815,13 +815,22 @@ module Dynamoid
     # modified attributes will still be dirty. Validations and callbacks are
     # skipped.
     #
+    # When `:touch` option is passed the timestamp columns are updating. If
+    # attribute names are passed, they are updated along with updated_at
+    # attribute:
+    #
+    #   user.decrement!(:followers_count, touch: true)
+    #   user.decrement!(:followers_count, touch: :viewed_at)
+    #   user.decrement!(:followers_count, touch: [:viewed_at, :accessed_at])
+    #
     # @param attribute [Symbol] attribute name
     # @param by [Numeric] value to subtract (optional)
+    # @param touch [true | Symbol | Array[Symbol]] to update update_at attribute and optionally the specified ones
     # @return [Dynamoid::Document] self
-    def decrement!(attribute, by = 1)
+    def decrement!(attribute, by = 1, touch: nil)
       decrement(attribute, by)
       change = read_attribute(attribute) - (attribute_was(attribute) || 0)
-      self.class.inc(hash_key, range_value, attribute => change)
+      self.class.inc(hash_key, range_value, attribute => change, touch: touch)
       clear_attribute_changes(attribute)
       self
     end

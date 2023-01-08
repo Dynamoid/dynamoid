@@ -3007,6 +3007,28 @@ describe Dynamoid::Persistence do
 
       expect(obj_loaded.age).to eq 11
     end
+
+    it 'updates `updated_at` attribute when touch: true option passed' do
+      obj = document_class.create(age: 21, updated_at: Time.now - 1.day)
+
+      expect { obj.decrement!(:age) }.not_to change { document_class.find(obj.id).updated_at }
+      expect { obj.decrement!(:age, touch: true) }.to change { document_class.find(obj.id).updated_at }
+    end
+
+    it 'updates `updated_at` and the specified attributes when touch: [<name>*] option passed' do
+      klass = new_class do
+        field :age, :integer
+        field :viewed_at, :datetime
+      end
+
+      obj = klass.create(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+
+      expect do
+        expect do
+          obj.decrement!(:age, touch: [:viewed_at])
+        end.to change { klass.find(obj.id).updated_at }
+      end.to change { klass.find(obj.id).viewed_at }
+    end
   end
 
   describe '#update!' do
