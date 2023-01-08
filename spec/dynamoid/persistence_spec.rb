@@ -2671,48 +2671,115 @@ describe Dynamoid::Persistence do
     end
 
     it 'increments specified attribute' do
-      obj = document_class.new(age: 21)
+      obj = document_class.create(age: 21)
 
       expect { obj.increment!(:age) }.to change { obj.age }.from(21).to(22)
     end
 
-    it 'initializes the attribute with zero if nil' do
-      obj = document_class.new(age: nil)
+    it 'initializes the attribute with zero if it == nil' do
+      obj = document_class.create(age: nil)
 
       expect { obj.increment!(:age) }.to change { obj.age }.from(nil).to(1)
     end
 
     it 'adds specified optional value' do
-      obj = document_class.new(age: 21)
+      obj = document_class.create(age: 21)
 
       expect { obj.increment!(:age, 10) }.to change { obj.age }.from(21).to(31)
     end
 
-    it 'returns true if document is valid' do
-      class_with_validation = new_class do
-        field :age, :integer
-        validates :age, numericality: { less_than: 16 }
-      end
-      obj = class_with_validation.new(age: 10)
+    it 'persists the attribute new value' do
+      obj = document_class.create(age: 21)
+      obj.increment!(:age, 10)
+      obj_loaded = document_class.find(obj.id)
 
-      expect(obj.increment!(:age, 1)).to eql(true)
+      expect(obj_loaded.age).to eq 31
     end
 
-    it 'returns false if document is invalid' do
-      class_with_validation = new_class do
+    it 'does not persist other changed attributes' do
+      klass = new_class do
         field :age, :integer
-        validates :age, numericality: { less_than: 16 }
+        field :title
       end
-      obj = class_with_validation.new(age: 10)
 
-      expect(obj.increment!(:age, 10)).to eql(false)
-    end
-
-    it 'saves changes' do
-      obj = document_class.new(age: 21)
+      obj = klass.create!(age: 21, title: 'title')
+      obj.title = 'new title'
       obj.increment!(:age)
 
-      expect(obj).to be_persisted
+      obj_loaded = klass.find(obj.id)
+      expect(obj_loaded.title).to eq 'title'
+    end
+
+    it 'does not restore other changed attributes persisted values' do
+      klass = new_class do
+        field :age, :integer
+        field :title
+      end
+
+      obj = klass.create!(age: 21, title: 'title')
+      obj.title = 'new title'
+      obj.increment!(:age)
+
+      expect(obj.title).to eq 'new title'
+      expect(obj.title_changed?).to eq true
+    end
+
+    it 'returns self' do
+      obj = document_class.create(age: 21)
+      expect(obj.increment!(:age, 10)).to eq obj
+    end
+
+    it 'marks the attribute as not changed' do
+      obj = document_class.create(age: 21)
+      obj.increment!(:age, 10)
+
+      expect(obj.age_changed?).to eq false
+    end
+
+    it 'skips validation' do
+      class_with_validation = new_class do
+        field :age, :integer
+        validates :age, numericality: { less_than: 16 }
+      end
+
+      obj = class_with_validation.create(age: 10)
+      obj.increment!(:age, 7)
+      expect(obj.valid?).to eq false
+
+      obj_loaded = class_with_validation.find(obj.id)
+      expect(obj_loaded.age).to eq 17
+    end
+
+    it 'skips callbacks' do
+      klass = new_class do
+        field :age, :integer
+        field :title
+
+        before_save :before_save_callback
+
+        def before_save_callback; end
+      end
+
+      obj = klass.new(age: 21)
+
+      expect(obj).to receive(:before_save_callback)
+      obj.save!
+
+      expect(obj).not_to receive(:before_save_callback)
+      obj.increment!(:age, 10)
+    end
+
+    it 'works well if there is a sort key' do
+      klass_with_sort_key = new_class do
+        range :name
+        field :age, :integer
+      end
+
+      obj = klass_with_sort_key.create(name: 'Alex', age: 21)
+      obj.increment!(:age, 10)
+      obj_loaded = klass_with_sort_key.find(obj.id, range_key: obj.name)
+
+      expect(obj_loaded.age).to eq 31
     end
   end
 

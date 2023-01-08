@@ -736,14 +736,19 @@ module Dynamoid
     #   user.increment!(:followers_count)
     #   user.increment!(:followers_count, 2)
     #
-    # Returns +true+ if a model was saved and +false+ otherwise.
+    # Only `attribute` is saved. The model itself is not saved. So any other
+    # modified attributes will still be dirty. Validations and callbacks are
+    # skipped.
     #
     # @param attribute [Symbol] attribute name
     # @param by [Numeric] value to add (optional)
-    # @return [true|false] whether saved model successfully
+    # @return [Dynamoid::Document] self
     def increment!(attribute, by = 1)
       increment(attribute, by)
-      save
+      change = read_attribute(attribute) - (attribute_was(attribute) || 0)
+      self.class.inc(hash_key, range_value, attribute => change)
+      clear_attribute_changes(attribute)
+      self
     end
 
     # Change numeric attribute value.
