@@ -798,9 +798,7 @@ module Dynamoid
     # @param by [Numeric] value to subtract (optional)
     # @return [Dynamoid::Document] self
     def decrement(attribute, by = 1)
-      self[attribute] ||= 0
-      self[attribute] -= by
-      self
+      increment(attribute, -by)
     end
 
     # Change numeric attribute value and save a model.
@@ -828,11 +826,7 @@ module Dynamoid
     # @param touch [true | Symbol | Array[Symbol]] to update update_at attribute and optionally the specified ones
     # @return [Dynamoid::Document] self
     def decrement!(attribute, by = 1, touch: nil)
-      decrement(attribute, by)
-      change = read_attribute(attribute) - (attribute_was(attribute) || 0)
-      self.class.inc(hash_key, range_value, attribute => change, touch: touch)
-      clear_attribute_changes(attribute)
-      self
+      increment!(attribute, -by, touch: touch)
     end
 
     # Delete a model.
