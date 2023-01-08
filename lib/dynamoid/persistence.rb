@@ -8,6 +8,7 @@ require 'dynamoid/persistence/import'
 require 'dynamoid/persistence/update_fields'
 require 'dynamoid/persistence/upsert'
 require 'dynamoid/persistence/save'
+require 'dynamoid/persistence/inc'
 require 'dynamoid/persistence/update_validations'
 
 # encoding: utf-8
@@ -392,40 +393,7 @@ module Dynamoid
       # @option counters [true | Symbol | Array[Symbol]] :touch to update update_at attribute and optionally the specified ones
       # @return [Model class] self
       def inc(hash_key_value, range_key_value = nil, counters)
-        options = if range_key
-                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
-                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
-                    { range_key: value_dumped }
-                  else
-                    {}
-                  end
-
-        touch = counters.delete(:touch)
-
-        Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
-          counters.each do |k, v|
-            value_casted = TypeCasting.cast_field(v, attributes[k])
-            value_dumped = Dumping.dump_field(value_casted, attributes[k])
-
-            t.add(k => value_dumped)
-          end
-
-          if touch
-            names = []
-            names << :updated_at if timestamps_enabled?
-            names += Array.wrap(touch) if touch != true
-
-            value = DateTime.now.in_time_zone(Time.zone)
-
-            names.each do |name|
-              value_casted = TypeCasting.cast_field(value, attributes[name])
-              value_dumped = Dumping.dump_field(value_casted, attributes[name])
-
-              t.set(name => value_dumped)
-            end
-          end
-        end
-
+        Inc.call(self, hash_key_value, range_key_value, counters)
         self
       end
     end
