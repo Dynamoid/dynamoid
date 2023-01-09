@@ -8,6 +8,7 @@ require 'dynamoid/persistence/import'
 require 'dynamoid/persistence/update_fields'
 require 'dynamoid/persistence/upsert'
 require 'dynamoid/persistence/save'
+require 'dynamoid/persistence/inc'
 require 'dynamoid/persistence/update_validations'
 
 # encoding: utf-8
@@ -378,28 +379,21 @@ module Dynamoid
       # Doesn't run validations and callbacks. Doesn't update +created_at+ and
       # +updated_at+ as well.
       #
+      # When `:touch` option is passed the timestamp columns are updating. If
+      # attribute names are passed, they are updated along with updated_at
+      # attribute:
+      #
+      #   User.inc('1', age: 2, touch: true)
+      #   User.inc('1', age: 2, touch: :viewed_at)
+      #   User.inc('1', age: 2, touch: [:viewed_at, :accessed_at])
+      #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
       # @param counters [Hash] value to increase by
+      # @option counters [true | Symbol | Array[Symbol]] :touch to update update_at attribute and optionally the specified ones
       # @return [Model class] self
       def inc(hash_key_value, range_key_value = nil, counters)
-        options = if range_key
-                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
-                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
-                    { range_key: value_dumped }
-                  else
-                    {}
-                  end
-
-        Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
-          counters.each do |k, v|
-            value_casted = TypeCasting.cast_field(v, attributes[k])
-            value_dumped = Dumping.dump_field(value_casted, attributes[k])
-
-            t.add(k => value_dumped)
-          end
-        end
-
+        Inc.call(self, hash_key_value, range_key_value, counters)
         self
       end
     end
@@ -736,14 +730,28 @@ module Dynamoid
     #   user.increment!(:followers_count)
     #   user.increment!(:followers_count, 2)
     #
-    # Returns +true+ if a model was saved and +false+ otherwise.
+    # Only `attribute` is saved. The model itself is not saved. So any other
+    # modified attributes will still be dirty. Validations and callbacks are
+    # skipped.
+    #
+    # When `:touch` option is passed the timestamp columns are updating. If
+    # attribute names are passed, they are updated along with updated_at
+    # attribute:
+    #
+    #   user.increment!(:followers_count, touch: true)
+    #   user.increment!(:followers_count, touch: :viewed_at)
+    #   user.increment!(:followers_count, touch: [:viewed_at, :accessed_at])
     #
     # @param attribute [Symbol] attribute name
     # @param by [Numeric] value to add (optional)
-    # @return [true|false] whether saved model successfully
-    def increment!(attribute, by = 1)
+    # @param touch [true | Symbol | Array[Symbol]] to update update_at attribute and optionally the specified ones
+    # @return [Dynamoid::Document] self
+    def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
-      save
+      change = read_attribute(attribute) - (attribute_was(attribute) || 0)
+      self.class.inc(hash_key, range_value, attribute => change, touch: touch)
+      clear_attribute_changes(attribute)
+      self
     end
 
     # Change numeric attribute value.
@@ -758,9 +766,7 @@ module Dynamoid
     # @param by [Numeric] value to subtract (optional)
     # @return [Dynamoid::Document] self
     def decrement(attribute, by = 1)
-      self[attribute] ||= 0
-      self[attribute] -= by
-      self
+      increment(attribute, -by)
     end
 
     # Change numeric attribute value and save a model.
@@ -771,14 +777,24 @@ module Dynamoid
     #   user.decrement!(:followers_count)
     #   user.decrement!(:followers_count, 2)
     #
-    # Returns +true+ if a model was saved and +false+ otherwise.
+    # Only `attribute` is saved. The model itself is not saved. So any other
+    # modified attributes will still be dirty. Validations and callbacks are
+    # skipped.
+    #
+    # When `:touch` option is passed the timestamp columns are updating. If
+    # attribute names are passed, they are updated along with updated_at
+    # attribute:
+    #
+    #   user.decrement!(:followers_count, touch: true)
+    #   user.decrement!(:followers_count, touch: :viewed_at)
+    #   user.decrement!(:followers_count, touch: [:viewed_at, :accessed_at])
     #
     # @param attribute [Symbol] attribute name
     # @param by [Numeric] value to subtract (optional)
-    # @return [true|false] whether saved model successfully
-    def decrement!(attribute, by = 1)
-      decrement(attribute, by)
-      save
+    # @param touch [true | Symbol | Array[Symbol]] to update update_at attribute and optionally the specified ones
+    # @return [Dynamoid::Document] self
+    def decrement!(attribute, by = 1, touch: nil)
+      increment!(attribute, -by, touch: touch)
     end
 
     # Delete a model.

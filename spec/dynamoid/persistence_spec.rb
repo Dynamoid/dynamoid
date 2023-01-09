@@ -1710,6 +1710,51 @@ describe Dynamoid::Persistence do
       expect(document_class.inc(obj.id, links_count: 5)).to eq(document_class)
     end
 
+    it 'updates `updated_at` attribute when touch: true option passed' do
+      obj = document_class.create!(links_count: 2, updated_at: Time.now - 1.day)
+
+      expect { document_class.inc(obj.id, links_count: 5) }.not_to change { document_class.find(obj.id).updated_at }
+      expect { document_class.inc(obj.id, links_count: 5, touch: true) }.to change { document_class.find(obj.id).updated_at }
+    end
+
+    it 'updates `updated_at` and the specified attributes when touch: name option passed' do
+      klass = new_class do
+        field :links_count, :integer
+        field :viewed_at, :datetime
+      end
+
+      obj = klass.create!(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+
+      expect do
+        expect do
+          klass.inc(obj.id, links_count: 5, touch: :viewed_at)
+        end.to change { klass.find(obj.id).updated_at }
+      end.to change { klass.find(obj.id).viewed_at }
+    end
+
+    it 'updates `updated_at` and the specified attributes when touch: [<name>*] option passed' do
+      klass = new_class do
+        field :links_count, :integer
+        field :viewed_at, :datetime
+        field :tagged_at, :datetime
+      end
+
+      obj = klass.create!(
+        age: 21,
+        viewed_at: Time.now - 1.day,
+        tagged_at: Time.now - 3.days,
+        updated_at: Time.now - 2.days
+      )
+
+      expect do
+        expect do
+          expect do
+            klass.inc(obj.id, links_count: 5, touch: %i[viewed_at tagged_at])
+          end.to change { klass.find(obj.id).updated_at }
+        end.to change { klass.find(obj.id).viewed_at }
+      end.to change { klass.find(obj.id).tagged_at }
+    end
+
     describe 'timestamps' do
       it 'does not change updated_at', config: { timestamps: true } do
         obj = document_class.create!
@@ -2671,48 +2716,137 @@ describe Dynamoid::Persistence do
     end
 
     it 'increments specified attribute' do
-      obj = document_class.new(age: 21)
+      obj = document_class.create(age: 21)
 
       expect { obj.increment!(:age) }.to change { obj.age }.from(21).to(22)
     end
 
-    it 'initializes the attribute with zero if nil' do
-      obj = document_class.new(age: nil)
+    it 'initializes the attribute with zero if it == nil' do
+      obj = document_class.create(age: nil)
 
       expect { obj.increment!(:age) }.to change { obj.age }.from(nil).to(1)
     end
 
     it 'adds specified optional value' do
-      obj = document_class.new(age: 21)
+      obj = document_class.create(age: 21)
 
       expect { obj.increment!(:age, 10) }.to change { obj.age }.from(21).to(31)
     end
 
-    it 'returns true if document is valid' do
-      class_with_validation = new_class do
-        field :age, :integer
-        validates :age, numericality: { less_than: 16 }
-      end
-      obj = class_with_validation.new(age: 10)
+    it 'persists the attribute new value' do
+      obj = document_class.create(age: 21)
+      obj.increment!(:age, 10)
+      obj_loaded = document_class.find(obj.id)
 
-      expect(obj.increment!(:age, 1)).to eql(true)
+      expect(obj_loaded.age).to eq 31
     end
 
-    it 'returns false if document is invalid' do
-      class_with_validation = new_class do
+    it 'does not persist other changed attributes' do
+      klass = new_class do
         field :age, :integer
-        validates :age, numericality: { less_than: 16 }
+        field :title
       end
-      obj = class_with_validation.new(age: 10)
 
-      expect(obj.increment!(:age, 10)).to eql(false)
-    end
-
-    it 'saves changes' do
-      obj = document_class.new(age: 21)
+      obj = klass.create!(age: 21, title: 'title')
+      obj.title = 'new title'
       obj.increment!(:age)
 
-      expect(obj).to be_persisted
+      obj_loaded = klass.find(obj.id)
+      expect(obj_loaded.title).to eq 'title'
+    end
+
+    it 'does not restore other changed attributes persisted values' do
+      klass = new_class do
+        field :age, :integer
+        field :title
+      end
+
+      obj = klass.create!(age: 21, title: 'title')
+      obj.title = 'new title'
+      obj.increment!(:age)
+
+      expect(obj.title).to eq 'new title'
+      expect(obj.title_changed?).to eq true
+    end
+
+    it 'returns self' do
+      obj = document_class.create(age: 21)
+      expect(obj.increment!(:age, 10)).to eq obj
+    end
+
+    it 'marks the attribute as not changed' do
+      obj = document_class.create(age: 21)
+      obj.increment!(:age, 10)
+
+      expect(obj.age_changed?).to eq false
+    end
+
+    it 'skips validation' do
+      class_with_validation = new_class do
+        field :age, :integer
+        validates :age, numericality: { less_than: 16 }
+      end
+
+      obj = class_with_validation.create(age: 10)
+      obj.increment!(:age, 7)
+      expect(obj.valid?).to eq false
+
+      obj_loaded = class_with_validation.find(obj.id)
+      expect(obj_loaded.age).to eq 17
+    end
+
+    it 'skips callbacks' do
+      klass = new_class do
+        field :age, :integer
+        field :title
+
+        before_save :before_save_callback
+
+        def before_save_callback; end
+      end
+
+      obj = klass.new(age: 21)
+
+      expect(obj).to receive(:before_save_callback)
+      obj.save!
+
+      expect(obj).not_to receive(:before_save_callback)
+      obj.increment!(:age, 10)
+    end
+
+    it 'works well if there is a sort key' do
+      klass_with_sort_key = new_class do
+        range :name
+        field :age, :integer
+      end
+
+      obj = klass_with_sort_key.create(name: 'Alex', age: 21)
+      obj.increment!(:age, 10)
+      obj_loaded = klass_with_sort_key.find(obj.id, range_key: obj.name)
+
+      expect(obj_loaded.age).to eq 31
+    end
+
+    it 'updates `updated_at` attribute when touch: true option passed' do
+      obj = document_class.create(age: 21, updated_at: Time.now - 1.day)
+
+      expect { obj.increment!(:age) }.not_to change { document_class.find(obj.id).updated_at }
+      expect { obj.increment!(:age, touch: true) }.to change { document_class.find(obj.id).updated_at }
+    end
+
+    it 'updates `updated_at` and the specified attributes when touch: [<name>*] option passed' do
+      klass = new_class do
+        field :age, :integer
+        field :viewed_at, :datetime
+      end
+
+      obj = klass.create(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+
+      expect do
+        expect do
+          obj.increment!(:age, touch: [:viewed_at])
+        end.to change { klass.find(obj.id).updated_at }
+      end.to change { klass.find(obj.id).viewed_at }
     end
   end
 
@@ -2763,48 +2897,137 @@ describe Dynamoid::Persistence do
     end
 
     it 'decrements specified attribute' do
-      obj = document_class.new(age: 21)
+      obj = document_class.create(age: 21)
 
       expect { obj.decrement!(:age) }.to change { obj.age }.from(21).to(20)
     end
 
     it 'initializes the attribute with zero if nil' do
-      obj = document_class.new(age: nil)
+      obj = document_class.create(age: nil)
 
       expect { obj.decrement!(:age) }.to change { obj.age }.from(nil).to(-1)
     end
 
     it 'adds specified optional value' do
-      obj = document_class.new(age: 21)
+      obj = document_class.create(age: 21)
 
       expect { obj.decrement!(:age, 10) }.to change { obj.age }.from(21).to(11)
     end
 
-    it 'returns true if document is valid' do
-      class_with_validation = new_class do
-        field :age, :integer
-        validates :age, numericality: { greater_than: 16 }
-      end
-      obj = class_with_validation.new(age: 20)
+    it 'persists the attribute new value' do
+      obj = document_class.create(age: 21)
+      obj.decrement!(:age, 10)
+      obj_loaded = document_class.find(obj.id)
 
-      expect(obj.decrement!(:age, 1)).to eql(true)
+      expect(obj_loaded.age).to eq 11
     end
 
-    it 'returns false if document is invalid' do
-      class_with_validation = new_class do
+    it 'does not persist other changed attributes' do
+      klass = new_class do
         field :age, :integer
-        validates :age, numericality: { greater_than: 16 }
+        field :title
       end
-      obj = class_with_validation.new(age: 20)
 
-      expect(obj.decrement!(:age, 10)).to eql(false)
-    end
-
-    it 'saves changes' do
-      obj = document_class.new(age: 21)
+      obj = klass.create!(age: 21, title: 'title')
+      obj.title = 'new title'
       obj.decrement!(:age)
 
-      expect(obj).to be_persisted
+      obj_loaded = klass.find(obj.id)
+      expect(obj_loaded.title).to eq 'title'
+    end
+
+    it 'does not restore other changed attributes persisted values' do
+      klass = new_class do
+        field :age, :integer
+        field :title
+      end
+
+      obj = klass.create!(age: 21, title: 'title')
+      obj.title = 'new title'
+      obj.decrement!(:age)
+
+      expect(obj.title).to eq 'new title'
+      expect(obj.title_changed?).to eq true
+    end
+
+    it 'returns self' do
+      obj = document_class.create(age: 21)
+      expect(obj.decrement!(:age, 10)).to eq obj
+    end
+
+    it 'marks the attribute as not changed' do
+      obj = document_class.create(age: 21)
+      obj.decrement!(:age, 10)
+
+      expect(obj.age_changed?).to eq false
+    end
+
+    it 'skips validation' do
+      class_with_validation = new_class do
+        field :age, :integer
+        validates :age, numericality: { greater_than: 16 }
+      end
+
+      obj = class_with_validation.create!(age: 20)
+      obj.decrement!(:age, 7)
+      expect(obj.valid?).to eq false
+
+      obj_loaded = class_with_validation.find(obj.id)
+      expect(obj_loaded.age).to eq 13
+    end
+
+    it 'skips callbacks' do
+      klass = new_class do
+        field :age, :integer
+        field :title
+
+        before_save :before_save_callback
+
+        def before_save_callback; end
+      end
+
+      obj = klass.new(age: 21)
+
+      expect(obj).to receive(:before_save_callback)
+      obj.save!
+
+      expect(obj).not_to receive(:before_save_callback)
+      obj.decrement!(:age, 10)
+    end
+
+    it 'works well if there is a sort key' do
+      klass_with_sort_key = new_class do
+        range :name
+        field :age, :integer
+      end
+
+      obj = klass_with_sort_key.create(name: 'Alex', age: 21)
+      obj.decrement!(:age, 10)
+      obj_loaded = klass_with_sort_key.find(obj.id, range_key: obj.name)
+
+      expect(obj_loaded.age).to eq 11
+    end
+
+    it 'updates `updated_at` attribute when touch: true option passed' do
+      obj = document_class.create(age: 21, updated_at: Time.now - 1.day)
+
+      expect { obj.decrement!(:age) }.not_to change { document_class.find(obj.id).updated_at }
+      expect { obj.decrement!(:age, touch: true) }.to change { document_class.find(obj.id).updated_at }
+    end
+
+    it 'updates `updated_at` and the specified attributes when touch: [<name>*] option passed' do
+      klass = new_class do
+        field :age, :integer
+        field :viewed_at, :datetime
+      end
+
+      obj = klass.create(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+
+      expect do
+        expect do
+          obj.decrement!(:age, touch: [:viewed_at])
+        end.to change { klass.find(obj.id).updated_at }
+      end.to change { klass.find(obj.id).viewed_at }
     end
   end
 
