@@ -137,6 +137,25 @@ module Dynamoid
       @changed_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
     end
 
+    # Clear all dirty data: current changes and previous changes.
+    def clear_changes_information # :doc:
+      @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
+      @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+    end
+
+    # Removes current changes and makes them accessible through +previous_changes+.
+    def changes_applied # :doc:
+      @previously_changed = changes
+      @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+    end
+
+    # Remove changes information for the provided attributes.
+    #
+    # @param attributes [Array[String]] - a list of attributes to clear changes for
+    def clear_attribute_changes(attributes)
+      attributes_changed_by_setter.except!(*attributes)
+    end
+
     # Handle <tt>*_changed?</tt> for +method_missing+.
     #
     #  person.attribute_changed?(:name) # => true
@@ -210,18 +229,6 @@ module Dynamoid
     end
     alias attribute_changed_by_setter? changes_include?
 
-    # Removes current changes and makes them accessible through +previous_changes+.
-    def changes_applied # :doc:
-      @previously_changed = changes
-      @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
-    end
-
-    # Clear all dirty data: current changes and previous changes.
-    def clear_changes_information # :doc:
-      @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
-      @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
-    end
-
     # Handle <tt>*_change</tt> for +method_missing+.
     def attribute_change(attr)
       [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
@@ -261,11 +268,6 @@ module Dynamoid
     # Force an attribute to have a particular "before" value
     def set_attribute_was(attr, old_value)
       attributes_changed_by_setter[attr] = old_value
-    end
-
-    # Remove changes information for the provided attributes.
-    def clear_attribute_changes(attributes)
-      attributes_changed_by_setter.except!(*attributes)
     end
   end
 end
