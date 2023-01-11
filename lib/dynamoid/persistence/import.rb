@@ -24,7 +24,10 @@ module Dynamoid
           import_with_backoff(models)
         end
 
-        models.each { |d| d.new_record = false }
+        models.each do |m|
+          m.new_record = false
+          m.clear_changes_information
+        end
         models
       end
 

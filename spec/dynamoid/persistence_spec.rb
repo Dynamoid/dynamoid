@@ -3819,6 +3819,17 @@ describe Dynamoid::Persistence do
       expect(raw_attributes(obj)[:count]).to eql(101)
     end
 
+    it 'marks all the attributes as not changed/dirty' do
+      klass = new_class do
+        field :count, :integer
+      end
+      klass.create_table
+
+      objects = klass.import([{ count: '101' }])
+      obj = objects[0]
+      expect(obj.changed?).to eql false
+    end
+
     context 'backoff is specified' do
       let(:backoff_strategy) do
         ->(_) { -> { @counter += 1 } }
