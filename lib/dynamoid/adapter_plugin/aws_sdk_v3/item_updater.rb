@@ -87,7 +87,15 @@ module Dynamoid
 
         def sanitize_attributes(attributes)
           attributes.transform_values do |v|
-            v.is_a?(Hash) ? v.stringify_keys : v
+            if v.is_a?(Hash)
+              v.stringify_keys
+            elsif v.is_a?(Set) && v.empty?
+              nil
+            elsif v.is_a?(String) && v.empty?
+              nil
+            else
+              v
+            end
           end
         end
       end

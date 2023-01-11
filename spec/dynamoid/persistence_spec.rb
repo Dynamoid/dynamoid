@@ -722,6 +722,24 @@ describe Dynamoid::Persistence do
       }.from(false).to(true)
     end
 
+    it 'saves empty set as nil' do
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+
+      obj = klass_with_set.create(tags: [])
+      obj_loaded = klass_with_set.find(obj.id)
+
+      expect(obj_loaded.tags).to eql nil
+    end
+
+    it 'saves empty string as nil' do
+      obj = klass.create(city: '')
+      obj_loaded = klass.find(obj.id)
+
+      expect(obj_loaded.city).to eql nil
+    end
+
     describe 'callbacks' do
       it 'runs before_create callback' do
         klass_with_callback = new_class do
@@ -998,6 +1016,30 @@ describe Dynamoid::Persistence do
       }.to raise_error Dynamoid::Errors::UnknownAttribute
     end
 
+    it 'saves empty Set as nil' do
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+
+      obj = klass_with_set.create!(tags: [:fishing])
+      klass_with_set.update!(obj.id, tags: [])
+      obj_loaded = klass_with_set.find(obj.id)
+
+      expect(obj_loaded.tags).to eql nil
+    end
+
+    it 'saves empty string as nil' do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'alex')
+      klass_with_string.update!(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
     describe 'timestamps' do
       it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
         d = document_class.create(name: 'Document#1')
@@ -1188,6 +1230,30 @@ describe Dynamoid::Persistence do
       end.to raise_error Dynamoid::Errors::UnknownAttribute
     end
 
+    it 'saves empty Set as nil' do
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+
+      obj = klass_with_set.create!(tags: [:fishing])
+      klass_with_set.update(obj.id, tags: [])
+      obj_loaded = klass_with_set.find(obj.id)
+
+      expect(obj_loaded.tags).to eql nil
+    end
+
+    it 'saves empty string as nil' do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'alex')
+      klass_with_string.update(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
     describe 'timestamps' do
       it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
         d = document_class.create(name: 'Document#1')
@@ -1350,6 +1416,30 @@ describe Dynamoid::Persistence do
       document_class.update_fields(obj.id, published_on: '2018-02-23'.to_date)
       attributes = Dynamoid.adapter.get_item(document_class.table_name, obj.id)
       expect(attributes[:published_on]).to eq 17_585
+    end
+
+    it 'saves empty Set as nil' do
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+
+      obj = klass_with_set.create!(tags: [:fishing])
+      klass_with_set.update_fields(obj.id, tags: [])
+      obj_loaded = klass_with_set.find(obj.id)
+
+      expect(obj_loaded.tags).to eql nil
+    end
+
+    it 'saves empty string as nil' do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      klass_with_string.update_fields(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
     end
 
     describe 'timestamps' do
@@ -1544,6 +1634,30 @@ describe Dynamoid::Persistence do
       document_class.upsert(obj.id, published_on: '2018-02-23'.to_date)
       attributes = Dynamoid.adapter.get_item(document_class.table_name, obj.id)
       expect(attributes[:published_on]).to eq 17_585
+    end
+
+    it 'saves empty Set as nil' do
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+
+      obj = klass_with_set.create!(tags: [:fishing])
+      klass_with_set.upsert(obj.id, tags: [])
+      obj_loaded = klass_with_set.find(obj.id)
+
+      expect(obj_loaded.tags).to eql nil
+    end
+
+    it 'saves empty string as nil' do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      klass_with_string.upsert(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
     end
 
     describe 'timestamps' do
@@ -1825,8 +1939,34 @@ describe Dynamoid::Persistence do
       end
 
       obj = klass.new(active: false)
-      obj.save!
+      obj.save
       expect(raw_attributes(obj)[:active]).to eql('f')
+    end
+
+    it 'saves empty Set as nil' do
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+
+      obj = klass_with_set.create!(tags: [:fishing])
+      obj.tags = []
+      obj.save
+      obj_loaded = klass_with_set.find(obj.id)
+
+      expect(obj_loaded.tags).to eql nil
+    end
+
+    it 'saves empty string as nil' do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.name = ''
+      obj.save
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
     end
 
     describe 'partition key value' do
@@ -2236,6 +2376,30 @@ describe Dynamoid::Persistence do
       expect(result).to eq(obj)
     end
 
+    it 'saves empty Set as nil' do
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+
+      obj = klass_with_set.create!(tags: [:fishing])
+      obj.update_attribute(:tags, [])
+      obj_loaded = klass_with_set.find(obj.id)
+
+      expect(obj_loaded.tags).to eql nil
+    end
+
+    it 'saves empty string as nil' do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update_attribute(:name, '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
     describe 'type casting' do
       it 'type casts attributes' do
         klass = new_class do
@@ -2558,6 +2722,30 @@ describe Dynamoid::Persistence do
       expect {
         obj.update_attributes!(city: 'Dublin', age: 27)
       }.to raise_error(Dynamoid::Errors::UnknownAttribute)
+    end
+
+    it 'saves empty Set as nil' do
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+
+      obj = klass_with_set.create!(tags: [:fishing])
+      obj.update_attributes!(tags: [])
+      obj_loaded = klass_with_set.find(obj.id)
+
+      expect(obj_loaded.tags).to eql nil
+    end
+
+    it 'saves empty string as nil' do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update_attributes!(name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
     end
 
     describe 'type casting' do
@@ -3043,6 +3231,46 @@ describe Dynamoid::Persistence do
       result = obj.update! { |t| t.set(age: 21) }
       expect(result).to eq obj
     end
+
+    it 'checks the conditions on update' do
+      @tweet = Tweet.create!(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'John')
+
+      @tweet.update!(if: { count: 5 }) do |t|
+        t.add(count: 3)
+      end
+      expect(@tweet.count).to eql 8
+      expect(Tweet.find(@tweet.tweet_id, range_key: @tweet.group).count).to eql 8
+
+      expect do
+        @tweet.update!(if: { count: 5 }) do |t|
+          t.add(count: 3)
+        end
+      end.to raise_error(Dynamoid::Errors::StaleObjectError)
+    end
+
+    it 'saves empty Set as nil' do
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+
+      obj = klass_with_set.create!(tags: [:fishing])
+      obj.update! { |t| t.set(tags: Set.new) }
+      obj_loaded = klass_with_set.find(obj.id)
+
+      expect(obj_loaded.tags).to eql nil
+    end
+
+    it 'saves empty string as nil' do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update! { |t| t.set(name: '') }
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
   end
 
   describe '#update' do
@@ -3079,31 +3307,27 @@ describe Dynamoid::Persistence do
     end
 
     it 'checks the conditions on update' do
-      result = @tweet.update(if: { count: 5 }) do |t|
-        t.add(count: 3)
-      end
-      expect(result).to be_truthy
-
-      expect(@tweet.count).to eq(8)
-
-      result = @tweet.update(if: { count: 5 }) do |t|
-        t.add(count: 3)
-      end
-      expect(result).to be_falsey
-
-      expect(@tweet.count).to eq(8)
-
-      expect do
-        @tweet.update!(if: { count: 5 }) do |t|
+      expect(
+        @tweet.update(if: { count: 5 }) do |t|
           t.add(count: 3)
         end
-      end.to raise_error(Dynamoid::Errors::StaleObjectError)
+      ).to eql true
+      expect(@tweet.count).to eql 8
+      expect(Tweet.find(@tweet.tweet_id, range_key: @tweet.group).count).to eql 8
+
+      expect(
+        @tweet.update(if: { count: 5 }) do |t|
+          t.add(count: 3)
+        end
+      ).to eql false
+      expect(@tweet.count).to eql 8
+      expect(Tweet.find(@tweet.tweet_id, range_key: @tweet.group).count).to eql 8
     end
 
     it 'prevents concurrent saves to tables with a lock_version' do
       address.save!
       a2 = Address.find(address.id)
-      a2.update! { |a| a.set(city: 'Chicago') }
+      a2.update { |a| a.set(city: 'Chicago') }
 
       expect do
         address.city = 'Seattle'
@@ -3119,9 +3343,33 @@ describe Dynamoid::Persistence do
       klass.create_table
 
       obj = klass.create!(activated_on: Date.today, name: 'Old value')
-      obj.update! { |d| d.set(name: 'New value') }
+      obj.update { |d| d.set(name: 'New value') }
 
       expect(obj.reload.name).to eql('New value')
+    end
+
+    it 'saves empty Set as nil' do
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+
+      obj = klass_with_set.create!(tags: [:fishing])
+      obj.update { |t| t.set(tags: Set.new) }
+      obj_loaded = klass_with_set.find(obj.id)
+
+      expect(obj_loaded.tags).to eql nil
+    end
+
+    it 'saves empty string as nil' do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update { |t| t.set(name: '') }
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
     end
 
     describe 'timestamps' do
@@ -3485,7 +3733,7 @@ describe Dynamoid::Persistence do
       expect(user.todo_list).to eq []
     end
 
-    it 'saves empty set as nil' do
+    it 'saves empty Set as nil' do
       tweets = Tweet.import([{ group: 'one', tags: [] }])
 
       tweet = Tweet.find_by_tweet_id(tweets[0].tweet_id)
