@@ -9,7 +9,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe 'changed?' do
+  describe '#changed?' do
     it 'works' do
       obj = model.new(name: 'Bob')
       expect(obj.name_changed?).to eq true
@@ -37,7 +37,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe 'changed' do
+  describe '#changed' do
     it 'returns an array with the name of the attributes with unsaved changes' do
       obj = model.create(name: 'Alex')
       obj.name = 'Bob'
@@ -60,10 +60,8 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe 'changed_attributes' do
+  describe '#changed_attributes' do
     it 'returns a hash of the attributes with unsaved changes indicating their original values' do
-      obj = model.new(name: 'Alex')
-
       obj = model.create(name: 'Alex')
       obj.name = 'Bob'
       expect(obj.changed_attributes).to eq('name' => 'Alex')
@@ -85,7 +83,73 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe 'changes' do
+  describe '#clear_changes_information' do
+    it 'clears current changes information' do
+      obj = model.new(name: 'Alex')
+
+      expect do
+        obj.clear_changes_information
+      end.to change { obj.changes }.from(a_hash_including(name: [nil, 'Alex'])).to({})
+    end
+
+    it 'clears previous changes information' do
+      obj = model.create!(name: 'Alex') # previous change
+      obj.name = 'Michael' # current change
+
+      expect do
+        obj.clear_changes_information
+      end.to change { obj.previous_changes }.from(a_hash_including(name: [nil, 'Alex'])).to({})
+    end
+  end
+
+  describe '#changes_applied' do
+    it 'clears current changes information' do
+      obj = model.new(name: 'Alex')
+
+      expect do
+        obj.changes_applied
+      end.to change { obj.changes }.from(name: [nil, 'Alex']).to({})
+    end
+
+    it 'moves changes to previous changes' do
+      obj = model.new(name: 'Alex')
+
+      expect do
+        obj.changes_applied
+      end.to change { obj.previous_changes }.from({}).to(name: [nil, 'Alex'])
+    end
+  end
+
+  describe '#clear_attribute_changes' do
+    it 'removes changes information for specified attributes' do
+      klass_with_several_fields = new_class do
+        field :name
+        field :age, :integer
+        field :city
+      end
+
+      obj = klass_with_several_fields.create!(name: 'Alex', age: 21, city: 'Ottawa')
+      obj.name = 'Michael'
+      obj.age = 36
+      obj.city = 'Mexico'
+
+      expect(obj.changes).to eql('name' => %w[Alex Michael], 'age' => [21, 36], 'city' => %w[Ottawa Mexico])
+      expect(obj.changed_attributes).to eql('name' => 'Alex', 'age' => 21, 'city' => 'Ottawa')
+      expect(obj.name_changed?).to eql true
+      expect(obj.age_changed?).to eql true
+      expect(obj.city_changed?).to eql true
+
+      obj.clear_attribute_changes(%w[name age])
+
+      expect(obj.changes).to eql('city' => %w[Ottawa Mexico])
+      expect(obj.changed_attributes).to eql('city' => 'Ottawa')
+      expect(obj.name_changed?).to eql false
+      expect(obj.age_changed?).to eql false
+      expect(obj.city_changed?).to eql true
+    end
+  end
+
+  describe '#changes' do
     it 'returns a hash of changed attributes indicating their original and new values' do
       obj = model.create(name: 'Alex')
       obj.name = 'Bob'
@@ -108,7 +172,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe 'previous_changes' do
+  describe '#previous_changes' do
     it 'returns a hash of attributes that were changed before the model was saved' do
       obj = model.create(name: 'Alex', updated_at: '2019-07-20 00:53:32'.to_datetime)
       obj.name = 'Bob'
@@ -135,7 +199,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe '<attribute>_changed?' do
+  describe '#<attribute>_changed?' do
     it 'returns true if attribute has unsaved value' do
       obj = model.new(name: 'Bob')
       expect(obj.name_changed?).to eq true
@@ -158,7 +222,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe '<attribute>_change' do
+  describe '#<attribute>_change' do
     it 'returns an array with previous and current values' do
       obj = model.create(name: 'Alex')
       obj.name = 'Bob'
@@ -181,7 +245,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe '<attribute>_previously_changed?' do
+  describe '#<attribute>_previously_changed?' do
     it 'returns true if attribute was changed before model was saved' do
       obj = model.create(name: 'Alex')
       obj.name = 'Bob'
@@ -202,7 +266,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe '<attribute>_previous_change' do
+  describe '#<attribute>_previous_change' do
     it 'returns an array of old and changed attribute value before the model was saved' do
       obj = model.create(name: 'Alex')
       obj.name = 'Bob'
@@ -223,7 +287,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe '<attribute>_will_change!' do
+  describe '#<attribute>_will_change!' do
     it 'marks that the attribute is changing' do
       obj = model.create(name: 'Alex')
       obj.name_will_change!
@@ -236,7 +300,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe '<attribute>_was' do
+  describe '#<attribute>_was' do
     it 'returns saved attribute value before changing' do
       obj = model.create(name: 'Alex')
       obj.name = 'Bob'
@@ -253,12 +317,19 @@ describe Dynamoid::Dirty do
     end
   end
 
-  describe 'restore_<attribute>!' do
+  describe '#restore_<attribute>!' do
     it 'restores original value if attribute is changed' do
       a = model.create(name: 'Alex')
       a.name = 'Bob'
       a.restore_name!
       expect(a.name).to eq 'Alex'
+    end
+
+    it 'removes changes information' do
+      a = model.create(name: 'Alex')
+      a.name = 'Bob'
+
+      expect { a.restore_name! }.to change { a.changed? }.from(true).to(false)
     end
 
     it 'returns saved value otherwise' do
@@ -350,7 +421,7 @@ describe Dynamoid::Dirty do
       end
     end
 
-    describe '.reload' do
+    describe '#reload' do
       it 'cleans model unsaved changes' do
         a = model.create(name: 'Alex')
         a.name = 'Bob'
