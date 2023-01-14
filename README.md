@@ -1,21 +1,18 @@
 # Dynamoid
 
-[![Build Status](https://github.com/Dynamoid/dynamoid/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Dynamoid/dynamoid/actions/workflows/ci.yml/badge.svg?branch=master)
-[![Code Climate](https://codeclimate.com/github/Dynamoid/dynamoid.svg)](https://codeclimate.com/github/Dynamoid/dynamoid)
-[![Coverage Status](https://coveralls.io/repos/github/Dynamoid/dynamoid/badge.svg?branch=master)](https://coveralls.io/github/Dynamoid/dynamoid?branch=master)
-[![CodeTriage Helpers](https://www.codetriage.com/dynamoid/dynamoid/badges/users.svg)](https://www.codetriage.com/dynamoid/dynamoid)
-[![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](https://www.rubydoc.info/github/Dynamoid/dynamoid/frames)
-[![Inline docs](http://inch-ci.org/github/Dynamoid/Dynamoid.svg?branch=master)](http://inch-ci.org/github/Dynamoid/Dynamoid)
-![GitHub](https://img.shields.io/github/license/Dynamoid/dynamoid.svg)
+[![Gem Version][⛳️version-img]][⛳️gem]
+[![Supported Build Status][🏘sup-wf-img]][🏘sup-wf]
+[![Maintainability][⛳cclim-maint-img♻️]][⛳cclim-maint]
+[![Coveralls][🏘coveralls-img]][🏘coveralls]
+[![CodeCov][🖇codecov-img♻️]][🖇codecov]
+[![Helpers][🖇triage-help-img]][🖇triage-help]
+[![Contributors][🖐contributors-img]][🖐contributors]
+[![RubyDoc.info][🚎yard-img]][🚎yard]
+[![License][🖇src-license-img]][🖇src-license]
 [![GitMoji][🖐gitmoji-img]][🖐gitmoji]
-[![SemVer 2.0.0][🧮semver-img]][semver]
+[![SemVer 2.0.0][🧮semver-img]][🧮semver]
 [![Keep-A-Changelog 1.0.0][📗keep-changelog-img]][📗keep-changelog]
-
-[🖐gitmoji]: https://gitmoji.dev
-[🖐gitmoji-img]: https://img.shields.io/badge/gitmoji-3.9.0-FFDD67.svg?style=flat
-[🧮semver-img]: https://img.shields.io/badge/semver-2.0.0-FFDD67.svg?style=flat
-[📗keep-changelog]: https://keepachangelog.com/en/1.0.0/
-[📗keep-changelog-img]: https://img.shields.io/badge/keep--a--changelog-1.0.0-FFDD67.svg?style=flat
+[![Sponsor Project][🖇sponsor-img]][🖇sponsor]
 
 Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It
 provides similar functionality to ActiveRecord and improves on Amazon's
@@ -71,9 +68,9 @@ Create `config/initializers/aws.rb` as follows:
 
 ```ruby
 Aws.config.update({
-  region: 'us-west-2',
+                    region: 'us-west-2',
   credentials: Aws::Credentials.new('REPLACE_WITH_ACCESS_KEY_ID', 'REPLACE_WITH_SECRET_ACCESS_KEY'),
-})
+                  })
 ```
 
 Alternatively, if you don't want Aws connection settings to be
@@ -97,16 +94,16 @@ elsewhere in your project, etc.), you may do so:
 require 'dynamoid'
 
 credentials = Aws::AssumeRoleCredentials.new(
-    region: region,
-    access_key_id: key,
-    secret_access_key: secret,
-    role_arn: role_arn,
-    role_session_name: 'our-session'
-  )
+  region: region,
+  access_key_id: key,
+  secret_access_key: secret,
+  role_arn: role_arn,
+  role_session_name: 'our-session'
+)
 
 Dynamoid.configure do |config|
   config.region = 'us-west-2',
-  config.credentials = credentials
+                  config.credentials = credentials
 end
 ```
 
@@ -136,7 +133,7 @@ Dynamoid supports Ruby >= 2.3 and Rails >= 4.2.
 
 Its compatibility is tested against following Ruby versions: 2.3, 2.4,
 2.5, 2.6, 2.7 and 3.0, JRuby 9.2.x and against Rails versions: 4.2, 5.0, 5.1,
-5.2, 6.0 and 6.1.
+5.2, 6.0, 6.1 and 7.0.
 
 ## Setup
 
@@ -360,7 +357,6 @@ class User
   field :number, :number
   field :joined_at, :datetime
   field :hash, :serialized
-
 end
 ```
 
@@ -406,7 +402,7 @@ class Money
     'serialized representation as a string'
   end
 
-  def self.dynamoid_load(serialized_str)
+  def self.dynamoid_load(_serialized_str)
     # parse serialized representation and return a Money instance
     Money.new(1.23)
   end
@@ -431,7 +427,7 @@ serializing. Example:
 class Money; end
 
 class MoneyAdapter
-  def self.dynamoid_load(money_serialized_str)
+  def self.dynamoid_load(_money_serialized_str)
     Money.new(1.23)
   end
 
@@ -476,6 +472,10 @@ Second argument, type, is optional. Default type is `string`.
 
 Just like in ActiveRecord (or your other favorite ORM), Dynamoid uses
 associations to create links between models.
+
+**WARNING:** Associations are not supported for models with compound
+primary key. If a model declares a range key it should not declare any
+association itself and be referenced by an association in another model.
 
 The only supported associations (so far) are `has_many`, `has_one`,
 `has_and_belongs_to_many`, and `belongs_to`. Associations are very
@@ -680,14 +680,14 @@ address.save
 To create multiple documents at once:
 
 ```ruby
-User.create([{name: 'Josh'}, {name: 'Nick'}])
+User.create([{ name: 'Josh' }, { name: 'Nick' }])
 ```
 
 There is an efficient and low-level way to create multiple documents
 (without validation and callbacks running):
 
 ```ruby
-users = User.import([{name: 'Josh'}, {name: 'Nick'}])
+users = User.import([{ name: 'Josh' }, { name: 'Nick' }])
 ```
 
 ### Querying
@@ -792,8 +792,8 @@ for requesting documents in batches:
 
 ```ruby
 # Do some maintenance on the entire table without flooding DynamoDB
-Address.batch(100).each { |address| address.do_some_work; sleep(0.01) }
-Address.record_limit(10_000).batch(100).each { … } # Batch specified as part of a chain
+Address.batch(100).each { |addr| addr.do_some_work && sleep(0.01) }
+Address.record_limit(10_000).batch(100).each { |addr| addr.do_some_work && sleep(0.01) } # Batch specified as part of a chain
 ```
 
 The implication of batches is that the underlying requests are done in
@@ -845,13 +845,13 @@ operators are available: `gt`, `lt`, `gte`, `lte`, `begins_with`,
 `between` as well as equality:
 
 ```ruby
-Address.where(latitude: 10212)
-Address.where('latitude.gt': 10212)
-Address.where('latitude.lt': 10212)
-Address.where('latitude.gte': 10212)
-Address.where('latitude.lte': 10212)
+Address.where(latitude: 10_212)
+Address.where('latitude.gt': 10_212)
+Address.where('latitude.lt': 10_212)
+Address.where('latitude.gte': 10_212)
+Address.where('latitude.lte': 10_212)
 Address.where('city.begins_with': 'Lon')
-Address.where('latitude.between': [10212, 20000])
+Address.where('latitude.between': [10_212, 20_000])
 ```
 
 You are able to filter results on the DynamoDB side and specify
@@ -859,7 +859,7 @@ conditions for non-key fields. Following additional operators are
 available: `in`, `contains`, `not_contains`, `null`, `not_null`:
 
 ```ruby
-Address.where('city.in': ['London', 'Edenburg', 'Birmingham'])
+Address.where('city.in': %w[London Edenburg Birmingham])
 Address.where('city.contains': ['on'])
 Address.where('city.not_contains': ['ing'])
 Address.where('postcode.null': false)
@@ -959,6 +959,14 @@ Address.update_fields(id, city: 'Chicago')
 Address.update_fields(id, { city: 'Chicago' }, if: { deliverable: true })
 Address.upsert(id, city: 'Chicago')
 Address.upsert(id, { city: 'Chicago' }, if: { deliverable: true })
+```
+
+By default, `#upsert` will update all attributes of the document if it already exists.
+To idempotently create-but-not-update a record, apply the `unless_exists` condition
+to its keys when you upsert.
+
+```ruby
+Address.upsert(id, { city: 'Chicago' }, if: { unless_exists: [:id] })
 ```
 
 ### Deleting
@@ -1082,7 +1090,7 @@ Listed below are all configuration options.
   when referring to them. Isn't thread safe. Default is `false`.
   `Use Dynamoid::Middleware::IdentityMap` to clear identity map for each HTTP request
 * `timestamps` - by default Dynamoid sets `created_at` and `updated_at`
-  fields for model creation and updating. You can disable this
+  fields at model creation and updating. You can disable this
   behavior by setting `false` value
 * `sync_retry_max_times` - when Dynamoid creates or deletes table
   synchronously it checks for completion specified times. Default is 60
@@ -1278,6 +1286,7 @@ accidentally by adding the following to your test environment setup:
 
 ```ruby
 raise "Tests should be run in 'test' environment only" if Rails.env != 'test'
+
 Dynamoid.configure do |config|
   config.namespace = "#{Rails.application.railtie_name}_#{Rails.env}"
 end
@@ -1383,6 +1392,12 @@ bundle install
 
 See [SECURITY.md][security].
 
+## Related links
+
+This documentation may be useful for the contributors:
+- <https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/welcome.html>
+- <https://docs.aws.amazon.com/sdk-for-ruby/v3/api/index.html>
+
 ## License
 
 The gem is available as open source under the terms of
@@ -1397,4 +1412,29 @@ See [LICENSE][license] for the official [Copyright Notice][copyright-notice-expl
 
 [security]: https://github.com/Dynamoid/dynamoid/blob/master/SECURITY.md
 
-[semver]: http://semver.org/
+[⛳️gem]: https://rubygems.org/gems/dynamoid
+[⛳️version-img]: http://img.shields.io/gem/v/dynamoid.svg
+[⛳cclim-maint]: https://codeclimate.com/github/Dynamoid/dynamoid/maintainability
+[⛳cclim-maint-img♻️]: https://api.codeclimate.com/v1/badges/27fd8b6b7ff338fa4914/maintainability
+[🏘coveralls]: https://coveralls.io/github/Dynamoid/dynamoid?branch=master
+[🏘coveralls-img]: https://coveralls.io/repos/github/Dynamoid/dynamoid/badge.svg?branch=master
+[🖇codecov]: https://codecov.io/gh/Dynamoid/dynamoid
+[🖇codecov-img♻️]: https://codecov.io/gh/Dynamoid/dynamoid/branch/master/graph/badge.svg?token=84WeeoxaN9
+[🖇src-license]: https://github.com/Dynamoid/dynamoid/blob/master/LICENSE.txt
+[🖇src-license-img]: https://img.shields.io/badge/License-MIT-green.svg
+[🖐gitmoji]: https://gitmoji.dev
+[🖐gitmoji-img]: https://img.shields.io/badge/gitmoji-3.9.0-FFDD67.svg?style=flat
+[🚎yard]: https://www.rubydoc.info/gems/dynamoid
+[🚎yard-img]: https://img.shields.io/badge/yard-docs-blue.svg?style=flat
+[🧮semver]: http://semver.org/
+[🧮semver-img]: https://img.shields.io/badge/semver-2.0.0-FFDD67.svg?style=flat
+[🖐contributors]: https://github.com/Dynamoid/dynamoid/graphs/contributors
+[🖐contributors-img]: https://img.shields.io/github/contributors-anon/Dynamoid/dynamoid
+[📗keep-changelog]: https://keepachangelog.com/en/1.0.0/
+[📗keep-changelog-img]: https://img.shields.io/badge/keep--a--changelog-1.0.0-FFDD67.svg?style=flat
+[🖇sponsor-img]: https://img.shields.io/opencollective/all/dynamoid
+[🖇sponsor]: https://opencollective.com/dynamoid
+[🖇triage-help]: https://www.codetriage.com/dynamoid/dynamoid
+[🖇triage-help-img]: https://www.codetriage.com/dynamoid/dynamoid/badges/users.svg
+[🏘sup-wf]: https://github.com/Dynamoid/dynamoid/actions/workflows/ci.yml?query=branch%3Amaster
+[🏘sup-wf-img]: https://github.com/Dynamoid/dynamoid/actions/workflows/ci.yml/badge.svg?branch=master

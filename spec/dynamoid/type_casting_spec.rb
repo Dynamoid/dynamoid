@@ -232,7 +232,7 @@ describe 'Type casting' do
       obj = klass.new(items: ['milk'])
       expect(obj.items).to eql(Set.new(['milk']))
 
-      struct = Struct.new(:name, :address, :zip)
+      struct = Struct.new(:name, :address, :postal_code)
       obj = klass.new(items: struct.new('Joe Smith', '123 Maple, Anytown NC', 12_345))
       expect(obj.items).to eql(Set.new(['Joe Smith', '123 Maple, Anytown NC', 12_345]))
     end
@@ -326,7 +326,7 @@ describe 'Type casting' do
       obj = klass.new(items: { 'milk' => 13.60 })
       expect(obj.items).to eql([['milk', 13.6]])
 
-      struct = Struct.new(:name, :address, :zip)
+      struct = Struct.new(:name, :address, :postal_code)
       obj = klass.new(items: struct.new('Joe Smith', '123 Maple, Anytown NC', 12_345))
       expect(obj.items).to eql(['Joe Smith', '123 Maple, Anytown NC', 12_345])
     end
@@ -578,7 +578,10 @@ describe 'Type casting' do
       obj = klass.new(age: 23)
       expect(obj.age).to eql(BigDecimal('23'))
 
-      obj = klass.new(age: 23.9)
+      # NOTE: 23.9 as a float becomes in JRuby 9.4.0.0:
+      #       0.2389999999999999857891452847979962825775146484375e2
+      # So we use a string here.
+      obj = klass.new(age: '23.9')
       expect(obj.age).to eql(BigDecimal('23.9'))
 
       obj = klass.new(age: '23')

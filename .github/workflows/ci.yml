@@ -39,14 +39,15 @@ jobs:
           - rails_6_1
           - rails_7_0
         rubygems:
-          - latest
+          - default
         bundler:
-          - latest
+          - default
         ruby:
           - "2.3"
           - "2.4"
           - "2.5"
           - "2.6"
+          - jruby
           - "2.7"
           - "3.0"
           - "3.1"
@@ -90,6 +91,24 @@ jobs:
           - ruby: "3.1"
             gemfile: rails_5_1
           - ruby: "3.1"
+            gemfile: rails_5_2
+          - ruby: "jruby"
+            gemfile: rails_4_2
+          - ruby: "jruby"
+            gemfile: rails_5_0
+          - ruby: "jruby"
+            gemfile: rails_5_1
+          - ruby: "jruby"
+            gemfile: rails_5_2
+
+        include:
+          - ruby: "jruby-9.3.9.0"
+            gemfile: rails_4_2
+          - ruby: "jruby-9.3.9.0"
+            gemfile: rails_5_0
+          - ruby: "jruby-9.3.9.0"
+            gemfile: rails_5_1
+          - ruby: "jruby-9.3.9.0"
             gemfile: rails_5_2
 
     name: ${{ matrix.gemfile }}, Ruby ${{ matrix.ruby }}

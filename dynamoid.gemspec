@@ -25,23 +25,32 @@ Gem::Specification.new do |spec|
     'Peter Boling',
     'Andrew Konchin'
   ]
-  spec.email = ['peter.boling@gmail.com', 'brian@stellaservice.com', 'andry.konchin@gmail.com']
+  spec.email = ['andry.konchin@gmail.com', 'peter.boling@gmail.com', 'brian@stellaservice.com']
 
   spec.description = "Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   spec.summary = "Dynamoid is an ORM for Amazon's DynamoDB"
   # Ignore not commited files
-  spec.files = Dir['CHANGELOG.md', 'README.md', 'LICENSE.txt', 'lib/**/*'] & `git ls-files`.split("\n")
+  spec.files = Dir[
+    'CHANGELOG.md',
+    'dynamoid.gemspec',
+    'lib/**/*',
+    'LICENSE.txt',
+    'README.md',
+    'SECURITY.md'
+  ]
   spec.homepage = 'http://github.com/Dynamoid/dynamoid'
   spec.licenses = ['MIT']
   spec.require_paths = ['lib']
+  spec.required_ruby_version = '>= 2.3.0'
 
-  spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/Dynamoid/dynamoid/tree/v#{spec.version}"
-  spec.metadata["changelog_uri"] = "https://github.com/Dynamoid/dynamoid/blob/v#{spec.version}/CHANGELOG.md"
-  spec.metadata["bug_tracker_uri"] = "https://github.com/Dynamoid/dynamoid/issues"
-  spec.metadata["documentation_uri"] = "https://www.rubydoc.info/gems/dynamoid/#{spec.version}"
-  spec.metadata["wiki_uri"] = "https://github.com/Dynamoid/dynamoid/wiki"
-  spec.metadata["rubygems_mfa_required"] = "true"
+  spec.metadata['homepage_uri'] = spec.homepage
+  spec.metadata['source_code_uri'] = "https://github.com/Dynamoid/dynamoid/tree/v#{spec.version}"
+  spec.metadata['changelog_uri'] = "https://github.com/Dynamoid/dynamoid/blob/v#{spec.version}/CHANGELOG.md"
+  spec.metadata['bug_tracker_uri'] = 'https://github.com/Dynamoid/dynamoid/issues'
+  spec.metadata['documentation_uri'] = "https://www.rubydoc.info/gems/dynamoid/#{spec.version}"
+  spec.metadata['funding_uri'] = 'https://opencollective.com/dynamoid'
+  spec.metadata['wiki_uri'] = 'https://github.com/Dynamoid/dynamoid/wiki'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 
   spec.add_runtime_dependency 'activemodel', '>=4'
   spec.add_runtime_dependency 'aws-sdk-dynamodb', '~> 1.0'
@@ -49,15 +58,12 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'appraisal'
   spec.add_development_dependency 'bundler'
-  spec.add_development_dependency 'coveralls'
-  spec.add_development_dependency 'overcommit'
   # Since 0.13.0 pry is incompatible with old versions of pry-byebug.
   # We use these old versions of pry-byebug to run tests on Ruby 2.3 which new versions don't support
   spec.add_development_dependency 'pry', '~> 0.12.0'
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'rspec'
-  # 'rubocop', '1.12.1' # Last version compatible with Ruby 2.4
-  # 'rubocop', '0.81.0' # Last version compatible with Ruby 2.3
-  spec.add_development_dependency 'rubocop', '0.81.0'
+  spec.add_development_dependency 'rake', '~> 13.0'
+  spec.add_development_dependency 'rspec', '~> 3.12'
+  # 'rubocop-lts' is for Ruby 2.3+, see https://rubocop-lts.gitlab.io/
+  spec.add_development_dependency 'rubocop-lts', '~> 10.0'
   spec.add_development_dependency 'yard'
 end

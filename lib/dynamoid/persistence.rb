@@ -8,6 +8,7 @@ require 'dynamoid/persistence/import'
 require 'dynamoid/persistence/update_fields'
 require 'dynamoid/persistence/upsert'
 require 'dynamoid/persistence/save'
+require 'dynamoid/persistence/inc'
 require 'dynamoid/persistence/update_validations'
 
 # encoding: utf-8
@@ -112,8 +113,10 @@ module Dynamoid
 
         if created_successfuly && self.options[:expires]
           attribute = self.options[:expires][:field]
-          Dynamoid.adapter.update_time_to_live(table_name, attribute)
+          Dynamoid.adapter.update_time_to_live(options[:table_name], attribute)
         end
+
+        self
       end
 
       # Deletes the table for the model.
@@ -122,8 +125,10 @@ module Dynamoid
       # is deleted completely.
       #
       # Subsequent method calls for the same table will be ignored.
+      # @return [Model class] self
       def delete_table
         Dynamoid.adapter.delete_table(table_name)
+        self
       end
 
       # @private
@@ -365,32 +370,31 @@ module Dynamoid
       #
       #   User.inc('1', 'Tylor', age: 2)
       #
+      # It's an atomic operation it does not interfere with other write
+      # requests.
+      #
       # Uses efficient low-level +UpdateItem+ operation and does only one HTTP
       # request.
       #
       # Doesn't run validations and callbacks. Doesn't update +created_at+ and
       # +updated_at+ as well.
       #
+      # When `:touch` option is passed the timestamp columns are updating. If
+      # attribute names are passed, they are updated along with updated_at
+      # attribute:
+      #
+      #   User.inc('1', age: 2, touch: true)
+      #   User.inc('1', age: 2, touch: :viewed_at)
+      #   User.inc('1', age: 2, touch: [:viewed_at, :accessed_at])
+      #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
       # @param counters [Hash] value to increase by
+      # @option counters [true | Symbol | Array[Symbol]] :touch to update update_at attribute and optionally the specified ones
+      # @return [Model class] self
       def inc(hash_key_value, range_key_value = nil, counters)
-        options = if range_key
-                    value_casted = TypeCasting.cast_field(range_key_value, attributes[range_key])
-                    value_dumped = Dumping.dump_field(value_casted, attributes[range_key])
-                    { range_key: value_dumped }
-                  else
-                    {}
-                  end
-
-        Dynamoid.adapter.update_item(table_name, hash_key_value, options) do |t|
-          counters.each do |k, v|
-            value_casted = TypeCasting.cast_field(v, attributes[k])
-            value_dumped = Dumping.dump_field(value_casted, attributes[k])
-
-            t.add(k => value_dumped)
-          end
-        end
+        Inc.call(self, hash_key_value, range_key_value, counters)
+        self
       end
     end
 
@@ -405,11 +409,13 @@ module Dynamoid
     #   user.touch(:last_login_at)
     #
     # @param name [Symbol] attribute name to update (optional)
+    # @return [Dynamoid::Document] self
     def touch(name = nil)
       now = DateTime.now
       self.updated_at = now
       attributes[name] = now if name
       save
+      self
     end
 
     # Is this object persisted in DynamoDB?
@@ -479,17 +485,11 @@ module Dynamoid
 
       @_touch_record = options[:touch]
 
-      if new_record?
-        run_callbacks(:create) do
-          run_callbacks(:save) do
-            Save.call(self)
-          end
-        end
-      else
-        run_callbacks(:update) do
-          run_callbacks(:save) do
-            Save.call(self)
-          end
+      create_or_update = new_record? ? :create : :update
+
+      run_callbacks(create_or_update) do
+        run_callbacks(:save) do
+          Save.call(self)
         end
       end
     end
@@ -540,10 +540,13 @@ module Dynamoid
     # @param attribute [Symbol] attribute name to update
     # @param value [Object] the value to assign it
     # @return [Dynamoid::Document] self
+    #
     # @since 0.2.0
     def update_attribute(attribute, value)
+      # final implementation is in the Dynamoid::Validation module
       write_attribute(attribute, value)
       save
+      self
     end
 
     # Update a model.
@@ -557,7 +560,7 @@ module Dynamoid
     # collections if attribute is a collection (one of +array+, +set+ or
     # +map+).
     #
-    #   user.update do |t|
+    #   user.update! do |t|
     #     t.add(age: 1, followers_count: 5)
     #     t.add(hobbies: ['skying', 'climbing'])
     #   end
@@ -565,24 +568,28 @@ module Dynamoid
     # Operation +delete+ is applied to collection attribute types and
     # substructs one collection from another.
     #
-    #   user.update do |t|
+    #   user.update! do |t|
     #     t.delete(hobbies: ['skying'])
     #   end
     #
     # Operation +set+ just changes an attribute value:
     #
-    #   user.update do |t|
+    #   user.update! do |t|
     #     t.set(age: 21)
     #   end
     #
-    # All the operations works like +ADD+, +DELETE+ and +PUT+ actions supported
+    # All the operations work like +ADD+, +DELETE+ and +PUT+ actions supported
     # by +AttributeUpdates+
     # {parameter}[https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.AttributeUpdates.html]
     # of +UpdateItem+ operation.
     #
+    # It's an atomic operation. So adding or deleting elements in a collection
+    # or incrementing or decrementing a numeric field is atomic and does not
+    # interfere with other write requests.
+    #
     # Can update a model conditionaly:
     #
-    #   user.update(if: { age: 20 }) do |t|
+    #   user.update!(if: { age: 20 }) do |t|
     #     t.add(age: 1)
     #   end
     #
@@ -595,15 +602,24 @@ module Dynamoid
     # fail.
     #
     # @param conditions [Hash] Conditions on model attributes to make a conditional update (optional)
+    # @return [Dynamoid::Document] self
     def update!(conditions = {})
       run_callbacks(:update) do
-        options = range_key ? { range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
+        options = {}
+        if range_key
+          value = read_attribute(range_key)
+          attribute_options = self.class.attributes[range_key]
+          options[:range_key] = Dumping.dump_field(value, attribute_options)
+        end
 
         begin
-          new_attrs = Dynamoid.adapter.update_item(self.class.table_name, hash_key, options.merge(conditions: conditions)) do |t|
+          table_name = self.class.table_name
+          update_item_options = options.merge(conditions: conditions)
+
+          new_attrs = Dynamoid.adapter.update_item(table_name, hash_key, update_item_options) do |t|
             t.add(lock_version: 1) if self.class.attributes[:lock_version]
 
-            if Dynamoid::Config.timestamps
+            if self.class.timestamps_enabled?
               time_now = DateTime.now.in_time_zone(Time.zone)
               time_now_dumped = Dumping.dump_field(time_now, self.class.attributes[:updated_at])
               t.set(updated_at: time_now_dumped)
@@ -616,6 +632,8 @@ module Dynamoid
           raise Dynamoid::Errors::StaleObjectError.new(self, 'update')
         end
       end
+
+      self
     end
 
     # Update a model.
@@ -639,6 +657,19 @@ module Dynamoid
     #
     #   user.update do |t|
     #     t.delete(hobbies: ['skying'])
+    #   end
+    #
+    # If it's applied to a scalar attribute then the item's attribute is
+    # removed at all:
+    #
+    #   user.update do |t|
+    #     t.delete(age: nil)
+    #   end
+    #
+    # or even without useless value at all:
+    #
+    #   user.update do |t|
+    #     t.delete(:age)
     #   end
     #
     # Operation +set+ just changes an attribute value:
@@ -666,6 +697,7 @@ module Dynamoid
     # fail.
     #
     # @param conditions [Hash] Conditions on model attributes to make a conditional update (optional)
+    # @return [true|false] - whether conditions are met and updating is successful
     def update(conditions = {}, &block)
       update!(conditions, &block)
       true
@@ -698,14 +730,28 @@ module Dynamoid
     #   user.increment!(:followers_count)
     #   user.increment!(:followers_count, 2)
     #
-    # Returns +true+ if a model was saved and +false+ otherwise.
+    # Only `attribute` is saved. The model itself is not saved. So any other
+    # modified attributes will still be dirty. Validations and callbacks are
+    # skipped.
+    #
+    # When `:touch` option is passed the timestamp columns are updating. If
+    # attribute names are passed, they are updated along with updated_at
+    # attribute:
+    #
+    #   user.increment!(:followers_count, touch: true)
+    #   user.increment!(:followers_count, touch: :viewed_at)
+    #   user.increment!(:followers_count, touch: [:viewed_at, :accessed_at])
     #
     # @param attribute [Symbol] attribute name
     # @param by [Numeric] value to add (optional)
-    # @return [true|false] whether saved model successfully
-    def increment!(attribute, by = 1)
+    # @param touch [true | Symbol | Array[Symbol]] to update update_at attribute and optionally the specified ones
+    # @return [Dynamoid::Document] self
+    def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
-      save
+      change = read_attribute(attribute) - (attribute_was(attribute) || 0)
+      self.class.inc(hash_key, range_value, attribute => change, touch: touch)
+      clear_attribute_changes(attribute)
+      self
     end
 
     # Change numeric attribute value.
@@ -720,9 +766,7 @@ module Dynamoid
     # @param by [Numeric] value to subtract (optional)
     # @return [Dynamoid::Document] self
     def decrement(attribute, by = 1)
-      self[attribute] ||= 0
-      self[attribute] -= by
-      self
+      increment(attribute, -by)
     end
 
     # Change numeric attribute value and save a model.
@@ -733,14 +777,24 @@ module Dynamoid
     #   user.decrement!(:followers_count)
     #   user.decrement!(:followers_count, 2)
     #
-    # Returns +true+ if a model was saved and +false+ otherwise.
+    # Only `attribute` is saved. The model itself is not saved. So any other
+    # modified attributes will still be dirty. Validations and callbacks are
+    # skipped.
+    #
+    # When `:touch` option is passed the timestamp columns are updating. If
+    # attribute names are passed, they are updated along with updated_at
+    # attribute:
+    #
+    #   user.decrement!(:followers_count, touch: true)
+    #   user.decrement!(:followers_count, touch: :viewed_at)
+    #   user.decrement!(:followers_count, touch: [:viewed_at, :accessed_at])
     #
     # @param attribute [Symbol] attribute name
     # @param by [Numeric] value to subtract (optional)
-    # @return [true|false] whether saved model successfully
-    def decrement!(attribute, by = 1)
-      decrement(attribute, by)
-      save
+    # @param touch [true | Symbol | Array[Symbol]] to update update_at attribute and optionally the specified ones
+    # @return [Dynamoid::Document] self
+    def decrement!(attribute, by = 1, touch: nil)
+      increment!(attribute, -by, touch: touch)
     end
 
     # Delete a model.
@@ -750,9 +804,9 @@ module Dynamoid
     # Supports optimistic locking with the +lock_version+ attribute and doesn't
     # delete a model if it's already changed.
     #
-    # Returns +true+ if deleted successfully and +false+ otherwise.
+    # Returns +self+ if deleted successfully and +false+ otherwise.
     #
-    # @return [true|false] whether deleted successfully
+    # @return [Dynamoid::Document|false] whether deleted successfully
     # @since 0.2.0
     def destroy
       ret = run_callbacks(:destroy) do
@@ -785,6 +839,7 @@ module Dynamoid
     # Raises +Dynamoid::Errors::StaleObjectError+ exception if cannot delete a
     # model.
     #
+    # @return [Dynamoid::Document] self
     # @since 0.2.0
     def delete
       options = range_key ? { range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
@@ -805,9 +860,11 @@ module Dynamoid
 
       Dynamoid.adapter.delete(self.class.table_name, hash_key, options)
 
-      self.class.associations.each do |name, options|
+      self.class.associations.each do |name, _options|
         send(name).disassociate_source
       end
+
+      self
     rescue Dynamoid::Errors::ConditionalCheckFailedException
       raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
     end

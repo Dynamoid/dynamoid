@@ -27,7 +27,7 @@ describe Dynamoid::Criteria do
   end
 
   context 'Magazine table' do
-    before(:each) do
+    before do
       Magazine.create_table
     end
 
@@ -101,6 +101,7 @@ describe Dynamoid::Criteria do
       @warn_on_scan = Dynamoid::Config.warn_on_scan
       Dynamoid::Config.warn_on_scan = true
     end
+
     after do
       Dynamoid::Config.warn_on_scan = @warn_on_scan
     end
@@ -115,11 +116,13 @@ describe Dynamoid::Criteria do
       User.where(name: 'x', password: 'password').all
     end
   end
+
   context 'when doing intentional, full-table scan (query is empty) and warn_on_scan config option is true' do
     before do
       @warn_on_scan = Dynamoid::Config.warn_on_scan
       Dynamoid::Config.warn_on_scan = true
     end
+
     after do
       Dynamoid::Config.warn_on_scan = @warn_on_scan
     end

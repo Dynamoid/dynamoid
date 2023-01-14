@@ -12,10 +12,34 @@ rescue Bundler::BundlerError => e
 end
 load './lib/dynamoid/tasks/database.rake' if defined?(Rails)
 
-require 'rake'
 require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new(:spec) do |spec|
   spec.pattern = FileList['spec/**/*_spec.rb']
+end
+desc 'alias test task to spec'
+task test: :spec
+
+ruby_version = Gem::Version.new(RUBY_VERSION)
+minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && RUBY_ENGINE == engine }
+linting = minimum_version.call('2.7')
+def rubocop_task(warning)
+  desc 'rubocop task stub'
+  task :rubocop do
+    warn warning
+  end
+end
+
+if linting
+  begin
+    require 'rubocop/rake_task'
+    RuboCop::RakeTask.new do |task|
+      task.options = ['-DESP'] # Display the name of the failing cops
+    end
+  rescue LoadError
+    rubocop_task("RuboCop is unexpectedly disabled locally for #{RUBY_ENGINE}-#{RUBY_VERSION}. Have you run bundle install?")
+  end
+else
+  rubocop_task("RuboCop is disabled locally for #{RUBY_ENGINE}-#{RUBY_VERSION}.\nIf you need it locally on #{RUBY_ENGINE}-#{RUBY_VERSION}, run BUNDLE_GEMFILE=gemfiles/style.gemfile bundle install && BUNDLE_GEMFILE=gemfiles/style.gemfile bundle exec rubocop")
 end
 
 require 'yard'
@@ -41,4 +65,4 @@ task :publish do
   `git checkout master`
 end
 
-task default: :spec
+task default: %i[test rubocop]

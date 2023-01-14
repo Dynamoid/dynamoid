@@ -6,18 +6,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
-* [#567](https://github.com/Dynamoid/dynamoid/pull/567) Fix `#reload` and mark reloaded model as persisted
+* [#601](https://github.com/Dynamoid/dynamoid/pull/601) Fix `#first` and `#pluck` query methods (@andrykonchin)
+* [#610](https://github.com/Dynamoid/dynamoid/pull/610) Specs in JRuby; Support for JRuby 9.4.0.0 (@pboling)
 ### Added
+* [#611](https://github.com/Dynamoid/dynamoid/pull/611) Add `rubocop-md` (@pboling)
+* [#612](https://github.com/Dynamoid/dynamoid/pull/612) Add `rubocop-rspec` (@pboling)
+* [#613](https://github.com/Dynamoid/dynamoid/pull/613) Add `rubocop-performance` and `rubocop-rake` (@pboling)
+  * Added `funding_uri` set to open collective: https://opencollective.com/dynamoid
+  * Added `required_ruby_version` as `>= 2.3.0` (which was already the minimum supported version of Ruby)
+* [#616](https://github.com/Dynamoid/dynamoid/pull/616) Upgrade `simplecov` (& remove `coveralls`) (@pboling)
+  * Setup GitHub actions for Code Coverage
+  * Setup GitHub actions for RuboCop linting
+  * Automate coverage feedback on Pull Requests via GitHub Actions and CodeCov
+* [#618](https://github.com/Dynamoid/dynamoid/pull/618) Upgrade README Badges (@pboling)
+### Changed
+* [#610](https://github.com/Dynamoid/dynamoid/pull/610) Switch to [`rubocop-lts`](https://rubocop-lts.gitlab.io/) (@pboling)
+### Removed
+
+## 3.8.0
+### Fixed
+* [#525](https://github.com/Dynamoid/dynamoid/pull/525) Don't mark an attribute as changed if new assigned value equals the old one (@a5-stable)
+* Minor changes in the documentation:
+  * [#526](https://github.com/Dynamoid/dynamoid/pull/526) (@a5-stable)
+  * [#528](https://github.com/Dynamoid/dynamoid/pull/528) (@a5-stable)
+  * [#589](https://github.com/Dynamoid/dynamoid/pull/589) (@jrhoads)
+* [#527](https://github.com/Dynamoid/dynamoid/pull/527) Fix `update_fields` and `upsert` methods - take into account the table-specific `timestamps` option for setting the `updated_at` attribute
+(@oieioi)
+* [#533](https://github.com/Dynamoid/dynamoid/pull/533) Allow attribute with custom type to be used as a partition or sort key of DynamoDB index (@rahul342)
+* [#558](https://github.com/Dynamoid/dynamoid/pull/558) Change the way how a filename is derived from a model class name in a warning about using the Scan operation (@a5-stable)
+* [#567](https://github.com/Dynamoid/dynamoid/pull/567) Fix `#reload` and mark a reloaded model as persisted
+* [#573](https://github.com/Dynamoid/dynamoid/pull/573) Fix proxying of method calls with keyword arguments called on an association for Ruby 2.7 and above (@xeger)
+* [#579](https://github.com/Dynamoid/dynamoid/pull/579) Fix `create_table` method when a `table_name` option passed in case a model has TTL setting enabled (@ta1kt0me)
+* [#591](https://github.com/Dynamoid/dynamoid/pull/591) Multiple fixes:
+  * Fix `#update` and `#update!` - take into account the table-specific `timestamps` option for setting the `updated_at` attribute
+  * Fix `#update_attribute` - skip validation
+  * Return `self` in some public methods to enable methods chaining
+* [#601](https://github.com/Dynamoid/dynamoid/pull/601) Fix `#first` and `#pluck` methods: do not mutate query parameters and affect other query methods.
+
+### Added
+* [#531](https://github.com/Dynamoid/dynamoid/pull/531) Run `before_update` and `after_update` callbacks at saving a model (@a5-stable)
 * [#536](https://github.com/Dynamoid/dynamoid/pull/536) Modernization
   * Support for Ruby 3.1
   * Support for Rails 7.0
   * Keep a Changelog Format
-
-### Changed
-
-### Fixed
-
-### Removed
 
 ## 3.7.1 / 2021-06-30
 ### Fixed

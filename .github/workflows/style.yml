@@ -1,0 +1,41 @@
+name: Code Style Checks
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'master'
+    tags:
+      - '!*' # Do not execute on tags
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  rubocop:
+    name: Rubocop
+    strategy:
+      fail-fast: false
+      matrix:
+        experimental: [false]
+        rubygems:
+          - latest
+        bundler:
+          - latest
+        ruby:
+          - "2.7"
+    runs-on: ubuntu-latest
+    env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/style.gemfile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Ruby & Bundle
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          rubygems: ${{ matrix.rubygems }}
+          bundler: ${{ matrix.bundler }}
+          bundler-cache: true
+      - name: Run Rubocop
+        run: bundle exec rubocop -DESP

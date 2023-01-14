@@ -5,7 +5,8 @@ module Dynamoid
     extend ActiveSupport::Concern
 
     # @private
-    # Types allowed in indexes:
+    # @see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html#HowItWorks.CoreComponents.PrimaryKey
+    # Types allowed in indexes
     PERMITTED_KEY_DYNAMODB_TYPES = %i[
       string
       binary
@@ -168,9 +169,8 @@ module Dynamoid
       # @return [Dynamoid::Indexes::Index, nil] index object or nil if it isn't found
       def find_index_by_name(name)
         string_name = name.to_s
-        indexes.each_value.detect{ |i| i.name.to_s == string_name }
+        indexes.each_value.detect { |i| i.name.to_s == string_name }
       end
-
 
       # Returns true iff the provided hash[,range] key combo is a local
       # secondary index.
@@ -298,7 +298,6 @@ module Dynamoid
         end
       end
 
-
       def validate_hash_key
         validate_index_key(:hash_key, @hash_key)
       end
@@ -318,7 +317,7 @@ module Dynamoid
 
         key_dynamodb_type = dynamodb_type(key_field_attributes[:type], key_field_attributes)
         if PERMITTED_KEY_DYNAMODB_TYPES.include?(key_dynamodb_type)
-          self.send("#{key_param}_schema=", { key_val => key_dynamodb_type })
+          send("#{key_param}_schema=", { key_val => key_dynamodb_type })
         else
           errors.add(key_param, "Index :#{key_param} is not a valid key type")
         end

@@ -133,7 +133,7 @@ describe Dynamoid::Fields do
   end
 
   it 'automatically declares id' do
-    expect { address.id }.to_not raise_error
+    expect { address.id }.not_to raise_error
   end
 
   it 'allows range key serializers' do
@@ -159,24 +159,24 @@ describe Dynamoid::Fields do
 
   context 'query attributes' do
     it 'are declared' do
-      expect(address.city?).to be_falsey
+      expect(address).not_to be_city
 
       address.city = 'Chicago'
 
-      expect(address.city?).to be_truthy
+      expect(address).to be_city
     end
 
     it 'return false when boolean attributes are nil or false' do
       address.deliverable = nil
-      expect(address.deliverable?).to be_falsey
+      expect(address).not_to be_deliverable
 
       address.deliverable = false
-      expect(address.deliverable?).to be_falsey
+      expect(address).not_to be_deliverable
     end
 
     it 'return true when boolean attributes are true' do
       address.deliverable = true
-      expect(address.deliverable?).to be_truthy
+      expect(address).to be_deliverable
     end
   end
 
@@ -184,25 +184,25 @@ describe Dynamoid::Fields do
     let(:address) { Address.create(deliverable: true) }
     let(:original_id) { address.id }
 
-    it 'should write an attribute correctly' do
+    it 'writes an attribute correctly' do
       address.write_attribute(:city, 'Chicago')
     end
 
-    it 'should write an attribute with an alias' do
+    it 'writes an attribute with an alias' do
       address[:city] = 'Chicago'
     end
 
-    it 'should read a written attribute' do
+    it 'reads a written attribute' do
       address.write_attribute(:city, 'Chicago')
       expect(address.read_attribute(:city)).to eq 'Chicago'
     end
 
-    it 'should read a written attribute with the alias' do
+    it 'reads a written attribute with the alias' do
       address.write_attribute(:city, 'Chicago')
       expect(address[:city]).to eq 'Chicago'
     end
 
-    it 'should update one attribute' do
+    it 'updates one attribute' do
       expect(address).to receive(:save).once.and_return(true)
       address.update_attribute(:city, 'Chicago')
       expect(address[:city]).to eq 'Chicago'
@@ -238,27 +238,28 @@ describe Dynamoid::Fields do
     end.to raise_error(Aws::DynamoDB::Errors::ValidationException, 'Item size has exceeded the maximum allowed size')
   end
 
-  context '.remove_field' do
+  describe '.remove_field' do
     subject { address }
-    before(:each) do
+
+    before do
       Address.field :foobar
       Address.remove_field :foobar
     end
 
-    it 'should not be in the attributes hash' do
-      expect(Address.attributes).to_not have_key(:foobar)
+    it 'is not in the attributes hash' do
+      expect(Address.attributes).not_to have_key(:foobar)
     end
 
     it 'removes the accessor' do
-      expect(subject).to_not respond_to(:foobar)
+      expect(subject).not_to respond_to(:foobar)
     end
 
     it 'removes the writer' do
-      expect(subject).to_not respond_to(:foobar=)
+      expect(subject).not_to respond_to(:foobar=)
     end
 
     it 'removes the interrogative' do
-      expect(subject).to_not respond_to(:foobar?)
+      expect(subject).not_to respond_to(:foobar?)
     end
   end
 
@@ -299,7 +300,7 @@ describe Dynamoid::Fields do
       expect(doc_class.new.version).to eq(1)
     end
 
-    it 'should save default values' do
+    it 'saves default values' do
       doc = doc_class.create!
       doc = doc_class.find(doc.id)
       expect(doc.name).to eq('x')
@@ -358,7 +359,10 @@ describe Dynamoid::Fields do
     end
 
     it 'acts as a :number field' do
-      doc.distance_m = 5.33
+      # NOTE: Set as string to avoid error on JRuby 9.4.0.0:
+      #         Aws::DynamoDB::Errors::ValidationException:
+      #           DynamoDB only supports precision up to 38 digits
+      doc.distance_m = '5.33'
       doc.save!
       doc.reload
       expect(doc.distance_m).to eq 5.33
@@ -403,6 +407,26 @@ describe Dynamoid::Fields do
   end
 
   describe '#write_attribute' do
+    it 'writes attribute on the model' do
+      klass = new_class do
+        field :count, :integer
+      end
+
+      obj = klass.new
+      obj.write_attribute(:count, 10)
+      expect(obj.attributes[:count]).to eql(10)
+    end
+
+    it 'returns self' do
+      klass = new_class do
+        field :count, :integer
+      end
+
+      obj = klass.new
+      result = obj.write_attribute(:count, 10)
+      expect(result).to eql(obj)
+    end
+
     describe 'type casting' do
       it 'type casts attributes' do
         klass = new_class do
@@ -421,6 +445,28 @@ describe Dynamoid::Fields do
       expect {
         obj.write_attribute(:name, 'Alex')
       }.to raise_error Dynamoid::Errors::UnknownAttribute
+    end
+
+    it 'marks an attribute as changed' do
+      klass = new_class do
+        field :name
+      end
+
+      obj = klass.new
+      obj.write_attribute(:name, 'Alex')
+      expect(obj.name_changed?).to eq true
+    end
+
+    it 'does not mark an attribute as changed if new value equals the old one' do
+      klass = new_class do
+        field :name
+      end
+
+      obj = klass.create(name: 'Alex')
+      obj = klass.find(obj.id)
+
+      obj.write_attribute(:name, 'Alex')
+      expect(obj.name_changed?).to eq false
     end
   end
 end

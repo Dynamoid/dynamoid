@@ -187,10 +187,10 @@ module Dynamoid
       def first(*args)
         n = args.first || 1
 
-        return scan_limit(n).to_a.first(*args) if @query.blank?
+        return dup.scan_limit(n).to_a.first(*args) if @query.blank?
         return super if @key_fields_detector.non_key_present?
 
-        record_limit(n).to_a.first(*args)
+        dup.record_limit(n).to_a.first(*args)
       end
 
       # Returns the last item matching the criteria.
@@ -486,15 +486,17 @@ module Dynamoid
       # @return [Array]
       def pluck(*args)
         fields = args.map(&:to_sym)
-        @project = fields
+
+        scope = dup
+        scope.project(*fields)
 
         if fields.many?
-          items.map do |item|
+          scope.items.map do |item|
             fields.map { |key| Undumping.undump_field(item[key], source.attributes[key]) }
           end.to_a
         else
           key = fields.first
-          items.map { |item| Undumping.undump_field(item[key], source.attributes[key]) }.to_a
+          scope.items.map { |item| Undumping.undump_field(item[key], source.attributes[key]) }.to_a
         end
       end
 
@@ -513,6 +515,7 @@ module Dynamoid
       def items
         raw_pages.lazy.flat_map { |items, _| items }
       end
+      protected :items
 
       # Arrays of records, sized based on the actual pages produced by DynamoDB
       #

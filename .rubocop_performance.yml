@@ -1,0 +1,3 @@
+# See: https://github.com/rubocop/rubocop-performance/issues/322
+Performance/RegexpMatch:
+  Enabled: false
