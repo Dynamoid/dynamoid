@@ -393,7 +393,7 @@ module Dynamoid
         item = client.get_item(table_name: table_name,
                                key: key_stanza(table, key, range_key),
                                consistent_read: consistent_read)[:item]
-        item ? result_item_to_hash(item) : nil
+        item ? item_to_hash(item) : nil
       end
 
       # Edits an existing item's attributes, or adds a new item to the table if it does not already exist. You can put, delete, or add attribute values
@@ -422,7 +422,7 @@ module Dynamoid
                                     attribute_updates: item_updater.attribute_updates,
                                     expected: expected_stanza(conditions),
                                     return_values: 'ALL_NEW')
-        result_item_to_hash(result[:attributes])
+        item_to_hash(result[:attributes])
       rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
         raise Dynamoid::Errors::ConditionalCheckFailedException, e
       end
@@ -489,7 +489,7 @@ module Dynamoid
 
           Query.new(client, table, options).call.each do |page|
             yielder.yield(
-              page.items.map { |row| result_item_to_hash(row) },
+              page.items.map { |item| item_to_hash(item) },
               last_evaluated_key: page.last_evaluated_key
             )
           end
@@ -522,7 +522,7 @@ module Dynamoid
 
           Scan.new(client, table, conditions, options).call.each do |page|
             yielder.yield(
-              page.items.map { |row| result_item_to_hash(row) },
+              page.items.map { |item| item_to_hash(item) },
               last_evaluated_key: page.last_evaluated_key
             )
           end
@@ -605,10 +605,8 @@ module Dynamoid
       #
       # Converts a hash returned by get_item, scan, etc. into a key-value hash
       #
-      def result_item_to_hash(item)
-        {}.tap do |r|
-          item.each { |k, v| r[k.to_sym] = v }
-        end
+      def item_to_hash(hash)
+        hash.symbolize_keys
       end
 
       def sanitize_item(attributes)
