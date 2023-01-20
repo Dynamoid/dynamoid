@@ -3,6 +3,7 @@
 
 require 'bundler/setup'
 require 'dynamoid'
+require 'dynamoid/log/formatter'
 
 # You can add fixtures and/or initialization code here to make experimenting
 # with your gem easier. You can also use a different console, if you like.
@@ -16,6 +17,7 @@ Dynamoid.configure do |config|
   config.secret_key = 'REPLACE_WITH_SECRET_ACCESS_KEY'
   config.region = 'us-west-2'
   config.endpoint = 'http://localhost:8000'
+  config.log_formatter = Dynamoid::Log::Formatter::Compact.new
 end
 
 require 'irb'
