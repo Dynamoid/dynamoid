@@ -2,6 +2,7 @@
 
 require_relative 'aws_sdk_v3/query'
 require_relative 'aws_sdk_v3/scan'
+require_relative 'aws_sdk_v3/execute_statement'
 require_relative 'aws_sdk_v3/create_table'
 require_relative 'aws_sdk_v3/batch_get_item'
 require_relative 'aws_sdk_v3/item_updater'
@@ -558,6 +559,28 @@ module Dynamoid
 
       def count(table_name)
         describe_table(table_name, true).item_count
+      end
+
+      # Run PartiQL query.
+      #
+      #   Dynamoid.adapter.execute("SELECT * FROM users WHERE id = ?", ["758"])
+      #
+      # @param [String] statement PartiQL statement
+      # @param [Array] parameters a list of bind parameters
+      # @param [Hash] options
+      # @option [Boolean] consistent_read
+      # @return [[] | Array[Hash] | Enumerator::Lazy[Hash]] items when used a SELECT statement and empty Array otherwise
+      #
+      def execute(statement, parameters = [], options = {})
+        items = ExecuteStatement.new(client, statement, parameters, options).call
+
+        if items.is_a?(Array)
+          items
+        else
+          items.lazy.flat_map { |array| array }
+        end
+      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException
+        []
       end
 
       protected

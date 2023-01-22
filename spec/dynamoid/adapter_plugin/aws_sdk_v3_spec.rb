@@ -1272,6 +1272,96 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
   end
 
+  describe '#execute' do
+    it 'executes a PartiQL query' do
+      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+
+      Dynamoid.adapter.execute("UPDATE #{test_table1} SET name = 'Mike' WHERE id = '1'")
+
+      item = Dynamoid.adapter.get_item(test_table1, '1')
+      expect(item[:name]).to eql 'Mike'
+    end
+
+    it 'returns items for SELECT statement' do
+      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+
+      items = Dynamoid.adapter.execute("SELECT * FROM #{test_table1}")
+      expect(items.size).to eql 1
+      expect(items).to eql [{ id: '1', name: 'Josh' }]
+    end
+
+    it 'returns [] for statements other than SELECT' do
+      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+
+      response = Dynamoid.adapter.execute("UPDATE #{test_table1} SET name = 'Mike' WHERE id = '1'")
+      expect(response).to eql []
+
+      response = Dynamoid.adapter.execute("INSERT INTO #{test_table1} VALUE { 'id': '2' }")
+      expect(response).to eql []
+
+      response = Dynamoid.adapter.execute("DELETE FROM #{test_table1} WHERE id = '1'")
+      expect(response).to eql []
+    end
+
+    it 'accepts bind parameters as array of values' do
+      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+
+      Dynamoid.adapter.execute("UPDATE #{test_table1} SET name = 'Mike' WHERE id = ?", ['1'])
+
+      item = Dynamoid.adapter.get_item(test_table1, '1')
+      expect(item[:name]).to eql 'Mike'
+    end
+
+    it 'returns [] when WHERE condition evaluated to false' do
+      expect(Dynamoid.adapter.scan_count(test_table1)).to eql 0
+
+      response = Dynamoid.adapter.execute("SELECT * FROM #{test_table1} WHERE id = '1'")
+      expect(response.to_a).to eql []
+
+      response = Dynamoid.adapter.execute("UPDATE #{test_table1} SET name = 'Mike' WHERE id = '1'")
+      expect(response.to_a).to eql []
+
+      response = Dynamoid.adapter.execute("DELETE FROM #{test_table1} WHERE id = '1'")
+      expect(response.to_a).to eql []
+    end
+
+    it 'accepts :consistent_read option' do
+      expect(Dynamoid.adapter.client).to receive(:execute_statement)
+        .with(including(consistent_read: true))
+        .and_call_original
+
+      Dynamoid.adapter.execute("SELECT * FROM #{test_table1} WHERE id = '1'", [], consistent_read: true)
+
+      expect(Dynamoid.adapter.client).to receive(:execute_statement)
+        .with(including(consistent_read: false))
+        .and_call_original
+
+      Dynamoid.adapter.execute("SELECT * FROM #{test_table1} WHERE id = '1'", [], consistent_read: false)
+    end
+
+    it 'loads lazily all the pages of a paginated result' do
+      next_token = double('next-token')
+      obj1 = { 'attribute1' => 1 }
+      obj2 = { 'attribute2' => 2 }
+      obj3 = { 'attribute3' => 3 }
+      obj4 = { 'attribute4' => 4 }
+      response1 = double('response-1', next_token: next_token, items: [obj1, obj2])
+      response2 = double('response-1', next_token: nil, items: [obj3, obj4])
+
+      expect(Dynamoid.adapter.client).to receive(:execute_statement)
+        .and_return(response1, response2)
+
+      items = Dynamoid.adapter.execute('PartlySQL statement')
+      expect(items).to be_a(Enumerator::Lazy)
+      expect(items.to_a).to eql [
+        { attribute1: 1 },
+        { attribute2: 2 },
+        { attribute3: 3 },
+        { attribute4: 4 }
+      ]
+    end
+  end
+
   # connection_config
   describe '#connectin_config' do
     subject { described_class.new.connection_config }
