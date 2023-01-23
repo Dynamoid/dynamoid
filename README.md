@@ -1050,6 +1050,21 @@ resolving the fields with a second query against the table since a query
 against GSI then a query on base table is still likely faster than scan
 on the base table*
 
+### PartiQL
+
+To run PartiQL statements `Dynamoid.adapter.execute` method should be
+used:
+
+```ruby
+Dynamoid.adapter.execute("UPDATE users SET name = 'Mike' WHERE id = '1'")
+```
+
+Parameters are also supported:
+
+```ruby
+Dynamoid.adapter.execute('SELECT * FROM users WHERE id = ?', ['1'])
+```
+
 ## Configuration
 
 Listed below are all configuration options.
