@@ -173,7 +173,7 @@ module Dynamoid
       def sti_class_for(type_name)
         type_name.constantize
       rescue NameError
-        raise SubclassNotFound, "STI subclass does not found. Subclass: '#{type_name}'"
+        raise Errors::SubclassNotFound, "STI subclass does not found. Subclass: '#{type_name}'"
       end
 
       # @private

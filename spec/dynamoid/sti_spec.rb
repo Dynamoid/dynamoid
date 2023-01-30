@@ -191,4 +191,24 @@ RSpec.describe 'STI' do
       expect(b.type).to eql('beta')
     end
   end
+
+  describe 'sti_class_for' do
+    before do
+      A = new_class class_name: 'A' do
+        field :type
+      end
+    end
+
+    after do
+      Object.send(:remove_const, :A)
+    end
+
+    it 'successes exist class' do
+      expect(A.sti_class_for('A')).to eql A
+    end
+
+    it 'fails non-exist class' do
+      expect { A.sti_class_for('NonExistClass') }.to raise_error(Dynamoid::Errors::SubclassNotFound)
+    end
+  end
 end
