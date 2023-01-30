@@ -160,6 +160,22 @@ module Dynamoid
         end
       end
 
+      attr_accessor :abstract_class
+
+      def abstract_class?
+        defined?(@abstract_class) && @abstract_class == true
+      end
+
+      def sti_name
+        name
+      end
+
+      def sti_class_for(type_name)
+        type_name.constantize
+      rescue NameError
+        raise Errors::SubclassNotFound, "STI subclass does not found. Subclass: '#{type_name}'"
+      end
+
       # @private
       def deep_subclasses
         subclasses + subclasses.map(&:deep_subclasses).flatten
@@ -167,7 +183,7 @@ module Dynamoid
 
       # @private
       def choose_right_class(attrs)
-        attrs[inheritance_field] ? attrs[inheritance_field].constantize : self
+        attrs[inheritance_field] ? sti_class_for(attrs[inheritance_field]) : self
       end
     end
 

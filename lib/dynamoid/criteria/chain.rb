@@ -787,9 +787,9 @@ module Dynamoid
         condition = {}
         type = @source.inheritance_field
 
-        if @source.attributes.key?(type)
-          class_names = @source.deep_subclasses.map(&:name) << @source.name
-          condition[:"#{type}.in"] = class_names
+        if @source.attributes.key?(type) && !@source.abstract_class?
+          sti_names = @source.deep_subclasses.map(&:sti_name) << @source.sti_name
+          condition[:"#{type}.in"] = sti_names
         end
 
         condition

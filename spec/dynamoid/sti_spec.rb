@@ -160,4 +160,55 @@ RSpec.describe 'STI' do
       expect(b.type).to eql('Integer')
     end
   end
+
+  describe '`sti_name` support' do
+    before do
+      A = new_class class_name: 'A' do
+        field :type
+
+        def self.sti_class_for(type_name)
+          case type_name
+          when 'beta'
+            B
+          end
+        end
+      end
+      B = Class.new(A) do
+        def self.sti_name
+          'beta'
+        end
+      end
+    end
+
+    after do
+      Object.send(:remove_const, :A)
+      Object.send(:remove_const, :B)
+    end
+
+    it 'saves subclass objects in the parent table' do
+      b = B.create
+      expect(A.find(b.id)).to eql b
+      expect(b.type).to eql('beta')
+    end
+  end
+
+  describe 'sti_class_for' do
+    before do
+      A = new_class class_name: 'A' do
+        field :type
+      end
+    end
+
+    after do
+      Object.send(:remove_const, :A)
+    end
+
+    it 'successes exist class' do
+      expect(A.sti_class_for('A')).to eql A
+    end
+
+    it 'fails non-exist class' do
+      expect { A.sti_class_for('NonExistClass') }.to raise_error(Dynamoid::Errors::SubclassNotFound)
+    end
+  end
 end
