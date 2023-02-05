@@ -389,4 +389,28 @@ describe Dynamoid::Document do
       expect(class_with_timestamps_true.new).to respond_to(:updated_at)
     end
   end
+
+  describe '#inspect' do
+    it 'returns a String containing a model class name and a list of attributes and values' do
+      klass = new_class(class_name: 'Person') do
+        field :name
+        field :age, :integer
+      end
+
+      object = klass.new(name: 'Alex', age: 21)
+      puts object.attributes
+      expect(object.inspect).to eql '#<Person id: nil, name: "Alex", age: 21, created_at: nil, updated_at: nil>'
+    end
+
+    it 'puts partition and sort keys on the first place' do
+      klass = new_class(class_name: 'Person') do
+        field :name
+        field :age, :integer
+        range :city
+      end
+
+      object = klass.new(city: 'Kyiv')
+      expect(object.inspect).to eql '#<Person id: nil, city: "Kyiv", name: nil, age: nil, created_at: nil, updated_at: nil>'
+    end
+  end
 end

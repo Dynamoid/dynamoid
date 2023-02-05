@@ -294,6 +294,26 @@ module Dynamoid
       end
     end
 
+    def inspect
+      # attributes order is:
+      # - partition key
+      # - sort key
+      # - user defined attributes
+      # - timestamps - created_at/updated_at
+      names = [self.class.hash_key]
+      names << self.class.range_key if self.class.range_key
+      names += self.class.attributes.keys - names - %i[created_at updated_at]
+      names << :created_at if self.class.attributes.key?(:created_at)
+      names << :updated_at if self.class.attributes.key?(:updated_at)
+
+      inspection = names.map do |name|
+        value = read_attribute(name)
+        "#{name}: #{value.inspect}"
+      end.join(', ')
+
+      "#<#{self.class.name} #{inspection}>"
+    end
+
     private
 
     def dumped_range_value
