@@ -482,14 +482,11 @@ module Dynamoid
     # @since 0.2.0
     def save(options = {})
       self.class.create_table(sync: true)
-
-      @_touch_record = options[:touch]
-
       create_or_update = new_record? ? :create : :update
 
       run_callbacks(create_or_update) do
         run_callbacks(:save) do
-          Save.call(self)
+          Save.call(self, touch: options[:touch])
         end
       end
     end

@@ -13,8 +13,6 @@ module Dynamoid
 
       define_model_callbacks :create, :save, :destroy, :initialize, :update
 
-      before_create :set_created_at
-      before_save :set_updated_at
       before_save :set_expires_field
       after_initialize :set_inheritance_field
     end

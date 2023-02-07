@@ -1903,14 +1903,28 @@ describe Dynamoid::Persistence do
     end
   end
 
-  describe '.save' do
+  describe '#save' do
     let(:klass) do
       new_class do
         field :name
       end
     end
 
-    it 'saves model' do
+    let(:klass_with_range_key) do
+      new_class do
+        field :name
+        range :age, :integer
+      end
+    end
+
+    let(:klass_with_range_key_and_custom_type) do
+      new_class do
+        field :name
+        range :tags, :serialized
+      end
+    end
+
+    it 'persists new model' do
       obj = klass.new(name: 'Alex')
       obj.save
 
@@ -1918,7 +1932,37 @@ describe Dynamoid::Persistence do
       expect(klass.find(obj.id).name).to eq 'Alex'
     end
 
-    it 'marks it as persisted' do
+    it 'saves changes of already persisted model' do
+      obj = klass.create!(name: 'Alex')
+
+      obj.name = 'Michael'
+      obj.save
+
+      obj_loaded = klass.find(obj.id)
+      expect(obj_loaded.name).to eql 'Michael'
+    end
+
+    it 'saves changes of already persisted model if range key is declared' do
+      obj = klass_with_range_key.create!(name: 'Alex', age: 21)
+
+      obj.name = 'Michael'
+      obj.save
+
+      obj_loaded = klass_with_range_key.find(obj.id, range_key: obj.age)
+      expect(obj_loaded.name).to eql 'Michael'
+    end
+
+    it 'saves changes of already persisted model if range key is declared and its type is not supported by DynamoDB natively' do
+      obj = klass_with_range_key_and_custom_type.create!(name: 'Alex', tags: %w[a b])
+
+      obj.name = 'Michael'
+      obj.save
+
+      obj_loaded = klass_with_range_key_and_custom_type.find(obj.id, range_key: obj.tags)
+      expect(obj_loaded.name).to eql 'Michael'
+    end
+
+    it 'marks persisted new model as persisted' do
       obj = klass.new(name: 'Alex')
       expect { obj.save }.to change { obj.persisted? }.from(false).to(true)
     end
@@ -1967,6 +2011,84 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'does not make a request to persist a model if there is no any changed attribute' do
+      obj = klass.create(name: 'Alex')
+
+      expect(Dynamoid.adapter).to receive(:update_item).and_call_original
+      obj.name = 'Michael'
+      obj.save!
+
+      expect(Dynamoid.adapter).not_to receive(:update_item).and_call_original
+      obj.save!
+
+      expect(Dynamoid.adapter).not_to receive(:update_item)
+      obj_loaded = klass.find(obj.id)
+      obj_loaded.save!
+    end
+
+    it 'returns true if there is no any changed attribute' do
+      obj = klass.create(name: 'Alex')
+      obj_loaded = klass.find(obj.id)
+
+      expect(obj.save).to eql(true)
+      expect(obj_loaded.save).to eql(true)
+    end
+
+    it 'calls PutItem for a new record' do
+      expect(Dynamoid.adapter).to receive(:write).and_call_original
+      klass.create(name: 'Alex')
+    end
+
+    it 'calls UpdateItem for already persisted record' do
+      klass = new_class do
+        field :name
+        field :age, :integer
+      end
+
+      obj = klass.create!(name: 'Alex', age: 21)
+      obj.age = 31
+
+      expect(Dynamoid.adapter).to receive(:update_item).and_call_original
+      obj.save
+    end
+
+    it 'does not persist changes if a model was deleted' do
+      obj = klass.create!(name: 'Alex')
+      Dynamoid.adapter.delete_item(klass.table_name, obj.id)
+
+      obj.name = 'Michael'
+
+      expect do
+        expect { obj.save }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end.not_to change(klass, :count)
+    end
+
+    it 'does not persist changes if a model was deleted and range key is declared' do
+      obj = klass_with_range_key.create!(name: 'Alex', age: 21)
+      Dynamoid.adapter.delete_item(klass_with_range_key.table_name, obj.id, range_key: obj.age)
+
+      obj.name = 'Michael'
+
+      expect do
+        expect { obj.save }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end.not_to change(klass_with_range_key, :count)
+    end
+
+    it 'does not persist changes if a model was deleted, range key is declared and its type is not supported by DynamoDB natively' do
+      obj = klass_with_range_key_and_custom_type.create!(name: 'Alex', tags: %w[a b])
+      Dynamoid.adapter.delete_item(
+        obj.class.table_name,
+        obj.id,
+        range_key: Dynamoid::Dumping.dump_field(obj.tags, klass_with_range_key_and_custom_type.attributes[:tags])
+      )
+
+      obj.name = 'Michael'
+
+      expect do
+        expect { obj.save }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end.not_to change { obj.class.count }
     end
 
     describe 'partition key value' do

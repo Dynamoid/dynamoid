@@ -354,23 +354,6 @@ module Dynamoid
 
     private
 
-    # Automatically called during the created callback to set the created_at time.
-    #
-    # @since 0.2.0
-    def set_created_at
-      self.created_at ||= DateTime.now.in_time_zone(Time.zone) if self.class.timestamps_enabled?
-    end
-
-    # Automatically called during the save callback to set the updated_at time.
-    #
-    # @since 0.2.0
-    def set_updated_at
-      # @_touch_record=false means explicit disabling
-      if self.class.timestamps_enabled? && changed? && !updated_at_changed? && @_touch_record != false
-        self.updated_at = DateTime.now.in_time_zone(Time.zone)
-      end
-    end
-
     def set_expires_field
       options = self.class.options[:expires]
 
