@@ -2450,6 +2450,13 @@ describe Dynamoid::Persistence do
 
         expect(obj.updated_at).to eq updated_at
       end
+
+      it 'sets updated_at attribute for a new record' do
+        obj = klass.new(name: 'foo')
+        obj.save(touch: false)
+
+        expect(klass.find(obj.id).updated_at).to be_present
+      end
     end
   end
 
