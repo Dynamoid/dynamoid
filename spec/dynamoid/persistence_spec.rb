@@ -4774,9 +4774,8 @@ describe Dynamoid::Persistence do
   end
 
   describe '#touch' do
-    it 'sets updated_at attribute with current time' do
+    it 'assigns updated_at attribute to current time' do
       klass = new_class
-
       obj = klass.create
 
       travel 1.hour do
@@ -4785,9 +4784,8 @@ describe Dynamoid::Persistence do
       end
     end
 
-    it 'saves the model' do
+    it 'saves updated_at attribute value' do
       klass = new_class
-
       obj = klass.create
 
       travel 1.hour do
@@ -4804,102 +4802,84 @@ describe Dynamoid::Persistence do
       expect(obj.touch).to eq obj
     end
 
+    it 'assigns and saves specified time' do
+      klass = new_class
+      obj = klass.create
+
+      time = Time.now + 1.day
+      obj.touch(time: time)
+
+      obj_persistes = klass.find(obj.id)
+      expect(obj.updated_at.to_i).to eq(time.to_i)
+      expect(obj_persistes.updated_at.to_i).to eq(time.to_i)
+    end
+
+    it 'assignes and saves also specified timestamp attributes' do
+      klass = new_class do
+        field :tagged_at, :datetime
+        field :logged_in_at, :datetime
+      end
+      obj = klass.create
+
+      travel 1.hour do
+        obj.touch(:tagged_at, :logged_in_at)
+
+        obj_persistes = klass.find(obj.id)
+
+        expect(obj.updated_at.to_i).to eq(Time.now.to_i)
+        expect(obj_persistes.updated_at.to_i).to eq(Time.now.to_i)
+
+        expect(obj.tagged_at.to_i).to eq(Time.now.to_i)
+        expect(obj_persistes.tagged_at.to_i).to eq(Time.now.to_i)
+
+        expect(obj.logged_in_at.to_i).to eq(Time.now.to_i)
+        expect(obj_persistes.logged_in_at.to_i).to eq(Time.now.to_i)
+      end
+    end
+
+    it 'does not save other changed attributes' do
+      klass = new_class do
+        field :name
+      end
+
+      obj = klass.create(name: 'Alex')
+      obj.name = 'Michael'
+
+      travel 1.hour do
+        obj.touch
+
+        obj_persisted = klass.find(obj.id)
+        expect(obj_persisted.name).to eq 'Alex'
+      end
+    end
+
+    it 'does not validate' do
+      klass_with_validation = new_class do
+        field :name
+        validates :name, length: { minimum: 4 }
+      end
+
+      obj = klass_with_validation.create(name: 'Theodor')
+      obj.name = 'Mo'
+
+      travel 1.hour do
+        obj.touch
+
+        obj_persistes = klass_with_validation.find(obj.id)
+        expect(obj_persistes.updated_at.to_i).to eq(Time.now.to_i)
+      end
+    end
+
+    it 'raise Dynamoid::Error when not persisted model' do
+      klass = new_class
+      obj = klass.new
+
+      expect {
+        obj.touch
+      }.to raise_error(Dynamoid::Errors::Error, 'cannot touch on a new or destroyed record object')
+    end
+
     describe 'callbacks' do
-      it 'runs before_update callback' do
-        klass_with_callback = new_class do
-          before_update { print 'run before_update' }
-        end
-
-        obj = klass_with_callback.create
-        expect { obj.touch }.to output('run before_update').to_stdout
-      end
-
-      it 'runs after_update callback' do
-        klass_with_callback = new_class do
-          after_update { print 'run after_update' }
-        end
-
-        obj = klass_with_callback.create
-        expect { obj.touch }.to output('run after_update').to_stdout
-      end
-
-      it 'runs around_update callback' do
-        klass_with_callback = new_class do
-          around_update :around_update_callback
-
-          def around_update_callback
-            print 'start around_update'
-            yield
-            print 'finish around_update'
-          end
-        end
-
-        obj = klass_with_callback.create
-        expect { obj.touch }.to output('start around_update' 'finish around_update').to_stdout
-      end
-
-      it 'runs before_save callback' do
-        klass_with_callback = new_class do
-          before_save { print 'run before_save' }
-        end
-
-        expect { # to suppress printing at model creation
-          obj = klass_with_callback.create
-          expect { obj.touch }.to output('run before_save').to_stdout
-        }.to output.to_stdout
-      end
-
-      it 'runs after_save callback' do
-        klass_with_callback = new_class do
-          after_save { print 'run after_save' }
-        end
-
-        expect { # to suppress printing at model creation
-          obj = klass_with_callback.create
-          expect { obj.touch }.to output('run after_save').to_stdout
-        }.to output.to_stdout
-      end
-
-      it 'runs around_save callback' do
-        klass_with_callback = new_class do
-          around_save :around_save_callback
-
-          def around_save_callback
-            print 'start around_save'
-            yield
-            print 'finish around_save'
-          end
-        end
-
-        expect { # to suppress printing at model creation
-          obj = klass_with_callback.create
-          expect { obj.touch }.to output('start around_save' 'finish around_save').to_stdout
-        }.to output.to_stdout
-      end
-
-      it 'runs before_validation callback' do
-        klass_with_callback = new_class do
-          before_validation { print 'run before_validation' }
-        end
-
-        expect { # to suppress printing at model creation
-          obj = klass_with_callback.create
-
-          expect { obj.touch }.to output('run before_validation').to_stdout
-        }.to output.to_stdout
-      end
-
-      it 'runs after_validation callback' do
-        klass_with_callback = new_class do
-          after_validation { print 'run after_validation' }
-        end
-
-        expect { # to suppress printing at model creation
-          obj = klass_with_callback.create
-          expect { obj.touch }.to output('run after_validation').to_stdout
-        }.to output.to_stdout
-      end
-
       it 'runs callbacks in the proper order' do
         klass_with_callbacks = new_class do
           before_validation { puts 'run before_validation' }
@@ -4913,7 +4893,7 @@ describe Dynamoid::Persistence do
           after_save { puts 'run after_save' }
           around_save :around_save_callback
 
-          around_save :around_save_callback
+          after_touch { puts 'run after_touch' }
 
           def around_save_callback
             puts 'start around_save'
@@ -4928,23 +4908,9 @@ describe Dynamoid::Persistence do
           end
         end
 
-        # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
-          'run before_validation',
-          'run after_validation',
-          'run before_save',
-          'start around_save',
-          'run before_update',
-          'start around_update',
-          'finish around_update',
-          'run after_update',
-          'finish around_save',
-          'run after_save'
-        ].join("\n") + "\n"
-
         expect { # to suppress printing at model creation
           obj = klass_with_callbacks.create
-          expect { obj.touch }.to output(expected_output).to_stdout
+          expect { obj.touch }.to output("run after_touch\n").to_stdout
         }.to output.to_stdout
       end
     end
