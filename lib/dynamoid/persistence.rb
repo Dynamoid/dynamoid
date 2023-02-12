@@ -484,8 +484,8 @@ module Dynamoid
       self.class.create_table(sync: true)
       create_or_update = new_record? ? :create : :update
 
-      run_callbacks(create_or_update) do
-        run_callbacks(:save) do
+      run_callbacks(:save) do
+        run_callbacks(create_or_update) do
           Save.call(self, touch: options[:touch])
         end
       end
