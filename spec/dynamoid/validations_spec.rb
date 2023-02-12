@@ -79,4 +79,26 @@ describe Dynamoid::Validations do
       expect(model.save!).to eq(model)
     end
   end
+
+  describe '#valid?' do
+    describe 'callbacks' do
+      it 'runs before_validation callback' do
+        klass_with_callback = new_class do
+          before_validation { print 'run before_validation' }
+        end
+
+        obj = klass_with_callback.new
+        expect { obj.valid? }.to output('run before_validation').to_stdout
+      end
+
+      it 'runs after_validation callback' do
+        klass_with_callback = new_class do
+          after_validation { print 'run after_validation' }
+        end
+
+        obj = klass_with_callback.new
+        expect { obj.valid? }.to output('run after_validation').to_stdout
+      end
+    end
+  end
 end

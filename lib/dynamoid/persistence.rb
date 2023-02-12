@@ -531,6 +531,8 @@ module Dynamoid
     #
     #   user.update_attribute(:last_name, 'Tylor')
     #
+    # Validation is skipped.
+    #
     # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
     # attributes is not on the model
     #
@@ -548,7 +550,7 @@ module Dynamoid
 
     # Update a model.
     #
-    # Runs validation and callbacks. Reloads all attribute values.
+    # Doesn't run validation. Runs only +update+ callbacks. Reloads all attribute values.
     #
     # Accepts mandatory block in order to specify operations which will modify
     # attributes. Supports following operations: +add+, +delete+ and +set+.
@@ -635,7 +637,7 @@ module Dynamoid
 
     # Update a model.
     #
-    # Runs validation and callbacks. Reloads all attribute values.
+    # Doesn't run validation. Runs only +update+ callbacks. Reloads all attribute values.
     #
     # Accepts mandatory block in order to specify operations which will modify
     # attributes. Supports following operations: +add+, +delete+ and +set+.
