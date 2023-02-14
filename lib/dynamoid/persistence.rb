@@ -774,8 +774,12 @@ module Dynamoid
     def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
       change = read_attribute(attribute) - (attribute_was(attribute) || 0)
-      self.class.inc(hash_key, range_value, attribute => change, touch: touch)
-      clear_attribute_changes(attribute)
+
+      run_callbacks :touch do
+        self.class.inc(hash_key, range_value, attribute => change, touch: touch)
+        clear_attribute_changes(attribute)
+      end
+
       self
     end
 

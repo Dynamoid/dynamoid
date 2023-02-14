@@ -3760,19 +3760,32 @@ describe Dynamoid::Persistence do
       expect { obj.increment!(:age, touch: true) }.to change { document_class.find(obj.id).updated_at }
     end
 
-    it 'updates `updated_at` and the specified attributes when touch: [<name>*] option passed' do
-      klass = new_class do
-        field :age, :integer
-        field :viewed_at, :datetime
+    context 'when :touch option passed' do
+      it 'updates `updated_at` and the specified attributes when touch: [<name>*] option passed' do
+        klass = new_class do
+          field :age, :integer
+          field :viewed_at, :datetime
+        end
+
+        obj = klass.create(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+
+        expect do
+          expect do
+            obj.increment!(:age, touch: [:viewed_at])
+          end.to change { klass.find(obj.id).updated_at }
+        end.to change { klass.find(obj.id).viewed_at }
       end
 
-      obj = klass.create(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+      it 'runs after_touch callback' do
+        klass_with_callback = new_class do
+          field :age, :integer
+          after_touch { print 'run after_touch' }
+        end
 
-      expect do
-        expect do
-          obj.increment!(:age, touch: [:viewed_at])
-        end.to change { klass.find(obj.id).updated_at }
-      end.to change { klass.find(obj.id).viewed_at }
+        obj = klass_with_callback.create
+
+        expect { obj.increment!(:age, touch: true) }.to output('run after_touch').to_stdout
+      end
     end
   end
 
@@ -3941,19 +3954,32 @@ describe Dynamoid::Persistence do
       expect { obj.decrement!(:age, touch: true) }.to change { document_class.find(obj.id).updated_at }
     end
 
-    it 'updates `updated_at` and the specified attributes when touch: [<name>*] option passed' do
-      klass = new_class do
-        field :age, :integer
-        field :viewed_at, :datetime
+    context 'when :touch option passed' do
+      it 'updates `updated_at` and the specified attributes' do
+        klass = new_class do
+          field :age, :integer
+          field :viewed_at, :datetime
+        end
+
+        obj = klass.create(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+
+        expect do
+          expect do
+            obj.decrement!(:age, touch: [:viewed_at])
+          end.to change { klass.find(obj.id).updated_at }
+        end.to change { klass.find(obj.id).viewed_at }
       end
 
-      obj = klass.create(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+      it 'runs after_touch callback' do
+        klass_with_callback = new_class do
+          field :age, :integer
+          after_touch { print 'run after_touch' }
+        end
 
-      expect do
-        expect do
-          obj.decrement!(:age, touch: [:viewed_at])
-        end.to change { klass.find(obj.id).updated_at }
-      end.to change { klass.find(obj.id).viewed_at }
+        obj = klass_with_callback.create
+
+        expect { obj.decrement!(:age, touch: true) }.to output('run after_touch').to_stdout
+      end
     end
   end
 
