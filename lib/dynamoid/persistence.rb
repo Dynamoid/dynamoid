@@ -404,17 +404,43 @@ module Dynamoid
     #
     #   post.touch
     #
-    # Can update another field in addition with the same timestamp if it's name passed as argument.
+    # Can update other fields in addition with the same timestamp if their
+    # names passed as arguments.
     #
-    #   user.touch(:last_login_at)
+    #   user.touch(:last_login_at, :viewed_at)
     #
-    # @param name [Symbol] attribute name to update (optional)
+    # Some specific value can be used to save:
+    #
+    #   user.touch(time: 1.hour.ago)
+    #
+    # No validation is performed and only +after_touch+ callback is called.
+    #
+    # The method must be used on a persisted object, otherwise
+    # +Dynamoid::Errors::Error+ will be thrown.
+    #
+    # @param names [*Symbol] a list of attribute names to update (optional)
+    # @param time [Time] datetime value that can be used instead of the current time (optional)
     # @return [Dynamoid::Document] self
-    def touch(name = nil)
-      now = DateTime.now
-      self.updated_at = now
-      attributes[name] = now if name
-      save
+    def touch(*names, time: nil)
+      if new_record?
+        raise Dynamoid::Errors::Error, 'cannot touch on a new or destroyed record object'
+      end
+
+      time_to_assign = time || DateTime.now
+
+      self.updated_at = time_to_assign
+      names.each do |name|
+        attributes[name] = time_to_assign
+      end
+
+      attribute_names = names.map(&:to_sym) + [:updated_at]
+      attributes_with_values = attributes.slice(*attribute_names)
+
+      run_callbacks :touch do
+        self.class.update_fields(hash_key, range_value, attributes_with_values)
+        clear_attribute_changes(attribute_names.map(&:to_s))
+      end
+
       self
     end
 
@@ -484,8 +510,8 @@ module Dynamoid
       self.class.create_table(sync: true)
       create_or_update = new_record? ? :create : :update
 
-      run_callbacks(create_or_update) do
-        run_callbacks(:save) do
+      run_callbacks(:save) do
+        run_callbacks(create_or_update) do
           Save.call(self, touch: options[:touch])
         end
       end
@@ -531,6 +557,8 @@ module Dynamoid
     #
     #   user.update_attribute(:last_name, 'Tylor')
     #
+    # Validation is skipped.
+    #
     # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
     # attributes is not on the model
     #
@@ -548,7 +576,7 @@ module Dynamoid
 
     # Update a model.
     #
-    # Runs validation and callbacks. Reloads all attribute values.
+    # Doesn't run validation. Runs only +update+ callbacks. Reloads all attribute values.
     #
     # Accepts mandatory block in order to specify operations which will modify
     # attributes. Supports following operations: +add+, +delete+ and +set+.
@@ -635,7 +663,7 @@ module Dynamoid
 
     # Update a model.
     #
-    # Runs validation and callbacks. Reloads all attribute values.
+    # Doesn't run validation. Runs only +update+ callbacks. Reloads all attribute values.
     #
     # Accepts mandatory block in order to specify operations which will modify
     # attributes. Supports following operations: +add+, +delete+ and +set+.
@@ -746,8 +774,12 @@ module Dynamoid
     def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
       change = read_attribute(attribute) - (attribute_was(attribute) || 0)
-      self.class.inc(hash_key, range_value, attribute => change, touch: touch)
-      clear_attribute_changes(attribute)
+
+      run_callbacks :touch do
+        self.class.inc(hash_key, range_value, attribute => change, touch: touch)
+        clear_attribute_changes(attribute)
+      end
+
       self
     end
 

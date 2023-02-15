@@ -90,6 +90,16 @@ describe Dynamoid::Document do
         expect(obj.attributes[:count]).to eql(101)
       end
     end
+
+    describe 'callbacks' do
+      it 'runs after_initialize callback' do
+        klass_with_callback = new_class do
+          after_initialize { print 'run after_update' }
+        end
+
+        expect { klass_with_callback.new }.to output('run after_update').to_stdout
+      end
+    end
   end
 
   describe '.exist?' do
