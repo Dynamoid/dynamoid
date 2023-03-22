@@ -60,7 +60,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bundler'
   # Since 0.13.0 pry is incompatible with old versions of pry-byebug.
   # We use these old versions of pry-byebug to run tests on Ruby 2.3 which new versions don't support
-  spec.add_development_dependency 'pry', '~> 0.12.0'
+  spec.add_development_dependency 'pry', '~> 0.14.2'
   spec.add_development_dependency 'rake', '~> 13.0'
   spec.add_development_dependency 'rspec', '~> 3.12'
   # 'rubocop-lts' is for Ruby 2.3+, see https://rubocop-lts.gitlab.io/
