@@ -546,9 +546,18 @@ model.save(validate: false)
 
 ### Callbacks
 
-Dynamoid also employs ActiveModel callbacks. Right now, callbacks are
-defined on `save`, `update`, `destroy`, which allows you to do `before_`
-or `after_` any of those.
+Dynamoid also employs ActiveModel callbacks. Right now the following
+callbacks are supported:
+- `save` (before, after, around)
+- `create` (before, after, around)
+- `update` (before, after, around)
+- `validation` (before, after)
+- `destroy` (before, after, around)
+- `after_touch`
+- `after_initialize`
+- `after_find`
+
+Example:
 
 ```ruby
 class User
