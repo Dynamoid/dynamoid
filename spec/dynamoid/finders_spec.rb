@@ -348,6 +348,41 @@ describe Dynamoid::Finders do
         end
       end
     end
+
+    describe 'callbacks' do
+      it 'runs after_initialize callback' do
+        klass_with_callback = new_class do
+          after_initialize { print 'run after_initialize' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect { klass_with_callback.find(object.id) }.to output('run after_initialize').to_stdout
+      end
+
+      it 'runs after_find callback' do
+        klass_with_callback = new_class do
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect { klass_with_callback.find(object.id) }.to output('run after_find').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callback = new_class do
+          after_initialize { print 'run after_initialize' }
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect do
+          klass_with_callback.find(object.id)
+        end.to output('run after_initialize' + 'run after_find').to_stdout
+      end
+    end
   end
 
   it 'sends consistent option to the adapter' do
@@ -442,6 +477,41 @@ describe Dynamoid::Finders do
       user_ids = [%w[1 red], %w[1 green]]
       Dynamoid.adapter.expects(:read).with(anything, user_ids, consistent_read: true)
       User.find_all(user_ids, consistent_read: true)
+    end
+
+    describe 'callbacks' do
+      it 'runs after_initialize callback' do
+        klass_with_callback = new_class do
+          after_initialize { print 'run after_initialize' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect { klass_with_callback.find_all([object.id]) }.to output('run after_initialize').to_stdout
+      end
+
+      it 'runs after_find callback' do
+        klass_with_callback = new_class do
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect { klass_with_callback.find_all([object.id]) }.to output('run after_find').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callback = new_class do
+          after_initialize { print 'run after_initialize' }
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect do
+          klass_with_callback.find_all([object.id])
+        end.to output('run after_initialize' + 'run after_find').to_stdout
+      end
     end
   end
 

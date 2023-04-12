@@ -12,7 +12,7 @@ module Dynamoid
       extend ActiveModel::Callbacks
 
       define_model_callbacks :create, :save, :destroy, :update
-      define_model_callbacks :initialize, :touch, only: :after
+      define_model_callbacks :initialize, :find, :touch, only: :after
 
       before_save :set_expires_field
       after_initialize :set_inheritance_field
