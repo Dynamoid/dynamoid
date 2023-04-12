@@ -1162,6 +1162,44 @@ describe Dynamoid::Criteria::Chain do
         expect(actual).to eq [obj]
       end
     end
+
+    describe 'callbacks' do
+      it 'runs after_initialize callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_initialize { print 'run after_initialize' }
+        end
+
+        object = klass_with_callback.create!(name: 'Alex')
+
+        expect { klass_with_callback.where(name: 'Alex').to_a }.to output('run after_initialize').to_stdout
+      end
+
+      it 'runs after_find callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!(name: 'Alex')
+
+        expect { klass_with_callback.where(name: 'Alex').to_a }.to output('run after_find').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callback = new_class do
+          field :name
+          after_initialize { print 'run after_initialize' }
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!(name: 'Alex')
+
+        expect do
+          klass_with_callback.where(name: 'Alex').to_a
+        end.to output('run after_initialize' + 'run after_find').to_stdout
+      end
+    end
   end
 
   describe '#find_by_pages' do
@@ -1191,6 +1229,48 @@ describe Dynamoid::Criteria::Chain do
         [all(be_kind_of(model)), { last_evaluated_key: an_instance_of(Hash) }],
         [all(be_kind_of(model)), { last_evaluated_key: nil }],
       )
+    end
+
+    describe 'callbacks' do
+      it 'runs after_initialize callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_initialize { print 'run after_initialize' }
+        end
+
+        object = klass_with_callback.create!(name: 'Alex')
+
+        expect do
+          klass_with_callback.where(name: 'Alex').find_by_pages { |*| }
+        end.to output('run after_initialize').to_stdout
+      end
+
+      it 'runs after_find callback' do
+        klass_with_callback = new_class do
+          field :name
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!(name: 'Alex')
+
+        expect do
+          klass_with_callback.where(name: 'Alex').find_by_pages { |*| }
+        end.to output('run after_find').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callback = new_class do
+          field :name
+          after_initialize { print 'run after_initialize' }
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!(name: 'Alex')
+
+        expect do
+          klass_with_callback.where(name: 'Alex').find_by_pages { |*| }
+        end.to output('run after_initialize' + 'run after_find').to_stdout
+      end
     end
   end
 
@@ -1569,6 +1649,45 @@ describe Dynamoid::Criteria::Chain do
         expect(scope.first).to be_present
         expect(scope.count).to eq 3
         expect(scope.all.to_a.size).to eq 3
+      end
+    end
+
+    describe 'callbacks' do
+      it 'runs after_initialize callback' do
+        klass_with_callback = new_class do
+          after_initialize { print 'run after_initialize' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect do
+          klass_with_callback.first
+        end.to output('run after_initialize').to_stdout
+      end
+
+      it 'runs after_find callback' do
+        klass_with_callback = new_class do
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect do
+          klass_with_callback.first
+        end.to output('run after_find').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callback = new_class do
+          after_initialize { print 'run after_initialize' }
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect do
+          klass_with_callback.first
+        end.to output('run after_initialize' + 'run after_find').to_stdout
       end
     end
   end

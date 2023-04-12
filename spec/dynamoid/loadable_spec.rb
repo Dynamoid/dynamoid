@@ -66,5 +66,40 @@ describe Dynamoid::Loadable do
       expect { copy.reload }.to change { copy.new_record? }.from(true).to(false)
       expect(copy.message).to eq 'a'
     end
+
+    describe 'callbacks' do
+      it 'runs after_initialize callback' do
+        klass_with_callback = new_class do
+          after_initialize { print 'run after_initialize' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect { object.reload }.to output('run after_initialize').to_stdout
+      end
+
+      it 'runs after_find callback' do
+        klass_with_callback = new_class do
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect { object.reload }.to output('run after_find').to_stdout
+      end
+
+      it 'runs callbacks in the proper order' do
+        klass_with_callback = new_class do
+          after_initialize { print 'run after_initialize' }
+          after_find { print 'run after_find' }
+        end
+
+        object = klass_with_callback.create!
+
+        expect do
+          object.reload
+        end.to output('run after_initialize' + 'run after_find').to_stdout
+      end
+    end
   end
 end

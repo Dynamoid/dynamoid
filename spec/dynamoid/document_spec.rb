@@ -94,10 +94,10 @@ describe Dynamoid::Document do
     describe 'callbacks' do
       it 'runs after_initialize callback' do
         klass_with_callback = new_class do
-          after_initialize { print 'run after_update' }
+          after_initialize { print 'run after_initialize' }
         end
 
-        expect { klass_with_callback.new }.to output('run after_update').to_stdout
+        expect { klass_with_callback.new }.to output('run after_initialize').to_stdout
       end
     end
   end

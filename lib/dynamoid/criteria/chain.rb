@@ -525,6 +525,7 @@ module Dynamoid
       def pages
         raw_pages.lazy.map do |items, options|
           models = items.map { |i| source.from_database(i) }
+          models.each { |m| m.run_callbacks :find }
           [models, options]
         end.each
       end

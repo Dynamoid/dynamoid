@@ -151,7 +151,9 @@ module Dynamoid
                 end
 
         if items.size == ids.size || !options[:raise_error]
-          items ? items.map { |i| from_database(i) } : []
+          models = items ? items.map { |i| from_database(i) } : []
+          models.each { |m| m.run_callbacks :find }
+          models
         else
           ids_list = range_key ? ids.map { |pk, sk| "(#{pk},#{sk})" } : ids.map(&:to_s)
           message = "Couldn't find all #{name.pluralize} with primary keys [#{ids_list.join(', ')}] "
@@ -173,7 +175,9 @@ module Dynamoid
         end
 
         if item = Dynamoid.adapter.read(table_name, id, options.slice(:range_key, :consistent_read))
-          from_database(item)
+          model = from_database(item)
+          model.run_callbacks :find
+          model
         elsif options[:raise_error]
           primary_key = range_key ? "(#{id},#{options[:range_key]})" : id
           message = "Couldn't find #{name} with primary key #{primary_key}"
@@ -294,7 +298,8 @@ module Dynamoid
       # @private
       # @since 0.2.0
       def method_missing(method, *args)
-        if method =~ /find/
+        # Cannot use Symbol#start_with? because it was introduced in Ruby 2.7, but we support Ruby >= 2.3
+        if method.to_s.start_with?('find')
           ActiveSupport::Deprecation.warn("[Dynamoid] .#{method} is deprecated! Call .where instead of")
 
           finder = method.to_s.split('_by_').first
