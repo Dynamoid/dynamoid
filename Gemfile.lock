@@ -49,7 +49,7 @@ GEM
     json (2.6.3)
     method_source (1.0.0)
     minitest (5.16.3)
-    overcommit (0.59.1)
+    overcommit (0.60.0)
       childprocess (>= 0.6.3, < 5)
       iniparse (~> 1.4)
       rexml (~> 3.2)
