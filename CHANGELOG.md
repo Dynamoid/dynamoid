@@ -54,7 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * [#645](https://github.com/Dynamoid/dynamoid/pull/645) Added `after_find` callback
 ### Changed
 * [#610](https://github.com/Dynamoid/dynamoid/pull/610) Switch to [`rubocop-lts`](https://rubocop-lts.gitlab.io/) (@pboling)
-### Removed
 * [#633](https://github.com/Dynamoid/dynamoid/pull/633) Change `#inspect` method to return only attributes
 * [#623](https://github.com/Dynamoid/dynamoid/pull/623) Optimized performance of persisting to send only changed attributes in a request to DynamoDB
 
