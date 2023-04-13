@@ -5,9 +5,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Fixed
-* [#601](https://github.com/Dynamoid/dynamoid/pull/601) Fix `#first` and `#pluck` query methods (@andrykonchin)
+
+### Added
+
+### Changed
+
+### Removed
+
+## 3.9.0
+### Fixed
 * [#610](https://github.com/Dynamoid/dynamoid/pull/610) Specs in JRuby; Support for JRuby 9.4.0.0 (@pboling)
+* [#624](https://github.com/Dynamoid/dynamoid/pull/624) Fixed `#increment!`/`#decrement!` methods and made them compatible with Rails counterparts
+* [#626](https://github.com/Dynamoid/dynamoid/pull/626) Fixed saving empty Set and String and replacing with `nil` in `#update`, `#update!`, `.update_fields`, and `.upsert` methods
+* [#628](https://github.com/Dynamoid/dynamoid/pull/628) Fixed `.import` method to mark persisted model attributes as not changed/not dirty
+* [#632](https://github.com/Dynamoid/dynamoid/pull/632) Fixed `#save` called with `touch: false` option to set `updated_at` attribute even for a new record (to comply with Rails)
+* [#634](https://github.com/Dynamoid/dynamoid/pull/634) Fixed model callbacks:
+  * changed order of `save` and `create`/`update` callbacks - `save` callbacks are outer for the `create`/`update` ones
+  * removed `before_initialize` and `around_initialize` callbacks - there should be only `after_initialize` one
+* [#634](https://github.com/Dynamoid/dynamoid/pull/634) Fixed `#touch` method compatibility with a Rails counterpart:
+  * don't save other modified attributes - only timestamps
+  * don't perform validation and don't call `save`/`create`/`update` callbacks
+  * accept a list of attribute names, but not one name
+  * accept a `:time` option
 ### Added
 * [#611](https://github.com/Dynamoid/dynamoid/pull/611) Add `rubocop-md` (@pboling)
 * [#612](https://github.com/Dynamoid/dynamoid/pull/612) Add `rubocop-rspec` (@pboling)
@@ -19,9 +40,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Setup GitHub actions for RuboCop linting
   * Automate coverage feedback on Pull Requests via GitHub Actions and CodeCov
 * [#618](https://github.com/Dynamoid/dynamoid/pull/618) Upgrade README Badges (@pboling)
+* [#624](https://github.com/Dynamoid/dynamoid/pull/624) Added `:touch` option for `.inc` method to be more compatible with the Rails counterpart method `.update_counters`
+* [#627](https://github.com/Dynamoid/dynamoid/pull/627) Made the following methods in the Dirty API public (to comply with Rails):
+  * `clear_changes_information`
+  * `changes_applied`
+  * `clear_attribute_changes`
+* [#630](https://github.com/Dynamoid/dynamoid/pull/630) Added `Dynamoid::Adapter#execute` method to run PartiQL queries
+* [#634](https://github.com/Dynamoid/dynamoid/pull/634) Added `after_touch` callback and run it in the following methods:
+  * `#touch`
+  * `#increment!`
+  * `#decrement!`
+* [#642](https://github.com/Dynamoid/dynamoid/pull/642) Run specs on CI agains Ruby 3.2
+* [#645](https://github.com/Dynamoid/dynamoid/pull/645) Added `after_find` callback
 ### Changed
 * [#610](https://github.com/Dynamoid/dynamoid/pull/610) Switch to [`rubocop-lts`](https://rubocop-lts.gitlab.io/) (@pboling)
 ### Removed
+* [#633](https://github.com/Dynamoid/dynamoid/pull/633) Change `#inspect` method to return only attributes
+* [#623](https://github.com/Dynamoid/dynamoid/pull/623) Optimized performance of persisting to send only changed attributes in a request to DynamoDB
 
 ## 3.8.0
 ### Fixed
