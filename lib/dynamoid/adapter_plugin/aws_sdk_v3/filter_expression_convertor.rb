@@ -1,0 +1,78 @@
+# frozen_string_literal: true
+
+module Dynamoid
+  # @private
+  module AdapterPlugin
+    class AwsSdkV3
+      class FilterExpressionConvertor
+        attr_reader :expression, :name_placeholders, :value_placeholders
+
+        def initialize(conditions, name_placeholders, value_placeholders, name_placeholder_sequence, value_placeholder_sequence)
+          @conditions = conditions
+          @name_placeholders = name_placeholders.dup
+          @value_placeholders = value_placeholders.dup
+          @name_placeholder_sequence = name_placeholder_sequence
+          @value_placeholder_sequence = value_placeholder_sequence
+
+          build
+        end
+
+        private
+
+        def build
+          clauses = @conditions.map do |name, operation_and_value|
+            operator = operation_and_value.keys[0]
+            value = operation_and_value.values[0]
+            name_or_placeholder = name_or_placeholder_for(name)
+
+            case operator
+            when :eq
+              "#{name_or_placeholder} = #{value_placeholder_for(value)}"
+            when :ne
+              "#{name_or_placeholder} <> #{value_placeholder_for(value)}"
+            when :gt
+              "#{name_or_placeholder} > #{value_placeholder_for(value)}"
+            when :lt
+              "#{name_or_placeholder} < #{value_placeholder_for(value)}"
+            when :gte
+              "#{name_or_placeholder} >= #{value_placeholder_for(value)}"
+            when :lte
+              "#{name_or_placeholder} <= #{value_placeholder_for(value)}"
+            when :between
+              "#{name_or_placeholder} BETWEEN #{value_placeholder_for(value[0])} AND #{value_placeholder_for(value[1])}"
+            when :begins_with
+              "begins_with (#{name_or_placeholder}, #{value_placeholder_for(value)})"
+            when :in
+              list = value.map(&method(:value_placeholder_for)).join(' , ')
+              "#{name_or_placeholder} IN (#{list})"
+            when :contains
+              "contains (#{name_or_placeholder}, #{value_placeholder_for(value)})"
+            when :not_contains
+              "NOT contains (#{name_or_placeholder}, #{value_placeholder_for(value)})"
+            when :null
+              "attribute_not_exists (#{name_or_placeholder})"
+            when :not_null
+              "attribute_exists (#{name_or_placeholder})"
+            end
+          end
+
+          @expression = clauses.join(' AND ')
+        end
+
+        def name_or_placeholder_for(name)
+          return name unless name.upcase.in?(Dynamoid::AdapterPlugin::AwsSdkV3::RESERVED_WORDS)
+
+          placeholder = @name_placeholder_sequence.call
+          @name_placeholders[placeholder] = name
+          placeholder
+        end
+
+        def value_placeholder_for(value)
+          placeholder = @value_placeholder_sequence.call
+          @value_placeholders[placeholder] = value
+          placeholder
+        end
+      end
+    end
+  end
+end

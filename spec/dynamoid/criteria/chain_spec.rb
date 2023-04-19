@@ -546,6 +546,21 @@ describe Dynamoid::Criteria::Chain do
       documents = model.where('age.not_null': false).to_a
       expect(documents.map(&:id)).to contain_exactly('3')
     end
+
+    it 'allows conditions with attribute names conflicting with DynamoDB reserved words' do
+      model = new_class do
+        # SCAN, SET and SIZE are reserved words
+        field :scan
+        field :set
+        field :size
+      end
+
+      model.create_table
+      put_attributes(model.table_name, id: '1', scan: 'a', set: 'b', size: 'c')
+
+      documents = model.where(scan: 'a', set: 'b', size: 'c').to_a
+      expect(documents.map(&:id)).to eql ['1']
+    end
   end
 
   describe 'Lazy loading' do
@@ -1110,7 +1125,6 @@ describe Dynamoid::Criteria::Chain do
         end
 
         it 'supports "in [nil]" check' do
-          pending 'because of temporary bug with nil type casting'
           expect(model.where('name.in': [nil]).to_a).to eq [@johndoe]
         end
 
@@ -1135,7 +1149,6 @@ describe Dynamoid::Criteria::Chain do
         end
 
         it 'does not supports "in [nil]" check' do
-          pending 'because of temporary bug with nil type casting'
           expect(model.where('name.in': [nil]).to_a).to eq []
         end
 
@@ -1810,6 +1823,25 @@ describe Dynamoid::Criteria::Chain do
       obj_loaded, = chain.where(id: obj.id).project(:age).to_a
       expect(obj_loaded.attributes).to eq(age: 21)
     end
+
+    context 'when attribute name is a DynamoDB reserved word' do
+      let(:model) do
+        new_class do
+          field :name
+          field :bucket, :integer # BUCKET is a reserved word
+        end
+      end
+
+      it 'works with Scan' do
+        model.create(name: 'Alex', bucket: 2)
+
+        chain = described_class.new(model)
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+
+        obj, = chain.project(:bucket).to_a
+        expect(obj.attributes).to eq(bucket: 2)
+      end
+    end
   end
 
   describe '#pluck' do
@@ -1890,6 +1922,22 @@ describe Dynamoid::Criteria::Chain do
         expect(object.name).to eq 'Alice'
         expect(object.age).to eq 11
         expect(object.tag_id).to eq '719'
+      end
+    end
+
+    context 'when attribute name is a DynamoDB reserved word' do
+      let(:model) do
+        new_class do
+          field :name
+          field :bucket, :integer # BUCKET is a reserved word
+        end
+      end
+
+      it 'works with Scan' do
+        model.create(name: 'Alice', bucket: 1001)
+        model.create(name: 'Bob', bucket: 1002)
+
+        expect(model.pluck(:bucket)).to contain_exactly(1001, 1002)
       end
     end
   end
