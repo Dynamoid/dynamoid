@@ -34,21 +34,6 @@ module Dynamoid
         range_eq:           'EQ'
       }.freeze
 
-      FIELD_MAP = {
-        eq:           'EQ',
-        ne:           'NE',
-        gt:           'GT',
-        lt:           'LT',
-        gte:          'GE',
-        lte:          'LE',
-        begins_with:  'BEGINS_WITH',
-        between:      'BETWEEN',
-        in:           'IN',
-        contains:     'CONTAINS',
-        not_contains: 'NOT_CONTAINS',
-        null:         'NULL',
-        not_null:     'NOT_NULL',
-      }.freeze
       HASH_KEY  = 'HASH'
       RANGE_KEY = 'RANGE'
       STRING_TYPE  = 'S'
@@ -132,25 +117,6 @@ module Dynamoid
       ].freeze
 
       attr_reader :table_cache
-
-      # Build an array of values for Condition
-      # Is used in ScanFilter and QueryFilter
-      # https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
-      # @param [String] operator value of RANGE_MAP or FIELD_MAP hash, e.g. "EQ", "LT" etc
-      # @param [Object] value scalar value or array/set
-      def self.attribute_value_list(operator, value)
-        # For BETWEEN and IN operators we should keep value as is (it should be already an array)
-        # NULL and NOT_NULL require absence of attribute list
-        # For all the other operators we wrap the value with array
-        # https://docs.aws.amazon.com/en_us/amazondynamodb/latest/developerguide/LegacyConditionalParameters.Conditions.html
-        if %w[BETWEEN IN].include?(operator)
-          [value].flatten
-        elsif %w[NULL NOT_NULL].include?(operator)
-          nil
-        else
-          [value]
-        end
-      end
 
       # Establish the connection to DynamoDB.
       #

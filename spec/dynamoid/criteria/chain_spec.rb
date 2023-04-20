@@ -192,6 +192,18 @@ describe Dynamoid::Criteria::Chain do
 
       expect(model.where(name: 'Bob', 'age.between': [19, 31]).all).to contain_exactly(customer2, customer3)
     end
+
+    it 'allows conditions with attribute names conflicting with DynamoDB reserved words' do
+      model = new_class do
+        range :size # SIZE is reserved word
+      end
+
+      model.create_table
+      put_attributes(model.table_name, id: '1', size: 'c')
+
+      documents = model.where(id: '1', size: 'c').to_a
+      expect(documents.map(&:id)).to eql ['1']
+    end
   end
 
   # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.QueryFilter.html?shortFooter=true
@@ -368,6 +380,21 @@ describe Dynamoid::Criteria::Chain do
 
       documents = model.where('age.not_null': false).to_a
       expect(documents.map(&:last_name)).to contain_exactly('cc')
+    end
+
+    it 'allows conditions with attribute names conflicting with DynamoDB reserved words' do
+      model = new_class do
+        # SCAN, SET and SIZE are reserved words
+        field :scan
+        field :set
+        field :size
+      end
+
+      model.create_table
+      put_attributes(model.table_name, id: '1', scan: 'a', set: 'b', size: 'c')
+
+      documents = model.where(id: '1', scan: 'a', set: 'b', size: 'c').to_a
+      expect(documents.map(&:id)).to eql ['1']
     end
   end
 
@@ -1841,6 +1868,16 @@ describe Dynamoid::Criteria::Chain do
         obj, = chain.project(:bucket).to_a
         expect(obj.attributes).to eq(bucket: 2)
       end
+
+      it 'works with Query' do
+        object = model.create(name: 'Alex', bucket: 2)
+
+        chain = described_class.new(model)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+
+        obj, = chain.where(id: object.id).project(:bucket).to_a
+        expect(obj.attributes).to eq(bucket: 2)
+      end
     end
   end
 
@@ -1938,6 +1975,12 @@ describe Dynamoid::Criteria::Chain do
         model.create(name: 'Bob', bucket: 1002)
 
         expect(model.pluck(:bucket)).to contain_exactly(1001, 1002)
+      end
+
+      it 'works with Query' do
+        object = model.create(name: 'Alice', bucket: 1001)
+
+        expect(model.where(id: object.id).pluck(:bucket)).to eq([1001])
       end
     end
   end
