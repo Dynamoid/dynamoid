@@ -12,20 +12,19 @@ module Dynamoid
     class AwsSdkV3
       class Query
         OPTIONS_KEYS = %i[
-          limit hash_key hash_value range_key consistent_read scan_index_forward
-          select index_name batch_size exclusive_start_key record_limit scan_limit
-          project
+          consistent_read scan_index_forward select index_name batch_size
+          exclusive_start_key record_limit scan_limit project
         ].freeze
 
         attr_reader :client, :table, :options, :conditions
 
-        def initialize(client, table, opts = {})
+        def initialize(client, table, key_conditions, non_key_conditions, options)
           @client = client
           @table = table
 
-          opts = opts.symbolize_keys
-          @options = opts.slice(*OPTIONS_KEYS)
-          @conditions = opts.except(*OPTIONS_KEYS)
+          @key_conditions = key_conditions
+          @non_key_conditions = non_key_conditions
+          @options = options.slice(*OPTIONS_KEYS)
         end
 
         def call
@@ -70,13 +69,13 @@ module Dynamoid
           limit = [record_limit, scan_limit, batch_size].compact.min
 
           # key condition expression
-          convertor = FilterExpressionConvertor.new(key_conditions, name_placeholders, value_placeholders, name_placeholder_sequence, value_placeholder_sequence)
+          convertor = FilterExpressionConvertor.new(@key_conditions, name_placeholders, value_placeholders, name_placeholder_sequence, value_placeholder_sequence)
           key_condition_expression = convertor.expression
           value_placeholders = convertor.value_placeholders
           name_placeholders = convertor.name_placeholders
 
           # filter expression
-          convertor = FilterExpressionConvertor.new(non_key_conditions, name_placeholders, value_placeholders, name_placeholder_sequence, value_placeholder_sequence)
+          convertor = FilterExpressionConvertor.new(@non_key_conditions, name_placeholders, value_placeholders, name_placeholder_sequence, value_placeholder_sequence)
           filter_expression = convertor.expression
           value_placeholders = convertor.value_placeholders
           name_placeholders = convertor.name_placeholders
@@ -111,40 +110,6 @@ module Dynamoid
 
         def scan_limit
           options[:scan_limit]
-        end
-
-        def hash_key_name
-          (options[:hash_key] || table.hash_key)
-        end
-
-        def range_key_name
-          (options[:range_key] || table.range_key)
-        end
-
-        def key_conditions
-          result = {}
-          result[hash_key_name] = { eq: options[:hash_value].freeze }
-
-          conditions.slice(*AwsSdkV3::RANGE_MAP.keys).each do |k, v|
-            op = {
-              range_greater_than: :gt,
-              range_less_than:    :lt,
-              range_gte:          :gte,
-              range_lte:          :lte,
-              range_begins_with:  :begins_with,
-              range_between:      :between,
-              range_eq:           :eq
-            }[k]
-
-            result[range_key_name] ||= {}
-            result[range_key_name][op] = v
-          end
-
-          result
-        end
-
-        def non_key_conditions
-          conditions.except(*AwsSdkV3::RANGE_MAP.keys)
         end
       end
     end

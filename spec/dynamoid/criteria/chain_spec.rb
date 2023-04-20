@@ -193,6 +193,28 @@ describe Dynamoid::Criteria::Chain do
       expect(model.where(name: 'Bob', 'age.between': [19, 31]).all).to contain_exactly(customer2, customer3)
     end
 
+    it 'supports multiple conditions for the same attribute' do
+      skip 'Aws::DynamoDB::Errors::ValidationException: KeyConditionExpressions must only contain one condition per key'
+
+      customer1 = model.create(name: 'Bob', age: 10)
+      customer2 = model.create(name: 'Bob', age: 20)
+      customer3 = model.create(name: 'Bob', age: 30)
+      customer4 = model.create(name: 'Bob', age: 40)
+
+      expect(model.where(name: 'Bob', 'age.gt': 19).where('age.lt': 31).all).to contain_exactly(customer2, customer3)
+    end
+
+    it 'supports multiple conditions for the same attribute with the same operator' do
+      skip 'Aws::DynamoDB::Errors::ValidationException: KeyConditionExpressions must only contain one condition per key'
+
+      customer1 = model.create(name: 'Bob', age: 10)
+      customer2 = model.create(name: 'Bob', age: 20)
+      customer3 = model.create(name: 'Bob', age: 30)
+      customer4 = model.create(name: 'Bob', age: 40)
+
+      expect(model.where(name: 'Bob', 'age.gt': 31).where('age.gt': 19).all).to contain_exactly(customer4)
+    end
+
     it 'allows conditions with attribute names conflicting with DynamoDB reserved words' do
       model = new_class do
         range :size # SIZE is reserved word
@@ -204,10 +226,16 @@ describe Dynamoid::Criteria::Chain do
       documents = model.where(id: '1', size: 'c').to_a
       expect(documents.map(&:id)).to eql ['1']
     end
+
+    it 'raises error when operator is not supported' do
+      expect do
+        model.where(name: 'Bob', 'age.foo': 10).to_a
+      end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
+    end
   end
 
-  # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.QueryFilter.html?shortFooter=true
-  describe 'Query with not-keys conditions' do
+  # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.QueryFilter.html
+  describe 'Query with non-keys conditions' do
     let(:model) do
       new_class do
         table name: :customer, key: :name
@@ -382,6 +410,24 @@ describe Dynamoid::Criteria::Chain do
       expect(documents.map(&:last_name)).to contain_exactly('cc')
     end
 
+    it 'supports multiple conditions for the same attribute' do
+      customer1 = model.create(name: 'a', last_name: 'a', age: 10)
+      customer2 = model.create(name: 'a', last_name: 'b', age: 20)
+      customer3 = model.create(name: 'a', last_name: 'c', age: 30)
+      customer4 = model.create(name: 'a', last_name: 'd', age: 40)
+
+      expect(model.where(name: 'a', 'age.gt': 19, 'age.lt': 31).all).to contain_exactly(customer2, customer3)
+    end
+
+    it 'supports multiple conditions for the same attribute with the same operator' do
+      customer1 = model.create(name: 'a', last_name: 'a', age: 10)
+      customer2 = model.create(name: 'a', last_name: 'b', age: 20)
+      customer3 = model.create(name: 'a', last_name: 'c', age: 30)
+      customer4 = model.create(name: 'a', last_name: 'd', age: 40)
+
+      expect(model.where(name: 'a', 'age.gt': 31).where('age.gt': 19).all).to contain_exactly(customer4)
+    end
+
     it 'allows conditions with attribute names conflicting with DynamoDB reserved words' do
       model = new_class do
         # SCAN, SET and SIZE are reserved words
@@ -396,9 +442,15 @@ describe Dynamoid::Criteria::Chain do
       documents = model.where(id: '1', scan: 'a', set: 'b', size: 'c').to_a
       expect(documents.map(&:id)).to eql ['1']
     end
+
+    it 'raises error when operator is not supported' do
+      expect do
+        model.where(name: 'a', 'age.foo': 9).to_a
+      end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
+    end
   end
 
-  # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ScanFilter.html?shortFooter=true
+  # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ScanFilter.html
   describe 'Scan conditions ' do
     let(:model) do
       new_class do
@@ -574,6 +626,24 @@ describe Dynamoid::Criteria::Chain do
       expect(documents.map(&:id)).to contain_exactly('3')
     end
 
+    it 'supports multiple conditions for the same attribute' do
+      customer1 = model.create(age: 10)
+      customer2 = model.create(age: 20)
+      customer3 = model.create(age: 30)
+      customer4 = model.create(age: 40)
+
+      expect(model.where('age.gt': 19, 'age.lt': 31).all).to contain_exactly(customer2, customer3)
+    end
+
+    it 'supports multiple conditions for the same attribute with the same operator' do
+      customer1 = model.create(age: 10)
+      customer2 = model.create(age: 20)
+      customer3 = model.create(age: 30)
+      customer4 = model.create(age: 40)
+
+      expect(model.where('age.gt': 31).where('age.gt': 19).all.to_a).to eq([customer4])
+    end
+
     it 'allows conditions with attribute names conflicting with DynamoDB reserved words' do
       model = new_class do
         # SCAN, SET and SIZE are reserved words
@@ -587,6 +657,12 @@ describe Dynamoid::Criteria::Chain do
 
       documents = model.where(scan: 'a', set: 'b', size: 'c').to_a
       expect(documents.map(&:id)).to eql ['1']
+    end
+
+    it 'raises error when operator is not supported' do
+      expect do
+        model.where('age.foo': 9).to_a
+      end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
     end
   end
 
@@ -1076,61 +1152,6 @@ describe Dynamoid::Criteria::Chain do
           .with('where conditions contain nonexistent field names `town`, `street1`')
 
         model.where(town: 'New York', street1: 'Allen Street')
-      end
-    end
-
-    context 'passed several conditions for the same attribute' do
-      let(:model) do
-        new_class do
-          field :age, :integer
-          field :name
-        end
-      end
-
-      before do
-        model.create_table
-      end
-
-      it 'ignores conditions except the last one' do
-        (1..5).each { |i| model.create(age: i) }
-
-        models = model.where('age.gt': 2, 'age.lt': 4).to_a
-        expect(models.map(&:age)).to contain_exactly(1, 2, 3)
-
-        models = model.where('age.lt': 4, 'age.gt': 2).to_a
-        expect(models.map(&:age)).to contain_exactly(3, 4, 5)
-      end
-
-      describe 'warning' do
-        it 'writes warning message' do
-          expect(Dynamoid.logger).to receive(:warn)
-            .with(
-              'Where conditions may contain only one condition for an attribute. ' \
-              'Following conditions are ignored: {:"age.gt"=>2}'
-            )
-
-          model.where('age.gt': 2, 'age.lt': 4)
-        end
-
-        it 'writes warning message when conditions are build with several calls of `where`' do
-          expect(Dynamoid.logger).to receive(:warn)
-            .with(
-              'Where conditions may contain only one condition for an attribute. ' \
-              'Following conditions are ignored: {:"age.gt"=>2}'
-            )
-
-          model.where('age.gt': 2).where('age.lt': 4)
-        end
-
-        it 'writes warning message when there are ignored conditions for several attributes' do
-          expect(Dynamoid.logger).to receive(:warn)
-            .with(
-              'Where conditions may contain only one condition for an attribute. ' \
-              'Following conditions are ignored: {:age=>2, :name=>"Alex"}'
-            )
-
-          model.where(age: 2, name: 'Alex').where('age.gt': 3, name: 'David')
-        end
       end
     end
 

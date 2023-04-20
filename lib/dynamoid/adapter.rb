@@ -171,19 +171,25 @@ module Dynamoid
     # only really useful for range queries, since it can only find by one hash key at once. Only provide
     # one range key to the hash.
     #
+    #   Dynamoid.adapter.query('users', { id: [[:eq, '1']], age: [[:between, [10, 30]]] }, { batch_size: 1000 })
+    #
     # @param [String] table_name the name of the table
-    # @param [Hash] opts the options to query the table with
-    # @option opts [String] :hash_value the value of the hash key to find
-    # @option opts [Range] :range_value find the range key within this range
-    # @option opts [Number] :range_greater_than find range keys greater than this
-    # @option opts [Number] :range_less_than find range keys less than this
-    # @option opts [Number] :range_gte find range keys greater than or equal to this
-    # @option opts [Number] :range_lte find range keys less than or equal to this
+    # @param [Array[Array]] key_conditions conditions for the primary key attributes
+    # @param [Array[Array]] non_key_conditions (optional) conditions for non-primary key attributes
+    # @param [Hash] options (optional) the options to query the table with
+    # @option options [Boolean] :consistent_read You can set the ConsistentRead parameter to true and obtain a strongly consistent result
+    # @option options [Boolean] :scan_index_forward Specifies the order for index traversal: If true (default), the traversal is performed in ascending order; if false, the traversal is performed in descending order.
+    # @option options [Symbop] :select The attributes to be returned in the result (one of ALL_ATTRIBUTES, ALL_PROJECTED_ATTRIBUTES, ...)
+    # @option options [Symbol] :index_name The name of an index to query. This index can be any local secondary index or global secondary index on the table.
+    # @option options [Hash] :exclusive_start_key The primary key of the first item that this operation will evaluate.
+    # @option options [Integer] :batch_size The number of items to lazily load one by one
+    # @option options [Integer] :record_limit The maximum number of items to return (not necessarily the number of evaluated items)
+    # @option options [Integer] :scan_limit The maximum number of items to evaluate (not necessarily the number of matching items)
+    # @option options [Array[Symbol]] :project The attributes to retrieve from the table
     #
-    # @return [Array] an array of all matching items
-    #
-    def query(table_name, opts = {})
-      adapter.query(table_name, opts)
+    # @return [Enumerable] matching items
+    def query(table_name, key_conditions, non_key_conditions = {}, options = {})
+      adapter.query(table_name, key_conditions, non_key_conditions, options)
     end
 
     def self.adapter_plugin_class

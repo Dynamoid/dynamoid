@@ -1,29 +1,35 @@
 # frozen_string_literal: true
 
 require_relative 'key_fields_detector'
-require_relative 'ignored_conditions_detector'
-require_relative 'overwritten_conditions_detector'
 require_relative 'nonexistent_fields_detector'
+require_relative 'where_conditions'
 
 module Dynamoid
   module Criteria
     # The criteria chain is equivalent to an ActiveRecord relation (and realistically I should change the name from
     # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
     class Chain
-      attr_reader :query, :source, :consistent_read, :key_fields_detector
+      attr_reader :source, :consistent_read, :key_fields_detector
 
       include Enumerable
+
+      ALLOWED_FIELD_OPERATORS = Set.new(
+        %w[
+          eq ne gt lt gte lte between begins_with in contains not_contains null not_null
+        ]
+      ).freeze
+
       # Create a new criteria chain.
       #
       # @param [Class] source the class upon which the ultimate query will be performed.
       def initialize(source)
-        @query = {}
+        @where_conditions = WhereConditions.new
         @source = source
         @consistent_read = false
         @scan_index_forward = true
 
-        # we should re-initialize keys detector every time we change query
-        @key_fields_detector = KeyFieldsDetector.new(@query, @source)
+        # we should re-initialize keys detector every time we change @where_conditions
+        @key_fields_detector = KeyFieldsDetector.new(@where_conditions, @source)
       end
 
       # Returns a chain which is a result of filtering current chain with the specified conditions.
@@ -92,25 +98,15 @@ module Dynamoid
       # @return [Dynamoid::Criteria::Chain]
       # @since 0.2.0
       def where(args)
-        detector = IgnoredConditionsDetector.new(args)
-        if detector.found?
-          Dynamoid.logger.warn(detector.warning_message)
-        end
-
-        detector = OverwrittenConditionsDetector.new(@query, args)
-        if detector.found?
-          Dynamoid.logger.warn(detector.warning_message)
-        end
-
         detector = NonexistentFieldsDetector.new(args, @source)
         if detector.found?
           Dynamoid.logger.warn(detector.warning_message)
         end
 
-        query.update(args.symbolize_keys)
+        @where_conditions.update(args.symbolize_keys)
 
-        # we should re-initialize keys detector every time we change query
-        @key_fields_detector = KeyFieldsDetector.new(@query, @source, forced_index_name: @forced_index_name)
+        # we should re-initialize keys detector every time we change @where_conditions
+        @key_fields_detector = KeyFieldsDetector.new(@where_conditions, @source, forced_index_name: @forced_index_name)
 
         self
       end
@@ -187,7 +183,7 @@ module Dynamoid
       def first(*args)
         n = args.first || 1
 
-        return dup.scan_limit(n).to_a.first(*args) if @query.blank?
+        return dup.scan_limit(n).to_a.first(*args) if @where_conditions.empty?
         return super if @key_fields_detector.non_key_present?
 
         dup.record_limit(n).to_a.first(*args)
@@ -230,12 +226,12 @@ module Dynamoid
         ranges = []
 
         if @key_fields_detector.key_present?
-          Dynamoid.adapter.query(source.table_name, range_query).flat_map { |i| i }.collect do |hash|
+          Dynamoid.adapter.query(source.table_name, query_key_conditions, query_non_key_conditions, query_options).flat_map { |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
         else
-          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).flat_map { |i| i }.collect do |hash|
+          Dynamoid.adapter.scan(source.table_name, scan_conditions, scan_options).flat_map { |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
@@ -384,7 +380,7 @@ module Dynamoid
         raise Dynamoid::Errors::InvalidIndex, "Unknown index #{index_name}" unless @source.find_index_by_name(index_name)
 
         @forced_index_name = index_name
-        @key_fields_detector = KeyFieldsDetector.new(@query, @source, forced_index_name: index_name)
+        @key_fields_detector = KeyFieldsDetector.new(@where_conditions, @source, forced_index_name: index_name)
         self
       end
 
@@ -537,7 +533,7 @@ module Dynamoid
         if @key_fields_detector.key_present?
           raw_pages_via_query
         else
-          issue_scan_warning if Dynamoid::Config.warn_on_scan && query.present?
+          issue_scan_warning if Dynamoid::Config.warn_on_scan && !@where_conditions.empty?
           raw_pages_via_scan
         end
       end
@@ -549,7 +545,7 @@ module Dynamoid
       # @since 3.1.0
       def raw_pages_via_query
         Enumerator.new do |y|
-          Dynamoid.adapter.query(source.table_name, range_query).each do |items, metadata|
+          Dynamoid.adapter.query(source.table_name, query_key_conditions, query_non_key_conditions, query_options).each do |items, metadata|
             options = metadata.slice(:last_evaluated_key)
 
             y.yield items, options
@@ -564,7 +560,7 @@ module Dynamoid
       # @since 3.1.0
       def raw_pages_via_scan
         Enumerator.new do |y|
-          Dynamoid.adapter.scan(source.table_name, scan_query, scan_opts).each do |items, metadata|
+          Dynamoid.adapter.scan(source.table_name, scan_conditions, scan_options).each do |items, metadata|
             options = metadata.slice(:last_evaluated_key)
 
             y.yield items, options
@@ -577,121 +573,88 @@ module Dynamoid
         Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.underscore}.rb:"
         Dynamoid.logger.warn "* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'"
         Dynamoid.logger.warn "* local_secondary_index range_key: 'some-name'"
-        Dynamoid.logger.warn "Not indexed attributes: #{query.keys.sort.collect { |name| ":#{name}" }.join(', ')}"
+        Dynamoid.logger.warn "Not indexed attributes: #{@where_conditions.keys.sort.collect { |name| ":#{name}" }.join(', ')}"
       end
 
       def count_via_query
-        Dynamoid.adapter.query_count(source.table_name, range_query)
+        Dynamoid.adapter.query_count(source.table_name, query_key_conditions, query_non_key_conditions, query_options)
       end
 
       def count_via_scan
-        Dynamoid.adapter.scan_count(source.table_name, scan_query, scan_opts)
+        Dynamoid.adapter.scan_count(source.table_name, scan_conditions, scan_options)
       end
 
-      def range_hash(key)
-        name, operation = key.to_s.split('.')
-        val = type_cast_condition_parameter(name, query[key])
+      def field_condition(key, value_before_type_casting)
+        name, operator = key.to_s.split('.')
+        value = type_cast_condition_parameter(name, value_before_type_casting)
+        operator ||= 'eq'
 
-        case operation
-        when 'gt'
-          { range_greater_than: val }
-        when 'lt'
-          { range_less_than: val }
-        when 'gte'
-          { range_gte: val }
-        when 'lte'
-          { range_lte: val }
-        when 'between'
-          { range_between: val }
-        when 'begins_with'
-          { range_begins_with: val }
+        unless operator.in? ALLOWED_FIELD_OPERATORS
+          raise Dynamoid::Errors::Error, "Unsupported operator #{operator} in #{key}"
         end
+
+        condition = \
+          case operator
+            # NULL/NOT_NULL operators don't have parameters
+            # So { null: true } means NULL check and { null: false } means NOT_NULL one
+            # The same logic is used for { not_null: BOOL }
+          when 'null'
+            value ? [:null, nil] : [:not_null, nil]
+          when 'not_null'
+            value ? [:not_null, nil] : [:null, nil]
+          else
+            [operator.to_sym, value]
+          end
+
+        [name.to_sym, condition]
       end
 
-      def field_hash(key)
-        name, operation = key.to_s.split('.')
-        val = type_cast_condition_parameter(name, query[key])
-
-        hash = case operation
-               when 'ne'
-                 { ne: val }
-               when 'gt'
-                 { gt: val }
-               when 'lt'
-                 { lt: val }
-               when 'gte'
-                 { gte: val }
-               when 'lte'
-                 { lte: val }
-               when 'between'
-                 { between: val }
-               when 'begins_with'
-                 { begins_with: val }
-               when 'in'
-                 { in: val }
-               when 'contains'
-                 { contains: val }
-               when 'not_contains'
-                 { not_contains: val }
-               # NULL/NOT_NULL operators don't have parameters
-               # So { null: true } means NULL check and { null: false } means NOT_NULL one
-               # The same logic is used for { not_null: BOOL }
-               when 'null'
-                 val ? { null: nil } : { not_null: nil }
-               when 'not_null'
-                 val ? { not_null: nil } : { null: nil }
-               end
-
-        { name.to_sym => hash }
-      end
-
-      def consistent_opts
-        { consistent_read: consistent_read }
-      end
-
-      def range_query
+      def query_key_conditions
         opts = {}
-        query = self.query
+
+        # Add hash key
+        # TODO: always have hash key in @where_conditions?
+        _, condition = field_condition(@key_fields_detector.hash_key, @where_conditions[@key_fields_detector.hash_key])
+        opts[@key_fields_detector.hash_key] = [condition]
+
+        # Add range key
+        if @key_fields_detector.range_key
+          if @where_conditions[@key_fields_detector.range_key].present?
+            _, condition = field_condition(@key_fields_detector.range_key, @where_conditions[@key_fields_detector.range_key])
+            opts[@key_fields_detector.range_key] = [condition]
+          end
+
+          @where_conditions.keys.select { |k| k.to_s =~ /^#{@key_fields_detector.range_key}\./ }.each do |key|
+            name, condition = field_condition(key, @where_conditions[key])
+            opts[name] ||= []
+            opts[name] << condition
+          end
+        end
+
+        opts
+      end
+
+      def query_non_key_conditions
+        opts = {}
 
         # Honor STI and :type field if it presents
         if @source.attributes.key?(@source.inheritance_field) &&
            @key_fields_detector.hash_key.to_sym != @source.inheritance_field.to_sym
-          query.update(sti_condition)
+          @where_conditions.update(sti_condition)
         end
 
-        # Add hash key
-        opts[:hash_key] = @key_fields_detector.hash_key
-        opts[:hash_value] = type_cast_condition_parameter(@key_fields_detector.hash_key, query[@key_fields_detector.hash_key])
-
-        # Add range key
-        if @key_fields_detector.range_key
-          add_range_key_to_range_query(query, opts)
-        end
-
-        (query.keys.map(&:to_sym) - [@key_fields_detector.hash_key.to_sym, @key_fields_detector.range_key.try(:to_sym)])
+        # TODO: Separate key conditions and non-key conditions properly:
+        #       only =, >, >=, <, <=, between and begins_with
+        #       could be used for sort key in KeyConditionExpression
+        keys = (@where_conditions.keys.map(&:to_sym) - [@key_fields_detector.hash_key.to_sym, @key_fields_detector.range_key.try(:to_sym)])
           .reject { |k, _| k.to_s =~ /^#{@key_fields_detector.range_key}\./ }
-          .each do |key|
-          if key.to_s.include?('.')
-            opts.update(field_hash(key))
-          else
-            value = type_cast_condition_parameter(key, query[key])
-            opts[key] = { eq: value }
-          end
+        keys.each do |key|
+          name, condition = field_condition(key, @where_conditions[key])
+          opts[name] ||= []
+          opts[name] << condition
         end
 
-        opts.merge(query_opts).merge(consistent_opts)
-      end
-
-      def add_range_key_to_range_query(query, opts)
-        opts[:range_key] = @key_fields_detector.range_key
-        if query[@key_fields_detector.range_key].present?
-          value = type_cast_condition_parameter(@key_fields_detector.range_key, query[@key_fields_detector.range_key])
-          opts.update(range_eq: value)
-        end
-
-        query.keys.select { |k| k.to_s =~ /^#{@key_fields_detector.range_key}\./ }.each do |key|
-          opts.merge!(range_hash(key))
-        end
+        opts
       end
 
       # TODO: casting should be operator aware
@@ -739,7 +702,7 @@ module Dynamoid
         key
       end
 
-      def query_opts
+      def query_options
         opts = {}
         # Don't specify select = ALL_ATTRIBUTES option explicitly because it's
         # already a default value of Select statement. Explicite Select value
@@ -751,30 +714,26 @@ module Dynamoid
         opts[:exclusive_start_key] = start_key if @start
         opts[:scan_index_forward] = @scan_index_forward
         opts[:project] = @project
+        opts[:consistent_read] = true if @consistent_read
         opts
       end
 
-      def scan_query
-        query = self.query
-
+      def scan_conditions
         # Honor STI and :type field if it presents
         if sti_condition
-          query.update(sti_condition)
+          @where_conditions.update(sti_condition)
         end
 
         {}.tap do |opts|
-          query.keys.map(&:to_sym).each do |key|
-            if key.to_s.include?('.')
-              opts.update(field_hash(key))
-            else
-              value = type_cast_condition_parameter(key, query[key])
-              opts[key] = { eq: value }
-            end
+          @where_conditions.keys.map(&:to_sym).each do |key|
+            name, condition = field_condition(key, @where_conditions[key])
+            opts[name] ||= []
+            opts[name] << condition
           end
         end
       end
 
-      def scan_opts
+      def scan_options
         opts = {}
         opts[:index_name] = @key_fields_detector.index_name if @key_fields_detector.index_name
         opts[:record_limit] = @record_limit if @record_limit
@@ -786,6 +745,7 @@ module Dynamoid
         opts
       end
 
+      # TODO: return Array, not String
       def sti_condition
         condition = {}
         type = @source.inheritance_field

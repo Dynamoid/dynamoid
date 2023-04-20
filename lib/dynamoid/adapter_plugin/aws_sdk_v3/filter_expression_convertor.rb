@@ -20,41 +20,41 @@ module Dynamoid
         private
 
         def build
-          clauses = @conditions.map do |name, operation_and_value|
-            operator = operation_and_value.keys[0]
-            value = operation_and_value.values[0]
-            name_or_placeholder = name_or_placeholder_for(name)
+          clauses = @conditions.map do |name, attribute_conditions|
+            attribute_conditions.map do |operator, value|
+              name_or_placeholder = name_or_placeholder_for(name)
 
-            case operator
-            when :eq
-              "#{name_or_placeholder} = #{value_placeholder_for(value)}"
-            when :ne
-              "#{name_or_placeholder} <> #{value_placeholder_for(value)}"
-            when :gt
-              "#{name_or_placeholder} > #{value_placeholder_for(value)}"
-            when :lt
-              "#{name_or_placeholder} < #{value_placeholder_for(value)}"
-            when :gte
-              "#{name_or_placeholder} >= #{value_placeholder_for(value)}"
-            when :lte
-              "#{name_or_placeholder} <= #{value_placeholder_for(value)}"
-            when :between
-              "#{name_or_placeholder} BETWEEN #{value_placeholder_for(value[0])} AND #{value_placeholder_for(value[1])}"
-            when :begins_with
-              "begins_with (#{name_or_placeholder}, #{value_placeholder_for(value)})"
-            when :in
-              list = value.map(&method(:value_placeholder_for)).join(' , ')
-              "#{name_or_placeholder} IN (#{list})"
-            when :contains
-              "contains (#{name_or_placeholder}, #{value_placeholder_for(value)})"
-            when :not_contains
-              "NOT contains (#{name_or_placeholder}, #{value_placeholder_for(value)})"
-            when :null
-              "attribute_not_exists (#{name_or_placeholder})"
-            when :not_null
-              "attribute_exists (#{name_or_placeholder})"
+              case operator
+              when :eq
+                "#{name_or_placeholder} = #{value_placeholder_for(value)}"
+              when :ne
+                "#{name_or_placeholder} <> #{value_placeholder_for(value)}"
+              when :gt
+                "#{name_or_placeholder} > #{value_placeholder_for(value)}"
+              when :lt
+                "#{name_or_placeholder} < #{value_placeholder_for(value)}"
+              when :gte
+                "#{name_or_placeholder} >= #{value_placeholder_for(value)}"
+              when :lte
+                "#{name_or_placeholder} <= #{value_placeholder_for(value)}"
+              when :between
+                "#{name_or_placeholder} BETWEEN #{value_placeholder_for(value[0])} AND #{value_placeholder_for(value[1])}"
+              when :begins_with
+                "begins_with (#{name_or_placeholder}, #{value_placeholder_for(value)})"
+              when :in
+                list = value.map(&method(:value_placeholder_for)).join(' , ')
+                "#{name_or_placeholder} IN (#{list})"
+              when :contains
+                "contains (#{name_or_placeholder}, #{value_placeholder_for(value)})"
+              when :not_contains
+                "NOT contains (#{name_or_placeholder}, #{value_placeholder_for(value)})"
+              when :null
+                "attribute_not_exists (#{name_or_placeholder})"
+              when :not_null
+                "attribute_exists (#{name_or_placeholder})"
+              end
             end
-          end
+          end.flatten
 
           @expression = clauses.join(' AND ')
         end
