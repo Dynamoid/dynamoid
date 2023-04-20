@@ -487,6 +487,8 @@ module Dynamoid
       def pluck(*args)
         fields = args.map(&:to_sym)
 
+        # `project` has a side effect - it sets `@project` instance variable.
+        # So use a duplicate to not pollute original chain.
         scope = dup
         scope.project(*fields)
 
