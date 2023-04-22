@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * `#touch`
   * `#increment!`
   * `#decrement!`
-* [#642](https://github.com/Dynamoid/dynamoid/pull/642) Run specs on CI agains Ruby 3.2
+* [#642](https://github.com/Dynamoid/dynamoid/pull/642) Run specs on CI against Ruby 3.2
 * [#645](https://github.com/Dynamoid/dynamoid/pull/645) Added `after_find` callback
 ### Changed
 * [#610](https://github.com/Dynamoid/dynamoid/pull/610) Switch to [`rubocop-lts`](https://rubocop-lts.gitlab.io/) (@pboling)

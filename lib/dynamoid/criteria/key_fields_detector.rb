@@ -5,10 +5,10 @@ module Dynamoid
     # @private
     class KeyFieldsDetector
       class Query
-        def initialize(query_hash)
-          @query_hash = query_hash
-          @fields_with_operator = query_hash.keys.map(&:to_s)
-          @fields = query_hash.keys.map(&:to_s).map { |s| s.split('.').first }
+        def initialize(where_conditions)
+          @where_conditions = where_conditions
+          @fields_with_operator = where_conditions.keys.map(&:to_s)
+          @fields = where_conditions.keys.map(&:to_s).map { |s| s.split('.').first }
         end
 
         def contain_only?(field_names)
@@ -24,10 +24,9 @@ module Dynamoid
         end
       end
 
-      def initialize(query, source, forced_index_name: nil)
-        @query = query
+      def initialize(where_conditions, source, forced_index_name: nil)
         @source = source
-        @query = Query.new(query)
+        @query = Query.new(where_conditions)
         @forced_index_name = forced_index_name
         @result = find_keys_in_query
       end

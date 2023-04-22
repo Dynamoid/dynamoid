@@ -3,6 +3,8 @@
 require_relative 'middleware/backoff'
 require_relative 'middleware/limit'
 require_relative 'middleware/start_key'
+require_relative 'filter_expression_convertor'
+require_relative 'projection_expression_convertor'
 
 module Dynamoid
   # @private
@@ -45,6 +47,31 @@ module Dynamoid
         private
 
         def build_request
+          # expressions
+          name_placeholder = +'#_a0'
+          value_placeholder = +':_a0'
+
+          name_placeholder_sequence = -> { name_placeholder.next!.dup }
+          value_placeholder_sequence = -> { value_placeholder.next!.dup }
+
+          name_placeholders = {}
+          value_placeholders = {}
+
+          # Deal with various limits and batching
+          batch_size = options[:batch_size]
+          limit = [record_limit, scan_limit, batch_size].compact.min
+
+          # filter expression
+          convertor = FilterExpressionConvertor.new(conditions, name_placeholders, value_placeholders, name_placeholder_sequence, value_placeholder_sequence)
+          filter_expression = convertor.expression
+          value_placeholders = convertor.value_placeholders
+          name_placeholders = convertor.name_placeholders
+
+          # projection expression
+          convertor = ProjectionExpressionConvertor.new(options[:project], name_placeholders, name_placeholder_sequence)
+          projection_expression = convertor.expression
+          name_placeholders = convertor.name_placeholders
+
           request = options.slice(
             :consistent_read,
             :exclusive_start_key,
@@ -52,14 +79,12 @@ module Dynamoid
             :index_name
           ).compact
 
-          # Deal with various limits and batching
-          batch_size = options[:batch_size]
-          limit = [record_limit, scan_limit, batch_size].compact.min
-
-          request[:limit]             = limit if limit
-          request[:table_name]        = table.name
-          request[:scan_filter]       = scan_filter
-          request[:attributes_to_get] = attributes_to_get
+          request[:table_name]                  = table.name
+          request[:limit]                       = limit                 if limit
+          request[:filter_expression]           = filter_expression     if filter_expression.present?
+          request[:expression_attribute_values] = value_placeholders    if value_placeholders.present?
+          request[:expression_attribute_names]  = name_placeholders     if name_placeholders.present?
+          request[:projection_expression]       = projection_expression if projection_expression.present?
 
           request
         end
@@ -70,25 +95,6 @@ module Dynamoid
 
         def scan_limit
           options[:scan_limit]
-        end
-
-        def scan_filter
-          conditions.reduce({}) do |result, (attr, cond)|
-            condition = {
-              comparison_operator: AwsSdkV3::FIELD_MAP[cond.keys[0]],
-              attribute_value_list: AwsSdkV3.attribute_value_list(AwsSdkV3::FIELD_MAP[cond.keys[0]], cond.values[0].freeze)
-            }
-            # nil means operator doesn't require attribute value list
-            conditions.delete(:attribute_value_list) if conditions[:attribute_value_list].nil?
-            result[attr] = condition
-            result
-          end
-        end
-
-        def attributes_to_get
-          return if options[:project].nil?
-
-          options[:project].map(&:to_s)
         end
       end
     end

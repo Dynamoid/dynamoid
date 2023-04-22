@@ -24,31 +24,6 @@ module Dynamoid
 
     class AwsSdkV3
       EQ = 'EQ'
-      RANGE_MAP = {
-        range_greater_than: 'GT',
-        range_less_than:    'LT',
-        range_gte:          'GE',
-        range_lte:          'LE',
-        range_begins_with:  'BEGINS_WITH',
-        range_between:      'BETWEEN',
-        range_eq:           'EQ'
-      }.freeze
-
-      FIELD_MAP = {
-        eq:           'EQ',
-        ne:           'NE',
-        gt:           'GT',
-        lt:           'LT',
-        gte:          'GE',
-        lte:          'LE',
-        begins_with:  'BEGINS_WITH',
-        between:      'BETWEEN',
-        in:           'IN',
-        contains:     'CONTAINS',
-        not_contains: 'NOT_CONTAINS',
-        null:         'NULL',
-        not_null:     'NOT_NULL',
-      }.freeze
       HASH_KEY  = 'HASH'
       RANGE_KEY = 'RANGE'
       STRING_TYPE  = 'S'
@@ -70,26 +45,70 @@ module Dynamoid
 
       CONNECTION_CONFIG_OPTIONS = %i[endpoint region http_continue_timeout http_idle_timeout http_open_timeout http_read_timeout].freeze
 
-      attr_reader :table_cache
+      # See https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+      RESERVED_WORDS = Set.new(
+        %i[
+          ABORT ABSOLUTE ACTION ADD AFTER AGENT AGGREGATE ALL ALLOCATE ALTER ANALYZE
+          AND ANY ARCHIVE ARE ARRAY AS ASC ASCII ASENSITIVE ASSERTION ASYMMETRIC AT
+          ATOMIC ATTACH ATTRIBUTE AUTH AUTHORIZATION AUTHORIZE AUTO AVG BACK BACKUP
+          BASE BATCH BEFORE BEGIN BETWEEN BIGINT BINARY BIT BLOB BLOCK BOOLEAN BOTH
+          BREADTH BUCKET BULK BY BYTE CALL CALLED CALLING CAPACITY CASCADE CASCADED
+          CASE CAST CATALOG CHAR CHARACTER CHECK CLASS CLOB CLOSE CLUSTER CLUSTERED
+          CLUSTERING CLUSTERS COALESCE COLLATE COLLATION COLLECTION COLUMN COLUMNS
+          COMBINE COMMENT COMMIT COMPACT COMPILE COMPRESS CONDITION CONFLICT CONNECT
+          CONNECTION CONSISTENCY CONSISTENT CONSTRAINT CONSTRAINTS CONSTRUCTOR
+          CONSUMED CONTINUE CONVERT COPY CORRESPONDING COUNT COUNTER CREATE CROSS
+          CUBE CURRENT CURSOR CYCLE DATA DATABASE DATE DATETIME DAY DEALLOCATE DEC
+          DECIMAL DECLARE DEFAULT DEFERRABLE DEFERRED DEFINE DEFINED DEFINITION
+          DELETE DELIMITED DEPTH DEREF DESC DESCRIBE DESCRIPTOR DETACH DETERMINISTIC
+          DIAGNOSTICS DIRECTORIES DISABLE DISCONNECT DISTINCT DISTRIBUTE DO DOMAIN
+          DOUBLE DROP DUMP DURATION DYNAMIC EACH ELEMENT ELSE ELSEIF EMPTY ENABLE
+          END EQUAL EQUALS ERROR ESCAPE ESCAPED EVAL EVALUATE EXCEEDED EXCEPT
+          EXCEPTION EXCEPTIONS EXCLUSIVE EXEC EXECUTE EXISTS EXIT EXPLAIN EXPLODE
+          EXPORT EXPRESSION EXTENDED EXTERNAL EXTRACT FAIL FALSE FAMILY FETCH FIELDS
+          FILE FILTER FILTERING FINAL FINISH FIRST FIXED FLATTERN FLOAT FOR FORCE
+          FOREIGN FORMAT FORWARD FOUND FREE FROM FULL FUNCTION FUNCTIONS GENERAL
+          GENERATE GET GLOB GLOBAL GO GOTO GRANT GREATER GROUP GROUPING HANDLER HASH
+          HAVE HAVING HEAP HIDDEN HOLD HOUR IDENTIFIED IDENTITY IF IGNORE IMMEDIATE
+          IMPORT IN INCLUDING INCLUSIVE INCREMENT INCREMENTAL INDEX INDEXED INDEXES
+          INDICATOR INFINITE INITIALLY INLINE INNER INNTER INOUT INPUT INSENSITIVE
+          INSERT INSTEAD INT INTEGER INTERSECT INTERVAL INTO INVALIDATE IS ISOLATION
+          ITEM ITEMS ITERATE JOIN KEY KEYS LAG LANGUAGE LARGE LAST LATERAL LEAD
+          LEADING LEAVE LEFT LENGTH LESS LEVEL LIKE LIMIT LIMITED LINES LIST LOAD
+          LOCAL LOCALTIME LOCALTIMESTAMP LOCATION LOCATOR LOCK LOCKS LOG LOGED LONG
+          LOOP LOWER MAP MATCH MATERIALIZED MAX MAXLEN MEMBER MERGE METHOD METRICS
+          MIN MINUS MINUTE MISSING MOD MODE MODIFIES MODIFY MODULE MONTH MULTI
+          MULTISET NAME NAMES NATIONAL NATURAL NCHAR NCLOB NEW NEXT NO NONE NOT NULL
+          NULLIF NUMBER NUMERIC OBJECT OF OFFLINE OFFSET OLD ON ONLINE ONLY OPAQUE
+          OPEN OPERATOR OPTION OR ORDER ORDINALITY OTHER OTHERS OUT OUTER OUTPUT
+          OVER OVERLAPS OVERRIDE OWNER PAD PARALLEL PARAMETER PARAMETERS PARTIAL
+          PARTITION PARTITIONED PARTITIONS PATH PERCENT PERCENTILE PERMISSION
+          PERMISSIONS PIPE PIPELINED PLAN POOL POSITION PRECISION PREPARE PRESERVE
+          PRIMARY PRIOR PRIVATE PRIVILEGES PROCEDURE PROCESSED PROJECT PROJECTION
+          PROPERTY PROVISIONING PUBLIC PUT QUERY QUIT QUORUM RAISE RANDOM RANGE RANK
+          RAW READ READS REAL REBUILD RECORD RECURSIVE REDUCE REF REFERENCE
+          REFERENCES REFERENCING REGEXP REGION REINDEX RELATIVE RELEASE REMAINDER
+          RENAME REPEAT REPLACE REQUEST RESET RESIGNAL RESOURCE RESPONSE RESTORE
+          RESTRICT RESULT RETURN RETURNING RETURNS REVERSE REVOKE RIGHT ROLE ROLES
+          ROLLBACK ROLLUP ROUTINE ROW ROWS RULE RULES SAMPLE SATISFIES SAVE SAVEPOINT
+          SCAN SCHEMA SCOPE SCROLL SEARCH SECOND SECTION SEGMENT SEGMENTS SELECT SELF
+          SEMI SENSITIVE SEPARATE SEQUENCE SERIALIZABLE SESSION SET SETS SHARD SHARE
+          SHARED SHORT SHOW SIGNAL SIMILAR SIZE SKEWED SMALLINT SNAPSHOT SOME SOURCE
+          SPACE SPACES SPARSE SPECIFIC SPECIFICTYPE SPLIT SQL SQLCODE SQLERROR
+          SQLEXCEPTION SQLSTATE SQLWARNING START STATE STATIC STATUS STORAGE STORE
+          STORED STREAM STRING STRUCT STYLE SUB SUBMULTISET SUBPARTITION SUBSTRING
+          SUBTYPE SUM SUPER SYMMETRIC SYNONYM SYSTEM TABLE TABLESAMPLE TEMP TEMPORARY
+          TERMINATED TEXT THAN THEN THROUGHPUT TIME TIMESTAMP TIMEZONE TINYINT TO
+          TOKEN TOTAL TOUCH TRAILING TRANSACTION TRANSFORM TRANSLATE TRANSLATION
+          TREAT TRIGGER TRIM TRUE TRUNCATE TTL TUPLE TYPE UNDER UNDO UNION UNIQUE UNIT
+          UNKNOWN UNLOGGED UNNEST UNPROCESSED UNSIGNED UNTIL UPDATE UPPER URL USAGE
+          USE USER USERS USING UUID VACUUM VALUE VALUED VALUES VARCHAR VARIABLE
+          VARIANCE VARINT VARYING VIEW VIEWS VIRTUAL VOID WAIT WHEN WHENEVER WHERE
+          WHILE WINDOW WITH WITHIN WITHOUT WORK WRAPPED WRITE YEAR ZONE
+        ]
+      ).freeze
 
-      # Build an array of values for Condition
-      # Is used in ScanFilter and QueryFilter
-      # https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
-      # @param [String] operator value of RANGE_MAP or FIELD_MAP hash, e.g. "EQ", "LT" etc
-      # @param [Object] value scalar value or array/set
-      def self.attribute_value_list(operator, value)
-        # For BETWEEN and IN operators we should keep value as is (it should be already an array)
-        # NULL and NOT_NULL require absence of attribute list
-        # For all the other operators we wrap the value with array
-        # https://docs.aws.amazon.com/en_us/amazondynamodb/latest/developerguide/LegacyConditionalParameters.Conditions.html
-        if %w[BETWEEN IN].include?(operator)
-          [value].flatten
-        elsif %w[NULL NOT_NULL].include?(operator)
-          nil
-        else
-          [value]
-        end
-      end
+      attr_reader :table_cache
 
       # Establish the connection to DynamoDB.
       #
@@ -470,25 +489,32 @@ module Dynamoid
       # only really useful for range queries, since it can only find by one hash key at once. Only provide
       # one range key to the hash.
       #
+      #   Dynamoid.adapter.query('users', { id: [[:eq, '1']], age: [[:between, [10, 30]]] }, { batch_size: 1000 })
+      #
       # @param [String] table_name the name of the table
-      # @param [Hash] options the options to query the table with
-      # @option options [String] :hash_value the value of the hash key to find
-      # @option options [Number, Number] :range_between find the range key within this range
-      # @option options [Number] :range_greater_than find range keys greater than this
-      # @option options [Number] :range_less_than find range keys less than this
-      # @option options [Number] :range_gte find range keys greater than or equal to this
-      # @option options [Number] :range_lte find range keys less than or equal to this
+      # @param [Array[Array]] key_conditions conditions for the primary key attributes
+      # @param [Array[Array]] non_key_conditions (optional) conditions for non-primary key attributes
+      # @param [Hash] options (optional) the options to query the table with
+      # @option options [Boolean] :consistent_read You can set the ConsistentRead parameter to true and obtain a strongly consistent result
+      # @option options [Boolean] :scan_index_forward Specifies the order for index traversal: If true (default), the traversal is performed in ascending order; if false, the traversal is performed in descending order.
+      # @option options [Symbop] :select The attributes to be returned in the result (one of ALL_ATTRIBUTES, ALL_PROJECTED_ATTRIBUTES, ...)
+      # @option options [Symbol] :index_name The name of an index to query. This index can be any local secondary index or global secondary index on the table.
+      # @option options [Hash] :exclusive_start_key The primary key of the first item that this operation will evaluate.
+      # @option options [Integer] :batch_size The number of items to lazily load one by one
+      # @option options [Integer] :record_limit The maximum number of items to return (not necessarily the number of evaluated items)
+      # @option options [Integer] :scan_limit The maximum number of items to evaluate (not necessarily the number of matching items)
+      # @option options [Array[Symbol]] :project The attributes to retrieve from the table
       #
       # @return [Enumerable] matching items
       #
       # @since 1.0.0
       #
       # @todo Provide support for various other options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#query-instance_method
-      def query(table_name, options = {})
+      def query(table_name, key_conditions, non_key_conditions = {}, options = {})
         Enumerator.new do |yielder|
           table = describe_table(table_name)
 
-          Query.new(client, table, options).call.each do |page|
+          Query.new(client, table, key_conditions, non_key_conditions, options).call.each do |page|
             yielder.yield(
               page.items.map { |item| item_to_hash(item) },
               last_evaluated_key: page.last_evaluated_key
@@ -497,11 +523,11 @@ module Dynamoid
         end
       end
 
-      def query_count(table_name, options = {})
+      def query_count(table_name, key_conditions, non_key_conditions, options)
         table = describe_table(table_name)
         options[:select] = 'COUNT'
 
-        Query.new(client, table, options).call
+        Query.new(client, table, key_conditions, non_key_conditions, options).call
           .map(&:count)
           .reduce(:+)
       end

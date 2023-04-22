@@ -6,17 +6,6 @@ module Dynamoid
   module Finders
     extend ActiveSupport::Concern
 
-    # @private
-    RANGE_MAP = {
-      'gt'            => :range_greater_than,
-      'lt'            => :range_less_than,
-      'gte'           => :range_gte,
-      'lte'           => :range_lte,
-      'begins_with'   => :range_begins_with,
-      'between'       => :range_between,
-      'eq'            => :range_eq
-    }.freeze
-
     module ClassMethods
       # Find one or many objects, specified by one id or an array of ids.
       #
@@ -253,7 +242,6 @@ module Dynamoid
         range = options[:range] || {}
         hash_key_field, hash_key_value = hash.first
         range_key_field, range_key_value = range.first
-        range_op_mapped = nil
 
         if range_key_field
           range_key_field = range_key_field.to_s
@@ -261,27 +249,30 @@ module Dynamoid
           if range_key_field.include?('.')
             range_key_field, range_key_op = range_key_field.split('.', 2)
           end
-          range_op_mapped = RANGE_MAP.fetch(range_key_op)
         end
 
         # Find the index
         index = find_index(hash_key_field, range_key_field)
         raise Dynamoid::Errors::MissingIndex, "attempted to find #{[hash_key_field, range_key_field]}" if index.nil?
 
-        # query
-        opts = {
-          hash_key: hash_key_field.to_s,
-          hash_value: hash_key_value,
-          index_name: index.name
-        }
+        # Query
+        query_key_conditions = {}
+        query_key_conditions[hash_key_field.to_sym] = [[:eq, hash_key_value]]
         if range_key_field
-          opts[:range_key] = range_key_field
-          opts[range_op_mapped] = range_key_value
+          query_key_conditions[range_key_field.to_sym] = [[range_key_op.to_sym, range_key_value]]
         end
-        dynamo_options = opts.merge(options.reject { |key, _| key == :range })
-        Dynamoid.adapter.query(table_name, dynamo_options).flat_map { |i| i }.map do |item|
-          from_database(item)
-        end
+
+        query_non_key_conditions = options
+          .except(*Dynamoid::AdapterPlugin::AwsSdkV3::Query::OPTIONS_KEYS)
+          .except(:range)
+          .symbolize_keys
+
+        query_options = options.slice(*Dynamoid::AdapterPlugin::AwsSdkV3::Query::OPTIONS_KEYS)
+        query_options[:index_name] = index.name
+
+        Dynamoid.adapter.query(table_name, query_key_conditions, query_non_key_conditions, query_options)
+          .flat_map { |i| i }
+          .map { |item| from_database(item) }
       end
 
       # Find using exciting method_missing finders attributes. Uses criteria
