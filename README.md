@@ -1155,6 +1155,10 @@ Listed below are all configuration options.
 * `http_read_timeout`:The number of seconds to wait for HTTP response
   data. Default option value is `nil`. If not specified effected value
   is `60`
+* `http_proxy`: A proxy to send requests through. Default option value is `nil`.
+* `create_table_enabled`: if `true`, Dynamoid creates table if table not exist;
+  if `false`, Dynamoid logs error message for not able to create table in DynamoDB.
+  Default is `false`
 
 
 ## Concurrency

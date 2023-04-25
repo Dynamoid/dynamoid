@@ -1380,11 +1380,15 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
     before do
       Dynamoid.configure.http_open_timeout = 30
+      Dynamoid.configure.http_proxy = 'http://proxy'
     end
 
+    after { Dynamoid.configure.http_proxy = nil }
+
     it 'not nil options entried' do
-      expect(subject.keys).to contain_exactly(:endpoint, :log_formatter, :log_level, :logger, :http_open_timeout)
+      expect(subject.keys).to contain_exactly(:endpoint, :log_formatter, :log_level, :logger, :http_open_timeout, :http_proxy)
       expect(subject[:http_open_timeout]).to eq 30
+      expect(subject[:http_proxy]).to eq 'http://proxy'
     end
   end
 end
