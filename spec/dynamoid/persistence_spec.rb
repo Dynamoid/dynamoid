@@ -2293,6 +2293,53 @@ describe Dynamoid::Persistence do
       end.not_to change { obj.class.count }
     end
 
+    context 'when disable_create_table_on_save is false' do
+      before do
+        Dynamoid.configure do |config|
+          @original_create_table_on_save = config.create_table_on_save
+          config.create_table_on_save = false
+        end
+      end
+
+      after do
+        Dynamoid.configure do |config|
+          config.create_table_on_save = @original_create_table_on_save
+        end
+      end
+
+      it 'raises Aws::DynamoDB::Errors::ResourceNotFoundException error' do
+        model = klass.new
+
+        expect(klass).not_to receive(:create_table)
+
+        expect { model.save! }.to raise_error(Aws::DynamoDB::Errors::ResourceNotFoundException)
+      end
+    end
+
+    context 'when disable_create_table_on_save is false and the table exists' do
+      before do
+        Dynamoid.configure do |config|
+          @original_create_table_on_save = config.create_table_on_save
+          config.create_table_on_save = false
+        end
+        klass.create_table
+      end
+
+      after do
+        Dynamoid.configure do |config|
+          config.create_table_on_save = @original_create_table_on_save
+        end
+      end
+
+      it 'persists the model' do
+        obj = klass.new(name: 'John')
+        obj.save
+
+        expect(klass.exists?(obj.id)).to eq true
+        expect(klass.find(obj.id).name).to eq 'John'
+      end
+    end
+
     describe 'partition key value' do
       it 'generates "id" for new model' do
         obj = klass.new

@@ -59,6 +59,7 @@ module Dynamoid
     option :http_idle_timeout, default: nil     #                                                  - default: 5
     option :http_open_timeout, default: nil     #                                                  - default: 15
     option :http_read_timeout, default: nil     #                                                  - default: 60
+    option :create_table_on_save, default: true
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #
