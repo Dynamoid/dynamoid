@@ -507,7 +507,10 @@ module Dynamoid
     # @return [true|false] Whether saving successful or not
     # @since 0.2.0
     def save(options = {})
-      self.class.create_table(sync: true)
+      if Dynamoid.config.create_table_on_save
+        self.class.create_table(sync: true)
+      end
+
       create_or_update = new_record? ? :create : :update
 
       run_callbacks(:save) do
