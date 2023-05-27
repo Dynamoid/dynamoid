@@ -1555,27 +1555,84 @@ describe Dynamoid::Persistence do
     end
 
     context 'condition specified' do
-      it 'updates when model matches conditions' do
-        obj = document_class.create(title: 'Old title', version: 1)
+      describe 'if condition' do
+        it 'updates when model matches conditions' do
+          obj = document_class.create(title: 'Old title', version: 1)
 
-        expect {
-          document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 1 })
-        }.to change { document_class.find(obj.id).title }.to('New title')
-      end
+          expect {
+            document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 1 })
+          }.to change { document_class.find(obj.id).title }.to('New title')
+        end
 
-      it 'does not update when model does not match conditions' do
-        obj = document_class.create(title: 'Old title', version: 1)
+        it 'does not update when model does not match conditions' do
+          obj = document_class.create(title: 'Old title', version: 1)
 
-        expect {
+          expect {
+            result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
+          }.not_to change { document_class.find(obj.id).title }
+        end
+
+        it 'returns nil when model does not match conditions' do
+          obj = document_class.create(title: 'Old title', version: 1)
+
           result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
-        }.not_to change { document_class.find(obj.id).title }
+          expect(result).to eq nil
+        end
       end
 
-      it 'returns nil when model does not match conditions' do
-        obj = document_class.create(title: 'Old title', version: 1)
+      describe 'unless_exists condition' do
+        it 'updates when item does not have specified attribute' do
+          # not specifying field value means (by default) the attribute will be
+          # skipped and not persisted in DynamoDB
+          obj = document_class.create(title: 'Old title')
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :created_at, :updated_at)
 
-        result = document_class.update_fields(obj.id, { title: 'New title' }, if: { version: 6 })
-        expect(result).to eq nil
+          expect {
+            document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: [:version] })
+          }.to change { document_class.find(obj.id).title }.to('New title')
+        end
+
+        it 'does not update when model has specified attribute' do
+          obj = document_class.create(title: 'Old title', version: 1)
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :created_at, :updated_at)
+
+          expect {
+            result = document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: [:version] })
+          }.not_to change { document_class.find(obj.id).title }
+        end
+
+        context 'when multiple attribute names' do
+          it 'updates when item does not have all the specified attributes' do
+            # not specifying field value means (by default) the attribute will be
+            # skipped and not persisted in DynamoDB
+            obj = document_class.create(title: 'Old title')
+            expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :created_at, :updated_at)
+
+            expect {
+              document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+            }.to change { document_class.find(obj.id).title }.to('New title')
+          end
+
+          it 'does not update when model has all the specified attributes' do
+            obj = document_class.create(title: 'Old title', version: 1, published_on: '2018-02-23'.to_date)
+            expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :published_on, :created_at, :updated_at)
+
+            expect {
+              result = document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+            }.not_to change { document_class.find(obj.id).title }
+          end
+
+          it 'does not update when model has at least one specified attribute' do
+            # not specifying field value means (by default) the attribute will be
+            # skipped and not persisted in DynamoDB
+            obj = document_class.create(title: 'Old title', version: 1)
+            expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :created_at, :updated_at)
+
+            expect {
+              result = document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+            }.not_to change { document_class.find(obj.id).title }
+          end
+        end
       end
     end
 
@@ -1770,27 +1827,84 @@ describe Dynamoid::Persistence do
     end
 
     context 'conditions specified' do
-      it 'updates when model matches conditions' do
-        obj = document_class.create(title: 'Old title', version: 1)
+      describe 'if condition' do
+        it 'updates when model matches conditions' do
+          obj = document_class.create(title: 'Old title', version: 1)
 
-        expect {
-          document_class.upsert(obj.id, { title: 'New title' }, if: { version: 1 })
-        }.to change { document_class.find(obj.id).title }.to('New title')
-      end
+          expect {
+            document_class.upsert(obj.id, { title: 'New title' }, if: { version: 1 })
+          }.to change { document_class.find(obj.id).title }.to('New title')
+        end
 
-      it 'does not update when model does not match conditions' do
-        obj = document_class.create(title: 'Old title', version: 1)
+        it 'does not update when model does not match conditions' do
+          obj = document_class.create(title: 'Old title', version: 1)
 
-        expect {
+          expect {
+            result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
+          }.not_to change { document_class.find(obj.id).title }
+        end
+
+        it 'returns nil when model does not match conditions' do
+          obj = document_class.create(title: 'Old title', version: 1)
+
           result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
-        }.not_to change { document_class.find(obj.id).title }
+          expect(result).to eq nil
+        end
       end
 
-      it 'returns nil when model does not match conditions' do
-        obj = document_class.create(title: 'Old title', version: 1)
+      describe 'unless_exists condition' do
+        it 'updates when item does not have specified attribute' do
+          # not specifying field value means (by default) the attribute will be
+          # skipped and not persisted in DynamoDB
+          obj = document_class.create(title: 'Old title')
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :created_at, :updated_at)
 
-        result = document_class.upsert(obj.id, { title: 'New title' }, if: { version: 6 })
-        expect(result).to eq nil
+          expect {
+            document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: [:version] })
+          }.to change { document_class.find(obj.id).title }.to('New title')
+        end
+
+        it 'does not update when model has specified attribute' do
+          obj = document_class.create(title: 'Old title', version: 1)
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :created_at, :updated_at)
+
+          expect {
+            result = document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: [:version] })
+          }.not_to change { document_class.find(obj.id).title }
+        end
+
+        context 'when multiple attribute names' do
+          it 'updates when item does not have all the specified attributes' do
+            # not specifying field value means (by default) the attribute will be
+            # skipped and not persisted in DynamoDB
+            obj = document_class.create(title: 'Old title')
+            expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :created_at, :updated_at)
+
+            expect {
+              document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+            }.to change { document_class.find(obj.id).title }.to('New title')
+          end
+
+          it 'does not update when model has all the specified attributes' do
+            obj = document_class.create(title: 'Old title', version: 1, published_on: '2018-02-23'.to_date)
+            expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :published_on, :created_at, :updated_at)
+
+            expect {
+              result = document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+            }.not_to change { document_class.find(obj.id).title }
+          end
+
+          it 'does not update when model has at least one specified attribute' do
+            # not specifying field value means (by default) the attribute will be
+            # skipped and not persisted in DynamoDB
+            obj = document_class.create(title: 'Old title', version: 1)
+            expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :created_at, :updated_at)
+
+            expect {
+              result = document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+            }.not_to change { document_class.find(obj.id).title }
+          end
+        end
       end
     end
 
@@ -4085,27 +4199,9 @@ describe Dynamoid::Persistence do
   end
 
   describe '#update' do
-    before do
-      @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'John')
-    end
-
-    it 'runs before_update callbacks when doing #update' do
-      expect_any_instance_of(CamelCase).to receive(:doing_before_update).once.and_return(true)
-
-      CamelCase.create(color: 'blue').update do |t|
-        t.set(color: 'red')
-      end
-    end
-
-    it 'runs after_update callbacks when doing #update' do
-      expect_any_instance_of(CamelCase).to receive(:doing_after_update).once.and_return(true)
-
-      CamelCase.create(color: 'blue').update do |t|
-        t.set(color: 'red')
-      end
-    end
-
     it 'supports add/delete/set operations on a field' do
+      @tweet = Tweet.create(tweet_id: 1, group: 'abc', count: 5, tags: Set.new(%w[db sql]), user_name: 'John')
+
       @tweet.update do |t|
         t.add(count: 3)
         t.delete(tags: Set.new(['db']))
@@ -4117,22 +4213,101 @@ describe Dynamoid::Persistence do
       expect(@tweet.user_name).to eq 'Alex'
     end
 
-    it 'checks the conditions on update' do
-      expect(
-        @tweet.update(if: { count: 5 }) do |t|
-          t.add(count: 3)
+    context 'condition specified' do
+      let(:document_class) do
+        new_class do
+          field :title
+          field :version, :integer
+          field :published_on, :date
         end
-      ).to eql true
-      expect(@tweet.count).to eql 8
-      expect(Tweet.find(@tweet.tweet_id, range_key: @tweet.group).count).to eql 8
+      end
 
-      expect(
-        @tweet.update(if: { count: 5 }) do |t|
-          t.add(count: 3)
+      describe 'if condition' do
+        it 'updates when model matches conditions' do
+          obj = document_class.create(title: 'Old title', version: 1)
+
+          expect {
+            obj.update(if: { version: 1 }) { |t| t.set(title: 'New title') }
+          }.to change { document_class.find(obj.id).title }.to('New title')
         end
-      ).to eql false
-      expect(@tweet.count).to eql 8
-      expect(Tweet.find(@tweet.tweet_id, range_key: @tweet.group).count).to eql 8
+
+        it 'returns true when model matches conditions' do
+          obj = document_class.create(title: 'Old title', version: 1)
+
+          result = obj.update(if: { version: 1 }) { |t| t.set(title: 'New title') }
+          expect(result).to eq true
+        end
+
+        it 'does not update when model does not match conditions' do
+          obj = document_class.create(title: 'Old title', version: 1)
+
+          expect {
+            obj.update(if: { version: 6 }) { |t| t.set(title: 'New title') }
+          }.not_to change { document_class.find(obj.id).title }
+        end
+
+        it 'returns false when model does not match conditions' do
+          obj = document_class.create(title: 'Old title', version: 1)
+
+          result = obj.update(if: { version: 6 }) { |t| t.set(title: 'New title') }
+          expect(result).to eq false
+        end
+      end
+
+      describe 'unless_exists condition' do
+        it 'updates when item does not have specified attribute' do
+          # not specifying field value means (by default) the attribute will be
+          # skipped and not persisted in DynamoDB
+          obj = document_class.create(title: 'Old title')
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :created_at, :updated_at)
+
+          expect {
+            obj.update(unless_exists: [:version]) { |t| t.set(title: 'New title') }
+          }.to change { document_class.find(obj.id).title }.to('New title')
+        end
+
+        it 'does not update when model has specified attribute' do
+          obj = document_class.create(title: 'Old title', version: 1)
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :created_at, :updated_at)
+
+          expect {
+            obj.update(unless_exists: [:version]) { |t| t.set(title: 'New title') }
+          }.not_to change { document_class.find(obj.id).title }
+        end
+
+        context 'when multiple attribute names' do
+          it 'updates when item does not have all the specified attributes' do
+            # not specifying field value means (by default) the attribute will be
+            # skipped and not persisted in DynamoDB
+            obj = document_class.create(title: 'Old title')
+            expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :created_at, :updated_at)
+
+            expect {
+              obj.update(unless_exists: [:version, :published_on]) { |t| t.set(title: 'New title') }
+            }.to change { document_class.find(obj.id).title }.to('New title')
+          end
+
+          it 'does not update when model has all the specified attributes' do
+            obj = document_class.create(title: 'Old title', version: 1, published_on: '2018-02-23'.to_date)
+            expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :published_on, :created_at, :updated_at)
+
+            expect {
+              obj.update(unless_exists: [:version, :published_on]) { |t| t.set(title: 'New title') }
+            }.not_to change { document_class.find(obj.id).title }
+          end
+
+          it 'does not update when model has at least one specified attribute' do
+            # not specifying field value means (by default) the attribute will be
+            # skipped and not persisted in DynamoDB
+            obj = document_class.create(title: 'Old title', version: 1)
+            expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :created_at, :updated_at)
+
+            expect {
+              obj.update(unless_exists: [:version, :published_on]) { |t| t.set(title: 'New title') }
+            }.not_to change { document_class.find(obj.id).title }
+          end
+        end
+      end
     end
 
     it 'prevents concurrent saves to tables with a lock_version' do
