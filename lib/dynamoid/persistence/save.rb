@@ -89,8 +89,8 @@ module Dynamoid
         end
 
         conditions = {}
-        conditions[:if_exists] ||= {}
-        conditions[:if_exists][@model.class.hash_key] = @model.hash_key
+        conditions[:if] ||= {}
+        conditions[:if][@model.class.hash_key] = @model.hash_key
 
         # Add an optimistic locking check if the lock_version column exists
         if @model.class.attributes[:lock_version]

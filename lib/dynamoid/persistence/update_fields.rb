@@ -54,8 +54,8 @@ module Dynamoid
         end
 
         conditions = @conditions.deep_dup
-        conditions[:if_exists] ||= {}
-        conditions[:if_exists][@model_class.hash_key] = @partition_key
+        conditions[:if] ||= {}
+        conditions[:if][@model_class.hash_key] = @partition_key
         options[:conditions] = conditions
 
         options

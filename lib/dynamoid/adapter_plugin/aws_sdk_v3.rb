@@ -631,10 +631,7 @@ module Dynamoid
         conditions.delete(:unless_exists).try(:each) do |col|
           expected[col.to_s][:exists] = false
         end
-        conditions.delete(:if_exists).try(:each) do |col, val|
-          expected[col.to_s][:exists] = true
-          expected[col.to_s][:value] = val
-        end
+
         conditions.delete(:if).try(:each) do |col, val|
           expected[col.to_s][:value] = val
         end
