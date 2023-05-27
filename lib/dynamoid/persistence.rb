@@ -271,13 +271,20 @@ module Dynamoid
       # meets the specified conditions. Conditions can be specified as a +Hash+
       # with +:if+ key:
       #
-      #   User.update_fields('1', { age: 26 }, if: { version: 1 })
+      #   User.update_fields('1', { age: 26 }, { if: { version: 1 } })
       #
       # Here +User+ model has an integer +version+ field and the document will
       # be updated only if the +version+ attribute currently has value 1.
       #
       # If a document with specified hash and range keys doesn't exist or
       # conditions were specified and failed the method call returns +nil+.
+      #
+      # To check if some attribute (or attributes) isn't stored in a DynamoDB
+      # item (e.g. it wasn't set explicitly) there is another condition -
+      # +unless_exists+:
+      #
+      #   user = User.create(name: 'Tylor')
+      #   User.update_fields(user.id, { age: 18 }, { unless_exists: [:age] })
       #
       # +update_fields+ uses the +UpdateItem+ operation so it saves changes and
       # loads an updated document back with one HTTP request.
@@ -323,10 +330,17 @@ module Dynamoid
       # meets the specified conditions. Conditions can be specified as a +Hash+
       # with +:if+ key:
       #
-      #   User.upsert('1', { age: 26 }, if: { version: 1 })
+      #   User.upsert('1', { age: 26 }, { if: { version: 1 } })
       #
       # Here +User+ model has an integer +version+ field and the document will
       # be updated only if the +version+ attribute currently has value 1.
+      #
+      # To check if some attribute (or attributes) isn't stored in a DynamoDB
+      # item (e.g. it wasn't set explicitly) there is another condition -
+      # +unless_exists+:
+      #
+      #   user = User.create(name: 'Tylor')
+      #   User.upsert(user.id, { age: 18 }, { unless_exists: [:age] })
       #
       # If conditions were specified and failed the method call returns +nil+.
       #
@@ -621,6 +635,15 @@ module Dynamoid
     #     t.add(age: 1)
     #   end
     #
+    # To check if some attribute (or attributes) isn't stored in a DynamoDB
+    # item (e.g. it wasn't set explicitly) there is another condition -
+    # +unless_exists+:
+    #
+    #   user = User.create(name: 'Tylor')
+    #   user.update!(unless_exists: [:age]) do |t|
+    #     t.set(age: 18)
+    #   end
+    #
     # If a document doesn't meet conditions it raises
     # +Dynamoid::Errors::StaleObjectError+ exception.
     #
@@ -715,6 +738,15 @@ module Dynamoid
     #
     #   user.update(if: { age: 20 }) do |t|
     #     t.add(age: 1)
+    #   end
+    #
+    # To check if some attribute (or attributes) isn't stored in a DynamoDB
+    # item (e.g. it wasn't set explicitly) there is another condition -
+    # +unless_exists+:
+    #
+    #   user = User.create(name: 'Tylor')
+    #   user.update(unless_exists: [:age]) do |t|
+    #     t.set(age: 18)
     #   end
     #
     # If a document doesn't meet conditions it just returns +false+. Otherwise it returns +true+.
