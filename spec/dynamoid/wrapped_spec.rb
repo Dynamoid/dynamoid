@@ -27,5 +27,20 @@ describe 'Dynamoid with adapter' do
       document.reload
       expect(document).to have_attributes(foo: 'changed', bar: 'bar')
     end
+
+    it "can make changes on field rewrite" do
+      document.wrapped.foo = 'changed'
+      document.wrapped = wrapped
+      document.save!
+      document.reload
+      expect(document).to have_attributes(foo: 'changed', bar: 'bar')
+    end
+
+    it "can make changes on new object" do
+      document.wrapped = Wrapper::Wrapped.new(foo: 'changed', bar: 'bar')
+      document.save!
+      document.reload
+      expect(document).to have_attributes(foo: 'changed', bar: 'bar')
+    end
   end
 end
