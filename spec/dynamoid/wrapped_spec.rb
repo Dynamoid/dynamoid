@@ -30,7 +30,7 @@ describe 'Dynamoid with adapter' do
 
     it "can make changes on field rewrite" do
       document.wrapped.foo = 'changed'
-      document.wrapped = wrapped
+      document.wrapped = document.wrapped
       document.save!
       document.reload
       expect(document).to have_attributes(foo: 'changed', bar: 'bar')
