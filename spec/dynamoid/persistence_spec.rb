@@ -2902,8 +2902,16 @@ describe Dynamoid::Persistence do
       end
 
       context 'true', config: { store_attribute_with_nil_value: true } do
-        it 'keeps document attribute with nil' do
+        it 'keeps document attribute with nil when model is not persisted' do
           obj = klass.new(age: nil)
+          obj.save
+
+          expect(raw_attributes(obj)).to include(age: nil)
+        end
+
+        it 'keeps document attribute with nil when model is persisted' do
+          obj = klass.create(age: 42)
+          obj.age = nil
           obj.save
 
           expect(raw_attributes(obj)).to include(age: nil)
@@ -2911,8 +2919,17 @@ describe Dynamoid::Persistence do
       end
 
       context 'false', config: { store_attribute_with_nil_value: false } do
-        it 'does not keep document attribute with nil' do
+        it 'does not keep document attribute with nil when model is not persisted' do
           obj = klass.new(age: nil)
+          obj.save
+
+          # doesn't contain :age key
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+        end
+
+        it 'does not keep document attribute with nil when model is persisted' do
+          obj = klass.create!(age: 42)
+          obj.age = nil
           obj.save
 
           # doesn't contain :age key
@@ -2921,8 +2938,17 @@ describe Dynamoid::Persistence do
       end
 
       context 'by default', config: { store_attribute_with_nil_value: nil } do
-        it 'does not keep document attribute with nil' do
+        it 'does not keep document attribute with nil when model is not persisted' do
           obj = klass.new(age: nil)
+          obj.save
+
+          # doesn't contain :age key
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+        end
+
+        it 'does not keep document attribute with nil when model is persisted' do
+          obj = klass.create!(age: 42)
+          obj.age = nil
           obj.save
 
           # doesn't contain :age key

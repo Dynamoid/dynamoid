@@ -50,7 +50,20 @@ module Dynamoid
         # Replaces the values of one or more attributes
         #
         def set(values)
-          @updates.merge!(sanitize_attributes(values))
+          values_sanitized = sanitize_attributes(values)
+
+          if Dynamoid.config.store_attribute_with_nil_value
+            @updates.merge!(values_sanitized)
+          else
+            # delete explicitly attributes if assigned nil value and configured
+            # to not store nil values
+            values_to_update = values_sanitized.select { |_, v| !v.nil? }
+            values_to_delete = values_sanitized.select { |_, v| v.nil? }
+
+            @updates.merge!(values_to_update)
+            @deletions.merge!(values_to_delete)
+          end
+
         end
 
         #
@@ -85,6 +98,10 @@ module Dynamoid
 
         private
 
+        # Keep in sync with AwsSdkV3.sanitize_item.
+        #
+        # The only difference is that to update item we need to track whether
+        # attribute value is nil or not.
         def sanitize_attributes(attributes)
           attributes.transform_values do |v|
             if v.is_a?(Hash)
