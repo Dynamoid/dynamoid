@@ -67,7 +67,7 @@ module Dynamoid
       }
       BATCH_WRITE_ITEM_REQUESTS_LIMIT = 25
 
-      CONNECTION_CONFIG_OPTIONS = %i[endpoint region http_continue_timeout http_idle_timeout http_open_timeout http_read_timeout].freeze
+      CONNECTION_CONFIG_OPTIONS = %i[endpoint region http_continue_timeout http_idle_timeout http_open_timeout http_read_timeout http_wire_trace].freeze
 
       attr_reader :table_cache
 

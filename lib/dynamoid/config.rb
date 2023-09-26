@@ -59,6 +59,7 @@ module Dynamoid
     option :http_idle_timeout, default: nil     #                                                  - default: 5
     option :http_open_timeout, default: nil     #                                                  - default: 15
     option :http_read_timeout, default: nil     #                                                  - default: 60
+    option :http_wire_trace, default: nil       #                                                  - default: false
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #
