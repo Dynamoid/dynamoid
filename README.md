@@ -1293,6 +1293,12 @@ RSpec.configure do |config|
 end
 ```
 
+In addition, the first test for each model may fail if the relevant models are not included in `included_models`. This can be fixed by adding this line before the `DynamoidReset` module:
+```ruby
+Dir[File.join(Dynamoid::Config.models_dir, '**/*.rb')].each { |file| require file }
+```
+Note that this will require _all_ models in your models folder - you can also explicitly require only certain models if you would prefer to.
+
 In Rails, you may also want to ensure you do not delete non-test data
 accidentally by adding the following to your test environment setup:
 
