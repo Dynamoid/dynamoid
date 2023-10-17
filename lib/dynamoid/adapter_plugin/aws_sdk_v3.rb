@@ -7,6 +7,9 @@ require_relative 'aws_sdk_v3/batch_get_item'
 require_relative 'aws_sdk_v3/item_updater'
 require_relative 'aws_sdk_v3/table'
 require_relative 'aws_sdk_v3/until_past_table_status'
+require_relative 'aws_sdk_v3/print_http_body'
+
+Aws::DynamoDB::Client.add_plugin(Dynamoid::AdapterPlugin::AwsSdkV3::PrintHttpBody)
 
 module Dynamoid
   # @private
