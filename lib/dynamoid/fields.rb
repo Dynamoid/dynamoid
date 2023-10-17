@@ -164,7 +164,7 @@ module Dynamoid
       #
       # @param name [Symbol] a range key attribute name
       # @param type [Symbol] a range key type (optional)
-      # @param options [Symbol] type options (optional)
+      # @param options [Hash] type options (optional)
       def range(name, type = :string, options = {})
         field(name, type, options)
         self.range_key = name
