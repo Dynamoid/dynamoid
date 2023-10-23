@@ -12,8 +12,12 @@ module Dynamoid
           reset = "\x1b[0m"
 
           [
+            "",
             response.context.operation.name,
             "#{bold}#{color}\nRequest:\n#{reset}#{bold}",
+            "Headers:",
+            JSON.pretty_generate(response.context.http_request.headers.to_h),
+            "Body:",
             JSON.pretty_generate(JSON.parse(response.context.http_request.body.string)),
             "#{bold}#{color}\nResponse:\n#{reset}#{bold}",
             JSON.pretty_generate(JSON.parse(response.context.http_response.body.string)),
