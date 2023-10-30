@@ -1347,6 +1347,7 @@ just as accessible to the Ruby world as MongoDB.
 Also, without contributors the project wouldn't be nearly as awesome. So
 many thanks to:
 
+* [Josh Menden](https://github.com/joshmenden)
 * [Logan Bowers](https://github.com/loganb)
 * [Lane LaRue](https://github.com/luxx)
 * [Craig Heneveld](https://github.com/cheneveld)
