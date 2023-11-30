@@ -4,6 +4,7 @@ require 'spec_helper'
 
 describe Dynamoid::Criteria::Chain do
   let(:time) { DateTime.now }
+  # TODO: get rid of predefined models
   let!(:user) { User.create(name: 'Josh', email: 'josh@joshsymonds.com', password: 'Test123') }
   let(:chain) { described_class.new(User) }
 
@@ -1261,6 +1262,33 @@ describe Dynamoid::Criteria::Chain do
         end.to output('run after_initialize' + 'run after_find').to_stdout
       end
     end
+
+    context 'when uses Scan but there are conditions on non-key fields and warn_on_scan config option is true' do
+      before do
+        @warn_on_scan = Dynamoid::Config.warn_on_scan
+        Dynamoid::Config.warn_on_scan = true
+      end
+
+      after do
+        Dynamoid::Config.warn_on_scan = @warn_on_scan
+      end
+
+      it 'logs warnings' do
+        expect(Dynamoid.logger).to receive(:warn).with('Queries without an index are forced to use scan and are generally much slower than indexed queries!')
+        expect(Dynamoid.logger).to receive(:warn).with('You can index this query by adding index declaration to user.rb:')
+        expect(Dynamoid.logger).to receive(:warn).with("* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'")
+        expect(Dynamoid.logger).to receive(:warn).with("* local_secondary_index range_key: 'some-name'")
+        expect(Dynamoid.logger).to receive(:warn).with('Not indexed attributes: :name, :password')
+
+        klass = new_class class_name: :User do
+          field :name
+          field :password
+        end
+
+        klass.create_table
+        klass.where(name: 'a', password: 'b').all.to_a
+      end
+    end
   end
 
   describe '#find_by_pages' do
@@ -2275,6 +2303,53 @@ describe Dynamoid::Criteria::Chain do
         models = chain.where(age: 30).scan_index_forward(false)
         expect(models.map(&:nickname)).to eq %w[c b a]
         expect(chain.key_fields_detector.index_name).to eq(:age_nickname_index)
+      end
+    end
+  end
+
+  # TODO: check generated request JSON instead of checking parameters of some private method call
+  describe '#consistent' do
+    context 'when Query' do
+      it 'passes consistent_read = true option to adapter when #consistent called' do
+        klass = new_class
+        klass.create(id: 'x')
+
+        expect_any_instance_of(Dynamoid::Adapter).to \
+          receive(:query) { |_, _, options| options[:consistent_read] == true }
+          .and_call_original
+        klass.where(id: 'x').consistent.all.to_a
+      end
+
+      it 'passes consistent_read = false option to adapter when #consistent is not called' do
+        klass = new_class
+        klass.create(id: 'x')
+
+        expect_any_instance_of(Dynamoid::Adapter).to \
+          receive(:query) { |_, _, options| options[:consistent_read] == false }
+          .and_call_original
+        klass.where(id: 'x').all.to_a
+      end
+    end
+
+    context 'when Scan' do
+      it 'passes consistent_read = true option to adapter when #consistent called' do
+        klass = new_class
+        klass.create
+
+        expect_any_instance_of(Dynamoid::Adapter).to \
+          receive(:scan) { |_, _, options| options[:consistent_read] == true }
+          .and_call_original
+        klass.consistent.all.to_a
+      end
+
+      it 'passes consistent_read = false option to adapter when #consistent is not called' do
+        klass = new_class
+        klass.create
+
+        expect_any_instance_of(Dynamoid::Adapter).to \
+          receive(:scan) { |_, _, options| options[:consistent_read] == false }
+          .and_call_original
+        klass.all.to_a
       end
     end
   end

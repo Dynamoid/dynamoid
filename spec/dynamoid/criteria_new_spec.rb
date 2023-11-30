@@ -2,6 +2,8 @@
 
 require 'spec_helper'
 
+# Test here that methods defined in Criteria::Chain could be called on a document.
+# The methods are tested separately in spec/dynamoid/criteria/chain_spec.rb
 describe Dynamoid::Criteria do
   it 'supports querying with .where method' do
     klass = new_class do
