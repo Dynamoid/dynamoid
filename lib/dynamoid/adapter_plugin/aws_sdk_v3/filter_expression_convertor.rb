@@ -20,9 +20,9 @@ module Dynamoid
         private
 
         def build
-          clauses = @conditions.map do |name, attribute_conditions|
+          clauses = @conditions.map do |path, attribute_conditions|
             attribute_conditions.map do |operator, value|
-              name_or_placeholder = name_or_placeholder_for(name)
+              name_or_placeholder = name_or_placeholder_for(path)
 
               case operator
               when :eq
@@ -59,12 +59,21 @@ module Dynamoid
           @expression = clauses.join(' AND ')
         end
 
-        def name_or_placeholder_for(name)
-          return name unless name.upcase.in?(Dynamoid::AdapterPlugin::AwsSdkV3::RESERVED_WORDS)
+        # Replace reserved words with placeholders
+        def name_or_placeholder_for(path)
+          sections = path.to_s.split('.')
 
-          placeholder = @name_placeholder_sequence.call
-          @name_placeholders[placeholder] = name
-          placeholder
+          sanitized = sections.map do |name|
+            unless name.upcase.to_sym.in?(Dynamoid::AdapterPlugin::AwsSdkV3::RESERVED_WORDS)
+              next name
+            end
+
+            placeholder = @name_placeholder_sequence.call
+            @name_placeholders[placeholder] = name
+            placeholder
+          end
+
+          sanitized.join('.')
         end
 
         def value_placeholder_for(value)

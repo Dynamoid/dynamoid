@@ -589,25 +589,26 @@ module Dynamoid
 
         if sections.size == 1
           name = sections[0]
-          selector = name
+          path = name
           operator = nil
         elsif sections.last.in? ALLOWED_FIELD_OPERATORS
           name = sections[0]
-          selector = sections[0...-1].join('.')
+          path = sections[0...-1].join('.')
           operator = sections[-1]
         else
           name = sections[0]
-          selector = sections.join('.')
+          path = sections.join('.')
           operator = nil
         end
 
         type = source.attributes[name.to_sym][:type]
-        if type != :map && name != selector
+        if type != :map && name != path
           raise Dynamoid::Errors::Error,
-            "Map element referencing (#{key}) in condition is not allowed for not :map field '#{name}'"
+            "Dereference operator '.' in '#{key}' document path is not allowed for not :map field '#{name}'"
         end
 
-        value = if name == selector
+        # we don't know types of nested attributes
+        value = if name == path
                   type_cast_condition_parameter(name, value_before_type_casting)
                 else
                   value_before_type_casting
@@ -628,7 +629,7 @@ module Dynamoid
             [operator.to_sym, value]
           end
 
-        [selector, condition]
+        [path, condition]
       end
 
       def query_key_conditions

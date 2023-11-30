@@ -231,7 +231,9 @@ describe Dynamoid::Criteria::Chain do
     it 'raises error when operator is not supported' do
       expect do
         model.where(name: 'Bob', 'age.foo': 10).to_a
-      end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
+      end.to raise_error(
+        Dynamoid::Errors::Error,
+        "Dereference operator '.' in 'age.foo' document path is not allowed for not :map field 'age'")
     end
   end
 
@@ -447,7 +449,9 @@ describe Dynamoid::Criteria::Chain do
     it 'raises error when operator is not supported' do
       expect do
         model.where(name: 'a', 'age.foo': 9).to_a
-      end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
+      end.to raise_error(
+        Dynamoid::Errors::Error,
+        "Dereference operator '.' in 'age.foo' document path is not allowed for not :map field 'age'")
     end
   end
 
@@ -663,7 +667,9 @@ describe Dynamoid::Criteria::Chain do
     it 'raises error when operator is not supported' do
       expect do
         model.where('age.foo': 9).to_a
-      end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
+      end.to raise_error(
+        Dynamoid::Errors::Error,
+        "Dereference operator '.' in 'age.foo' document path is not allowed for not :map field 'age'")
     end
   end
 
@@ -688,6 +694,77 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe 'condition on a Map key-value pair' do
+    context 'when Query' do
+      let(:klass_with_map) do
+        new_class do
+          field :settings, :map
+        end
+      end
+
+      it 'returns correct result when called without explicit operator' do
+        object = klass_with_map.create(settings: {threshold: 10})
+
+        chain = klass_with_map.where(id: object.id, 'settings.threshold': 10)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq [object]
+
+        chain = klass_with_map.where(id: object.id, 'settings.threshold': 12)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq []
+      end
+
+      it 'returns correct result when called with explicit operator' do
+        object = klass_with_map.create(settings: {threshold: 10})
+
+        chain = klass_with_map.where(id: object.id, 'settings.threshold.gt': 5)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq [object]
+
+        chain = klass_with_map.where(id: object.id, 'settings.threshold.lt': 5)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq []
+      end
+
+      it 'does not raise any error and just returns empty result when called with not existing map key' do
+        object = klass_with_map.create(settings: {threshold: 10})
+        chain = klass_with_map.where(id: object.id, 'settings.threshold.foobar': 5)
+
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq []
+      end
+
+      it 'does not raise any error and just returns empty result when called with non-map field' do
+        klass_without_map = new_class do
+          field :age, :integer
+        end
+
+        klass_without_map.create_table
+        chain = klass_without_map.where(id: 'not-exist', 'age.threshold': 5)
+
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect { chain.to_a }.to raise_error(
+          Dynamoid::Errors::Error,
+          "Dereference operator '.' in 'age.threshold' document path is not allowed for not :map field 'age'")
+      end
+
+      it 'does not type cast value' do
+        klass_with_map.create_table
+        chain = klass_with_map.where(id: 'not-exist', 'settings.threshold.gt': Time.now)
+
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect { chain.to_a }.to raise_error(ArgumentError, /unsupported type, expected Hash, Array,/)
+      end
+
+      it 'allows conditions with nested attribute names conflicting with DynamoDB reserved words' do
+        # SCAN, SET and SIZE are reserved words
+        object = klass_with_map.create(settings: {scan: 1, set: 2, size: 3})
+        chain = klass_with_map.where(id: object.id, 'settings.scan': 1, 'settings.set': 2, 'settings.size': 3)
+
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq [object]
+      end
+    end
+
     context 'when Scan' do
       let(:klass_with_map) do
         new_class do
@@ -721,8 +798,8 @@ describe Dynamoid::Criteria::Chain do
 
       it 'does not raise any error and just returns empty result when called with not existing map key' do
         object = klass_with_map.create(settings: {threshold: 10})
-
         chain = klass_with_map.where('settings.threshold.foobar' => 5)
+
         expect(chain).to receive(:raw_pages_via_scan).and_call_original
         expect(chain.to_a).to eq []
       end
@@ -734,19 +811,28 @@ describe Dynamoid::Criteria::Chain do
 
         klass_without_map.create_table
         chain = klass_without_map.where('age.threshold' => 5)
-        expect(chain).to receive(:raw_pages_via_scan).and_call_original
 
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
         expect { chain.to_a }.to raise_error(
           Dynamoid::Errors::Error,
-          /Map element referencing \(age\.threshold\) in condition is not allowed for not :map field 'age'/)
+          "Dereference operator '.' in 'age.threshold' document path is not allowed for not :map field 'age'")
       end
 
       it 'does not type cast value' do
         klass_with_map.create_table
         chain = klass_with_map.where('settings.threshold.gt' => Time.now)
-        expect(chain).to receive(:raw_pages_via_scan).and_call_original
 
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
         expect { chain.to_a }.to raise_error(ArgumentError, /unsupported type, expected Hash, Array,/)
+      end
+
+      it 'allows conditions with nested attribute names conflicting with DynamoDB reserved words' do
+        # SCAN, SET and SIZE are reserved words
+        object = klass_with_map.create(settings: {scan: 1, set: 2, size: 3})
+        chain = klass_with_map.where('settings.scan': 1, 'settings.set': 2, 'settings.size': 3)
+
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+        expect(chain.to_a).to eq [object]
       end
     end
   end
