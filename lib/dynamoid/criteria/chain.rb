@@ -585,13 +585,35 @@ module Dynamoid
       end
 
       def field_condition(key, value_before_type_casting)
-        name, operator = key.to_s.split('.')
-        value = type_cast_condition_parameter(name, value_before_type_casting)
-        operator ||= 'eq'
+        sections = key.to_s.split('.')
 
-        unless operator.in? ALLOWED_FIELD_OPERATORS
-          raise Dynamoid::Errors::Error, "Unsupported operator #{operator} in #{key}"
+        if sections.size == 1
+          name = sections[0]
+          selector = name
+          operator = nil
+        elsif sections.last.in? ALLOWED_FIELD_OPERATORS
+          name = sections[0]
+          selector = sections[0...-1].join('.')
+          operator = sections[-1]
+        else
+          name = sections[0]
+          selector = sections.join('.')
+          operator = nil
         end
+
+        type = source.attributes[name.to_sym][:type]
+        if type != :map && name != selector
+          raise Dynamoid::Errors::Error,
+            "Map element referencing (#{key}) in condition is not allowed for not :map field '#{name}'"
+        end
+
+        value = if name == selector
+                  type_cast_condition_parameter(name, value_before_type_casting)
+                else
+                  value_before_type_casting
+                end
+
+        operator ||= 'eq'
 
         condition = \
           case operator
@@ -606,7 +628,7 @@ module Dynamoid
             [operator.to_sym, value]
           end
 
-        [name.to_sym, condition]
+        [selector, condition]
       end
 
       def query_key_conditions
@@ -726,9 +748,10 @@ module Dynamoid
 
         {}.tap do |opts|
           @where_conditions.keys.map(&:to_sym).each do |key|
-            name, condition = field_condition(key, @where_conditions[key])
-            opts[name] ||= []
-            opts[name] << condition
+            selector, condition = field_condition(key, @where_conditions[key])
+
+            opts[selector] ||= []
+            opts[selector] << condition
           end
         end
       end
