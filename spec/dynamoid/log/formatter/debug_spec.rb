@@ -63,7 +63,8 @@ describe Dynamoid::Log::Formatter::Debug do
             \\},
             "TableSizeBytes": 0,
             "ItemCount": 0,
-            "TableArn": ".+?"
+            "TableArn": ".+?",
+            "DeletionProtectionEnabled": false
           \\}
         \\}
       JSON
