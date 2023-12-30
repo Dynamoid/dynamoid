@@ -6,7 +6,7 @@ module Dynamoid
 
     def load(attrs)
       attrs.each do |key, value|
-        send("#{key}=", value) if respond_to?("#{key}=")
+        send(:"#{key}=", value) if respond_to?(:"#{key}=")
       end
 
       self
@@ -27,7 +27,7 @@ module Dynamoid
 
       self.attributes = self.class.find(hash_key, **options).attributes
 
-      @associations.values.each(&:reset)
+      @associations.each_value(&:reset)
       @new_record = false
 
       self

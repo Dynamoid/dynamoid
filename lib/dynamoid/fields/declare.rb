@@ -48,7 +48,7 @@ module Dynamoid
 
         @source.generated_methods.module_eval do
           define_method(name) { read_attribute(name) }
-          define_method("#{name}?") do
+          define_method(:"#{name}?") do
             value = read_attribute(name)
             case value
             when true        then true
@@ -57,8 +57,8 @@ module Dynamoid
               !value.nil?
             end
           end
-          define_method("#{name}=") { |value| write_attribute(name, value) }
-          define_method("#{name}_before_type_cast") { read_attribute_before_type_cast(name) }
+          define_method(:"#{name}=") { |value| write_attribute(name, value) }
+          define_method(:"#{name}_before_type_cast") { read_attribute_before_type_cast(name) }
         end
       end
 
@@ -70,9 +70,9 @@ module Dynamoid
 
         @source.generated_methods.module_eval do
           alias_method alias_name, name
-          alias_method "#{alias_name}=", "#{name}="
-          alias_method "#{alias_name}?", "#{name}?"
-          alias_method "#{alias_name}_before_type_cast", "#{name}_before_type_cast"
+          alias_method :"#{alias_name}=", :"#{name}="
+          alias_method :"#{alias_name}?", :"#{name}?"
+          alias_method :"#{alias_name}_before_type_cast", :"#{name}_before_type_cast"
         end
       end
 

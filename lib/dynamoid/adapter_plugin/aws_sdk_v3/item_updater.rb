@@ -57,13 +57,12 @@ module Dynamoid
           else
             # delete explicitly attributes if assigned nil value and configured
             # to not store nil values
-            values_to_update = values_sanitized.select { |_, v| !v.nil? }
+            values_to_update = values_sanitized.reject { |_, v| v.nil? }
             values_to_delete = values_sanitized.select { |_, v| v.nil? }
 
             @updates.merge!(values_to_update)
             @deletions.merge!(values_to_delete)
           end
-
         end
 
         #

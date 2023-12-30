@@ -98,7 +98,7 @@ describe Dynamoid::Loadable do
 
         expect do
           object.reload
-        end.to output('run after_initialize' + 'run after_find').to_stdout
+        end.to output('run after_initializerun after_find').to_stdout
       end
     end
   end

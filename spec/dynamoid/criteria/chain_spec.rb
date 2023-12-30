@@ -451,7 +451,7 @@ describe Dynamoid::Criteria::Chain do
   end
 
   # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ScanFilter.html
-  describe 'Scan conditions ' do
+  describe 'Scan conditions' do
     let(:model) do
       new_class do
         field :age, :integer
@@ -932,7 +932,7 @@ describe Dynamoid::Criteria::Chain do
       obj2 = klass.create(count: 2)
       obj3 = klass.create(count: 3)
 
-      expect(klass.where('count.gt': '1').all).to match_array([obj2, obj3])
+      expect(klass.where('count.gt': '1').all).to contain_exactly(obj2, obj3)
     end
 
     it 'type casts collection of condition values' do
@@ -940,7 +940,7 @@ describe Dynamoid::Criteria::Chain do
       obj2 = klass.create(count: 2)
       obj3 = klass.create(count: 3)
 
-      expect(klass.where('count.in': %w[1 2]).all).to match_array([obj1, obj2])
+      expect(klass.where('count.in': %w[1 2]).all).to contain_exactly(obj1, obj2)
     end
   end
 
@@ -1169,7 +1169,7 @@ describe Dynamoid::Criteria::Chain do
 
       context 'store_attribute_with_nil_value = true', config: { store_attribute_with_nil_value: true } do
         it 'supports "eq nil" check' do
-          expect(model.where('name': nil).to_a).to eq [@johndoe]
+          expect(model.where(name: nil).to_a).to eq [@johndoe]
         end
 
         it 'supports "in [nil]" check' do
@@ -1193,7 +1193,7 @@ describe Dynamoid::Criteria::Chain do
         end
 
         it 'does not support "eq nil" check' do
-          expect(model.where('name': nil).to_a).to eq []
+          expect(model.where(name: nil).to_a).to eq []
         end
 
         it 'does not supports "in [nil]" check' do
@@ -1258,7 +1258,7 @@ describe Dynamoid::Criteria::Chain do
 
         expect do
           klass_with_callback.where(name: 'Alex').to_a
-        end.to output('run after_initialize' + 'run after_find').to_stdout
+        end.to output('run after_initializerun after_find').to_stdout
       end
     end
   end
@@ -1287,8 +1287,8 @@ describe Dynamoid::Criteria::Chain do
 
     it 'yields one page at a time' do
       expect { |b| model.where(id: '1').find_by_pages(&b) }.to yield_successive_args(
-        [all(be_kind_of(model)), { last_evaluated_key: an_instance_of(Hash) }],
-        [all(be_kind_of(model)), { last_evaluated_key: nil }],
+        [all(be_a(model)), { last_evaluated_key: an_instance_of(Hash) }],
+        [all(be_a(model)), { last_evaluated_key: nil }],
       )
     end
 
@@ -1330,7 +1330,7 @@ describe Dynamoid::Criteria::Chain do
 
         expect do
           klass_with_callback.where(name: 'Alex').find_by_pages { |*| }
-        end.to output('run after_initialize' + 'run after_find').to_stdout
+        end.to output('run after_initializerun after_find').to_stdout
       end
     end
   end
@@ -1748,7 +1748,7 @@ describe Dynamoid::Criteria::Chain do
 
         expect do
           klass_with_callback.first
-        end.to output('run after_initialize' + 'run after_find').to_stdout
+        end.to output('run after_initializerun after_find').to_stdout
       end
     end
   end
@@ -2112,7 +2112,7 @@ describe Dynamoid::Criteria::Chain do
           field :age, :integer
 
           local_secondary_index range_key: :age,
-            name: :age_index, projected_attributes: :all
+                                name: :age_index, projected_attributes: :all
         end
       end
 
@@ -2143,7 +2143,7 @@ describe Dynamoid::Criteria::Chain do
           field :age, :integer
 
           global_secondary_index hash_key: :owner_id, range_key: :age,
-            name: :age_index, projected_attributes: :all
+                                 name: :age_index, projected_attributes: :all
         end
       end
       let(:chain) { described_class.new(klass_with_global_secondary_index) }

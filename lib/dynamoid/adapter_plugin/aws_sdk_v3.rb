@@ -14,7 +14,7 @@ module Dynamoid
   module AdapterPlugin
     # The AwsSdkV3 adapter provides support for the aws-sdk version 2 for ruby.
 
-    # Note: Don't use keyword arguments in public methods as far as method
+    # NOTE: Don't use keyword arguments in public methods as far as method
     # calls on adapter are delegated to the plugin.
     #
     # There are breaking changes in Ruby related to delegating keyword

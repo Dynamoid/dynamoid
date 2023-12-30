@@ -20,7 +20,7 @@ desc 'alias test task to spec'
 task test: :spec
 
 ruby_version = Gem::Version.new(RUBY_VERSION)
-minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && RUBY_ENGINE == engine }
+minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && engine == RUBY_ENGINE }
 linting = minimum_version.call('2.7')
 def rubocop_task(warning)
   desc 'rubocop task stub'

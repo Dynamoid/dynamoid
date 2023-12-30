@@ -115,7 +115,7 @@ module Dynamoid
       def process_typed_collection(set)
         if allowed_type?
           undumper = Undumping.find_undumper(element_options)
-          set.map { |el| undumper.process(el) }.to_set
+          set.to_set { |el| undumper.process(el) }
         else
           raise ArgumentError, "Set element type #{element_type} isn't supported"
         end

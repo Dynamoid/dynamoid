@@ -23,7 +23,7 @@ RSpec.describe 'STI' do
       end
     end
 
-    it 'enables only own attributes in a base class ' do
+    it 'enables only own attributes in a base class' do
       expect(class_a.attributes.keys).to match_array(%i[id type a created_at updated_at])
     end
 

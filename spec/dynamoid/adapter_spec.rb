@@ -110,14 +110,14 @@ describe Dynamoid::Adapter do
 
     it 'returns true if table created' do
       actual = Dynamoid.adapter.create_table(table_name, :id, sync: true)
-      expect(actual).to eq true
+      expect(actual).to be true
     end
 
     it 'returns false if table was created earlier' do
       Dynamoid.adapter.create_table(table_name, :id, sync: true)
 
       actual = Dynamoid.adapter.create_table(table_name, :id, sync: true)
-      expect(actual).to eq false
+      expect(actual).to be false
     end
   end
 
@@ -132,7 +132,7 @@ describe Dynamoid::Adapter do
         Dynamoid.adapter.scan(test_table1).flat_map { |i| i }.to_a.size
       }.from(2).to(1)
 
-      expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq nil
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to be_nil
     end
 
     it 'deletes through the adapter for many IDs' do
@@ -146,8 +146,8 @@ describe Dynamoid::Adapter do
         Dynamoid.adapter.scan(test_table1).flat_map { |i| i }.to_a.size
       }.from(3).to(1)
 
-      expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq nil
-      expect(Dynamoid.adapter.get_item(test_table1, '2')).to eq nil
+      expect(Dynamoid.adapter.get_item(test_table1, '1')).to be_nil
+      expect(Dynamoid.adapter.get_item(test_table1, '2')).to be_nil
     end
 
     it 'deletes through the adapter for one ID and a range key' do
@@ -160,7 +160,7 @@ describe Dynamoid::Adapter do
         Dynamoid.adapter.scan(test_table3).flat_map { |i| i }.to_a.size
       }.from(2).to(1)
 
-      expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to eq nil
+      expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to be_nil
     end
 
     it 'deletes through the adapter for many IDs and a range key' do
@@ -177,8 +177,8 @@ describe Dynamoid::Adapter do
         Dynamoid.adapter.scan(test_table3).flat_map { |i| i }.to_a.size
       }.from(4).to(2)
 
-      expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to eq nil
-      expect(Dynamoid.adapter.get_item(test_table3, '2', range_key: 1.0)).to eq nil
+      expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to be_nil
+      expect(Dynamoid.adapter.get_item(test_table3, '2', range_key: 1.0)).to be_nil
     end
   end
 end

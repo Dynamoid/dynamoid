@@ -42,14 +42,14 @@ describe Dynamoid::Criteria do
 
   it 'passes each to all members' do
     expect { |b| User.each(&b) }.to yield_successive_args(
-      be_kind_of(User).and(have_attributes('new_record' => false)),
-      be_kind_of(User).and(have_attributes('new_record' => false))
+      be_a(User).and(have_attributes('new_record' => false)),
+      be_a(User).and(have_attributes('new_record' => false))
     )
   end
 
   it 'passes find_by_pages to all members' do
     expect { |b| User.find_by_pages(&b) }.to yield_successive_args(
-      [all(be_kind_of(User)), { last_evaluated_key: nil }]
+      [all(be_a(User)), { last_evaluated_key: nil }]
     )
   end
 

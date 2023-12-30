@@ -130,13 +130,13 @@ module Dynamoid
         index_range_key = options[:range_key]
 
         unless index_range_key.present?
-          raise Dynamoid::Errors::InvalidIndex, 'A local secondary index '\
-            'requires a :range_key to be specified'
+          raise Dynamoid::Errors::InvalidIndex, 'A local secondary index ' \
+                                                'requires a :range_key to be specified'
         end
 
         if primary_range_key.present? && index_range_key == primary_range_key
-          raise Dynamoid::Errors::InvalidIndex, 'A local secondary index'\
-            ' must use a different :range_key than the primary key'
+          raise Dynamoid::Errors::InvalidIndex, 'A local secondary index ' \
+                                                'must use a different :range_key than the primary key'
         end
 
         index_opts = options.merge(
@@ -159,8 +159,7 @@ module Dynamoid
       # @param range [scalar] the range key used to declare an index (optional)
       # @return [Dynamoid::Indexes::Index, nil] index object or nil if it isn't found
       def find_index(hash, range = nil)
-        index = indexes[index_key(hash, range)]
-        index
+        indexes[index_key(hash, range)]
       end
 
       # Returns an index by its name
@@ -317,7 +316,7 @@ module Dynamoid
 
         key_dynamodb_type = dynamodb_type(key_field_attributes[:type], key_field_attributes)
         if PERMITTED_KEY_DYNAMODB_TYPES.include?(key_dynamodb_type)
-          send("#{key_param}_schema=", { key_val => key_dynamodb_type })
+          send(:"#{key_param}_schema=", { key_val => key_dynamodb_type })
         else
           errors.add(key_param, "Index :#{key_param} is not a valid key type")
         end

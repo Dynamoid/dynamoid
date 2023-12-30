@@ -238,7 +238,7 @@ module Dynamoid
 
       begin
         value = read_attribute(name)
-        value = value.duplicable? ? value.clone : value
+        value = value.clone if value.duplicable?
       rescue TypeError, NoMethodError
       end
 

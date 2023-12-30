@@ -14,14 +14,14 @@ require 'pry'
 DEBUG = ENV['DEBUG'] == 'true'
 
 ruby_version = Gem::Version.new(RUBY_VERSION)
-minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && RUBY_ENGINE == engine }
+minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && engine == RUBY_ENGINE }
 actual_version = lambda do |major, minor|
   actual = Gem::Version.new(ruby_version)
   major == actual.segments[0] && minor == actual.segments[1] && RUBY_ENGINE == 'ruby'
 end
 debugging = minimum_version.call('2.7') && DEBUG
 RUN_COVERAGE = minimum_version.call('2.6') && (ENV['COVER_ALL'] || ENV['CI_CODECOV'] || ENV['CI'].nil?)
-ALL_FORMATTERS = actual_version.call(2, 7) && (ENV['COVER_ALL'] || ENV['CI_CODECOV'] || ENV['CI'])
+ALL_FORMATTERS = actual_version.call(2, 7) && (ENV['COVER_ALL'] || ENV['CI_CODECOV'] || ENV['CI']) # rubocop:disable Style/FetchEnvVar
 
 if DEBUG
   if debugging
@@ -64,7 +64,7 @@ ENV['SECRET_KEY'] ||= '1234'
 
 Aws.config.update(
   region: 'us-west-2',
-  credentials: Aws::Credentials.new(ENV['ACCESS_KEY'], ENV['SECRET_KEY'])
+  credentials: Aws::Credentials.new(ENV.fetch('ACCESS_KEY'), ENV.fetch('SECRET_KEY'))
 )
 
 Dynamoid.configure do |config|

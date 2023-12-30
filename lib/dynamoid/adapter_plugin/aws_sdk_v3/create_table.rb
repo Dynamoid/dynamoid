@@ -29,7 +29,7 @@ module Dynamoid
           gs_indexes = options[:global_secondary_indexes]
 
           key_schema = {
-            hash_key_schema: { key => (options[:hash_key_type] || :string) },
+            hash_key_schema: { key => options[:hash_key_type] || :string },
             range_key_schema: options[:range_key]
           }
           attribute_definitions = build_all_attribute_definitions(
@@ -69,7 +69,7 @@ module Dynamoid
             end
           end
           resp = client.create_table(client_opts)
-          options[:sync] = true if !options.key?(:sync) && ls_indexes.present? || gs_indexes.present?
+          options[:sync] = true if (!options.key?(:sync) && ls_indexes.present?) || gs_indexes.present?
 
           if options[:sync]
             status = PARSE_TABLE_STATUS.call(resp, :table_description)
