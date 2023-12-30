@@ -48,12 +48,4 @@ if ENV['CI'].nil?
   platforms :ruby do
     gem 'pry-byebug'
   end
-
-  gem 'activemodel', '= 7.0.4'
-
-  # There is an issue with Rails 7.1 fixed in 3.12.5.
-  # See:
-  # - https://github.com/rspec/rspec-mocks/pull/1534
-  # - https://github.com/rspec/rspec-mocks/issues/1530
-  gem 'rspec-mocks', '>= 3.12.5'
 end
