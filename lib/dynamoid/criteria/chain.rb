@@ -748,7 +748,7 @@ module Dynamoid
         end
 
         {}.tap do |opts|
-          @where_conditions.keys.map(&:to_sym).each do |key|
+          @where_conditions.keys.map(&:to_sym).each do |key| # TODO: remove map to_sym
             selector, condition = field_condition(key, @where_conditions[key])
 
             opts[selector] ||= []

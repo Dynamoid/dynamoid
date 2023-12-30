@@ -60,7 +60,7 @@ module Dynamoid
         end
 
         # Replace reserved words with placeholders
-        def name_or_placeholder_for(path)
+        def name_or_placeholder_for(path) # TODO: support List elements
           sections = path.to_s.split('.')
 
           sanitized = sections.map do |name|

@@ -456,7 +456,7 @@ describe Dynamoid::Criteria::Chain do
   end
 
   # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ScanFilter.html
-  describe 'Scan conditions ' do
+  describe 'Scan conditions' do
     let(:model) do
       new_class do
         field :age, :integer
@@ -692,6 +692,8 @@ describe Dynamoid::Criteria::Chain do
       end
     end
   end
+
+  describe 'condition on a List element'
 
   describe 'condition on a Map key-value pair' do
     context 'when Query' do
@@ -1273,7 +1275,7 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe '#where' do
-    context 'passed condition for nonexistent attribute' do
+    context 'passed condition for non-existing attribute' do
       let(:model) do
         new_class do
           field :city
@@ -1291,14 +1293,14 @@ describe Dynamoid::Criteria::Chain do
         model.where(town: 'New York')
       end
 
-      it 'writes warning message for condition with operator' do
+      it 'writes warning message even if there is an operator' do
         expect(Dynamoid.logger).to receive(:warn)
           .with('where conditions contain nonexistent field name `town`')
 
         model.where('town.contain': 'New York')
       end
 
-      it 'writes warning message with a list of attributes' do
+      it 'writes warning message if there are several non-existing attributes' do
         expect(Dynamoid.logger).to receive(:warn)
           .with('where conditions contain nonexistent field names `town`, `street1`')
 
