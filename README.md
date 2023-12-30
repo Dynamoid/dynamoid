@@ -133,7 +133,7 @@ Dynamoid supports Ruby >= 2.3 and Rails >= 4.2.
 
 Its compatibility is tested against following Ruby versions: 2.3, 2.4,
 2.5, 2.6, 2.7, 3.0, 3.1 and 3.2, JRuby 9.4.x and against Rails versions: 4.2, 5.0, 5.1,
-5.2, 6.0, 6.1 and 7.0.
+5.2, 6.0, 6.1, 7.0 and 7.1.
 
 ## Setup
 
