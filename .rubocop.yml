@@ -16,6 +16,7 @@ require:
 # It's the lowest supported Ruby version
 AllCops:
   DisplayCopNames: true # Display the name of the failing cops
+  TargetRubyVersion: 2.3
 
 # It's a matter of taste
 Layout/ParameterAlignment:
