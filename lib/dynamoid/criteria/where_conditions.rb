@@ -22,7 +22,10 @@ module Dynamoid
 
       def [](key)
         hash = @conditions.find { |h| h.key?(key) }
-        hash[key] if hash
+
+        return nil unless hash
+
+        hash[key]
       end
     end
   end

@@ -33,7 +33,12 @@ module NewClassHelper
       def self.name
         @class_name
       end
+
+      def self.to_s
+        @class_name
+      end
     end
+
     klass.class_exec(options, &blk) if block_given?
     klass
   end

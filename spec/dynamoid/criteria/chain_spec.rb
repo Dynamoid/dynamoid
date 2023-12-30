@@ -4,6 +4,7 @@ require 'spec_helper'
 
 describe Dynamoid::Criteria::Chain do
   let(:time) { DateTime.now }
+  # TODO: get rid of predefined models
   let!(:user) { User.create(name: 'Josh', email: 'josh@joshsymonds.com', password: 'Test123') }
   let(:chain) { described_class.new(User) }
 
@@ -230,7 +231,9 @@ describe Dynamoid::Criteria::Chain do
     it 'raises error when operator is not supported' do
       expect do
         model.where(name: 'Bob', 'age.foo': 10).to_a
-      end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
+      end.to raise_error(
+        Dynamoid::Errors::Error,
+        "Dereference operator '.' in 'age.foo' document path is not allowed for not :map field 'age'")
     end
   end
 
@@ -446,12 +449,14 @@ describe Dynamoid::Criteria::Chain do
     it 'raises error when operator is not supported' do
       expect do
         model.where(name: 'a', 'age.foo': 9).to_a
-      end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
+      end.to raise_error(
+        Dynamoid::Errors::Error,
+        "Dereference operator '.' in 'age.foo' document path is not allowed for not :map field 'age'")
     end
   end
 
   # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.ScanFilter.html
-  describe 'Scan conditions ' do
+  describe 'Scan conditions' do
     let(:model) do
       new_class do
         field :age, :integer
@@ -662,7 +667,9 @@ describe Dynamoid::Criteria::Chain do
     it 'raises error when operator is not supported' do
       expect do
         model.where('age.foo': 9).to_a
-      end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
+      end.to raise_error(
+        Dynamoid::Errors::Error,
+        "Dereference operator '.' in 'age.foo' document path is not allowed for not :map field 'age'")
     end
   end
 
@@ -682,6 +689,152 @@ describe Dynamoid::Criteria::Chain do
 
         expect(Dynamoid.adapter.client).to receive(:scan).exactly(0).times.and_call_original
         Vehicle.record_limit(1).find_by_pages
+      end
+    end
+  end
+
+  describe 'condition on a List element'
+
+  describe 'condition on a Map key-value pair' do
+    context 'when Query' do
+      let(:klass_with_map) do
+        new_class do
+          field :settings, :map
+        end
+      end
+
+      it 'returns correct result when called without explicit operator' do
+        object = klass_with_map.create(settings: {threshold: 10})
+
+        chain = klass_with_map.where(id: object.id, 'settings.threshold': 10)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq [object]
+
+        chain = klass_with_map.where(id: object.id, 'settings.threshold': 12)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq []
+      end
+
+      it 'returns correct result when called with explicit operator' do
+        object = klass_with_map.create(settings: {threshold: 10})
+
+        chain = klass_with_map.where(id: object.id, 'settings.threshold.gt': 5)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq [object]
+
+        chain = klass_with_map.where(id: object.id, 'settings.threshold.lt': 5)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq []
+      end
+
+      it 'does not raise any error and just returns empty result when called with not existing map key' do
+        object = klass_with_map.create(settings: {threshold: 10})
+        chain = klass_with_map.where(id: object.id, 'settings.threshold.foobar': 5)
+
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq []
+      end
+
+      it 'does not raise any error and just returns empty result when called with non-map field' do
+        klass_without_map = new_class do
+          field :age, :integer
+        end
+
+        klass_without_map.create_table
+        chain = klass_without_map.where(id: 'not-exist', 'age.threshold': 5)
+
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect { chain.to_a }.to raise_error(
+          Dynamoid::Errors::Error,
+          "Dereference operator '.' in 'age.threshold' document path is not allowed for not :map field 'age'")
+      end
+
+      it 'does not type cast value' do
+        klass_with_map.create_table
+        chain = klass_with_map.where(id: 'not-exist', 'settings.threshold.gt': Time.now)
+
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect { chain.to_a }.to raise_error(ArgumentError, /unsupported type, expected Hash, Array,/)
+      end
+
+      it 'allows conditions with nested attribute names conflicting with DynamoDB reserved words' do
+        # SCAN, SET and SIZE are reserved words
+        object = klass_with_map.create(settings: {scan: 1, set: 2, size: 3})
+        chain = klass_with_map.where(id: object.id, 'settings.scan': 1, 'settings.set': 2, 'settings.size': 3)
+
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+        expect(chain.to_a).to eq [object]
+      end
+    end
+
+    context 'when Scan' do
+      let(:klass_with_map) do
+        new_class do
+          field :settings, :map
+        end
+      end
+
+      it 'returns correct result when called without explicit operator' do
+        object = klass_with_map.create(settings: {threshold: 10})
+
+        chain = klass_with_map.where('settings.threshold' => 10)
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+        expect(chain.to_a).to eq [object]
+
+        chain = klass_with_map.where('settings.threshold' => 12)
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+        expect(chain.to_a).to eq []
+      end
+
+      it 'returns correct result when called with explicit operator' do
+        object = klass_with_map.create(settings: {threshold: 10})
+
+        chain = klass_with_map.where('settings.threshold.gt' => 5)
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+        expect(chain.to_a).to eq [object]
+
+        chain = klass_with_map.where('settings.threshold.lt' => 5)
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+        expect(chain.to_a).to eq []
+      end
+
+      it 'does not raise any error and just returns empty result when called with not existing map key' do
+        object = klass_with_map.create(settings: {threshold: 10})
+        chain = klass_with_map.where('settings.threshold.foobar' => 5)
+
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+        expect(chain.to_a).to eq []
+      end
+
+      it 'does not raise any error and just returns empty result when called with non-map field' do
+        klass_without_map = new_class do
+          field :age, :integer
+        end
+
+        klass_without_map.create_table
+        chain = klass_without_map.where('age.threshold' => 5)
+
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+        expect { chain.to_a }.to raise_error(
+          Dynamoid::Errors::Error,
+          "Dereference operator '.' in 'age.threshold' document path is not allowed for not :map field 'age'")
+      end
+
+      it 'does not type cast value' do
+        klass_with_map.create_table
+        chain = klass_with_map.where('settings.threshold.gt' => Time.now)
+
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+        expect { chain.to_a }.to raise_error(ArgumentError, /unsupported type, expected Hash, Array,/)
+      end
+
+      it 'allows conditions with nested attribute names conflicting with DynamoDB reserved words' do
+        # SCAN, SET and SIZE are reserved words
+        object = klass_with_map.create(settings: {scan: 1, set: 2, size: 3})
+        chain = klass_with_map.where('settings.scan': 1, 'settings.set': 2, 'settings.size': 3)
+
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+        expect(chain.to_a).to eq [object]
       end
     end
   end
@@ -1122,7 +1275,7 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe '#where' do
-    context 'passed condition for nonexistent attribute' do
+    context 'passed condition for non-existing attribute' do
       let(:model) do
         new_class do
           field :city
@@ -1140,14 +1293,14 @@ describe Dynamoid::Criteria::Chain do
         model.where(town: 'New York')
       end
 
-      it 'writes warning message for condition with operator' do
+      it 'writes warning message even if there is an operator' do
         expect(Dynamoid.logger).to receive(:warn)
           .with('where conditions contain nonexistent field name `town`')
 
         model.where('town.contain': 'New York')
       end
 
-      it 'writes warning message with a list of attributes' do
+      it 'writes warning message if there are several non-existing attributes' do
         expect(Dynamoid.logger).to receive(:warn)
           .with('where conditions contain nonexistent field names `town`, `street1`')
 
@@ -1259,6 +1412,33 @@ describe Dynamoid::Criteria::Chain do
         expect do
           klass_with_callback.where(name: 'Alex').to_a
         end.to output('run after_initialize' + 'run after_find').to_stdout
+      end
+    end
+
+    context 'when uses Scan but there are conditions on non-key fields and warn_on_scan config option is true' do
+      before do
+        @warn_on_scan = Dynamoid::Config.warn_on_scan
+        Dynamoid::Config.warn_on_scan = true
+      end
+
+      after do
+        Dynamoid::Config.warn_on_scan = @warn_on_scan
+      end
+
+      it 'logs warnings' do
+        expect(Dynamoid.logger).to receive(:warn).with('Queries without an index are forced to use scan and are generally much slower than indexed queries!')
+        expect(Dynamoid.logger).to receive(:warn).with('You can index this query by adding index declaration to user.rb:')
+        expect(Dynamoid.logger).to receive(:warn).with("* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'")
+        expect(Dynamoid.logger).to receive(:warn).with("* local_secondary_index range_key: 'some-name'")
+        expect(Dynamoid.logger).to receive(:warn).with('Not indexed attributes: :name, :password')
+
+        klass = new_class class_name: :User do
+          field :name
+          field :password
+        end
+
+        klass.create_table
+        klass.where(name: 'a', password: 'b').all.to_a
       end
     end
   end
@@ -2275,6 +2455,53 @@ describe Dynamoid::Criteria::Chain do
         models = chain.where(age: 30).scan_index_forward(false)
         expect(models.map(&:nickname)).to eq %w[c b a]
         expect(chain.key_fields_detector.index_name).to eq(:age_nickname_index)
+      end
+    end
+  end
+
+  # TODO: check generated request JSON instead of checking parameters of some private method call
+  describe '#consistent' do
+    context 'when Query' do
+      it 'passes consistent_read = true option to adapter when #consistent called' do
+        klass = new_class
+        klass.create(id: 'x')
+
+        expect_any_instance_of(Dynamoid::Adapter).to \
+          receive(:query) { |_, _, options| options[:consistent_read] == true }
+          .and_call_original
+        klass.where(id: 'x').consistent.all.to_a
+      end
+
+      it 'passes consistent_read = false option to adapter when #consistent is not called' do
+        klass = new_class
+        klass.create(id: 'x')
+
+        expect_any_instance_of(Dynamoid::Adapter).to \
+          receive(:query) { |_, _, options| options[:consistent_read] == false }
+          .and_call_original
+        klass.where(id: 'x').all.to_a
+      end
+    end
+
+    context 'when Scan' do
+      it 'passes consistent_read = true option to adapter when #consistent called' do
+        klass = new_class
+        klass.create
+
+        expect_any_instance_of(Dynamoid::Adapter).to \
+          receive(:scan) { |_, _, options| options[:consistent_read] == true }
+          .and_call_original
+        klass.consistent.all.to_a
+      end
+
+      it 'passes consistent_read = false option to adapter when #consistent is not called' do
+        klass = new_class
+        klass.create
+
+        expect_any_instance_of(Dynamoid::Adapter).to \
+          receive(:scan) { |_, _, options| options[:consistent_read] == false }
+          .and_call_original
+        klass.all.to_a
       end
     end
   end

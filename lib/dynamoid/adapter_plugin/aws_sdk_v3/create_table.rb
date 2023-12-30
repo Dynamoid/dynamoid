@@ -168,6 +168,7 @@ module Dynamoid
         # Converts from symbol to the API string for the given data type
         # E.g. :number -> 'N'
         def api_type(type)
+          # TODO: seems we need more types to support
           case type
           when :string then STRING_TYPE
           when :number then NUM_TYPE
