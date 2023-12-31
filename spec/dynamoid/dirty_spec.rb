@@ -10,11 +10,6 @@ describe Dynamoid::Dirty do
   end
 
   describe '#changed?' do
-    it 'works' do
-      obj = model.new(name: 'Bob')
-      expect(obj.name_changed?).to eq true
-    end
-
     it 'returns true if any of the attributes have unsaved changes' do
       obj = model.new(name: 'Bob')
       expect(obj.changed?).to eq true

@@ -584,7 +584,7 @@ module Dynamoid
       end
 
       def count(table_name)
-        describe_table(table_name, true).item_count
+        describe_table(table_name, reload: true).item_count
       end
 
       # Run PartiQL query.
@@ -642,7 +642,7 @@ module Dynamoid
       #
       # New, semi-arbitrary API to get data on the table
       #
-      def describe_table(table_name, reload = false)
+      def describe_table(table_name, reload: false)
         (!reload && table_cache[table_name]) || begin
           table_cache[table_name] = Table.new(client.describe_table(table_name: table_name).data)
         end

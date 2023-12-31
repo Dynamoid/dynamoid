@@ -186,14 +186,16 @@ describe Dynamoid::Fields do
 
     it 'writes an attribute correctly' do
       address.write_attribute(:city, 'Chicago')
+      expect(address.read_attribute(:city)).to eq 'Chicago'
     end
 
     it 'writes an attribute with an alias' do
       address[:city] = 'Chicago'
+      expect(address.read_attribute(:city)).to eq 'Chicago'
     end
 
     it 'reads a written attribute' do
-      address.write_attribute(:city, 'Chicago')
+      address.city = 'Chicago'
       expect(address.read_attribute(:city)).to eq 'Chicago'
     end
 

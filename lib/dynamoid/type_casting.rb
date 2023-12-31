@@ -57,11 +57,12 @@ module Dynamoid
 
     class StringTypeCaster < Base
       def process(value)
-        if value == true
+        case value
+        when true
           't'
-        elsif value == false
+        when false
           'f'
-        elsif value.is_a? String
+        when String
           value.dup
         else
           value.to_s
