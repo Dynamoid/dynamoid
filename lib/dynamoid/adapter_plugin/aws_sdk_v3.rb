@@ -14,7 +14,7 @@ module Dynamoid
   module AdapterPlugin
     # The AwsSdkV3 adapter provides support for the aws-sdk version 2 for ruby.
 
-    # Note: Don't use keyword arguments in public methods as far as method
+    # NOTE: Don't use keyword arguments in public methods as far as method
     # calls on adapter are delegated to the plugin.
     #
     # There are breaking changes in Ruby related to delegating keyword
@@ -46,6 +46,7 @@ module Dynamoid
       CONNECTION_CONFIG_OPTIONS = %i[endpoint region http_continue_timeout http_idle_timeout http_open_timeout http_read_timeout].freeze
 
       # See https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+      # rubocop:disable Metrics/CollectionLiteralLength
       RESERVED_WORDS = Set.new(
         %i[
           ABORT ABSOLUTE ACTION ADD AFTER AGENT AGGREGATE ALL ALLOCATE ALTER ANALYZE
@@ -107,6 +108,7 @@ module Dynamoid
           WHILE WINDOW WITH WITHIN WITHOUT WORK WRAPPED WRITE YEAR ZONE
         ]
       ).freeze
+      # rubocop:enable Metrics/CollectionLiteralLength
 
       attr_reader :table_cache
 
@@ -584,7 +586,7 @@ module Dynamoid
       end
 
       def count(table_name)
-        describe_table(table_name, true).item_count
+        describe_table(table_name, reload: true).item_count
       end
 
       # Run PartiQL query.
@@ -642,7 +644,7 @@ module Dynamoid
       #
       # New, semi-arbitrary API to get data on the table
       #
-      def describe_table(table_name, reload = false)
+      def describe_table(table_name, reload: false)
         (!reload && table_cache[table_name]) || begin
           table_cache[table_name] = Table.new(client.describe_table(table_name: table_name).data)
         end

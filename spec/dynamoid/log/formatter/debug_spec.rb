@@ -5,7 +5,7 @@ require 'dynamoid/log/formatter'
 
 describe Dynamoid::Log::Formatter::Debug do
   describe '#format' do
-    let(:subject) { described_class.new }
+    subject { described_class.new }
 
     let(:logger) { Logger.new(buffer) }
     let(:buffer) { StringIO.new }
@@ -63,7 +63,8 @@ describe Dynamoid::Log::Formatter::Debug do
             \\},
             "TableSizeBytes": 0,
             "ItemCount": 0,
-            "TableArn": ".+?"
+            "TableArn": ".+?",
+            "DeletionProtectionEnabled": false
           \\}
         \\}
       JSON

@@ -265,7 +265,7 @@ module Dynamoid
           @associations[:"#{name}_ids"] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
         end
 
-        define_method("#{name}=".to_sym) do |objects|
+        define_method(:"#{name}=") do |objects|
           @associations[:"#{name}_ids"] ||= Dynamoid::Associations.const_get(type.to_s.camelcase).new(self, name, options)
           @associations[:"#{name}_ids"].setter(objects)
         end

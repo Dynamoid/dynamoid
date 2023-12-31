@@ -260,7 +260,7 @@ module Dynamoid
     #
     # @return [Integer]
     def hash
-      hash_key.hash ^ range_value.hash
+      [hash_key, range_value].hash
     end
 
     # Return a model's hash key value.

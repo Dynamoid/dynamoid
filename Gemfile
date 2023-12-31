@@ -14,7 +14,7 @@ gemspec
 # All CI jobs must use a discrete Gemfile located at gemfiles/*.gemfile. They will not use this Gemfile
 if ENV['CI'].nil?
   ruby_version = Gem::Version.new(RUBY_VERSION)
-  minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && RUBY_ENGINE == engine }
+  minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && engine == RUBY_ENGINE }
   committing = minimum_version.call('2.4')
   linting = minimum_version.call('2.7')
   coverage = minimum_version.call('2.7')

@@ -593,7 +593,7 @@ module Dynamoid
           raise Dynamoid::Errors::Error, "Unsupported operator #{operator} in #{key}"
         end
 
-        condition = \
+        condition =
           case operator
             # NULL/NOT_NULL operators don't have parameters
             # So { null: true } means NULL check and { null: false } means NOT_NULL one

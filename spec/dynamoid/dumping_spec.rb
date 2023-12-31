@@ -1269,8 +1269,8 @@ describe 'Dumping' do
     it 'stores integer value as Number' do
       obj = klass.create(count: 10)
 
-      expect(reload(obj).count).to eql(BigDecimal(10))
-      expect(raw_attributes(obj)[:count]).to eql(BigDecimal(10))
+      expect(reload(obj).count).to eql(BigDecimal('10'))
+      expect(raw_attributes(obj)[:count]).to eql(BigDecimal('10'))
     end
 
     it 'stores float value Number' do

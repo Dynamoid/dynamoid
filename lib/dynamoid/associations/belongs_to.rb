@@ -39,14 +39,14 @@ module Dynamoid
       #
       # @since 0.2.0
       def target_association
-        has_many_key_name = options[:inverse_of] || source.class.to_s.underscore.pluralize.to_sym
-        has_one_key_name = options[:inverse_of] || source.class.to_s.underscore.to_sym
-        unless target_class.associations[has_many_key_name].nil?
-          return has_many_key_name if target_class.associations[has_many_key_name][:type] == :has_many
+        name = options[:inverse_of] || source.class.to_s.underscore.pluralize.to_sym
+        if target_class.associations.dig(name, :type) == :has_many
+          return name
         end
 
-        unless target_class.associations[has_one_key_name].nil?
-          return has_one_key_name if target_class.associations[has_one_key_name][:type] == :has_one
+        name = options[:inverse_of] || source.class.to_s.underscore.to_sym
+        if target_class.associations.dig(name, :type) == :has_one
+          return name # rubocop:disable Style/RedundantReturn
         end
       end
     end

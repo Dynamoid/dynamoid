@@ -68,13 +68,11 @@ module Dynamoid
         end
 
         # Add an optimistic locking check if the lock_version column exists
-        if @model.class.attributes[:lock_version]
-          # Uses the original lock_version value from Dirty API
-          # in case user changed 'lock_version' manually
-          if @model.changes[:lock_version][0]
-            conditions[:if] ||= {}
-            conditions[:if][:lock_version] = @model.changes[:lock_version][0]
-          end
+        # Uses the original lock_version value from Dirty API
+        # in case user changed 'lock_version' manually
+        if @model.class.attributes[:lock_version] && (@model.changes[:lock_version][0])
+          conditions[:if] ||= {}
+          conditions[:if][:lock_version] = @model.changes[:lock_version][0]
         end
 
         conditions
@@ -93,13 +91,11 @@ module Dynamoid
         conditions[:if][@model.class.hash_key] = @model.hash_key
 
         # Add an optimistic locking check if the lock_version column exists
-        if @model.class.attributes[:lock_version]
-          # Uses the original lock_version value from Dirty API
-          # in case user changed 'lock_version' manually
-          if @model.changes[:lock_version][0]
-            conditions[:if] ||= {}
-            conditions[:if][:lock_version] = @model.changes[:lock_version][0]
-          end
+        # Uses the original lock_version value from Dirty API
+        # in case user changed 'lock_version' manually
+        if @model.class.attributes[:lock_version] && (@model.changes[:lock_version][0])
+          conditions[:if] ||= {}
+          conditions[:if][:lock_version] = @model.changes[:lock_version][0]
         end
 
         options[:conditions] = conditions

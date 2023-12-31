@@ -222,7 +222,7 @@ describe Dynamoid::Finders do
 
           expect(
             klass_with_date.find([[obj1.id, obj1.published_on], [obj2.id, obj2.published_on]])
-          ).to match_array([obj1, obj2])
+          ).to contain_exactly(obj1, obj2)
         end
 
         it 'raises MissingRangeKey when range key is not specified' do
@@ -380,7 +380,7 @@ describe Dynamoid::Finders do
 
         expect do
           klass_with_callback.find(object.id)
-        end.to output('run after_initialize' + 'run after_find').to_stdout
+        end.to output('run after_initializerun after_find').to_stdout
       end
     end
   end
@@ -510,7 +510,7 @@ describe Dynamoid::Finders do
 
         expect do
           klass_with_callback.find_all([object.id])
-        end.to output('run after_initialize' + 'run after_find').to_stdout
+        end.to output('run after_initializerun after_find').to_stdout
       end
     end
   end

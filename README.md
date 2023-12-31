@@ -67,10 +67,10 @@ For example, to configure AWS access:
 Create `config/initializers/aws.rb` as follows:
 
 ```ruby
-Aws.config.update({
-                    region: 'us-west-2',
+Aws.config.update(
+  region: 'us-west-2',
   credentials: Aws::Credentials.new('REPLACE_WITH_ACCESS_KEY_ID', 'REPLACE_WITH_SECRET_ACCESS_KEY'),
-                  })
+)
 ```
 
 Alternatively, if you don't want Aws connection settings to be
@@ -132,8 +132,8 @@ end
 Dynamoid supports Ruby >= 2.3 and Rails >= 4.2.
 
 Its compatibility is tested against following Ruby versions: 2.3, 2.4,
-2.5, 2.6, 2.7, 3.0, 3.1 and 3.2, JRuby 9.4.x and against Rails versions: 4.2, 5.0, 5.1,
-5.2, 6.0, 6.1 and 7.0.
+2.5, 2.6, 2.7, 3.0, 3.1, 3.2 and 3.3, JRuby 9.4.x and against Rails versions: 4.2, 5.0, 5.1,
+5.2, 6.0, 6.1, 7.0 and 7.1.
 
 ## Setup
 
@@ -740,7 +740,7 @@ If Dynamoid keeps `nil` value attributes `eq`/`ne` operators should be
 used instead:
 
 ```ruby
-Address.where('postcode': nil)
+Address.where(postcode: nil)
 Address.where('postcode.ne': nil)
 ```
 
@@ -914,8 +914,8 @@ If you have a range index, Dynamoid provides a number of additional
 other convenience methods to make your life a little easier:
 
 ```ruby
-User.where("created_at.gt": DateTime.now - 1.day).all
-User.where("created_at.lt": DateTime.now - 1.day).all
+User.where('created_at.gt': DateTime.now - 1.day).all
+User.where('created_at.lt': DateTime.now - 1.day).all
 ```
 
 It also supports `gte` and `lte`. Turning those into symbols and
@@ -1295,7 +1295,7 @@ end
 
 In addition, the first test for each model may fail if the relevant models are not included in `included_models`. This can be fixed by adding this line before the `DynamoidReset` module:
 ```ruby
-Dir[File.join(Dynamoid::Config.models_dir, '**/*.rb')].each { |file| require file }
+Dir[File.join(Dynamoid::Config.models_dir, '**/*.rb')].sort.each { |file| require file }
 ```
 Note that this will require _all_ models in your models folder - you can also explicitly require only certain models if you would prefer to.
 

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Added
+* [#697](https://github.com/Dynamoid/dynamoid/pull/697) Ensure Ruby 3.3 and Rails 7.1 versions are supported and added them on CI.
 
 ### Changed
 

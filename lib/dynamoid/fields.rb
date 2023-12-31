@@ -263,10 +263,8 @@ module Dynamoid
 
       # @private
       def generated_methods
-        @generated_methods ||= begin
-          Module.new.tap do |mod|
-            include(mod)
-          end
+        @generated_methods ||= Module.new.tap do |mod|
+          include(mod)
         end
       end
     end
@@ -362,7 +360,7 @@ module Dynamoid
         seconds = options[:after]
 
         if self[name].blank?
-          send("#{name}=", Time.now.to_i + seconds)
+          send(:"#{name}=", Time.now.to_i + seconds)
         end
       end
     end
@@ -374,12 +372,12 @@ module Dynamoid
 
       type = self.class.inheritance_field
       if self.class.attributes[type] && send(type).nil?
-        send("#{type}=", self.class.sti_name)
+        send(:"#{type}=", self.class.sti_name)
       end
     end
 
     def attribute_is_present_on_model?(attribute_name)
-      setter = "#{attribute_name}=".to_sym
+      setter = :"#{attribute_name}="
       respond_to?(setter)
     end
   end

@@ -240,7 +240,7 @@ describe Dynamoid::Document do
 
   shared_examples 'it has equality testing and hashing' do
     it 'is equal to itself' do
-      expect(document).to eq document
+      expect(document).to eq document # rubocop:disable RSpec/IdenticalEqualityAssertion
     end
 
     it 'is equal to another document with the same key(s)' do
@@ -326,7 +326,7 @@ describe Dynamoid::Document do
     it 'sets default value at the creation' do
       travel 1.hour do
         obj = model.create
-        expect(obj.expired_at).to eq(Time.now.to_i + 30 * 60)
+        expect(obj.expired_at).to eq(Time.now.to_i + (30 * 60))
       end
     end
 
@@ -335,7 +335,7 @@ describe Dynamoid::Document do
 
       travel 1.hour do
         obj.update_attributes(expired_at: nil)
-        expect(obj.expired_at).to eq(Time.now.to_i + 30 * 60)
+        expect(obj.expired_at).to eq(Time.now.to_i + (30 * 60))
       end
     end
 

@@ -299,7 +299,7 @@ module Dynamoid
           chain = Dynamoid::Criteria::Chain.new(self)
           chain = chain.where({}.tap { |h| attributes.each_with_index { |attr, index| h[attr.to_sym] = args[index] } })
 
-          if finder =~ /all/
+          if finder.include?('all')
             chain.all
           else
             chain.first

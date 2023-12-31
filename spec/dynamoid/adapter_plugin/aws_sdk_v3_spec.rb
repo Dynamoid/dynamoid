@@ -284,27 +284,27 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     it 'performs query on a table with a range and selects items in a range' do
-      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:between, [0.0, 3.0]]] }).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], { last_evaluated_key: nil }]]
+      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:between, [0.0, 3.0]]] }).to_a).to eq [[[{ id: '1', range: BigDecimal('1') }, { id: '1', range: BigDecimal('3') }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table with a range and selects items in a range with :select option' do
-      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:between, [0.0, 3.0]]] }, {}, { select: 'ALL_ATTRIBUTES' }).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], { last_evaluated_key: nil }]]
+      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:between, [0.0, 3.0]]] }, {}, { select: 'ALL_ATTRIBUTES' }).to_a).to eq [[[{ id: '1', range: BigDecimal('1') }, { id: '1', range: BigDecimal('3') }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table with a range and selects items greater than' do
-      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:gt, 1.0]] }).to_a).to eq [[[{ id: '1', range: BigDecimal(3) }], { last_evaluated_key: nil }]]
+      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:gt, 1.0]] }).to_a).to eq [[[{ id: '1', range: BigDecimal('3') }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table with a range and selects items less than' do
-      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:lt, 2.0]] }).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }], { last_evaluated_key: nil }]]
+      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:lt, 2.0]] }).to_a).to eq [[[{ id: '1', range: BigDecimal('1') }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table with a range and selects items gte' do
-      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:gte, 1.0]] }).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], { last_evaluated_key: nil }]]
+      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:gte, 1.0]] }).to_a).to eq [[[{ id: '1', range: BigDecimal('1') }, { id: '1', range: BigDecimal('3') }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table with a range and selects items lte' do
-      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:lte, 3.0]] }).to_a).to eq [[[{ id: '1', range: BigDecimal(1) }, { id: '1', range: BigDecimal(3) }], { last_evaluated_key: nil }]]
+      expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']], range: [[:lte, 3.0]] }).to_a).to eq [[[{ id: '1', range: BigDecimal('1') }, { id: '1', range: BigDecimal('3') }], { last_evaluated_key: nil }]]
     end
 
     it 'performs query on a table and returns items based on returns correct limit' do
@@ -333,22 +333,22 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
     it 'performs query on a table with a range and selects items less than that is in the correct order, scan_index_forward true' do
       query = Dynamoid.adapter.query(test_table4, { id: [[:eq, '1']], range: [[:gt, 0]] }, {}, { scan_index_forward: true }).flat_map { |i| i }.to_a
-      expect(query[0]).to eq(id: '1', order: 1, range: BigDecimal(1))
-      expect(query[1]).to eq(id: '1', order: 2, range: BigDecimal(2))
-      expect(query[2]).to eq(id: '1', order: 3, range: BigDecimal(3))
-      expect(query[3]).to eq(id: '1', order: 4, range: BigDecimal(4))
-      expect(query[4]).to eq(id: '1', order: 5, range: BigDecimal(5))
-      expect(query[5]).to eq(id: '1', order: 6, range: BigDecimal(6))
+      expect(query[0]).to eq(id: '1', order: 1, range: BigDecimal('1'))
+      expect(query[1]).to eq(id: '1', order: 2, range: BigDecimal('2'))
+      expect(query[2]).to eq(id: '1', order: 3, range: BigDecimal('3'))
+      expect(query[3]).to eq(id: '1', order: 4, range: BigDecimal('4'))
+      expect(query[4]).to eq(id: '1', order: 5, range: BigDecimal('5'))
+      expect(query[5]).to eq(id: '1', order: 6, range: BigDecimal('6'))
     end
 
     it 'performs query on a table with a range and selects items less than that is in the correct order, scan_index_forward false' do
       query = Dynamoid.adapter.query(test_table4, { id: [[:eq, '1']], range: [[:gt, 0]] }, {}, { scan_index_forward: false }).flat_map { |i| i }.to_a
-      expect(query[5]).to eq(id: '1', order: 1, range: BigDecimal(1))
-      expect(query[4]).to eq(id: '1', order: 2, range: BigDecimal(2))
-      expect(query[3]).to eq(id: '1', order: 3, range: BigDecimal(3))
-      expect(query[2]).to eq(id: '1', order: 4, range: BigDecimal(4))
-      expect(query[1]).to eq(id: '1', order: 5, range: BigDecimal(5))
-      expect(query[0]).to eq(id: '1', order: 6, range: BigDecimal(6))
+      expect(query[5]).to eq(id: '1', order: 1, range: BigDecimal('1'))
+      expect(query[4]).to eq(id: '1', order: 2, range: BigDecimal('2'))
+      expect(query[3]).to eq(id: '1', order: 3, range: BigDecimal('3'))
+      expect(query[2]).to eq(id: '1', order: 4, range: BigDecimal('4'))
+      expect(query[1]).to eq(id: '1', order: 5, range: BigDecimal('5'))
+      expect(query[0]).to eq(id: '1', order: 6, range: BigDecimal('6'))
     end
   end
 
@@ -490,8 +490,8 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         expect(results).to match(
           {
             table_with_composite_key => contain_exactly(
-              { id: '1', age: 29.to_d, name: 'Josh' },
-              { id: '2', age: 16.to_d, name: 'Justin' },
+              { id: '1', age: BigDecimal('29'), name: 'Josh' },
+              { id: '2', age: BigDecimal('16'), name: 'Justin' },
             )
           }
         )
@@ -584,7 +584,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         Dynamoid.adapter.put_item(table, id: '1')
         results = Dynamoid.adapter.batch_get_item(table => '1') { |batch, _| batch }
 
-        expect(results).to eq nil
+        expect(results).to be_nil
       end
 
       it 'calles block for each loaded items batch' do
@@ -1049,7 +1049,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       ).to match(
         [
           [
-            match_array([{ name: 'Josh', id: '2' }, { name: 'Josh', id: '1' }]),
+            contain_exactly({ name: 'Josh', id: '2' }, { name: 'Josh', id: '1' }),
             { last_evaluated_key: nil }
           ]
         ]

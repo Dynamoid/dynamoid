@@ -210,7 +210,7 @@ module Dynamoid
     # datetime -> integer/string
     class DateTimeDumper < Base
       def process(value)
-        !value.nil? ? format_datetime(value, @options) : nil
+        value.nil? ? nil : format_datetime(value, @options)
       end
 
       private
@@ -237,7 +237,7 @@ module Dynamoid
     # date -> integer/string
     class DateDumper < Base
       def process(value)
-        !value.nil? ? format_date(value, @options) : nil
+        value.nil? ? nil : format_date(value, @options)
       end
 
       private

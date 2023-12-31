@@ -33,21 +33,21 @@ module Dynamoid
         defaults[name] = settings[name] = options[:default]
 
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{name}
-            settings[#{name.inspect}]
-          end
+          def #{name}                                               # def endpoint
+            settings[#{name.inspect}]                               #   settings["endpoint"]
+          end                                                       # end
 
-          def #{name}=(value)
-            settings[#{name.inspect}] = value
-          end
+          def #{name}=(value)                                       # def endpoint=(value)
+            settings[#{name.inspect}] = value                       #   settings["endpoint"] = value
+          end                                                       # end
 
-          def #{name}?
-            #{name}
-          end
+          def #{name}?                                              # def endpoint?
+            #{name}                                                 #   endpoint
+          end                                                       # end
 
-          def reset_#{name}
-            settings[#{name.inspect}] = defaults[#{name.inspect}]
-          end
+          def reset_#{name}                                         # def reset_endpoint
+            settings[#{name.inspect}] = defaults[#{name.inspect}]   #   settings["endpoint"] = defaults["endpoint"]
+          end                                                       # end
         RUBY
       end
 

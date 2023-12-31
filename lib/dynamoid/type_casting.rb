@@ -57,11 +57,12 @@ module Dynamoid
 
     class StringTypeCaster < Base
       def process(value)
-        if value == true
+        case value
+        when true
           't'
-        elsif value == false
+        when false
           'f'
-        elsif value.is_a? String
+        when String
           value.dup
         else
           value.to_s
@@ -71,6 +72,7 @@ module Dynamoid
 
     class IntegerTypeCaster < Base
       def process(value)
+        # rubocop:disable Lint/DuplicateBranch
         if value == true
           1
         elsif value == false
@@ -84,11 +86,13 @@ module Dynamoid
         else
           value.to_i
         end
+        # rubocop:enable Lint/DuplicateBranch
       end
     end
 
     class NumberTypeCaster < Base
       def process(value)
+        # rubocop:disable Lint/DuplicateBranch
         if value == true
           1
         elsif value == false
@@ -104,6 +108,7 @@ module Dynamoid
         else
           value.to_d
         end
+        # rubocop:enable Lint/DuplicateBranch
       end
     end
 
@@ -135,7 +140,7 @@ module Dynamoid
           raise ArgumentError, "Set element type #{element_type} isn't supported"
         end
 
-        set.map { |el| type_caster.process(el) }.to_set
+        set.to_set { |el| type_caster.process(el) }
       end
 
       def element_type
@@ -227,10 +232,10 @@ module Dynamoid
           nil
         elsif value.is_a?(String)
           dt = begin
-                 DateTime.parse(value)
-               rescue StandardError
-                 nil
-               end
+            DateTime.parse(value)
+          rescue StandardError
+            nil
+          end
           if dt
             seconds = string_utc_offset(value) || ApplicationTimeZone.utc_offset
             offset = seconds_to_offset(seconds)
@@ -255,9 +260,7 @@ module Dynamoid
 
     class DateTypeCaster < Base
       def process(value)
-        if !value.respond_to?(:to_date)
-          nil
-        else
+        if value.respond_to?(:to_date)
           begin
             value.to_date
           rescue StandardError
@@ -277,10 +280,8 @@ module Dynamoid
       def process(value)
         if value == ''
           nil
-        elsif [false, 'false', 'FALSE', 0, '0', 'f', 'F', 'off', 'OFF'].include? value
-          false
         else
-          true
+          ![false, 'false', 'FALSE', 0, '0', 'f', 'F', 'off', 'OFF'].include? value
         end
       end
     end

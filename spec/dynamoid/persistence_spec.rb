@@ -777,7 +777,7 @@ describe Dynamoid::Persistence do
 
         expect do
           klass_with_callback.create(name: 'Alex')
-        end.to output('start around_create' + 'finish around_create').to_stdout
+        end.to output('start around_createfinish around_create').to_stdout
       end
 
       it 'runs before_save callback' do
@@ -816,7 +816,7 @@ describe Dynamoid::Persistence do
 
         expect do
           klass_with_callback.create(name: 'Alex')
-        end.to output('start around_save' + 'finish around_save').to_stdout
+        end.to output('start around_savefinish around_save').to_stdout
       end
 
       it 'runs before_validation callback' do
@@ -868,7 +868,7 @@ describe Dynamoid::Persistence do
         end
 
         # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
+        expected_output = [ # rubocop:disable Style/StringConcatenation
           'run before_validation',
           'run after_validation',
           'run before_save',
@@ -1218,7 +1218,7 @@ describe Dynamoid::Persistence do
 
         expect do
           klass_with_callback.update!(model.id, name: '[Updated]')
-        end.to output('start around_update' + 'finish around_update').to_stdout
+        end.to output('start around_updatefinish around_update').to_stdout
       end
 
       it 'runs before_save callback' do
@@ -1271,7 +1271,7 @@ describe Dynamoid::Persistence do
 
           expect do
             klass_with_callback.update!(model.id, name: '[Updated]')
-          end.to output('start around_save' + 'finish around_save').to_stdout
+          end.to output('start around_savefinish around_save').to_stdout
         }.to output.to_stdout
       end
 
@@ -1336,7 +1336,7 @@ describe Dynamoid::Persistence do
         end
 
         # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
+        expected_output = [ # rubocop:disable Style/StringConcatenation
           'run before_validation',
           'run after_validation',
           'run before_save',
@@ -1609,7 +1609,7 @@ describe Dynamoid::Persistence do
             expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :created_at, :updated_at)
 
             expect {
-              document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+              document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: %i[version published_on] })
             }.to change { document_class.find(obj.id).title }.to('New title')
           end
 
@@ -1618,7 +1618,7 @@ describe Dynamoid::Persistence do
             expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :published_on, :created_at, :updated_at)
 
             expect {
-              result = document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+              result = document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: %i[version published_on] })
             }.not_to change { document_class.find(obj.id).title }
           end
 
@@ -1629,7 +1629,7 @@ describe Dynamoid::Persistence do
             expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :created_at, :updated_at)
 
             expect {
-              result = document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+              result = document_class.update_fields(obj.id, { title: 'New title' }, { unless_exists: %i[version published_on] })
             }.not_to change { document_class.find(obj.id).title }
           end
         end
@@ -1881,7 +1881,7 @@ describe Dynamoid::Persistence do
             expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :created_at, :updated_at)
 
             expect {
-              document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+              document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: %i[version published_on] })
             }.to change { document_class.find(obj.id).title }.to('New title')
           end
 
@@ -1890,7 +1890,7 @@ describe Dynamoid::Persistence do
             expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :published_on, :created_at, :updated_at)
 
             expect {
-              result = document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+              result = document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: %i[version published_on] })
             }.not_to change { document_class.find(obj.id).title }
           end
 
@@ -1901,7 +1901,7 @@ describe Dynamoid::Persistence do
             expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :created_at, :updated_at)
 
             expect {
-              result = document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: [:version, :published_on] })
+              result = document_class.upsert(obj.id, { title: 'New title' }, { unless_exists: %i[version published_on] })
             }.not_to change { document_class.find(obj.id).title }
           end
         end
@@ -2552,7 +2552,7 @@ describe Dynamoid::Persistence do
           end
 
           obj = klass_with_callback.new(name: 'Alex')
-          expect { obj.save }.to output('start around_create' + 'finish around_create').to_stdout
+          expect { obj.save }.to output('start around_createfinish around_create').to_stdout
         end
 
         it 'runs callbacks in the proper order' do
@@ -2583,7 +2583,7 @@ describe Dynamoid::Persistence do
           obj = klass_with_callbacks.new(name: 'Alex')
 
           # print each message on new line to force RSpec to show meaningful diff
-          expected_output = [
+          expected_output = [ # rubocop:disable Style/StringConcatenation
             'run before_validation',
             'run after_validation',
             'run before_save',
@@ -2638,7 +2638,7 @@ describe Dynamoid::Persistence do
           end
 
           obj = klass_with_callback.create(name: 'Alex')
-          expect { obj.save }.to output('start around_update' + 'finish around_update').to_stdout
+          expect { obj.save }.to output('start around_updatefinish around_update').to_stdout
         end
 
         it 'runs callbacks in the proper order' do
@@ -2670,7 +2670,7 @@ describe Dynamoid::Persistence do
           end
 
           # print each message on new line to force RSpec to show meaningful diff
-          expected_output = [
+          expected_output = [ # rubocop:disable Style/StringConcatenation
             'run before_validation',
             'run after_validation',
             'run before_save',
@@ -2725,7 +2725,7 @@ describe Dynamoid::Persistence do
         end
 
         obj = klass_with_callback.new(name: 'Alex')
-        expect { obj.save }.to output('start around_save' + 'finish around_save').to_stdout
+        expect { obj.save }.to output('start around_savefinish around_save').to_stdout
       end
 
       it 'runs before_validation callback' do
@@ -2887,7 +2887,7 @@ describe Dynamoid::Persistence do
 
         it 'does not change updated_at if attributes were assigned the same values' do
           obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
-          obj.title = obj.title
+          obj.title = obj.title # rubocop:disable Lint/SelfAssignment
 
           expect { obj.save }.not_to change { obj.updated_at }
         end
@@ -3100,7 +3100,7 @@ describe Dynamoid::Persistence do
 
       it 'does not change updated_at if attributes were assigned the same values' do
         obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
-        obj.title = obj.title
+        obj.title = obj.title # rubocop:disable Lint/SelfAssignment
 
         expect do
           obj.update_attribute(:title, 'Old title')
@@ -3165,7 +3165,7 @@ describe Dynamoid::Persistence do
 
         expect do
           obj.update_attribute(:name, 'Alexey')
-        end.to output('start around_update' + 'finish around_update').to_stdout
+        end.to output('start around_updatefinish around_update').to_stdout
       end
 
       it 'runs before_save callback' do
@@ -3218,7 +3218,7 @@ describe Dynamoid::Persistence do
 
           expect do
             obj.update_attribute(:name, 'Alexey')
-          end.to output('start around_save' + 'finish around_save').to_stdout
+          end.to output('start around_savefinish around_save').to_stdout
         }.to output.to_stdout
       end
 
@@ -3282,7 +3282,7 @@ describe Dynamoid::Persistence do
         end
 
         # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
+        expected_output = [ # rubocop:disable Style/StringConcatenation
           'run before_save',
           'start around_save',
           'run before_update',
@@ -3395,7 +3395,7 @@ describe Dynamoid::Persistence do
 
       it 'does not change updated_at if attributes were assigned the same values' do
         obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
-        obj.title = obj.title
+        obj.title = obj.title # rubocop:disable Lint/SelfAssignment
 
         expect do
           obj.update_attributes(title: 'Old title')
@@ -3450,7 +3450,7 @@ describe Dynamoid::Persistence do
         end
         model = klass_with_callbacks.create(name: 'John')
 
-        expected_output = \
+        expected_output =
           'run before_save' \
           'run before_update' \
           'run after_update' \
@@ -3586,7 +3586,7 @@ describe Dynamoid::Persistence do
 
       it 'does not change updated_at if attributes were assigned the same values' do
         obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
-        obj.title = obj.title
+        obj.title = obj.title # rubocop:disable Lint/SelfAssignment
 
         expect do
           obj.update_attributes!(title: 'Old title')
@@ -3638,7 +3638,7 @@ describe Dynamoid::Persistence do
 
         expect do
           obj.update_attributes!(name: 'Alexey')
-        end.to output('start around_update' + 'finish around_update').to_stdout
+        end.to output('start around_updatefinish around_update').to_stdout
       end
 
       it 'runs before_save callback' do
@@ -3691,7 +3691,7 @@ describe Dynamoid::Persistence do
 
           expect do
             obj.update_attributes!(name: 'Alexey')
-          end.to output('start around_save' + 'finish around_save').to_stdout
+          end.to output('start around_savefinish around_save').to_stdout
         }.to output.to_stdout
       end
 
@@ -3758,7 +3758,7 @@ describe Dynamoid::Persistence do
         end
 
         # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
+        expected_output = [ # rubocop:disable Style/StringConcatenation
           'run before_validation',
           'run after_validation',
           'run before_save',
@@ -4309,7 +4309,7 @@ describe Dynamoid::Persistence do
             expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :created_at, :updated_at)
 
             expect {
-              obj.update(unless_exists: [:version, :published_on]) { |t| t.set(title: 'New title') }
+              obj.update(unless_exists: %i[version published_on]) { |t| t.set(title: 'New title') }
             }.to change { document_class.find(obj.id).title }.to('New title')
           end
 
@@ -4318,7 +4318,7 @@ describe Dynamoid::Persistence do
             expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :published_on, :created_at, :updated_at)
 
             expect {
-              obj.update(unless_exists: [:version, :published_on]) { |t| t.set(title: 'New title') }
+              obj.update(unless_exists: %i[version published_on]) { |t| t.set(title: 'New title') }
             }.not_to change { document_class.find(obj.id).title }
           end
 
@@ -4329,7 +4329,7 @@ describe Dynamoid::Persistence do
             expect(raw_attributes(obj).keys).to contain_exactly(:id, :title, :version, :created_at, :updated_at)
 
             expect {
-              obj.update(unless_exists: [:version, :published_on]) { |t| t.set(title: 'New title') }
+              obj.update(unless_exists: %i[version published_on]) { |t| t.set(title: 'New title') }
             }.not_to change { document_class.find(obj.id).title }
           end
         end
@@ -4501,7 +4501,7 @@ describe Dynamoid::Persistence do
           model.update do |t|
             t.add(count: 3)
           end
-        end.to output('start around_update' + 'finish around_update').to_stdout
+        end.to output('start around_updatefinish around_update').to_stdout
       end
 
       it 'runs callbacks in the proper order' do
@@ -4535,7 +4535,7 @@ describe Dynamoid::Persistence do
         end
 
         # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
+        expected_output = [ # rubocop:disable Style/StringConcatenation
           'run before_update',
           'start around_update',
           'finish around_update',
@@ -4591,7 +4591,7 @@ describe Dynamoid::Persistence do
 
         obj = klass_with_callback.create
 
-        expect { obj.destroy }.to output('start around_destroy' + 'finish around_destroy').to_stdout
+        expect { obj.destroy }.to output('start around_destroyfinish around_destroy').to_stdout
       end
     end
   end
