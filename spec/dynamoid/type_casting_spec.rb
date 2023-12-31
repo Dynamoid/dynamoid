@@ -445,7 +445,7 @@ describe 'Type casting' do
     end
   end
 
-  describe 'Raw field' do
+  describe 'Raw field' do # rubocop:disable Lint/EmptyBlock
   end
 
   describe 'Map field' do
@@ -680,10 +680,10 @@ describe 'Type casting' do
     end
   end
 
-  describe 'Serialized field' do
+  describe 'Serialized field' do # rubocop:disable Lint/EmptyBlock
   end
 
-  describe 'Custom type field' do
+  describe 'Custom type field' do # rubocop:disable Lint/EmptyBlock
   end
 
   context 'there is no such field' do

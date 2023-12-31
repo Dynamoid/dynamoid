@@ -72,6 +72,7 @@ module Dynamoid
 
     class IntegerTypeCaster < Base
       def process(value)
+        # rubocop:disable Lint/DuplicateBranch
         if value == true
           1
         elsif value == false
@@ -85,11 +86,13 @@ module Dynamoid
         else
           value.to_i
         end
+        # rubocop:enable Lint/DuplicateBranch
       end
     end
 
     class NumberTypeCaster < Base
       def process(value)
+        # rubocop:disable Lint/DuplicateBranch
         if value == true
           1
         elsif value == false
@@ -105,6 +108,7 @@ module Dynamoid
         else
           value.to_d
         end
+        # rubocop:enable Lint/DuplicateBranch
       end
     end
 

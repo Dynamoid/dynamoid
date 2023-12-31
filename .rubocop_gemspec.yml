@@ -1,0 +1,9 @@
+# specifying Ruby version would be a breaking change
+# we may consider adding `required_ruby_version` in the next major release
+Gemspec/RequiredRubyVersion:
+  Enabled: false
+
+# development dependencies specified in the gemspec file are shared
+# by the main Gemfile and gemfiles in the gemfiles/ directory that are used on CI
+Gemspec/DevelopmentDependencies:
+  Enabled: false

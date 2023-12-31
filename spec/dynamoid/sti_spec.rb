@@ -47,6 +47,7 @@ RSpec.describe 'STI' do
 
   describe 'persistence' do
     before do
+      # rubocop:disable Lint/ConstantDefinitionInBlock
       A = new_class class_name: 'A' do
         field :type
       end
@@ -65,6 +66,7 @@ RSpec.describe 'STI' do
           'D'
         end
       end
+      # rubocop:enable Lint/ConstantDefinitionInBlock
     end
 
     after do
@@ -125,6 +127,7 @@ RSpec.describe 'STI' do
 
   describe '`inheritance_field` document option' do
     before do
+      # rubocop:disable Lint/ConstantDefinitionInBlock
       A = new_class class_name: 'A' do
         table inheritance_field: :type_new
 
@@ -137,6 +140,7 @@ RSpec.describe 'STI' do
           'B'
         end
       end
+      # rubocop:enable Lint/ConstantDefinitionInBlock
     end
 
     after do
@@ -163,6 +167,7 @@ RSpec.describe 'STI' do
 
   describe '`sti_name` support' do
     before do
+      # rubocop:disable Lint/ConstantDefinitionInBlock
       A = new_class class_name: 'A' do
         field :type
 
@@ -178,6 +183,7 @@ RSpec.describe 'STI' do
           'beta'
         end
       end
+      # rubocop:enable Lint/ConstantDefinitionInBlock
     end
 
     after do
@@ -194,9 +200,11 @@ RSpec.describe 'STI' do
 
   describe 'sti_class_for' do
     before do
+      # rubocop:disable Lint/ConstantDefinitionInBlock
       A = new_class class_name: 'A' do
         field :type
       end
+      # rubocop:enable Lint/ConstantDefinitionInBlock
     end
 
     after do

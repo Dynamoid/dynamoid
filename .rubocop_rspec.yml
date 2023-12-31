@@ -4,6 +4,9 @@ RSpec/FilePath:
 RSpec/MultipleExpectations:
   Enabled: false
 
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
 RSpec/NamedSubject:
   Enabled: false
 
@@ -21,7 +24,7 @@ RSpec/InstanceVariable:
 
 RSpec/NestedGroups:
   Enabled: false
-  
+
 RSpec/ExpectInHook:
   Enabled: false
 
@@ -29,4 +32,13 @@ RSpec/ExpectInHook:
 #        expected #<Fixnum:...> => 101
 #            got #<BigDecimal:...> => 101.0 (0.101e3)
 RSpec/BeEql:
+  Enabled: false
+
+RSpec/BeEq:
+  Enabled: false
+
+RSpec/StubbedMock:
+  Enabled: false
+
+RSpec/IndexedLet:
   Enabled: false

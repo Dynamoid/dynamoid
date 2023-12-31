@@ -102,6 +102,7 @@ module Dynamoid
         # The only difference is that to update item we need to track whether
         # attribute value is nil or not.
         def sanitize_attributes(attributes)
+          # rubocop:disable Lint/DuplicateBranch
           attributes.transform_values do |v|
             if v.is_a?(Hash)
               v.stringify_keys
@@ -113,6 +114,7 @@ module Dynamoid
               v
             end
           end
+          # rubocop:enable Lint/DuplicateBranch
         end
       end
     end

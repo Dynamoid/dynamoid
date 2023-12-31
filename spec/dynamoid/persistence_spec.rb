@@ -868,7 +868,7 @@ describe Dynamoid::Persistence do
         end
 
         # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
+        expected_output = [ # rubocop:disable Style/StringConcatenation
           'run before_validation',
           'run after_validation',
           'run before_save',
@@ -1336,7 +1336,7 @@ describe Dynamoid::Persistence do
         end
 
         # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
+        expected_output = [ # rubocop:disable Style/StringConcatenation
           'run before_validation',
           'run after_validation',
           'run before_save',
@@ -2583,7 +2583,7 @@ describe Dynamoid::Persistence do
           obj = klass_with_callbacks.new(name: 'Alex')
 
           # print each message on new line to force RSpec to show meaningful diff
-          expected_output = [
+          expected_output = [ # rubocop:disable Style/StringConcatenation
             'run before_validation',
             'run after_validation',
             'run before_save',
@@ -2670,7 +2670,7 @@ describe Dynamoid::Persistence do
           end
 
           # print each message on new line to force RSpec to show meaningful diff
-          expected_output = [
+          expected_output = [ # rubocop:disable Style/StringConcatenation
             'run before_validation',
             'run after_validation',
             'run before_save',
@@ -2887,7 +2887,7 @@ describe Dynamoid::Persistence do
 
         it 'does not change updated_at if attributes were assigned the same values' do
           obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
-          obj.title = obj.title
+          obj.title = obj.title # rubocop:disable Lint/SelfAssignment
 
           expect { obj.save }.not_to change { obj.updated_at }
         end
@@ -3100,7 +3100,7 @@ describe Dynamoid::Persistence do
 
       it 'does not change updated_at if attributes were assigned the same values' do
         obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
-        obj.title = obj.title
+        obj.title = obj.title # rubocop:disable Lint/SelfAssignment
 
         expect do
           obj.update_attribute(:title, 'Old title')
@@ -3282,7 +3282,7 @@ describe Dynamoid::Persistence do
         end
 
         # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
+        expected_output = [ # rubocop:disable Style/StringConcatenation
           'run before_save',
           'start around_save',
           'run before_update',
@@ -3395,7 +3395,7 @@ describe Dynamoid::Persistence do
 
       it 'does not change updated_at if attributes were assigned the same values' do
         obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
-        obj.title = obj.title
+        obj.title = obj.title # rubocop:disable Lint/SelfAssignment
 
         expect do
           obj.update_attributes(title: 'Old title')
@@ -3586,7 +3586,7 @@ describe Dynamoid::Persistence do
 
       it 'does not change updated_at if attributes were assigned the same values' do
         obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
-        obj.title = obj.title
+        obj.title = obj.title # rubocop:disable Lint/SelfAssignment
 
         expect do
           obj.update_attributes!(title: 'Old title')
@@ -3758,7 +3758,7 @@ describe Dynamoid::Persistence do
         end
 
         # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
+        expected_output = [ # rubocop:disable Style/StringConcatenation
           'run before_validation',
           'run after_validation',
           'run before_save',
@@ -4535,7 +4535,7 @@ describe Dynamoid::Persistence do
         end
 
         # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [
+        expected_output = [ # rubocop:disable Style/StringConcatenation
           'run before_update',
           'start around_update',
           'finish around_update',

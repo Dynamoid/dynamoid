@@ -46,6 +46,7 @@ module Dynamoid
       CONNECTION_CONFIG_OPTIONS = %i[endpoint region http_continue_timeout http_idle_timeout http_open_timeout http_read_timeout].freeze
 
       # See https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+      # rubocop:disable Metrics/CollectionLiteralLength
       RESERVED_WORDS = Set.new(
         %i[
           ABORT ABSOLUTE ACTION ADD AFTER AGENT AGGREGATE ALL ALLOCATE ALTER ANALYZE
@@ -107,6 +108,7 @@ module Dynamoid
           WHILE WINDOW WITH WITHIN WITHOUT WORK WRAPPED WRITE YEAR ZONE
         ]
       ).freeze
+      # rubocop:enable Metrics/CollectionLiteralLength
 
       attr_reader :table_cache
 

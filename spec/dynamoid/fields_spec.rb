@@ -129,7 +129,7 @@ describe Dynamoid::Fields do
     expect(address.city).to eq 'Chicago'
   end
 
-  it 'declares a query attribute' do
+  it 'declares a query attribute' do # rubocop:disable Lint/EmptyBlock, RSpec/NoExpectationExample
   end
 
   it 'automatically declares id' do

@@ -240,7 +240,7 @@ describe Dynamoid::Document do
 
   shared_examples 'it has equality testing and hashing' do
     it 'is equal to itself' do
-      expect(document).to eq document
+      expect(document).to eq document # rubocop:disable RSpec/IdenticalEqualityAssertion
     end
 
     it 'is equal to another document with the same key(s)' do

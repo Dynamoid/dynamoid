@@ -1210,6 +1210,7 @@ describe Dynamoid::Criteria::Chain do
     # https://github.com/Dynamoid/dynamoid/issues/435
     context 'when inheritance field (:type by default) is a GSI hash key' do
       it 'works without exception' do
+        # rubocop:disable Lint/ConstantDefinitionInBlock
         UserWithGSI = new_class class_name: 'UserWithGSI' do
           field :type
 
@@ -1217,6 +1218,8 @@ describe Dynamoid::Criteria::Chain do
                                  range_key: :created_at,
                                  projected_attributes: :all
         end
+        # rubocop:enable Lint/ConstantDefinitionInBlock
+
         obj = UserWithGSI.create
 
         actual = UserWithGSI.where(type: 'UserWithGSI').all.to_a
@@ -1302,7 +1305,7 @@ describe Dynamoid::Criteria::Chain do
         object = klass_with_callback.create!(name: 'Alex')
 
         expect do
-          klass_with_callback.where(name: 'Alex').find_by_pages { |*| }
+          klass_with_callback.where(name: 'Alex').find_by_pages { |*| } # rubocop:disable Lint/EmptyBlock
         end.to output('run after_initialize').to_stdout
       end
 
@@ -1315,7 +1318,7 @@ describe Dynamoid::Criteria::Chain do
         object = klass_with_callback.create!(name: 'Alex')
 
         expect do
-          klass_with_callback.where(name: 'Alex').find_by_pages { |*| }
+          klass_with_callback.where(name: 'Alex').find_by_pages { |*| } # rubocop:disable Lint/EmptyBlock
         end.to output('run after_find').to_stdout
       end
 
@@ -1329,7 +1332,7 @@ describe Dynamoid::Criteria::Chain do
         object = klass_with_callback.create!(name: 'Alex')
 
         expect do
-          klass_with_callback.where(name: 'Alex').find_by_pages { |*| }
+          klass_with_callback.where(name: 'Alex').find_by_pages { |*| } # rubocop:disable Lint/EmptyBlock
         end.to output('run after_initializerun after_find').to_stdout
       end
     end

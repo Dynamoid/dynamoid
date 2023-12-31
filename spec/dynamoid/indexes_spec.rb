@@ -378,6 +378,7 @@ describe Dynamoid::Indexes do
         context 'with custom type key params' do
           let(:doc_class) do
             new_class do
+              # rubocop:disable Lint/ConstantDefinitionInBlock
               class CustomType
                 def dynamoid_dump
                   name
@@ -387,6 +388,7 @@ describe Dynamoid::Indexes do
                   new(string.to_s)
                 end
               end
+              # rubocop:enable Lint/ConstantDefinitionInBlock
 
               field :custom_type_field, CustomType
               field :custom_type_range_field, CustomType

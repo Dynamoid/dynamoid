@@ -1,5 +1,6 @@
 # We chose not to make these changes
 inherit_from:
+  - .rubocop_gemspec.yml
   - .rubocop_performance.yml
   - .rubocop_rspec.yml
   - .rubocop_thread_safety.yml
@@ -17,6 +18,7 @@ require:
 AllCops:
   DisplayCopNames: true # Display the name of the failing cops
   TargetRubyVersion: 2.3
+  NewCops: enable
 
 # It's a matter of taste
 Layout/ParameterAlignment:
@@ -99,4 +101,11 @@ Naming/PredicateName:
   Enabled: false
 Security/YAMLLoad:
   Enabled: false
+
+Lint/EmptyClass:
+  Exclude:
+    - README.md
+Lint/EmptyBlock:
+  Exclude:
+    - README.md
 
