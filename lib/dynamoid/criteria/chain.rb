@@ -447,9 +447,9 @@ module Dynamoid
       # It takes one or more field names and returns a collection of models with only
       # these fields set.
       #
-      #   Post.where('views_count.gt' => 1000).select(:title)
-      #   Post.where('views_count.gt' => 1000).select(:title, :created_at)
-      #   Post.select(:id)
+      #   Post.where('views_count.gt' => 1000).project(:title)
+      #   Post.where('views_count.gt' => 1000).project(:title, :created_at)
+      #   Post.project(:id)
       #
       # It can be used to avoid loading large field values and to decrease a
       # memory footprint.
