@@ -47,33 +47,31 @@ RSpec.describe 'STI' do
 
   describe 'persistence' do
     before do
-      # rubocop:disable Lint/ConstantDefinitionInBlock
-      A = new_class class_name: 'A' do
+      class_a = new_class class_name: 'A' do
         field :type
       end
-      B = Class.new(A) do
+      stub_const 'A', class_a
+
+      class_b = Class.new(A) do
         def self.name
           'B'
         end
       end
-      C = Class.new(A) do
+      stub_const 'B', class_b
+
+      class_c = Class.new(A) do
         def self.name
           'C'
         end
       end
-      D = Class.new(B) do
+      stub_const 'C', class_c
+
+      class_d = Class.new(B) do
         def self.name
           'D'
         end
       end
-      # rubocop:enable Lint/ConstantDefinitionInBlock
-    end
-
-    after do
-      Object.send(:remove_const, :A)
-      Object.send(:remove_const, :B)
-      Object.send(:remove_const, :C)
-      Object.send(:remove_const, :D)
+      stub_const 'D', class_d
     end
 
     it 'saves subclass objects in the parent table' do
@@ -127,25 +125,20 @@ RSpec.describe 'STI' do
 
   describe '`inheritance_field` document option' do
     before do
-      # rubocop:disable Lint/ConstantDefinitionInBlock
-      A = new_class class_name: 'A' do
+      class_a = new_class class_name: 'A' do
         table inheritance_field: :type_new
 
         field :type
         field :type_new
       end
+      stub_const 'A', class_a
 
-      B = Class.new(A) do
+      class_b = Class.new(A) do
         def self.name
           'B'
         end
       end
-      # rubocop:enable Lint/ConstantDefinitionInBlock
-    end
-
-    after do
-      Object.send(:remove_const, :A)
-      Object.send(:remove_const, :B)
+      stub_const 'B', class_b
     end
 
     it 'allows to switch from `type` field to another one to store class name' do
@@ -167,8 +160,7 @@ RSpec.describe 'STI' do
 
   describe '`sti_name` support' do
     before do
-      # rubocop:disable Lint/ConstantDefinitionInBlock
-      A = new_class class_name: 'A' do
+      class_a = new_class class_name: 'A' do
         field :type
 
         def self.sti_class_for(type_name)
@@ -178,17 +170,14 @@ RSpec.describe 'STI' do
           end
         end
       end
-      B = Class.new(A) do
+      stub_const 'A', class_a
+
+      class_b = Class.new(A) do
         def self.sti_name
           'beta'
         end
       end
-      # rubocop:enable Lint/ConstantDefinitionInBlock
-    end
-
-    after do
-      Object.send(:remove_const, :A)
-      Object.send(:remove_const, :B)
+      stub_const 'B', class_b
     end
 
     it 'saves subclass objects in the parent table' do
@@ -200,15 +189,11 @@ RSpec.describe 'STI' do
 
   describe 'sti_class_for' do
     before do
-      # rubocop:disable Lint/ConstantDefinitionInBlock
-      A = new_class class_name: 'A' do
+      class_a = new_class class_name: 'A' do
         field :type
       end
-      # rubocop:enable Lint/ConstantDefinitionInBlock
-    end
 
-    after do
-      Object.send(:remove_const, :A)
+      stub_const 'A', class_a
     end
 
     it 'successes exist class' do

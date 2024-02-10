@@ -603,7 +603,7 @@ describe Dynamoid::Persistence do
 
   context 'with namespace is empty' do
     def reload_address
-      Object.send(:remove_const, 'Address')
+      Object.send(:remove_const, 'Address') # rubocop:disable RSpec/RemoveConst
       load 'app/models/address.rb'
     end
 
