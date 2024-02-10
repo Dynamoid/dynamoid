@@ -13,8 +13,12 @@ require 'dynamoid/log/formatter'
 # Pry.start
 
 Dynamoid.configure do |config|
-  config.access_key = 'REPLACE_WITH_ACCESS_KEY_ID'
-  config.secret_key = 'REPLACE_WITH_SECRET_ACCESS_KEY'
+  # DynamoDB local version 2.0.0 and greater AWS_ACCESS_KEY_ID can contain
+  # the only letters (A–Z, a–z) and numbers (0–9).
+  # See https://hub.docker.com/r/amazon/dynamodb-local
+  config.access_key = 'accesskey'
+  config.secret_key = 'secretkey'
+
   config.region = 'us-west-2'
   config.endpoint = 'http://localhost:8000'
   config.log_formatter = Dynamoid::Log::Formatter::Compact.new

@@ -7,15 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-
 ### Added
-* [#697](https://github.com/Dynamoid/dynamoid/pull/697) Ensure Ruby 3.3 and Rails 7.1 versions are supported and added them on CI.
-
 ### Changed
-
 ### Removed
 
-## 3.9.0
+## 3.10.0
+### Fixed
+* [#681](https://github.com/Dynamoid/dynamoid/pull/681) Fixed saving persisted model and deleting attributes with `nil` value if `config.store_attribute_with_nil_value` is `false`
+* [#716](https://github.com/Dynamoid/dynamoid/pull/716), [#691](https://github.com/Dynamoid/dynamoid/pull/691), [#687](https://github.com/Dynamoid/dynamoid/pull/687), [#660](https://github.com/Dynamoid/dynamoid/pull/660) Numerous fixes in README.md and RDoc documentation (@ndjndj, @kiharito, @dunkOnIT)
+### Added
+* [#656](https://github.com/Dynamoid/dynamoid/pull/656) Added a `create_table_on_save` configuration flag to create table on save (@imaximix)
+* [#697](https://github.com/Dynamoid/dynamoid/pull/697) Ensure Ruby 3.3 and Rails 7.1 versions are supported and added them on CI
+### Changed
+* [#655](https://github.com/Dynamoid/dynamoid/pull/655) Support multiple `where` in the same chain with multiple conditions for the same field
+
+## 3.9.0 / 2023-04-13
 ### Fixed
 * [#610](https://github.com/Dynamoid/dynamoid/pull/610) Specs in JRuby; Support for JRuby 9.4.0.0 (@pboling)
 * [#624](https://github.com/Dynamoid/dynamoid/pull/624) Fixed `#increment!`/`#decrement!` methods and made them compatible with Rails counterparts
@@ -58,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * [#633](https://github.com/Dynamoid/dynamoid/pull/633) Change `#inspect` method to return only attributes
 * [#623](https://github.com/Dynamoid/dynamoid/pull/623) Optimized performance of persisting to send only changed attributes in a request to DynamoDB
 
-## 3.8.0
+## 3.8.0 / 2022-11-09
 ### Fixed
 * [#525](https://github.com/Dynamoid/dynamoid/pull/525) Don't mark an attribute as changed if new assigned value equals the old one (@a5-stable)
 * Minor changes in the documentation:

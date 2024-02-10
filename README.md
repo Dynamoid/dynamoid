@@ -1132,12 +1132,12 @@ Listed below are all configuration options.
   in ISO 8601 string format. Default is `false`
 * `store_boolean_as_native` - if `true` Dynamoid stores boolean fields
   as native DynamoDB boolean values. Otherwise boolean fields are stored
-  as string values `'t'` and `'f'`. Default is true
+  as string values `'t'` and `'f'`. Default is `true`
 * `backoff` - is a hash: key is a backoff strategy (symbol), value is
   parameters for the strategy. Is used in batch operations. Default id
   `nil`
 * `backoff_strategies`: is a hash and contains all available strategies.
-  Default is { constant: ..., exponential: ...}
+  Default is `{ constant: ..., exponential: ...}`
 * `log_formatter`: overrides default AWS SDK formatter. There are
   several canned formatters: `Aws::Log::Formatter.default`,
   `Aws::Log::Formatter.colored` and `Aws::Log::Formatter.short`. Please
@@ -1155,6 +1155,9 @@ Listed below are all configuration options.
 * `http_read_timeout`:The number of seconds to wait for HTTP response
   data. Default option value is `nil`. If not specified effected value
   is `60`
+* `create_table_on_save`: if `true` then Dynamoid creates a
+  corresponding table in DynamoDB at model persisting if the table
+  doesn't exist yet. Default is `true`
 
 
 ## Concurrency
