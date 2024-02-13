@@ -18,8 +18,9 @@ module Dynamoid
   module Persistence
     extend ActiveSupport::Concern
 
-    attr_accessor :new_record
+    attr_accessor :new_record, :destroyed
     alias new_record? new_record
+    alias destroyed? destroyed
 
     # @private
     UNIX_EPOCH_DATE = Date.new(1970, 1, 1).freeze

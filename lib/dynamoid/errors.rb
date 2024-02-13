@@ -6,6 +6,7 @@ module Dynamoid
     # Generic Dynamoid error
     class Error < StandardError; end
 
+    class MissingHashKey < Error; end
     class MissingRangeKey < Error; end
 
     class MissingIndex < Error; end

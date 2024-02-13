@@ -1047,6 +1047,11 @@ resolving the fields with a second query against the table since a query
 against GSI then a query on base table is still likely faster than scan
 on the base table*
 
+### Transaction Writes
+
+Multiple write actions can be grouped together and submitted as an all-or-nothing operation.
+See the [transation documentation](README_transact.md).
+
 ### PartiQL
 
 To run PartiQL statements `Dynamoid.adapter.execute` method should be
@@ -1350,6 +1355,7 @@ just as accessible to the Ruby world as MongoDB.
 Also, without contributors the project wouldn't be nearly as awesome. So
 many thanks to:
 
+* [Chris Hobbs](https://github.com/ckhsponge)
 * [Logan Bowers](https://github.com/loganb)
 * [Lane LaRue](https://github.com/luxx)
 * [Craig Heneveld](https://github.com/cheneveld)

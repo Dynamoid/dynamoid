@@ -8,6 +8,7 @@ require_relative 'aws_sdk_v3/batch_get_item'
 require_relative 'aws_sdk_v3/item_updater'
 require_relative 'aws_sdk_v3/table'
 require_relative 'aws_sdk_v3/until_past_table_status'
+require_relative 'aws_sdk_v3/transact'
 
 module Dynamoid
   # @private
@@ -287,6 +288,10 @@ module Dynamoid
         end
       rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
         raise Dynamoid::Errors::ConditionalCheckFailedException, e
+      end
+
+      def transact_write_items(items)
+        Transact.new(client).transact_write_items(items)
       end
 
       # Create a table on DynamoDB. This usually takes a long time to complete.
