@@ -5,8 +5,8 @@ require_relative 'action'
 module Dynamoid
   class TransactionWrite
     class UpdateUpsert < Action
-      def initialize(model_or_model_class, attributes = {}, options = {})
-        super(model_or_model_class, attributes, options)
+      def initialize(model_or_model_class, attributes = {}, options = {}, &block)
+        super(model_or_model_class, attributes, options, &block)
 
         write_attributes_to_model
       end
@@ -37,13 +37,8 @@ module Dynamoid
         # e.g. {":updated_at" => 1645453.234, ":i" => 1}
         expression_attribute_values = item_keys.each_with_index.map { |k, i| [":_s#{i}", item[k]] }.to_h
 
-        if options[:add] # not yet documented or supported, may change in a future release
-          # ADD statements can be used to increment a counter:
-          # txn.update!(UserCount, "UserCount#Red", {}, options: {add: {record_count: 1}})
-          add_keys = options[:add].keys
-          update_expression += " ADD #{add_keys.each_with_index.map { |k, i| "#{k} :_a#{i}" }.join(', ')}"
-          add_keys.each_with_index { |k, i| expression_attribute_values[":_a#{i}"] = options[:add][k] }
-        end
+        update_expression = set_additions(expression_attribute_values, update_expression)
+        update_expression = set_deletions(expression_attribute_values, update_expression)
 
         # only alias names for fields in models, other values such as for ADD do not have them
         # e.g. {"#updated_at" => "updated_at"}
@@ -66,6 +61,46 @@ module Dynamoid
         result[:update][:condition_expression] = condition_expression unless options[:skip_existence_check]
 
         result
+      end
+
+      private
+
+      # adds all of the ADD statements to the update_expression and returns it
+      def set_additions(expression_attribute_values, update_expression)
+        return update_expression unless additions.present?
+
+        # ADD statements can be used to increment a counter:
+        # txn.update!(UserCount, "UserCount#Red", {}, options: {add: {record_count: 1}})
+        add_keys = additions.keys
+        update_expression += " ADD #{add_keys.each_with_index.map { |k, i| "#{k} :_a#{i}" }.join(', ')}"
+        # convert any enumerables into sets
+        add_values = additions.transform_values do |v|
+          if !v.is_a?(Set) && v.is_a?(Enumerable)
+            Set.new(v)
+          else
+            v
+          end
+        end
+        add_keys.each_with_index { |k, i| expression_attribute_values[":_a#{i}"] = add_values[k] }
+        update_expression
+      end
+
+      # adds all of the DELETE statements to the update_expression and returns it
+      def set_deletions(expression_attribute_values, update_expression)
+        return update_expression unless deletions.present?
+
+        delete_keys = deletions.keys
+        update_expression += " DELETE #{delete_keys.each_with_index.map { |k, i| "#{k} :_d#{i}" }.join(', ')}"
+        # values must be sets
+        delete_values = deletions.transform_values do |v|
+          if v.is_a?(Set)
+            v
+          else
+            Set.new(v.is_a?(Enumerable) ? v : [v])
+          end
+        end
+        delete_keys.each_with_index { |k, i| expression_attribute_values[":_d#{i}"] = delete_values[k] }
+        update_expression
       end
     end
   end
