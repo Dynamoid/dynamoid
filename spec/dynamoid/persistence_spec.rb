@@ -4790,6 +4790,20 @@ describe Dynamoid::Persistence do
     end
   end
 
+  describe '.transact' do
+    before do
+      Address.create_table
+    end
+
+    it 'process transaction' do
+      expect do
+        Address.transact([{
+                           put: { city: 'Chicago' }
+                         }, { put: { city: 'New York' } }])
+      end.to change { Address.count }.by(2)
+    end
+  end
+
   describe '.import' do
     before do
       Address.create_table
