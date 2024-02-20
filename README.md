@@ -934,7 +934,6 @@ validation and callbacks.
 Address.find(id).update_attributes(city: 'Chicago')
 Address.find(id).update_attribute(:city, 'Chicago')
 Address.update(id, city: 'Chicago')
-Address.update(id, { city: 'Chicago' }, if: { deliverable: true })
 ```
 
 There are also some low level methods `#update`, `.update_fields` and
