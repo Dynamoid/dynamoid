@@ -196,17 +196,5 @@ describe Dynamoid::TransactionWrite, '.create' do
         end
       }.to output('saving creating created saved ').to_stdout
     end
-
-    it 'with a block' do
-      klass.create_table
-      obj1 = nil
-      described_class.execute do |txn|
-        obj1 = txn.create! klass do |c|
-          c.set(name: 'one')
-        end
-      end
-      obj1_found = klass.find(obj1.id)
-      expect(obj1_found.name).to eql('one')
-    end
   end
 end

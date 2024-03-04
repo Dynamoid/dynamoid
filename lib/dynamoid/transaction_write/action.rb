@@ -47,11 +47,6 @@ module Dynamoid
         attributes.merge!(values)
       end
 
-      # adds to array of fields for use in REMOVE update expression
-      def remove(field)
-        removals << field
-      end
-
       # increments a number or adds to a set, starts at 0 or [] if it doesn't yet exist
       def add(values)
         additions.merge!(values)
@@ -62,7 +57,8 @@ module Dynamoid
         if field_or_values.is_a?(Hash)
           deletions.merge!(field_or_values)
         else
-          remove(field_or_values)
+          # adds to array of fields for use in REMOVE update expression
+          removals << field_or_values
         end
       end
 
