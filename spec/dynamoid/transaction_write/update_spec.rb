@@ -299,7 +299,6 @@ describe Dynamoid::TransactionWrite, '.update' do
     context 'deletes' do
       it 'a scalar' do
         obj1 = klass.create!(name: 'one', favorite_numbers: [1, 2, 3])
-        obj1.name = 'oneone'
         described_class.execute do |txn|
           txn.update! obj1 do |u|
             u.delete(:name)
@@ -314,7 +313,6 @@ describe Dynamoid::TransactionWrite, '.update' do
 
       it 'an array' do
         obj1 = klass.create!(name: 'one', favorite_numbers: [1, 2, 3])
-        obj1.name = 'oneone'
         described_class.execute do |txn|
           txn.update! obj1 do |u|
             u.delete(:name)
@@ -329,7 +327,6 @@ describe Dynamoid::TransactionWrite, '.update' do
 
       it 'a set' do
         obj1 = klass.create!(name: 'one', favorite_numbers: [1, 2, 3])
-        obj1.name = 'oneone'
         described_class.execute do |txn|
           txn.update! obj1 do |u|
             u.delete(:name)
@@ -344,7 +341,6 @@ describe Dynamoid::TransactionWrite, '.update' do
 
       it 'a set of strings' do
         obj1 = klass.create!(name: 'one', favorite_names: %w[adam ben charlie])
-        obj1.name = 'oneone'
         described_class.execute do |txn|
           txn.update! obj1 do |u|
             u.delete(:name)

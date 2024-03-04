@@ -36,15 +36,17 @@ module Dynamoid
 
         # e.g. {":updated_at" => 1645453.234, ":i" => 1}
         expression_attribute_values = item_keys.each_with_index.map { |k, i| [":_s#{i}", item[k]] }.to_h
+        expression_attribute_names = {}
 
         update_expression = set_additions(expression_attribute_values, update_expression)
         update_expression = set_deletions(expression_attribute_values, update_expression)
+        expression_attribute_names, update_expression = set_removals(expression_attribute_names, update_expression)
 
         # only alias names for fields in models, other values such as for ADD do not have them
         # e.g. {"#updated_at" => "updated_at"}
         # attribute_keys_in_model = item_keys.intersection(model_class.attributes.keys)
         # expression_attribute_names = attribute_keys_in_model.map{|k| ["##{k}","#{k}"]}.to_h
-        expression_attribute_names = item_keys.each_with_index.map { |k, i| ["#_n#{i}", k.to_s] }.to_h
+        expression_attribute_names.merge!(item_keys.each_with_index.map { |k, i| ["#_n#{i}", k.to_s] }.to_h)
 
         condition_expression = "attribute_exists(#{model_class.hash_key})" # fail if record is missing
         condition_expression += " and attribute_exists(#{model_class.range_key})" if model_class.range_key? # needed?
@@ -101,6 +103,17 @@ module Dynamoid
         end
         delete_keys.each_with_index { |k, i| expression_attribute_values[":_d#{i}"] = delete_values[k] }
         update_expression
+      end
+
+      # adds all of the removals as a REMOVE clause
+      def set_removals(expression_attribute_names, update_expression)
+        return expression_attribute_names, update_expression unless removals.present?
+
+        update_expression += " REMOVE #{removals.each_with_index.map { |_k, i| "#_r#{i}" }.join(', ')}"
+        expression_attribute_names = expression_attribute_names.merge(
+          removals.each_with_index.map { |k, i| ["#_r#{i}", k.to_s] }.to_h
+        )
+        [expression_attribute_names, update_expression]
       end
     end
   end

@@ -54,8 +54,7 @@ An item can be updated by providing the hash key, range key if applicable, and t
 Updating fields can also be done within a block using the `set()` method.
 To increment a numeric value or to add values to a set use `add()` within the block.
 Similarly a field can be removed (set to nil) or values can be removed from a set by using `delete()` in the block.
-Upsert also accepts a block and can create or update.
-When adding within an upsert and no record exists the default is zero or an empty set.
+Upsert does not officially support using blocks but documentation for this is coming soon.
 ```ruby
 Dynamoid::TransactionWrite.execute do |txn|
   # sets the name and title for user 1
@@ -73,11 +72,6 @@ Dynamoid::TransactionWrite.execute do |txn|
   txn.update!(User, id: 3) do |u|
     u.add(friend_ids: [1, 2])
     u.delete(child_names: ['bebe'])
-  end
-
-  # creates a new record with frequency 1 or increments the existing frequency
-  txn.upsert!(Color, id: 'red') do |u|
-    u.add(frequency: 1)
   end
 end
 ```
