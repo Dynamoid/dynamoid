@@ -225,6 +225,51 @@ describe Dynamoid::TransactionWrite, '.update' do
         }.to output('saving updating updated saved ').to_stdout
       end
 
+      context 'sets in a block' do
+        it 'a string' do
+          obj1 = klass.create!(name: 'one', record_count: 10)
+          described_class.execute do |txn|
+            txn.update! obj1 do |u|
+              u.set(name: 'oneone')
+            end
+          end
+          obj1_found = klass.find(obj1.id)
+          expect(obj1_found).to eql(obj1)
+          expect(obj1_found.name).to eql('oneone')
+          expect(obj1_found.record_count).to eql(10)
+        end
+      end
+
+      context 'sets and adds in a block' do
+        it 'to an existing value' do
+          obj1 = klass.create!(name: 'one', record_count: 10)
+          described_class.execute do |txn|
+            txn.update! obj1 do |u|
+              u.set(name: 'oneone')
+              u.add(record_count: 5)
+            end
+          end
+          obj1_found = klass.find(obj1.id)
+          expect(obj1_found).to eql(obj1)
+          expect(obj1_found.name).to eql('oneone')
+          expect(obj1_found.record_count).to eql(15)
+        end
+
+        it 'an array' do
+          obj1 = klass.create!(name: 'one', favorite_numbers: [1, 2, 3])
+          described_class.execute do |txn|
+            txn.update! obj1 do |u|
+              u.set(name: 'oneone')
+              u.add(favorite_numbers: [4]) # must be enumerable
+            end
+          end
+          obj1_found = klass.find(obj1.id)
+          expect(obj1_found).to eql(obj1)
+          expect(obj1_found.name).to eql('oneone')
+          expect(obj1_found.favorite_numbers).to eql(Set[1, 2, 3, 4])
+        end
+      end
+
       context 'adds' do
         context 'a value' do
           it 'to nil which defaults to zero' do
@@ -243,13 +288,12 @@ describe Dynamoid::TransactionWrite, '.update' do
             obj1 = klass.create!(name: 'one', record_count: 10)
             described_class.execute do |txn|
               txn.update! obj1 do |u|
-                u.set(name: 'oneone')
                 u.add(record_count: 5)
               end
             end
             obj1_found = klass.find(obj1.id)
             expect(obj1_found).to eql(obj1)
-            expect(obj1_found.name).to eql('oneone')
+            expect(obj1_found.name).to eql('one')
             expect(obj1_found.record_count).to eql(15)
           end
         end
@@ -259,13 +303,12 @@ describe Dynamoid::TransactionWrite, '.update' do
             obj1 = klass.create!(name: 'one', favorite_numbers: [1, 2, 3])
             described_class.execute do |txn|
               txn.update! obj1 do |u|
-                u.set(name: 'oneone')
                 u.add(favorite_numbers: [4]) # must be enumerable
               end
             end
             obj1_found = klass.find(obj1.id)
             expect(obj1_found).to eql(obj1)
-            expect(obj1_found.name).to eql('oneone')
+            expect(obj1_found.name).to eql('one')
             expect(obj1_found.favorite_numbers).to eql(Set[1, 2, 3, 4])
           end
 
@@ -273,13 +316,12 @@ describe Dynamoid::TransactionWrite, '.update' do
             obj1 = klass.create!(name: 'one', favorite_numbers: [1, 2, 3])
             described_class.execute do |txn|
               txn.update! obj1 do |u|
-                u.set(name: 'oneone')
                 u.add(favorite_numbers: Set[3, 4]) # must be enumerable
               end
             end
             obj1_found = klass.find(obj1.id)
             expect(obj1_found).to eql(obj1)
-            expect(obj1_found.name).to eql('oneone')
+            expect(obj1_found.name).to eql('one')
             expect(obj1_found.favorite_numbers).to eql(Set[1, 2, 3, 4])
           end
 
@@ -287,13 +329,12 @@ describe Dynamoid::TransactionWrite, '.update' do
             obj1 = klass.create!(name: 'one', favorite_names: %w[adam ben charlie])
             described_class.execute do |txn|
               txn.update! obj1 do |u|
-                u.set(name: 'oneone')
                 u.add(favorite_names: Set['charlie', 'dan']) # must be enumerable
               end
             end
             obj1_found = klass.find(obj1.id)
             expect(obj1_found).to eql(obj1)
-            expect(obj1_found.name).to eql('oneone')
+            expect(obj1_found.name).to eql('one')
             expect(obj1_found.favorite_names).to eql(Set.new(%w[adam ben charlie dan]))
           end
         end
