@@ -38,26 +38,26 @@ module Dynamoid
       model.new_record? ? create(model, {}, options) : update(model, {}, options)
     end
 
-    def create!(model_or_model_class, attributes = {}, options = {})
-      create(model_or_model_class, attributes, options.reverse_merge(raise_validation_error: true))
+    def create!(model_or_model_class, attributes = {}, options = {}, &block)
+      create(model_or_model_class, attributes, options.reverse_merge(raise_validation_error: true), &block)
     end
 
-    def create(model_or_model_class, attributes = {}, options = {})
-      add_action_and_validate Dynamoid::TransactionWrite::Create.new(model_or_model_class, attributes, options)
+    def create(model_or_model_class, attributes = {}, options = {}, &block)
+      add_action_and_validate Dynamoid::TransactionWrite::Create.new(model_or_model_class, attributes, options, &block)
     end
 
     # upsert! does not exist because upserting instances that can raise validation errors is not officially supported
 
-    def upsert(model_or_model_class, attributes = {}, options = {})
-      add_action_and_validate Dynamoid::TransactionWrite::Upsert.new(model_or_model_class, attributes, options)
+    def upsert(model_or_model_class, attributes = {}, options = {}, &block)
+      add_action_and_validate Dynamoid::TransactionWrite::Upsert.new(model_or_model_class, attributes, options, &block)
     end
 
-    def update!(model_or_model_class, attributes = {}, options = {})
-      update(model_or_model_class, attributes, options.reverse_merge(raise_validation_error: true))
+    def update!(model_or_model_class, attributes = {}, options = {}, &block)
+      update(model_or_model_class, attributes, options.reverse_merge(raise_validation_error: true), &block)
     end
 
-    def update(model_or_model_class, attributes = {}, options = {})
-      add_action_and_validate Dynamoid::TransactionWrite::Update.new(model_or_model_class, attributes, options)
+    def update(model_or_model_class, attributes = {}, options = {}, &block)
+      add_action_and_validate Dynamoid::TransactionWrite::Update.new(model_or_model_class, attributes, options, &block)
     end
 
     def delete(model_or_model_class, key_or_attributes = {}, options = {})

@@ -49,6 +49,32 @@ Dynamoid::TransactionWrite.execute do |txn|
 end
 ```
 
+### Update items
+An item can be updated by providing the hash key, range key if applicable, and the fields to update.
+Updating fields can also be done within a block using the `set()` method.
+To increment a numeric value or to add values to a set use `add()` within the block.
+Similarly a field can be removed or values can be removed from a set by using `delete()` in the block.
+```ruby
+Dynamoid::TransactionWrite.execute do |txn|
+  # sets the name and title for user 1
+  # The user is found by id
+  txn.update!(User, id: 1, name: 'bob', title: 'mister')
+
+  # sets the name, increments a count and deletes a field
+  txn.update!(user) do |u| # a User instance is provided
+    u.set(name: 'bob')
+    u.add(article_count: 1)
+    u.delete(:title)
+  end
+
+  # adds to a set of integers and deletes from a set of strings
+  txn.update!(User, id: 3) do |u|
+    u.add(friend_ids: [1, 2])
+    u.delete(child_names: ['bebe'])
+  end
+end
+```
+
 ### Destroy or delete items
 Models can be used or the model class and key can be specified.
 When the key is a single column it is specified as a single value or a hash

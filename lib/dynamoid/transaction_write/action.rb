@@ -4,7 +4,7 @@ module Dynamoid
   class TransactionWrite
     class Action
       VALID_OPTIONS = %i[skip_callbacks skip_validation raise_validation_error skip_existence_check].freeze
-      attr_accessor :model, :attributes, :options
+      attr_accessor :model, :attributes, :options, :additions, :deletions, :removals
 
       def initialize(model_or_model_class, attributes = {}, options = {})
         if model_or_model_class.is_a?(Dynamoid::Document)
@@ -14,8 +14,13 @@ module Dynamoid
         end
         self.attributes = attributes
         self.options = options || {}
+        self.additions = {}
+        self.deletions = {}
+        self.removals = []
         invalid_keys = self.options.keys - VALID_OPTIONS
         raise ArgumentError, "Invalid options found: '#{invalid_keys}'" if invalid_keys.present?
+
+        yield(self) if block_given?
       end
 
       def model_class
@@ -35,6 +40,26 @@ module Dynamoid
         return model.attributes[model_class.range_key] if model
 
         attributes[model_class.range_key]
+      end
+
+      # sets a value in the attributes
+      def set(values)
+        attributes.merge!(values)
+      end
+
+      # increments a number or adds to a set, starts at 0 or [] if it doesn't yet exist
+      def add(values)
+        additions.merge!(values)
+      end
+
+      # deletes a value or values from a set type or simply sets a field to nil
+      def delete(field_or_values)
+        if field_or_values.is_a?(Hash)
+          deletions.merge!(field_or_values)
+        else
+          # adds to array of fields for use in REMOVE update expression
+          removals << field_or_values
+        end
       end
 
       def find_from_attributes(model_or_model_class, attributes)

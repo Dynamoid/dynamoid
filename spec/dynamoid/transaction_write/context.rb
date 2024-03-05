@@ -8,6 +8,9 @@ RSpec.shared_context 'transaction_write' do
   let(:klass) do
     new_class(class_name: 'Document') do
       field :name
+      field :record_count, :integer
+      field :favorite_numbers, :set, of: :integer
+      field :favorite_names, :set, of: :string
     end
   end
 
