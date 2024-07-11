@@ -210,6 +210,27 @@ module Dynamoid
         raise Dynamoid::Errors::ConditionalCheckFailedException, e
       end
 
+      def transact_write_items(table_name, models, _options = {})
+        out_put = process(table_name, models)
+        begin
+          response = client.transact_write_items({
+
+                                                   transact_items: out_put,
+            return_consumed_capacity: 'TOTAL',
+            return_item_collection_metrics: 'SIZE'
+                                                 })
+        rescue StandardError => e
+          puts e
+        end
+      end
+
+      def process(table_name, objects)
+        objects.map do |m|
+          key, attrib = m.flatten
+          { key => { item: sanitize_item(attrib), table_name: table_name } }
+        end
+      end
+
       # Get many items at once from DynamoDB. More efficient than getting each item individually.
       #
       # If optional block is passed `nil` will be returned and the block will be called for each read batch of items,
