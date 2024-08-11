@@ -1134,6 +1134,7 @@ Listed below are all configuration options.
   fields in ISO 8601 string format. Default is `false`
 * `store_date_as_string` - if `true` then Dynamoid stores :date fields
   in ISO 8601 string format. Default is `false`
+* `store_empty_string_as_nil` - store attribute's empty String value as NULL. Default is `true`
 * `store_boolean_as_native` - if `true` Dynamoid stores boolean fields
   as native DynamoDB boolean values. Otherwise boolean fields are stored
   as string values `'t'` and `'f'`. Default is `true`

@@ -108,7 +108,7 @@ module Dynamoid
               v.stringify_keys
             elsif v.is_a?(Set) && v.empty?
               nil
-            elsif v.is_a?(String) && v.empty?
+            elsif v.is_a?(String) && v.empty? && Config.store_empty_string_as_nil
               nil
             else
               v
