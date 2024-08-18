@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'item_updater_with_dumping'
+
 module Dynamoid
   module Persistence
     # @private
@@ -36,9 +38,10 @@ module Dynamoid
           attributes_to_persist = @model.attributes.slice(*@model.changed.map(&:to_sym))
 
           Dynamoid.adapter.update_item(@model.class.table_name, @model.hash_key, options_to_update_item) do |t|
+            item_updater = ItemUpdaterWithDumping.new(@model.class, t)
+
             attributes_to_persist.each do |name, value|
-              value_dumped = Dumping.dump_field(value, @model.class.attributes[name])
-              t.set(name => value_dumped)
+              item_updater.set(name => value)
             end
           end
         end

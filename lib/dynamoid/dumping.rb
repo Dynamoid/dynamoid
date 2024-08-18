@@ -107,6 +107,8 @@ module Dynamoid
       ALLOWED_TYPES = %i[string integer number date datetime serialized].freeze
 
       def process(set)
+        return nil if set.is_a?(Set) && set.empty?
+
         if @options.key?(:of)
           process_typed_collection(set)
         else

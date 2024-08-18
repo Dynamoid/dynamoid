@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'item_updater_with_casting_and_dumping'
+
 module Dynamoid
   module Persistence
     # @private
@@ -32,10 +34,10 @@ module Dynamoid
 
       def update_item
         Dynamoid.adapter.update_item(@model_class.table_name, @partition_key, options_to_update_item) do |t|
+          item_updater = ItemUpdaterWithCastingAndDumping.new(@model_class, t)
+
           @attributes.each do |k, v|
-            value_casted = TypeCasting.cast_field(v, @model_class.attributes[k])
-            value_dumped = Dumping.dump_field(value_casted, @model_class.attributes[k])
-            t.set(k => value_dumped)
+            item_updater.set(k => v)
           end
         end
       end

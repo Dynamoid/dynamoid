@@ -10,6 +10,7 @@ require 'dynamoid/persistence/upsert'
 require 'dynamoid/persistence/save'
 require 'dynamoid/persistence/inc'
 require 'dynamoid/persistence/update_validations'
+require 'dynamoid/persistence/item_updater_with_dumping'
 
 # encoding: utf-8
 module Dynamoid
@@ -669,12 +670,12 @@ module Dynamoid
           update_item_options = options.merge(conditions: conditions)
 
           new_attrs = Dynamoid.adapter.update_item(table_name, hash_key, update_item_options) do |t|
-            t.add(lock_version: 1) if self.class.attributes[:lock_version]
+            item_updater = ItemUpdaterWithDumping.new(self.class, t)
+
+            item_updater.add(lock_version: 1) if self.class.attributes[:lock_version]
 
             if self.class.timestamps_enabled?
-              time_now = DateTime.now.in_time_zone(Time.zone)
-              time_now_dumped = Dumping.dump_field(time_now, self.class.attributes[:updated_at])
-              t.set(updated_at: time_now_dumped)
+              item_updater.set(updated_at: DateTime.now.in_time_zone(Time.zone))
             end
 
             yield t

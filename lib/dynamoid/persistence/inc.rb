@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'item_updater_with_casting_and_dumping'
+
 module Dynamoid
   module Persistence
     # @private
@@ -21,15 +23,17 @@ module Dynamoid
         touch = @counters.delete(:touch)
 
         Dynamoid.adapter.update_item(@model_class.table_name, @hash_key, update_item_options) do |t|
+          item_updater = ItemUpdaterWithCastingAndDumping.new(@model_class, t)
+
           @counters.each do |name, value|
-            t.add(name => cast_and_dump_attribute_value(name, value))
+            item_updater.add(name => value)
           end
 
           if touch
             value = DateTime.now.in_time_zone(Time.zone)
 
             timestamp_attributes_to_touch(touch).each do |name|
-              t.set(name => cast_and_dump_attribute_value(name, value))
+              item_updater.set(name => value)
             end
           end
         end
@@ -46,11 +50,6 @@ module Dynamoid
         else
           {}
         end
-      end
-
-      def cast_and_dump_attribute_value(name, value)
-        value_casted = TypeCasting.cast_field(value, @model_class.attributes[name])
-        Dumping.dump_field(value_casted, @model_class.attributes[name])
       end
 
       def timestamp_attributes_to_touch(touch)
