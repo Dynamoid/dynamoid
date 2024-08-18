@@ -667,7 +667,7 @@ module Dynamoid
         store_attribute_with_nil_value = config_value.nil? ? false : !!config_value
 
         attributes.reject do |_, v|
-            (!store_attribute_with_nil_value && v.nil?)
+          !store_attribute_with_nil_value && v.nil?
         end.transform_values do |v|
           v.is_a?(Hash) ? v.stringify_keys : v
         end

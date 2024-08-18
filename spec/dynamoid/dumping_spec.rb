@@ -1103,7 +1103,7 @@ describe 'Dumping' do
         obj = klass.create(settings: settings)
 
         expect(reload(obj).settings).to eql(foo: '')
-        expect(raw_attributes(obj)[:settings]).to eql("foo" => '')
+        expect(raw_attributes(obj)[:settings]).to eql('foo' => '')
       end
 
       it 'replaces empty set with nil in nested Array' do
@@ -1132,7 +1132,7 @@ describe 'Dumping' do
         obj = klass.create(settings: settings)
 
         expect(reload(obj).settings).to eql(foo: [1, 2, ''])
-        expect(raw_attributes(obj)[:settings]).to eql("foo" => [1, 2, ''])
+        expect(raw_attributes(obj)[:settings]).to eql('foo' => [1, 2, ''])
       end
 
       it 'processes nested Hash and Array' do
@@ -1306,7 +1306,7 @@ describe 'Dumping' do
         obj = klass.create(config: config)
 
         expect(reload(obj).config).to eql(foo: '')
-        expect(raw_attributes(obj)[:config]).to eql("foo" => '')
+        expect(raw_attributes(obj)[:config]).to eql('foo' => '')
       end
 
       it 'replaces empty set with nil in Array' do

@@ -4,7 +4,6 @@ module Dynamoid
   module Persistence
     # @private
     class ItemUpdaterWithCastingAndDumping
-
       def initialize(model_class, item_updater)
         @model_class = model_class
         @item_updater = item_updater

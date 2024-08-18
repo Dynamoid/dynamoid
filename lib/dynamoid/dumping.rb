@@ -90,6 +90,7 @@ module Dynamoid
       def process(string)
         return nil if string.nil?
         return nil if string.empty? && Config.store_empty_string_as_nil
+
         string
       end
     end

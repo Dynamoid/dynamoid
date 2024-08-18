@@ -4,7 +4,6 @@ module Dynamoid
   module Persistence
     # @private
     class ItemUpdaterWithDumping
-
       def initialize(model_class, item_updater)
         @model_class = model_class
         @item_updater = item_updater
@@ -32,4 +31,3 @@ module Dynamoid
     end
   end
 end
-

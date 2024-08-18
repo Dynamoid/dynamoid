@@ -24,7 +24,7 @@ module Dynamoid
     # @since 0.2.0
     def valid?(context = nil)
       context ||= (new_record? ? :create : :update)
-      super(context)
+      super
     end
 
     # Raise an error unless this object is valid.

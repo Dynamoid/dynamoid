@@ -9,7 +9,7 @@ module Dynamoid
       # No callbacks.
       def initialize(model_or_model_class, attributes, options = {})
         options = options.reverse_merge(skip_existence_check: true)
-        super(model_or_model_class, attributes, options)
+        super
         raise Dynamoid::Errors::MissingHashKey unless hash_key.present?
         raise Dynamoid::Errors::MissingRangeKey unless !model_class.range_key? || range_key.present?
       end
