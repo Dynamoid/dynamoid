@@ -43,10 +43,10 @@ describe Dynamoid::Criteria do
     klass = new_class do
       range :name
     end
+    objects = klass.create([{ name: 'Alex' }, { name: 'Bob' }])
 
     result = []
-    objects = klass.create([{ name: 'Alex' }, { name: 'Bob' }])
-    klass.each { |obj| result << obj }
+    klass.each { |obj| result << obj } # rubocop:disable Style/MapIntoArray
 
     expect(result).to match_array(objects)
   end

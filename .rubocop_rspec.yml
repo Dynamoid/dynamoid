@@ -31,6 +31,9 @@ RSpec/NestedGroups:
 RSpec/ExpectInHook:
   Enabled: false
 
+RSpec/ExpectInLet:
+  Enabled: false
+
 # NOTE: for many tests of equality `eql` works, while `be` does not, because
 #        expected #<Fixnum:...> => 101
 #            got #<BigDecimal:...> => 101.0 (0.101e3)
