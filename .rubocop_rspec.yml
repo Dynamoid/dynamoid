@@ -1,4 +1,7 @@
-RSpec/FilePath:
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/SpecFilePathSuffix:
   Enabled: false
 
 RSpec/MultipleExpectations:
@@ -26,6 +29,9 @@ RSpec/NestedGroups:
   Enabled: false
 
 RSpec/ExpectInHook:
+  Enabled: false
+
+RSpec/ExpectInLet:
   Enabled: false
 
 # NOTE: for many tests of equality `eql` works, while `be` does not, because

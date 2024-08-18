@@ -6,7 +6,7 @@ module Dynamoid
   class TransactionWrite
     class UpdateUpsert < Action
       def initialize(model_or_model_class, attributes = {}, options = {}, &block)
-        super(model_or_model_class, attributes, options, &block)
+        super
 
         write_attributes_to_model
       end

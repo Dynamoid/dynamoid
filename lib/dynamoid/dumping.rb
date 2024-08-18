@@ -70,7 +70,8 @@ module Dynamoid
       end
 
       def invalid_value?(value)
-        (value.is_a?(Set) || value.is_a?(String)) && value.empty?
+        (value.is_a?(Set) && value.empty?) ||
+          (value.is_a?(String) && value.empty? && Config.store_empty_string_as_nil)
       end
     end
 
@@ -86,6 +87,12 @@ module Dynamoid
 
     # string -> string
     class StringDumper < Base
+      def process(string)
+        return nil if string.nil?
+        return nil if string.empty? && Config.store_empty_string_as_nil
+
+        string
+      end
     end
 
     # integer -> number
@@ -101,6 +108,8 @@ module Dynamoid
       ALLOWED_TYPES = %i[string integer number date datetime serialized].freeze
 
       def process(set)
+        return nil if set.is_a?(Set) && set.empty?
+
         if @options.key?(:of)
           process_typed_collection(set)
         else
@@ -112,13 +121,13 @@ module Dynamoid
 
       def process_typed_collection(set)
         if allowed_type?
-          dumper = Dumping.find_dumper(element_options)
-          result = set.map { |el| dumper.process(el) }
-
-          if element_type == :string
-            result.reject!(&:empty?)
+          # StringDumper may replace "" with nil so we cannot distinguish it from an explicit nil
+          if element_type == :string && Config.store_empty_string_as_nil
+            set.reject! { |s| s && s.empty? }
           end
 
+          dumper = Dumping.find_dumper(element_options)
+          result = set.map { |el| dumper.process(el) }
           result.to_set
         else
           raise ArgumentError, "Set element type #{element_type} isn't supported"
@@ -164,14 +173,13 @@ module Dynamoid
 
       def process_typed_collection(array)
         if allowed_type?
-          dumper = Dumping.find_dumper(element_options)
-          result = array.map { |el| dumper.process(el) }
-
-          if element_type == :string
-            result.reject!(&:empty?)
+          # StringDumper may replace "" with nil so we cannot distinguish it from an explicit nil
+          if element_type == :string && Config.store_empty_string_as_nil
+            array.reject! { |s| s && s.empty? }
           end
 
-          result
+          dumper = Dumping.find_dumper(element_options)
+          array.map { |el| dumper.process(el) }
         else
           raise ArgumentError, "Array element type #{element_type} isn't supported"
         end

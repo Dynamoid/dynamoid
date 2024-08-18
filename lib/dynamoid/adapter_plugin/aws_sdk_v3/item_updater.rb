@@ -97,10 +97,11 @@ module Dynamoid
 
         private
 
-        # Keep in sync with AwsSdkV3.sanitize_item.
+        # It's a single low level component available in a public API (with
+        # Document#update/#update! methods). So duplicate sanitizing to some
+        # degree.
         #
-        # The only difference is that to update item we need to track whether
-        # attribute value is nil or not.
+        # Keep in sync with AwsSdkV3.sanitize_item.
         def sanitize_attributes(attributes)
           # rubocop:disable Lint/DuplicateBranch
           attributes.transform_values do |v|
@@ -108,7 +109,7 @@ module Dynamoid
               v.stringify_keys
             elsif v.is_a?(Set) && v.empty?
               nil
-            elsif v.is_a?(String) && v.empty?
+            elsif v.is_a?(String) && v.empty? && Config.store_empty_string_as_nil
               nil
             else
               v

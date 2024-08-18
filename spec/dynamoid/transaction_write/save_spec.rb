@@ -183,7 +183,7 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
           described_class.execute do |txn|
             txn.save! klass_with_callbacks.new(name: 'two'), skip_callbacks: true, skip_validation: true
           end
-        }.to output('').to_stdout
+        }.not_to output.to_stdout
       end
     end
   end

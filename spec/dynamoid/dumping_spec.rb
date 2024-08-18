@@ -505,11 +505,25 @@ describe 'Dumping' do
           expect(raw_attributes(obj)[:values]).to eql(Set.new(%w[a b c]))
         end
 
-        it 'removes empty strings' do
+        it 'removes empty strings by default' do
           obj = class_with_typed_set.create(values: Set.new(['a', '', 'c']))
 
           expect(reload(obj).values).to eql(Set.new(%w[a c]))
           expect(raw_attributes(obj)[:values]).to eql(Set.new(%w[a c]))
+        end
+
+        it 'removes empty strings if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+          obj = class_with_typed_set.create(values: Set.new(['a', '', 'c']))
+
+          expect(reload(obj).values).to eql(Set.new(%w[a c]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(%w[a c]))
+        end
+
+        it 'keeps empty strings as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+          obj = class_with_typed_set.create(values: Set.new(['a', '', 'c']))
+
+          expect(reload(obj).values).to eql(Set.new(['a', '', 'c']))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['a', '', 'c']))
         end
       end
 
@@ -788,11 +802,25 @@ describe 'Dumping' do
           expect(raw_attributes(obj)[:values]).to eql(%w[a b c])
         end
 
-        it 'removes empty strings' do
+        it 'removes empty strings by default' do
           obj = class_with_typed_array.create(values: ['a', '', 'c'])
 
           expect(reload(obj).values).to eql(%w[a c])
           expect(raw_attributes(obj)[:values]).to eql(%w[a c])
+        end
+
+        it 'removes empty strings if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+          obj = class_with_typed_array.create(values: ['a', '', 'c'])
+
+          expect(reload(obj).values).to eql(%w[a c])
+          expect(raw_attributes(obj)[:values]).to eql(%w[a c])
+        end
+
+        it 'keeps empty strings as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+          obj = class_with_typed_array.create(values: ['a', '', 'c'])
+
+          expect(reload(obj).values).to eql(['a', '', 'c'])
+          expect(raw_attributes(obj)[:values]).to eql(['a', '', 'c'])
         end
       end
 
@@ -1056,11 +1084,26 @@ describe 'Dumping' do
         expect(reload(obj).settings).to eql(foo: nil)
       end
 
-      it 'replaces empty string with nil in Hash' do
+      it 'replaces empty string with nil in Hash by default' do
         settings = { 'foo' => '' }
         obj = klass.create(settings: settings)
 
         expect(reload(obj).settings).to eql(foo: nil)
+      end
+
+      it 'replaces empty string with nil in Hash if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+        settings = { 'foo' => '' }
+        obj = klass.create(settings: settings)
+
+        expect(reload(obj).settings).to eql(foo: nil)
+      end
+
+      it 'keeps empty string as is in Hash if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+        settings = { 'foo' => '' }
+        obj = klass.create(settings: settings)
+
+        expect(reload(obj).settings).to eql(foo: '')
+        expect(raw_attributes(obj)[:settings]).to eql('foo' => '')
       end
 
       it 'replaces empty set with nil in nested Array' do
@@ -1070,11 +1113,26 @@ describe 'Dumping' do
         expect(reload(obj).settings).to eql(foo: [1, 2, nil])
       end
 
-      it 'replaces empty string with nil in nested Array' do
+      it 'replaces empty string with nil in nested Array by default' do
         settings = { 'foo' => [1, 2, ''] }
         obj = klass.create(settings: settings)
 
         expect(reload(obj).settings).to eql(foo: [1, 2, nil])
+      end
+
+      it 'replaces empty string with nil in nested Array if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+        settings = { 'foo' => [1, 2, ''] }
+        obj = klass.create(settings: settings)
+
+        expect(reload(obj).settings).to eql(foo: [1, 2, nil])
+      end
+
+      it 'keeps empty string as is in nested Array if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+        settings = { 'foo' => [1, 2, ''] }
+        obj = klass.create(settings: settings)
+
+        expect(reload(obj).settings).to eql(foo: [1, 2, ''])
+        expect(raw_attributes(obj)[:settings]).to eql('foo' => [1, 2, ''])
       end
 
       it 'processes nested Hash and Array' do
@@ -1098,7 +1156,7 @@ describe 'Dumping' do
       expect(raw_attributes(obj)[:name]).to eql('Matthew')
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       klass = new_class do
         field :name, :string
       end
@@ -1107,6 +1165,28 @@ describe 'Dumping' do
 
       expect(reload(obj).name).to eql(nil)
       expect(raw_attributes(obj)[:name]).to eql(nil)
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      klass = new_class do
+        field :name, :string
+      end
+
+      obj = klass.create(name: '')
+
+      expect(reload(obj).name).to eql(nil)
+      expect(raw_attributes(obj)[:name]).to eql(nil)
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      klass = new_class do
+        field :name, :string
+      end
+
+      obj = klass.create(name: '')
+
+      expect(reload(obj).name).to eql('')
+      expect(raw_attributes(obj)[:name]).to eql('')
     end
 
     it 'is used as default field type' do
@@ -1207,11 +1287,26 @@ describe 'Dumping' do
         expect(reload(obj).config).to eql(foo: nil)
       end
 
-      it 'replaces empty string with nil in Hash' do
+      it 'replaces empty string with nil in Hash by default' do
         config = { 'foo' => '' }
         obj = klass.create(config: config)
 
         expect(reload(obj).config).to eql(foo: nil)
+      end
+
+      it 'replaces empty string with nil in Hash if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+        config = { 'foo' => '' }
+        obj = klass.create(config: config)
+
+        expect(reload(obj).config).to eql(foo: nil)
+      end
+
+      it 'keeps empty string as is in Hash if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+        config = { 'foo' => '' }
+        obj = klass.create(config: config)
+
+        expect(reload(obj).config).to eql(foo: '')
+        expect(raw_attributes(obj)[:config]).to eql('foo' => '')
       end
 
       it 'replaces empty set with nil in Array' do
@@ -1221,11 +1316,26 @@ describe 'Dumping' do
         expect(reload(obj).config).to eql([1, 2, nil])
       end
 
-      it 'replaces empty string with nil in Array' do
+      it 'replaces empty string with nil in Array by default' do
         config = [1, 2, '']
         obj = klass.create(config: config)
 
         expect(reload(obj).config).to eql([1, 2, nil])
+      end
+
+      it 'replaces empty string with nil in Array if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+        config = [1, 2, '']
+        obj = klass.create(config: config)
+
+        expect(reload(obj).config).to eql([1, 2, nil])
+      end
+
+      it 'keeps empty string as is in Array if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+        config = [1, 2, '']
+        obj = klass.create(config: config)
+
+        expect(reload(obj).config).to eql([1, 2, ''])
+        expect(raw_attributes(obj)[:config]).to eql([1, 2, ''])
       end
 
       it 'processes nested Hash and Array' do

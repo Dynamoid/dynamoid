@@ -16,7 +16,7 @@ module Dynamoid
     class InvalidIndex < Error
       def initialize(item)
         if item.is_a? String
-          super(item)
+          super
         else
           super("Validation failed: #{item.errors.full_messages.join(', ')}")
         end

@@ -733,11 +733,26 @@ describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       obj = klass.create(city: '')
       obj_loaded = klass.find(obj.id)
 
       expect(obj_loaded.city).to eql nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      obj = klass.create(city: '')
+      obj_loaded = klass.find(obj.id)
+
+      expect(obj_loaded.city).to eql nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      obj = klass.create(city: '')
+      obj_loaded = klass.find(obj.id)
+
+      expect(obj_loaded.city).to eql ''
+      expect(raw_attributes(obj)[:city]).to eql ''
     end
 
     describe 'callbacks' do
@@ -1094,7 +1109,7 @@ describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       klass_with_string = new_class do
         field :name
       end
@@ -1104,6 +1119,31 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'alex')
+      klass_with_string.update!(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'alex')
+      klass_with_string.update!(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql ''
+      expect(raw_attributes(obj)[:name]).to eql ''
     end
 
     describe 'timestamps' do
@@ -1444,7 +1484,7 @@ describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       klass_with_string = new_class do
         field :name
       end
@@ -1454,6 +1494,31 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'alex')
+      klass_with_string.update(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'alex')
+      klass_with_string.update(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql ''
+      expect(raw_attributes(obj)[:name]).to eql ''
     end
 
     describe 'timestamps' do
@@ -1689,7 +1754,7 @@ describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       klass_with_string = new_class do
         field :name
       end
@@ -1699,6 +1764,31 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      klass_with_string.update_fields(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      klass_with_string.update_fields(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql ''
+      expect(raw_attributes(obj)[:name]).to eql ''
     end
 
     describe 'timestamps' do
@@ -1964,7 +2054,7 @@ describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       klass_with_string = new_class do
         field :name
       end
@@ -1974,6 +2064,31 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      klass_with_string.upsert(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      klass_with_string.upsert(obj.id, name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql ''
+      expect(raw_attributes(obj)[:name]).to eql ''
     end
 
     describe 'timestamps' do
@@ -2316,7 +2431,7 @@ describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       klass_with_string = new_class do
         field :name
       end
@@ -2327,6 +2442,33 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.name = ''
+      obj.save
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.name = ''
+      obj.save
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql ''
+      expect(raw_attributes(obj)[:name]).to eql ''
     end
 
     it 'does not make a request to persist a model if there is no any changed attribute' do
@@ -3036,7 +3178,7 @@ describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       klass_with_string = new_class do
         field :name
       end
@@ -3046,6 +3188,31 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update_attribute(:name, '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update_attribute(:name, '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql ''
+      expect(raw_attributes(obj)[:name]).to eql ''
     end
 
     describe 'type casting' do
@@ -3521,7 +3688,7 @@ describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       klass_with_string = new_class do
         field :name
       end
@@ -3531,6 +3698,31 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update_attributes!(name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update_attributes!(name: '')
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql ''
+      expect(raw_attributes(obj)[:name]).to eql ''
     end
 
     describe 'type casting' do
@@ -4211,7 +4403,7 @@ describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       klass_with_string = new_class do
         field :name
       end
@@ -4221,6 +4413,31 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update! { |t| t.set(name: '') }
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update! { |t| t.set(name: '') }
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql ''
+      expect(raw_attributes(obj)[:name]).to eql ''
     end
   end
 
@@ -4372,7 +4589,7 @@ describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       klass_with_string = new_class do
         field :name
       end
@@ -4382,6 +4599,31 @@ describe Dynamoid::Persistence do
       obj_loaded = klass_with_string.find(obj.id)
 
       expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update { |t| t.set(name: '') }
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      klass_with_string = new_class do
+        field :name
+      end
+
+      obj = klass_with_string.create!(name: 'Alex')
+      obj.update { |t| t.set(name: '') }
+      obj_loaded = klass_with_string.find(obj.id)
+
+      expect(obj_loaded.name).to eql ''
+      expect(raw_attributes(obj)[:name]).to eql ''
     end
 
     describe 'timestamps' do
@@ -4859,11 +5101,26 @@ describe Dynamoid::Persistence do
       expect(tweet.tags).to eq nil
     end
 
-    it 'saves empty string as nil' do
+    it 'saves empty string as nil by default' do
       users = User.import([{ name: '' }])
 
       user = User.find(users[0].id)
       expect(user.name).to eq nil
+    end
+
+    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+      users = User.import([{ name: '' }])
+
+      user = User.find(users[0].id)
+      expect(user.name).to eq nil
+    end
+
+    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+      users = User.import([{ name: '' }])
+
+      user = User.find(users[0].id)
+      expect(user.name).to eq ''
+      expect(raw_attributes(user)[:name]).to eql ''
     end
 
     it 'saves attributes with nil value' do
