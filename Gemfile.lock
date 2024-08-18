@@ -60,7 +60,7 @@ GEM
     method_source (1.0.0)
     minitest (5.21.1)
     mutex_m (0.2.0)
-    overcommit (0.62.0)
+    overcommit (0.64.0)
       childprocess (>= 0.6.3, < 6)
       iniparse (~> 1.4)
       rexml (~> 3.2)
@@ -78,7 +78,7 @@ GEM
     rainbow (3.1.1)
     rake (13.1.0)
     regexp_parser (2.9.2)
-    rexml (3.3.1)
+    rexml (3.3.2)
       strscan
     rspec (3.12.0)
       rspec-core (~> 3.12.0)
