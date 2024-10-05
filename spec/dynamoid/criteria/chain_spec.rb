@@ -227,6 +227,30 @@ describe Dynamoid::Criteria::Chain do
       expect(documents.map(&:id)).to eql ['1']
     end
 
+    it 'allows conditions with attribute names containing special characters' do
+      model = new_class do
+        range :'sort:key'
+      end
+
+      model.create_table
+      put_attributes(model.table_name, id: '1', 'sort:key': 'c')
+
+      documents = model.where(id: '1', 'sort:key': 'c').to_a
+      expect(documents.map(&:id)).to eql ['1']
+    end
+
+    it 'allows conditions with attribute names starting with _' do
+      model = new_class do
+        range :_sortKey
+      end
+
+      model.create_table
+      put_attributes(model.table_name, id: '1', _sortKey: 'c')
+
+      documents = model.where(id: '1', _sortKey: 'c').to_a
+      expect(documents.map(&:id)).to eql ['1']
+    end
+
     it 'raises error when operator is not supported' do
       expect do
         model.where(name: 'Bob', 'age.foo': 10).to_a
@@ -443,6 +467,30 @@ describe Dynamoid::Criteria::Chain do
       expect(documents.map(&:id)).to eql ['1']
     end
 
+    it 'allows conditions with attribute names containing special characters' do
+      model = new_class do
+        field :'last:name'
+      end
+
+      model.create_table
+      put_attributes(model.table_name, id: '1', 'last:name': 'c')
+
+      documents = model.where(id: '1', 'last:name': 'c').to_a
+      expect(documents.map(&:id)).to eql ['1']
+    end
+
+    it 'allows conditions with attribute names starting with _' do
+      model = new_class do
+        field :_lastName
+      end
+
+      model.create_table
+      put_attributes(model.table_name, id: '1', _lastName: 'c')
+
+      documents = model.where(id: '1', _lastName: 'c').to_a
+      expect(documents.map(&:id)).to eql ['1']
+    end
+
     it 'raises error when operator is not supported' do
       expect do
         model.where(name: 'a', 'age.foo': 9).to_a
@@ -656,6 +704,30 @@ describe Dynamoid::Criteria::Chain do
       put_attributes(model.table_name, id: '1', scan: 'a', set: 'b', size: 'c')
 
       documents = model.where(scan: 'a', set: 'b', size: 'c').to_a
+      expect(documents.map(&:id)).to eql ['1']
+    end
+
+    it 'allows conditions with attribute names containing special characters' do
+      model = new_class do
+        field :'last:name'
+      end
+
+      model.create_table
+      put_attributes(model.table_name, id: '1', 'last:name': 'c')
+
+      documents = model.where('last:name': 'c').to_a
+      expect(documents.map(&:id)).to eql ['1']
+    end
+
+    it 'allows conditions with attribute names starting with _' do
+      model = new_class do
+        field :_lastName
+      end
+
+      model.create_table
+      put_attributes(model.table_name, id: '1', _lastName: 'c')
+
+      documents = model.where(_lastName: 'c').to_a
       expect(documents.map(&:id)).to eql ['1']
     end
 
@@ -1903,6 +1975,62 @@ describe Dynamoid::Criteria::Chain do
         expect(obj.attributes).to eq(bucket: 2)
       end
     end
+
+    context 'when attribute name contains special characters' do
+      let(:model) do
+        new_class do
+          field :'first:name'
+        end
+      end
+
+      it 'works with Scan' do
+        model.create('first:name': 'Alex')
+
+        chain = described_class.new(model)
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+
+        obj, = chain.project(:'first:name').to_a
+        expect(obj.attributes).to eq('first:name': 'Alex')
+      end
+
+      it 'works with Query' do
+        object = model.create('first:name': 'Alex')
+
+        chain = described_class.new(model)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+
+        obj, = chain.where(id: object.id).project(:'first:name').to_a
+        expect(obj.attributes).to eq('first:name': 'Alex')
+      end
+    end
+
+    context 'when attribute name starts with _' do
+      let(:model) do
+        new_class do
+          field :_name
+        end
+      end
+
+      it 'works with Scan' do
+        model.create(_name: 'Alex')
+
+        chain = described_class.new(model)
+        expect(chain).to receive(:raw_pages_via_scan).and_call_original
+
+        obj, = chain.project(:_name).to_a
+        expect(obj.attributes).to eq(_name: 'Alex')
+      end
+
+      it 'works with Query' do
+        object = model.create(_name: 'Alex')
+
+        chain = described_class.new(model)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+
+        obj, = chain.where(id: object.id).project(:_name).to_a
+        expect(obj.attributes).to eq(_name: 'Alex')
+      end
+    end
   end
 
   describe '#pluck' do
@@ -2005,6 +2133,48 @@ describe Dynamoid::Criteria::Chain do
         object = model.create(name: 'Alice', bucket: 1001)
 
         expect(model.where(id: object.id).pluck(:bucket)).to eq([1001])
+      end
+    end
+
+    context 'when attribute name contains special characters' do
+      let(:model) do
+        new_class do
+          field :'first:name'
+        end
+      end
+
+      it 'works with Scan' do
+        model.create('first:name': 'Alice')
+        model.create('first:name': 'Bob')
+
+        expect(model.pluck(:'first:name')).to contain_exactly('Alice', 'Bob')
+      end
+
+      it 'works with Query' do
+        object = model.create('first:name': 'Alice')
+
+        expect(model.where(id: object.id).pluck(:'first:name')).to eq(['Alice'])
+      end
+    end
+
+    context 'when attribute name starts with _' do
+      let(:model) do
+        new_class do
+          field :_name
+        end
+      end
+
+      it 'works with Scan' do
+        model.create(_name: 'Alice')
+        model.create(_name: 'Bob')
+
+        expect(model.pluck(:_name)).to contain_exactly('Alice', 'Bob')
+      end
+
+      it 'works with Query' do
+        object = model.create(_name: 'Alice')
+
+        expect(model.where(id: object.id).pluck(:_name)).to eq(['Alice'])
       end
     end
   end
