@@ -43,7 +43,7 @@ module Dynamoid
             table_name: model_class.table_name,
           }
         }
-        result[:put][:condition_expression] = condition unless options[:skip_existence_check]
+        result[:put][:condition_expression] = condition
 
         result
       end

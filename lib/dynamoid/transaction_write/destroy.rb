@@ -41,7 +41,7 @@ module Dynamoid
             table_name: model_class.table_name
           }
         }
-        result[:delete][:condition_expression] = condition_expression unless options[:skip_existence_check]
+        result[:delete][:condition_expression] = condition_expression
         result
       end
     end

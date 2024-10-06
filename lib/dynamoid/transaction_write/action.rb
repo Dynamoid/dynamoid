@@ -3,7 +3,7 @@
 module Dynamoid
   class TransactionWrite
     class Action
-      VALID_OPTIONS = %i[skip_callbacks skip_validation raise_validation_error skip_existence_check].freeze
+      VALID_OPTIONS = %i[skip_callbacks skip_validation raise_validation_error].freeze
       attr_accessor :model, :attributes, :options, :additions, :deletions, :removals
 
       def initialize(model_or_model_class, attributes = {}, options = {})
