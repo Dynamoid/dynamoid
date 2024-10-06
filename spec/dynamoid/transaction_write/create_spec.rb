@@ -179,6 +179,28 @@ describe Dynamoid::TransactionWrite, '.create' do
       end
     end
 
+    context 'when an issue detected on the DynamoDB side' do
+      it 'rolls back the changes when id is not unique' do
+        existing = klass.create!(name: 'one')
+
+        obj1 = klass.new(name: 'one', id: existing.id)
+        obj2 = klass.new(name: 'two')
+
+        expect {
+          described_class.execute do |txn|
+            txn.create! obj1
+            txn.create! obj2
+          end
+        }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+
+        expect(klass.count).to eql 1
+        expect(klass.all.to_a).to eql [existing]
+
+        expect(obj1.persisted?).to eql false
+        expect(obj2.persisted?).to eql false
+      end
+    end
+
     it 'uses callbacks' do
       klass_with_callbacks.create_table
       expect {
