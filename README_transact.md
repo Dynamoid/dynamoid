@@ -33,7 +33,7 @@ end
 ### Create items
 Items can be created inside of a transaction.
 The hash key and range key, if applicable, are used to determine uniqueness.
-Creating will fail with Aws::DynamoDB::Errors::TransactionCanceledException if an item already exists unless skip_existence_check is true.
+Creating will fail with Aws::DynamoDB::Errors::TransactionCanceledException if an item already exists.
 This example creates a user with a  unique id and unique email address by creating 2 items.
 An additional item is upserted in the same transaction.
 Upserts will update updated_at but will not create created_at.
@@ -44,7 +44,7 @@ email = 'bob@bob.bob'
 Dynamoid::TransactionWrite.execute do |txn|
   txn.create!(User, id: user_id)
   txn.create!(UserEmail, id: "UserEmail##{email}", user_id: user_id)
-  txn.create!(Address, { id: 'A#2', street: '456' }, { skip_existence_check: true })
+  txn.create!(Address, { id: 'A#2', street: '456' })
   txn.upsert!(Address, id: 'A#1', street: '123')
 end
 ```

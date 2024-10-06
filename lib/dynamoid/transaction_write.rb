@@ -4,7 +4,6 @@ require 'dynamoid/transaction_write/action'
 require 'dynamoid/transaction_write/create'
 require 'dynamoid/transaction_write/delete'
 require 'dynamoid/transaction_write/destroy'
-require 'dynamoid/transaction_write/update_upsert'
 require 'dynamoid/transaction_write/update'
 require 'dynamoid/transaction_write/upsert'
 
