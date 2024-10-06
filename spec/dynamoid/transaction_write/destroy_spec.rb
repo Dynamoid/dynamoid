@@ -111,7 +111,7 @@ describe Dynamoid::TransactionWrite, '.destroy' do
         expect {
           described_class.execute do |txn|
             txn.destroy obj1
-            txn.create obj2
+            txn.save obj2
           end
         }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
 
