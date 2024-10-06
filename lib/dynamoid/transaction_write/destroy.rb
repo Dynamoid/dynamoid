@@ -23,9 +23,8 @@ module Dynamoid
         end
       end
 
-      # destroy defaults to not using validation
       def skip_validation?
-        options[:skip_validation] != false
+        true
       end
 
       def to_h

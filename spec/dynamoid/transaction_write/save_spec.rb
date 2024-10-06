@@ -136,17 +136,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
         expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
-
-      it 'does not raise exception when skipping validation' do
-        obj1 = klass_with_validation.new(name: 'one')
-        described_class.execute do |txn|
-          txn.save!(obj1, skip_validation: true)
-        end
-
-        obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('one')
-      end
     end
 
     context 'callabacks' do
@@ -166,24 +155,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
             txn.save! klass_with_around_callbacks.new(name: 'two')
           end
         }.to output('saving creating created saved ').to_stdout
-      end
-
-      it 'cak skip callbacks' do
-        klass_with_callbacks.create_table
-        expect {
-          described_class.execute do |txn|
-            txn.save! klass_with_callbacks.new(name: 'two'), skip_callbacks: true
-          end
-        }.to output('validating validated ').to_stdout # ActiveModel runs validation callbacks when we validate
-      end
-
-      it 'cak skip callbacks and validation' do
-        klass_with_callbacks.create_table
-        expect {
-          described_class.execute do |txn|
-            txn.save! klass_with_callbacks.new(name: 'two'), skip_callbacks: true, skip_validation: true
-          end
-        }.not_to output.to_stdout
       end
     end
 

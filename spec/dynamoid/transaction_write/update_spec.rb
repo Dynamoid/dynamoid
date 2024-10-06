@@ -190,19 +190,6 @@ describe Dynamoid::TransactionWrite, '.update' do
         expect(obj1_found.name).to eql('oneone')
       end
 
-      it 'does not raise exception when skipping validation' do
-        obj1 = klass_with_validation.create!(name: 'onelong')
-        described_class.execute do |txn|
-          obj1.name = 'one'
-          # this use is infrequent, normal entry is from save!(obj, options)
-          txn.update! obj1, {}, { skip_validation: true }
-        end
-
-        obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('one')
-      end
-
       it 'uses callbacks' do
         klass_with_callbacks.create_table
         obj1 = klass_with_callbacks.create!(name: 'one')

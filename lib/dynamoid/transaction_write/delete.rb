@@ -7,7 +7,6 @@ module Dynamoid
     class Delete < Action
       # a model is not needed since callbacks are not run
       def initialize(model_or_model_class, key_or_attributes = {}, options = {})
-        options = options.reverse_merge(skip_validation: true)
         super(model_or_model_class, {}, options)
         self.attributes = if key_or_attributes.is_a?(Hash)
                             key_or_attributes
@@ -18,6 +17,10 @@ module Dynamoid
                           end
         raise Dynamoid::Errors::MissingHashKey unless hash_key.present?
         raise Dynamoid::Errors::MissingRangeKey unless !model_class.range_key? || range_key.present?
+      end
+
+      def skip_validation?
+        true
       end
 
       def to_h
