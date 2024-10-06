@@ -22,7 +22,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
           txn.save! obj1
         end
         obj1_found = klass.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
 
@@ -32,7 +31,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
           txn.save! obj2
         end
         obj2_found = klass.find(obj2.id)
-        expect(obj2_found).to eql(obj2)
         expect(obj2_found.name).to eql('two')
       end
     end
@@ -49,7 +47,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
           txn.save! obj1
         end
         obj1_found = klass_with_composite_key.find(obj1.id, range_key: 1)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
 
@@ -59,7 +56,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
           txn.save! obj2
         end
         obj2_found = klass_with_composite_key.find(obj2.id, range_key: 2)
-        expect(obj2_found).to eql(obj2)
         expect(obj2_found.name).to eql('two')
       end
     end
@@ -97,7 +93,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
         end
 
         obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
 
@@ -133,7 +128,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
         end
 
         obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
     end

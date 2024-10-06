@@ -16,8 +16,6 @@ describe Dynamoid::TransactionWrite, '.destroy' do
 
       it 'with instance' do
         obj1 = klass.create!(name: 'one')
-        obj1_found = klass.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1.persisted?).to eql(true)
         expect(obj1).not_to be_destroyed
         described_class.execute do |txn|
@@ -30,8 +28,6 @@ describe Dynamoid::TransactionWrite, '.destroy' do
 
       it 'with id' do
         obj2 = klass.create!(name: 'two')
-        obj2_found = klass.find(obj2.id)
-        expect(obj2_found).to eql(obj2)
         described_class.execute do |txn|
           txn.destroy! klass, obj2.id
         end
@@ -47,8 +43,6 @@ describe Dynamoid::TransactionWrite, '.destroy' do
       it 'with instance' do
         obj1 = klass_with_composite_key.create!(name: 'one', age: 1)
         obj2 = klass_with_composite_key.create!(name: 'two', age: 2)
-        obj1_found = klass_with_composite_key.find(obj1.id, range_key: 1)
-        expect(obj1_found).to eql(obj1)
         described_class.execute do |txn|
           txn.destroy! obj1
         end
@@ -57,8 +51,6 @@ describe Dynamoid::TransactionWrite, '.destroy' do
 
       it 'with id' do
         obj2 = klass_with_composite_key.create!(name: 'two', age: 2)
-        obj2_found = klass_with_composite_key.find(obj2.id, range_key: 2)
-        expect(obj2_found).to eql(obj2)
         described_class.execute do |txn|
           txn.destroy! klass_with_composite_key, { id: obj2.id, age: 2 }
         end

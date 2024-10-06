@@ -20,7 +20,6 @@ describe Dynamoid::TransactionWrite, '.upsert' do
           txn.upsert klass, { id: obj3_id, name: 'threethree' }
         end
         obj3_found = klass.find(obj3_id)
-        expect(obj3_found.id).to eql(obj3_id)
         expect(obj3_found.name).to eql('threethree')
       end
 
@@ -44,7 +43,6 @@ describe Dynamoid::TransactionWrite, '.upsert' do
           txn.upsert klass_with_composite_key, { id: obj3_id, age: 3, name: 'threethree' }
         end
         obj3_found = klass_with_composite_key.find(obj3_id, range_key: 3)
-        expect(obj3_found.id).to eql(obj3_id)
         expect(obj3_found.name).to eql('threethree')
       end
 

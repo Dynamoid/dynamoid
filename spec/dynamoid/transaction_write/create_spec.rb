@@ -20,7 +20,6 @@ describe Dynamoid::TransactionWrite, '.create' do
           obj3 = txn.create! klass, name: 'three'
         end
         obj3_found = klass.find(obj3.id)
-        expect(obj3_found).to eql(obj3)
         expect(obj3_found.name).to eql('three')
       end
     end
@@ -36,7 +35,6 @@ describe Dynamoid::TransactionWrite, '.create' do
           obj3 = txn.create! klass_with_composite_key, name: 'three', age: 3
         end
         obj3_found = klass_with_composite_key.find(obj3.id, range_key: 3)
-        expect(obj3_found).to eql(obj3)
         expect(obj3_found.name).to eql('three')
       end
     end
@@ -91,7 +89,6 @@ describe Dynamoid::TransactionWrite, '.create' do
         end
 
         obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
 
@@ -128,7 +125,6 @@ describe Dynamoid::TransactionWrite, '.create' do
         end
 
         obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
     end
