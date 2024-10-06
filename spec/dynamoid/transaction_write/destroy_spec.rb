@@ -102,6 +102,27 @@ describe Dynamoid::TransactionWrite, '.destroy' do
       }.to output('destroying destroyed ').to_stdout
     end
 
+    context 'when an issue detected on the DynamoDB side' do
+      it 'does not roll back the changes when item to delete with specified id does not exist' do
+        obj1 = klass.create!(name: 'one', id: '1')
+        obj1.id = 'not-existing'
+        obj2 = klass.new(name: 'two', id: '2')
+
+        expect {
+          described_class.execute do |txn|
+            txn.destroy obj1
+            txn.create obj2
+          end
+        }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+
+        expect(klass.count).to eql 1
+        expect(klass.all.to_a.map(&:id)).to contain_exactly('1')
+
+        # expect(obj1.destroyed?).to eql nil # FIXME
+        expect(obj2.persisted?).to eql false
+      end
+    end
+
     # TODO: test destroy! vs. destroy i.e. when an :abort is raised in a callback
   end
 end

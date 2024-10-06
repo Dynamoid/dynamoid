@@ -186,5 +186,26 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
         }.not_to output.to_stdout
       end
     end
+
+    context 'when an issue detected on the DynamoDB side' do
+      it 'rolls back the changes when id does not exist anymore' do
+        obj1 = klass.create!(name: 'one')
+        klass.find(obj1.id).delete
+        obj1.name = 'one [updated]'
+
+        obj2 = klass.new(name: 'two')
+
+        expect {
+          described_class.execute do |txn|
+            txn.save obj1
+            txn.create obj2
+          end
+        }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+
+        expect(klass.count).to eql 0
+        # expect(obj1.changed?).to eql true # FIXME
+        expect(obj2.persisted?).to eql false
+      end
+    end
   end
 end

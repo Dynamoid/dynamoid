@@ -76,5 +76,24 @@ describe Dynamoid::TransactionWrite, '.delete' do
         }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
       end
     end
+
+    context 'when an issue detected on the DynamoDB side' do
+      it 'does not roll back the changes when item to delete with specified id does not exist' do
+        obj1 = klass.create!(name: 'one', id: '1')
+        obj1.id = 'not-existing'
+        obj2 = klass.new(name: 'two', id: '2')
+
+        described_class.execute do |txn|
+          txn.delete obj1
+          txn.create obj2
+        end
+
+        expect(klass.count).to eql 2
+        expect(klass.all.to_a.map(&:id)).to contain_exactly('1', '2')
+
+        expect(obj1.destroyed?).to eql nil
+        expect(obj2.persisted?).to eql true
+      end
+    end
   end
 end
