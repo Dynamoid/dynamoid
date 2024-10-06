@@ -14,28 +14,6 @@ describe Dynamoid::TransactionWrite, '.create' do
         klass.create_table
       end
 
-      it 'with attribute in constructor' do
-        obj1 = klass.new(name: 'one')
-        expect(obj1.persisted?).to eql(false)
-        described_class.execute do |txn|
-          txn.create! obj1
-        end
-        expect(obj1.persisted?).to eql(true)
-        obj1_found = klass.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('one')
-      end
-
-      it 'with attribute in transaction' do
-        obj2 = klass.new
-        described_class.execute do |txn|
-          txn.create! obj2, name: 'two'
-        end
-        obj2_found = klass.find(obj2.id)
-        expect(obj2_found).to eql(obj2)
-        expect(obj2_found.name).to eql('two')
-      end
-
       it 'with class constructed in transaction' do
         obj3 = nil
         described_class.execute do |txn|
@@ -52,26 +30,6 @@ describe Dynamoid::TransactionWrite, '.create' do
         klass_with_composite_key.create_table
       end
 
-      it 'with attribute in constructor' do
-        obj1 = klass_with_composite_key.new(name: 'one', age: 1)
-        described_class.execute do |txn|
-          txn.create! obj1
-        end
-        obj1_found = klass_with_composite_key.find(obj1.id, range_key: 1)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('one')
-      end
-
-      it 'with attribute in transaction' do
-        obj2 = klass_with_composite_key.new
-        described_class.execute do |txn|
-          txn.create! obj2, name: 'two', age: 2
-        end
-        obj2_found = klass_with_composite_key.find(obj2.id, range_key: 2)
-        expect(obj2_found).to eql(obj2)
-        expect(obj2_found.name).to eql('two')
-      end
-
       it 'with class constructed in transaction' do
         obj3 = nil
         described_class.execute do |txn|
@@ -85,15 +43,18 @@ describe Dynamoid::TransactionWrite, '.create' do
 
     it 'creates timestamps' do
       klass.create_table
-      obj1 = klass.new(name: 'one')
-      expect(obj1.created_at).to be_nil
-      expect(obj1.updated_at).to be_nil
+      obj1 = nil
+      time_now = Time.now
       described_class.execute do |txn|
-        txn.create! obj1
+        obj1 = txn.create! klass, name: 'one'
       end
       obj1_found = klass.find(obj1.id)
-      expect(obj1_found.created_at.to_f).to be_within(1.seconds).of Time.now.to_f
-      expect(obj1_found.updated_at.to_f).to be_within(1.seconds).of Time.now.to_f
+
+      expect(obj1_found.created_at.to_f).to be_within(1.seconds).of time_now.to_f
+      expect(obj1_found.updated_at.to_f).to be_within(1.seconds).of time_now.to_f
+
+      expect(obj1.created_at.to_f).to be_within(1.seconds).of time_now.to_f
+      expect(obj1.updated_at.to_f).to be_within(1.seconds).of time_now.to_f
     end
 
     context 'validates' do
@@ -102,28 +63,31 @@ describe Dynamoid::TransactionWrite, '.create' do
       end
 
       it 'does not create when invalid' do
-        obj1 = klass_with_validation.new(name: 'one')
-        described_class.execute do |txn|
-          expect(txn.create(obj1)).to eql(false)
-        end
-        expect(obj1.id).to be_nil
+        obj1 = nil
+        expect {
+          described_class.execute do |txn|
+            obj1 = txn.create(klass_with_validation, name: 'one')
+          end
+        }.not_to change { klass_with_validation.count }
+        expect(obj1).to eql false
       end
 
       it 'rolls back when invalid' do
-        obj1 = klass_with_validation.new(name: 'one')
-        obj2 = klass_with_validation.new(name: 'twotwo')
+        obj1 = nil
+        obj2 = nil
         described_class.execute do |txn|
-          expect(txn.create(obj1)).to eql(false)
-          expect(txn.create(obj2)).to be_present
+          obj1 = txn.create(klass_with_validation, name: 'one')
+          obj2 = txn.create(klass_with_validation, name: 'twotwo')
         end
-        expect(obj1.id).to be_nil
+        expect(obj1).to eql false
+        expect(obj2).to_not be_nil
         expect(klass_with_validation).to exist(obj2.id)
       end
 
       it 'succeeds when valid' do
-        obj1 = klass_with_validation.new(name: 'oneone')
+        obj1 = nil
         described_class.execute do |txn|
-          expect(txn.create(obj1)).to be_present
+          obj1 = txn.create(klass_with_validation, name: 'oneone')
         end
 
         obj1_found = klass_with_validation.find(obj1.id)
@@ -132,33 +96,35 @@ describe Dynamoid::TransactionWrite, '.create' do
       end
 
       it 'raises DocumentNotValid when not valid' do
-        obj1 = klass_with_validation.new(name: 'one')
         expect {
-          described_class.execute do |txn|
-            txn.create! obj1
-          end
-        }.to raise_error(Dynamoid::Errors::DocumentNotValid)
-        expect(obj1.id).to be_nil # hash key should NOT be auto-generated if validation fails
+          expect {
+            described_class.execute do |txn|
+              txn.create! klass_with_validation, name: 'one'
+            end
+          }.to raise_error(Dynamoid::Errors::DocumentNotValid)
+        }.not_to change { klass_with_validation.count }
       end
 
       it 'rolls back and raises DocumentNotValid when not valid' do
-        obj1 = klass_with_validation.new(name: 'one')
-        obj2 = klass_with_validation.new(name: 'twotwo')
+        obj1 = nil
+        obj2 = nil
         expect {
-          described_class.execute do |txn|
-            txn.create! obj2
-            txn.create! obj1
-          end
-        }.to raise_error(Dynamoid::Errors::DocumentNotValid)
-        expect(obj1.id).to be_nil
-        expect(obj2.id).to be_present
-        expect(klass_with_validation).not_to exist(obj2.id)
+          expect {
+            described_class.execute do |txn|
+              obj2 = txn.create! klass_with_validation, name: 'twotwo'
+              obj1 = txn.create! klass_with_validation, name: 'one'
+            end
+          }.to raise_error(Dynamoid::Errors::DocumentNotValid)
+        }.not_to change { klass_with_validation.count }
+        expect(obj1).to be_nil
+        expect(obj2).to_not be_nil
+        # expect(obj2).to be_persisted # FIXME
       end
 
       it 'does not raise exception when valid' do
-        obj1 = klass_with_validation.new(name: 'oneone')
+        obj1 = nil
         described_class.execute do |txn|
-          txn.create!(obj1)
+          obj1 = txn.create! klass_with_validation, name: 'oneone'
         end
 
         obj1_found = klass_with_validation.find(obj1.id)
@@ -171,21 +137,15 @@ describe Dynamoid::TransactionWrite, '.create' do
       it 'rolls back the changes when id is not unique' do
         existing = klass.create!(name: 'one')
 
-        obj1 = klass.new(name: 'one', id: existing.id)
-        obj2 = klass.new(name: 'two')
-
         expect {
           described_class.execute do |txn|
-            txn.create! obj1
-            txn.create! obj2
+            txn.create! klass, name: 'one', id: existing.id
+            txn.create! klass, name: 'two'
           end
         }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
 
         expect(klass.count).to eql 1
         expect(klass.all.to_a).to eql [existing]
-
-        expect(obj1.persisted?).to eql false
-        expect(obj2.persisted?).to eql false
       end
     end
 
@@ -193,7 +153,7 @@ describe Dynamoid::TransactionWrite, '.create' do
       klass_with_callbacks.create_table
       expect {
         described_class.execute do |txn|
-          txn.create! klass_with_callbacks.new(name: 'two')
+          txn.create! klass_with_callbacks, name: 'two'
         end
       }.to output('validating validated saving creating created saved ').to_stdout
     end
@@ -202,7 +162,7 @@ describe Dynamoid::TransactionWrite, '.create' do
       klass_with_around_callbacks.create_table
       expect {
         described_class.execute do |txn|
-          txn.create! klass_with_around_callbacks.new(name: 'two')
+          txn.create! klass_with_around_callbacks, name: 'two'
         end
       }.to output('saving creating created saved ').to_stdout
     end

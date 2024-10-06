@@ -85,7 +85,7 @@ describe Dynamoid::TransactionWrite, '.delete' do
 
         described_class.execute do |txn|
           txn.delete obj1
-          txn.create obj2
+          txn.save obj2
         end
 
         expect(klass.count).to eql 2
