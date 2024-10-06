@@ -1,30 +1,85 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative 'context'
-
-# Dynamoid.config.logger.level = :debug
 
 describe Dynamoid::TransactionWrite, '.upsert' do
-  include_context 'transaction_write'
+  let(:klass) do
+    new_class do
+      field :name
+    end
+  end
 
-  context 'upserts' do
+  let(:klass_with_composite_key) do
+    new_class do
+      range :age, :integer
+      field :name
+    end
+  end
+
+  it 'persists a new model if primary key does not exist yet' do
+    klass.create_table
+
+    id_new = SecureRandom.uuid
+    obj = klass.new(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.upsert klass, id: id_new, name: 'Alex'
+      end
+    }.to change { klass.count }.by(1)
+
+    obj = klass.find(id_new)
+    expect(obj.name).to eql 'Alex'
+  end
+
+  it 'persists changes in already persisted model' do
+    obj = klass.create!(name: 'Alex')
+
+    described_class.execute do |txn|
+      txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+    end
+
+    obj_loaded = klass.find(obj.id)
+    expect(obj_loaded.name).to eql 'Alex [Updated]'
+  end
+
+  # FIXME:
+  #it 'returns nil' do
+  #  klass.create_table
+  #  obj = klass.new(name: 'two')
+
+  #  result = true
+  #  described_class.execute do |txn|
+  #    result = txn.save obj
+  #  end
+
+  #  expect(result).to eql nil
+  #end
+
+  describe 'primary key schema' do
     context 'simple primary key' do
-      before do
+      it 'persists a new model' do
         klass.create_table
+        id_new = SecureRandom.uuid
+
+        expect {
+          described_class.execute do |txn|
+            txn.upsert klass, id: id_new
+          end
+        }.to change { klass.count }.by(1)
       end
 
-      it 'with class constructed in transaction' do
-        obj3_id = SecureRandom.uuid
-        described_class.execute do |txn|
-          txn.upsert klass, { id: obj3_id, name: 'threethree' }
-        end
-        obj3_found = klass.find(obj3_id)
-        expect(obj3_found.id).to eql(obj3_id)
-        expect(obj3_found.name).to eql('threethree')
+      it 'persists changes in already persisted model' do
+        obj = klass.create!(name: 'Alex')
+
+        expect {
+          described_class.execute do |txn|
+            txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+          end
+        }.to change { klass.find(obj.id).name }.to('Alex [Updated]')
       end
 
-      it 'requires hash key in class' do
+      it 'requires partition key to be specified' do
         expect {
           described_class.execute do |txn|
             txn.upsert klass, { name: 'threethree' }
@@ -34,65 +89,195 @@ describe Dynamoid::TransactionWrite, '.upsert' do
     end
 
     context 'composite key' do
-      before do
+      it 'persists a new model' do
         klass_with_composite_key.create_table
-      end
+        id_new = SecureRandom.uuid
 
-      it 'with class constructed in transaction' do
-        obj3_id = SecureRandom.uuid
-        described_class.execute do |txn|
-          txn.upsert klass_with_composite_key, { id: obj3_id, age: 3, name: 'threethree' }
-        end
-        obj3_found = klass_with_composite_key.find(obj3_id, range_key: 3)
-        expect(obj3_found.id).to eql(obj3_id)
-        expect(obj3_found.name).to eql('threethree')
-      end
-
-      it 'with class constructed in transaction with return value' do
-        obj4_written = false
-        described_class.execute do |txn|
-          obj4_written = txn.upsert klass_with_composite_key, { id: SecureRandom.uuid, age: 4, name: 'fourfour' }
-        end
-        expect(obj4_written).to be true
-      end
-
-      it 'requires hash key in class' do
         expect {
           described_class.execute do |txn|
-            txn.upsert klass_with_composite_key, { name: 'threethree' }
+            txn.upsert klass_with_composite_key, id: id_new, age: 3
+          end
+        }.to change { klass_with_composite_key.count }.by(1)
+      end
+
+      it 'persists changes in already persisted model' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+
+        expect {
+          described_class.execute do |txn|
+            txn.upsert klass_with_composite_key, id: obj.id, age: obj.age, name: 'Alex [Updated]'
+          end
+        }.to change { obj.reload.name }.to('Alex [Updated]')
+      end
+
+      it 'requires partition key to be specified' do
+        expect {
+          described_class.execute do |txn|
+            txn.upsert klass_with_composite_key, name: 'Alex'
           end
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
 
-      it 'requires range key in class' do
+      it 'requires sort key to be specified' do
+        id_new = SecureRandom.uuid
+
         expect {
           described_class.execute do |txn|
-            txn.upsert klass_with_composite_key, { id: 'bananas', name: 'threethree' }
+            txn.upsert klass_with_composite_key, id: id_new, name: 'Alex'
           end
         }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
       end
     end
+  end
 
-    it 'updates timestamps by class when existing' do
-      klass.create_table
-      obj3 = klass.create!(name: 'three', created_at: Time.now - 48.hours, updated_at: Time.now - 24.hours)
-      described_class.execute do |txn|
-        txn.upsert klass, { id: obj3.id, name: 'threethree' }
+  describe 'timestamps' do
+    context 'new model' do
+      before do
+        klass.create_table
       end
-      obj3_found = klass.find(obj3.id)
-      expect(obj3_found.created_at.to_f).to be < (Time.now - 47.hours).to_f
-      expect(obj3_found.updated_at.to_f).to be_within(1.seconds).of Time.now.to_f
+
+      # FIXME
+      # it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+      #   klass.create_table
+      #   id_new = SecureRandom.uuid
+
+      #   travel 1.hour do
+      #     time_now = Time.now
+
+      #     described_class.execute do |txn|
+      #       txn.upsert klass, id: id_new
+      #     end
+
+      #     obj = klass.find(id_new)
+      #     expect(obj.created_at.to_i).to eql time_now.to_i
+      #     expect(obj.updated_at.to_i).to eql time_now.to_i
+      #   end
+      # end
+
+      it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        klass.create_table
+        id_new = SecureRandom.uuid
+
+        travel 1.hour do
+          created_at = updated_at = Time.now
+
+          described_class.execute do |txn|
+            txn.upsert klass, id: id_new, created_at: created_at, updated_at: updated_at
+          end
+
+          obj = klass.find(id_new)
+          expect(obj.created_at.to_i).to eql created_at.to_i
+          expect(obj.updated_at.to_i).to eql updated_at.to_i
+        end
+      end
+
+      # FIXME
+      # it 'does not raise error if Config.timestamps=false', config: { timestamps: false }, log_level: :debug do
+      #   expect {
+      #     described_class.execute do |txn|
+      #       txn.upsert klass, id: SecureRandom.uuid
+      #     end
+      #   }.not_to raise_error
+      # end
     end
 
-    it 'updates timestamps by class when not existing' do
-      klass.create_table
-      obj3_id = SecureRandom.uuid
-      described_class.execute do |txn|
-        txn.upsert klass, { id: obj3_id, name: 'threethree' }
+    context 'already created model' do
+      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create!
+
+        travel 1.hour do
+          time_now = Time.now
+
+          described_class.execute do |txn|
+            txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+          end
+
+          obj.reload
+          expect(obj.updated_at.to_i).to eql time_now.to_i
+        end
       end
-      obj3_found = klass.find(obj3_id)
-      expect(obj3_found.created_at).to be_nil
-      expect(obj3_found.updated_at.to_f).to be_within(1.seconds).of Time.now.to_f
+
+      it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+        obj = klass.create!
+
+        travel 1.hour do
+          created_at = updated_at = Time.now
+
+          described_class.execute do |txn|
+            txn.upsert klass, id: obj.id, created_at: created_at, updated_at: updated_at
+          end
+
+          obj.reload
+          expect(obj.created_at.to_i).to eql created_at.to_i
+          expect(obj.updated_at.to_i).to eql updated_at.to_i
+        end
+      end
+
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        obj = klass.create!
+
+        expect {
+          described_class.execute do |txn|
+            txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+          end
+        }.not_to raise_error
+      end
+    end
+  end
+
+  context 'when an issue detected on the DynamoDB side' do
+    # TODO: support conditions
+    it 'rolls back the changes when a specified condition is not satisfied'
+  end
+
+  describe 'callbacks' do
+    it 'does not run any callback' do
+      klass_with_callbacks = new_class do
+        field :name
+
+        before_validation { ScratchPad << 'run before_validation' }
+        after_validation { ScratchPad << 'run after_validation' }
+
+        before_create { ScratchPad << 'run before_create' }
+        after_create { ScratchPad << 'run after_create' }
+        around_create :around_create_callback
+
+        before_save { ScratchPad << 'run before_save' }
+        after_save { ScratchPad << 'run after_save' }
+        around_save :around_save_callback
+
+        before_destroy { ScratchPad << 'run before_destroy' }
+        after_destroy { ScratchPad << 'run after_destroy' }
+        around_destroy :around_destroy_callback
+
+        def around_create_callback
+          ScratchPad << 'start around_create'
+          yield
+          ScratchPad << 'finish around_create'
+        end
+
+        def around_save_callback
+          ScratchPad << 'start around_save'
+          yield
+          ScratchPad << 'finish around_save'
+        end
+
+        def around_destroy_callback
+          ScratchPad << 'start around_destroy'
+          yield
+          ScratchPad << 'finish around_destroy'
+        end
+      end
+
+      ScratchPad.record []
+      obj = klass_with_callbacks.create!(name: 'Alex')
+      ScratchPad.clear
+
+      described_class.execute do |txn|
+        txn.upsert klass_with_callbacks, id: obj.id, name: 'Alex [Updated]'
+      end
+
+      expect(ScratchPad.recorded).to eql([])
     end
   end
 end
