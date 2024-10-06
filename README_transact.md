@@ -96,25 +96,6 @@ Dynamoid::TransactionWrite.execute do |txn|
 end
 ```
 
-### Skipping callbacks and validations
-Validations and callbacks can be skipped per action.
-Validation failures will throw Dynamoid::Errors::DocumentNotValid when using the bang! methods.
-Note that validation callbacks are run when validation happens even if skipping callbacks here.
-Skipping callbacks and validation guarantees no callbacks.
-
-```ruby
-user = User.find(1)
-user.red = true
-Dynamoid::TransactionWrite.execute do |txn|
-  txn.save!(user, skip_callbacks: true)
-  txn.create!(User, { name: 'bob' }, { skip_callbacks: true })
-end
-Dynamoid::TransactionWrite.execute do |txn|
-  txn.save!(user, skip_validation: true)
-  txn.create!(User, { name: 'bob' }, { skip_validation: true })
-end
-```
-
 ### Validation failures that don't raise
 All of the transaction methods can be called without the bang! which results in
 false instead of a raised exception when validation fails.

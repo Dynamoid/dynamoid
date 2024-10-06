@@ -165,18 +165,6 @@ describe Dynamoid::TransactionWrite, '.create' do
         expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
-
-      it 'does not raise exception when skipping validation' do
-        obj1 = klass_with_validation.new(name: 'one')
-        described_class.execute do |txn|
-          # this use is infrequent, normal entry is from save!(obj, options)
-          txn.create!(obj1, {}, skip_validation: true)
-        end
-
-        obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('one')
-      end
     end
 
     context 'when an issue detected on the DynamoDB side' do
