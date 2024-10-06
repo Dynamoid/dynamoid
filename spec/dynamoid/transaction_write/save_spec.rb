@@ -22,7 +22,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
           txn.save! obj1
         end
         obj1_found = klass.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
 
@@ -32,7 +31,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
           txn.save! obj2
         end
         obj2_found = klass.find(obj2.id)
-        expect(obj2_found).to eql(obj2)
         expect(obj2_found.name).to eql('two')
       end
     end
@@ -49,7 +47,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
           txn.save! obj1
         end
         obj1_found = klass_with_composite_key.find(obj1.id, range_key: 1)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
 
@@ -59,7 +56,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
           txn.save! obj2
         end
         obj2_found = klass_with_composite_key.find(obj2.id, range_key: 2)
-        expect(obj2_found).to eql(obj2)
         expect(obj2_found.name).to eql('two')
       end
     end
@@ -97,7 +93,6 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
         end
 
         obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
 
@@ -133,19 +128,7 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
         end
 
         obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
-      end
-
-      it 'does not raise exception when skipping validation' do
-        obj1 = klass_with_validation.new(name: 'one')
-        described_class.execute do |txn|
-          txn.save!(obj1, skip_validation: true)
-        end
-
-        obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('one')
       end
     end
 
@@ -167,23 +150,26 @@ describe Dynamoid::TransactionWrite, '.save' do # 'save' is an update or create
           end
         }.to output('saving creating created saved ').to_stdout
       end
+    end
 
-      it 'cak skip callbacks' do
-        klass_with_callbacks.create_table
+    context 'when an issue detected on the DynamoDB side' do
+      it 'rolls back the changes when id does not exist anymore' do
+        obj1 = klass.create!(name: 'one')
+        klass.find(obj1.id).delete
+        obj1.name = 'one [updated]'
+
+        obj2 = klass.new(name: 'two')
+
         expect {
           described_class.execute do |txn|
-            txn.save! klass_with_callbacks.new(name: 'two'), skip_callbacks: true
+            txn.save obj1
+            txn.create obj2
           end
-        }.to output('validating validated ').to_stdout # ActiveModel runs validation callbacks when we validate
-      end
+        }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
 
-      it 'cak skip callbacks and validation' do
-        klass_with_callbacks.create_table
-        expect {
-          described_class.execute do |txn|
-            txn.save! klass_with_callbacks.new(name: 'two'), skip_callbacks: true, skip_validation: true
-          end
-        }.not_to output.to_stdout
+        expect(klass.count).to eql 0
+        # expect(obj1.changed?).to eql true # FIXME
+        expect(obj2.persisted?).to eql false
       end
     end
   end

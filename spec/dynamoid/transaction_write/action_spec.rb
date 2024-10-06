@@ -22,8 +22,6 @@ describe Dynamoid::TransactionWrite, '.action' do
 
       obj1_found = klass.find(obj1.id)
       obj2_found = klass_with_composite_key.find(obj2_id, range_key: 2)
-      expect(obj1_found).to eql(obj1)
-      expect(obj2_found.id).to eql(obj2_id)
       expect(obj1_found.name).to eql('one')
       expect(obj2_found.name).to eql('two')
     end

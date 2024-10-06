@@ -33,7 +33,7 @@ end
 ### Create items
 Items can be created inside of a transaction.
 The hash key and range key, if applicable, are used to determine uniqueness.
-Creating will fail with Aws::DynamoDB::Errors::TransactionCanceledException if an item already exists unless skip_existence_check is true.
+Creating will fail with Aws::DynamoDB::Errors::TransactionCanceledException if an item already exists.
 This example creates a user with a  unique id and unique email address by creating 2 items.
 An additional item is upserted in the same transaction.
 Upserts will update updated_at but will not create created_at.
@@ -44,7 +44,7 @@ email = 'bob@bob.bob'
 Dynamoid::TransactionWrite.execute do |txn|
   txn.create!(User, id: user_id)
   txn.create!(UserEmail, id: "UserEmail##{email}", user_id: user_id)
-  txn.create!(Address, { id: 'A#2', street: '456' }, { skip_existence_check: true })
+  txn.create!(Address, { id: 'A#2', street: '456' })
   txn.upsert!(Address, id: 'A#1', street: '123')
 end
 ```
@@ -93,25 +93,6 @@ Dynamoid::TransactionWrite.execute do |txn|
   txn.delete(Tag, 2) # delete record with hash key '2' if it exists
   txn.delete(Tag, id: 2) # equivalent of the above if the hash key column is 'id'
   txn.delete(Tag, id: 'key#abcd', my_sort_key: 'range#1') # when range key is required
-end
-```
-
-### Skipping callbacks and validations
-Validations and callbacks can be skipped per action.
-Validation failures will throw Dynamoid::Errors::DocumentNotValid when using the bang! methods.
-Note that validation callbacks are run when validation happens even if skipping callbacks here.
-Skipping callbacks and validation guarantees no callbacks.
-
-```ruby
-user = User.find(1)
-user.red = true
-Dynamoid::TransactionWrite.execute do |txn|
-  txn.save!(user, skip_callbacks: true)
-  txn.create!(User, { name: 'bob' }, { skip_callbacks: true })
-end
-Dynamoid::TransactionWrite.execute do |txn|
-  txn.save!(user, skip_validation: true)
-  txn.create!(User, { name: 'bob' }, { skip_validation: true })
 end
 ```
 

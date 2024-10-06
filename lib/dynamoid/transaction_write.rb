@@ -4,7 +4,6 @@ require 'dynamoid/transaction_write/action'
 require 'dynamoid/transaction_write/create'
 require 'dynamoid/transaction_write/delete'
 require 'dynamoid/transaction_write/destroy'
-require 'dynamoid/transaction_write/update_upsert'
 require 'dynamoid/transaction_write/update'
 require 'dynamoid/transaction_write/upsert'
 
@@ -85,13 +84,10 @@ module Dynamoid
         return false
       end
 
-      if action.skip_callbacks?
+      action.run_callbacks do
         @action_inputs << action.to_h
-      else
-        action.run_callbacks do
-          @action_inputs << action.to_h
-        end
       end
+
       action.changes_applied # action has been processed and added to queue so mark as applied
       models << action.model if action.model
 

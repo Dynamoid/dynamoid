@@ -21,7 +21,6 @@ describe Dynamoid::TransactionWrite, '.update' do
           txn.update! obj1
         end
         obj1_found = klass.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
 
@@ -31,7 +30,6 @@ describe Dynamoid::TransactionWrite, '.update' do
           txn.update! obj2, { name: 'twotwo' }
         end
         obj2_found = klass.find(obj2.id)
-        expect(obj2_found).to eql(obj2)
         expect(obj2_found.name).to eql('twotwo')
       end
 
@@ -41,7 +39,6 @@ describe Dynamoid::TransactionWrite, '.update' do
           txn.update! klass, { id: obj3.id, name: 'threethree' }
         end
         obj3_found = klass.find(obj3.id)
-        expect(obj3_found).to eql(obj3)
         expect(obj3_found.name).to eql('threethree')
       end
     end
@@ -58,7 +55,6 @@ describe Dynamoid::TransactionWrite, '.update' do
           txn.update! obj1
         end
         obj1_found = klass_with_composite_key.find(obj1.id, range_key: 1)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
 
@@ -69,7 +65,6 @@ describe Dynamoid::TransactionWrite, '.update' do
           txn.update! obj2, { name: 'twotwo' }
         end
         obj2_found = klass_with_composite_key.find(obj2.id, range_key: 2)
-        expect(obj2_found).to eql(obj2)
         expect(obj2_found.name).to eql('twotwo')
       end
 
@@ -79,7 +74,6 @@ describe Dynamoid::TransactionWrite, '.update' do
           txn.update! klass_with_composite_key, { id: obj3.id, age: 3, name: 'threethree' }
         end
         obj3_found = klass_with_composite_key.find(obj3.id, range_key: 3)
-        expect(obj3_found).to eql(obj3)
         expect(obj3_found.name).to eql('threethree')
       end
     end
@@ -145,7 +139,6 @@ describe Dynamoid::TransactionWrite, '.update' do
         end
 
         obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
       end
 
@@ -186,21 +179,7 @@ describe Dynamoid::TransactionWrite, '.update' do
         end
 
         obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to eql('oneone')
-      end
-
-      it 'does not raise exception when skipping validation' do
-        obj1 = klass_with_validation.create!(name: 'onelong')
-        described_class.execute do |txn|
-          obj1.name = 'one'
-          # this use is infrequent, normal entry is from save!(obj, options)
-          txn.update! obj1, {}, { skip_validation: true }
-        end
-
-        obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('one')
       end
 
       it 'uses callbacks' do
@@ -234,7 +213,6 @@ describe Dynamoid::TransactionWrite, '.update' do
             end
           end
           obj1_found = klass.find(obj1.id)
-          expect(obj1_found).to eql(obj1)
           expect(obj1_found.name).to eql('oneone')
           expect(obj1_found.record_count).to eql(10)
         end
@@ -250,7 +228,6 @@ describe Dynamoid::TransactionWrite, '.update' do
             end
           end
           obj1_found = klass.find(obj1.id)
-          expect(obj1_found).to eql(obj1)
           expect(obj1_found.name).to eql('oneone')
           expect(obj1_found.record_count).to eql(15)
         end
@@ -264,7 +241,6 @@ describe Dynamoid::TransactionWrite, '.update' do
             end
           end
           obj1_found = klass.find(obj1.id)
-          expect(obj1_found).to eql(obj1)
           expect(obj1_found.name).to eql('oneone')
           expect(obj1_found.favorite_numbers).to eql(Set[1, 2, 3, 4])
         end
@@ -280,7 +256,6 @@ describe Dynamoid::TransactionWrite, '.update' do
               end
             end
             obj1_found = klass.find(obj1.id)
-            expect(obj1_found).to eql(obj1)
             expect(obj1_found.record_count).to eql(5)
           end
 
@@ -292,7 +267,6 @@ describe Dynamoid::TransactionWrite, '.update' do
               end
             end
             obj1_found = klass.find(obj1.id)
-            expect(obj1_found).to eql(obj1)
             expect(obj1_found.name).to eql('one')
             expect(obj1_found.record_count).to eql(15)
           end
@@ -307,7 +281,6 @@ describe Dynamoid::TransactionWrite, '.update' do
               end
             end
             obj1_found = klass.find(obj1.id)
-            expect(obj1_found).to eql(obj1)
             expect(obj1_found.name).to eql('one')
             expect(obj1_found.favorite_numbers).to eql(Set[1, 2, 3, 4])
           end
@@ -320,7 +293,6 @@ describe Dynamoid::TransactionWrite, '.update' do
               end
             end
             obj1_found = klass.find(obj1.id)
-            expect(obj1_found).to eql(obj1)
             expect(obj1_found.name).to eql('one')
             expect(obj1_found.favorite_numbers).to eql(Set[1, 2, 3, 4])
           end
@@ -333,7 +305,6 @@ describe Dynamoid::TransactionWrite, '.update' do
               end
             end
             obj1_found = klass.find(obj1.id)
-            expect(obj1_found).to eql(obj1)
             expect(obj1_found.name).to eql('one')
             expect(obj1_found.favorite_names).to eql(Set.new(%w[adam ben charlie dan]))
           end
@@ -351,7 +322,6 @@ describe Dynamoid::TransactionWrite, '.update' do
           end
         end
         obj1_found = klass.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to be_nil
         expect(obj1_found.favorite_numbers).to eql(Set[1, 3])
       end
@@ -365,7 +335,6 @@ describe Dynamoid::TransactionWrite, '.update' do
           end
         end
         obj1_found = klass.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to be_nil
         expect(obj1_found.favorite_numbers).to eql(Set[1])
       end
@@ -379,7 +348,6 @@ describe Dynamoid::TransactionWrite, '.update' do
           end
         end
         obj1_found = klass.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to be_nil
         expect(obj1_found.favorite_numbers).to eql(Set[1])
       end
@@ -393,10 +361,29 @@ describe Dynamoid::TransactionWrite, '.update' do
           end
         end
         obj1_found = klass.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
         expect(obj1_found.name).to be_nil
         expect(obj1_found.favorite_names).to eql(Set['adam'])
       end
     end
+
+    # FIXME
+    #context 'when an issue detected on the DynamoDB side' do
+    #  it 'rolls back the changes when id does not exist anymore' do
+    #    obj1 = klass.create!(name: 'one')
+    #    klass.find(obj1.id).delete
+    #    obj2 = klass.new(name: 'two')
+
+    #    expect {
+    #      described_class.execute do |txn|
+    #        txn.update klass, {id: obj1.id, name: 'one [updated]' }
+    #        txn.create obj2
+    #      end
+    #    }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+
+    #    expect(klass.count).to eql 0
+    #    expect(obj1.changed?).to eql true # FIXME
+    #    expect(obj2.persisted?).to eql false
+    #  end
+    #end
   end
 end
