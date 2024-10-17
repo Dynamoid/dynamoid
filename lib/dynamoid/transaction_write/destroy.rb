@@ -23,9 +23,8 @@ module Dynamoid
         end
       end
 
-      # destroy defaults to not using validation
       def skip_validation?
-        options[:skip_validation] != false
+        true
       end
 
       def to_h
@@ -41,7 +40,7 @@ module Dynamoid
             table_name: model_class.table_name
           }
         }
-        result[:delete][:condition_expression] = condition_expression unless options[:skip_existence_check]
+        result[:delete][:condition_expression] = condition_expression
         result
       end
     end

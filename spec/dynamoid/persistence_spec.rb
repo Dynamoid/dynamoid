@@ -2024,6 +2024,24 @@ describe Dynamoid::Persistence do
       }.to('[Updated]')
     end
 
+    # TODO:
+    # it 'raises ...Error when range key is missing'
+
+    # TODO: add this case for save/save! and update_attributes/other update operations
+    # as well as you cannot update id (partition key)
+    it 'does not allow to update a range key value' do
+      document_class_with_range = new_class do
+        field :title
+        range :category
+      end
+
+      obj = document_class_with_range.create!(category: 'New')
+
+      expect {
+        document_class_with_range.upsert(obj.id, 'New', category: '[Updated]')
+      }.to raise_error(Aws::DynamoDB::Errors::ValidationException)
+    end
+
     it 'uses dumped value of sort key to call UpdateItem' do
       document_class_with_range = new_class do
         field :title
@@ -4797,8 +4815,19 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context 'destroy' do
+  describe 'destroy' do
     # TODO: adopt test cases for the `delete` method
+
+    it 'does not raise exception when model does not exist' do
+      klass = new_class
+      obj = klass.create
+      obj2 = klass.find(obj.id)
+      obj.delete
+      expect(klass.exists?(obj.id)).to eql false
+
+      obj2.destroy
+      expect(obj2.destroyed?).to eql true
+    end
 
     describe 'callbacks' do
       it 'runs before_destroy callback' do
@@ -4835,10 +4864,42 @@ describe Dynamoid::Persistence do
 
         expect { obj.destroy }.to output('start around_destroyfinish around_destroy').to_stdout
       end
+
+      it 'aborts destroying and returns false if a before_destroy callback throws :abort' do
+        klass = new_class do
+          before_destroy { throw :abort }
+        end
+        obj = klass.create!
+
+        result = nil
+        expect {
+          result = obj.destroy
+        }.not_to change { klass.count }
+
+        expect(result).to eql false
+        # expect(obj.destroyed?).to eql false # FIXME
+      end
     end
   end
 
-  context 'delete' do
+  describe 'destroy!' do
+    it 'aborts destroying and raises RecordNotDestroyed if a before_destroy callback throws :abort' do
+      klass = new_class do
+        before_destroy { throw :abort }
+      end
+      obj = klass.create!
+
+      expect {
+        expect {
+          obj.destroy!
+        }.to raise_error(Dynamoid::Errors::RecordNotDestroyed)
+      }.not_to change { klass.count }
+
+      # expect(obj.destroyed?).to eql false # FIXME
+    end
+  end
+
+  describe 'delete' do
     it 'deletes an item' do
       klass = new_class
       obj = klass.create
@@ -4865,10 +4926,21 @@ describe Dynamoid::Persistence do
       }.to(nil)
     end
 
+    it 'does not raise exception when model does not exist' do
+      klass = new_class
+      obj = klass.create
+      obj2 = klass.find(obj.id)
+      obj.delete
+      expect(klass.exists?(obj.id)).to eql false
+
+      obj2.delete
+      expect(obj2.destroyed?).to eql true
+    end
+
     context 'with lock version' do
       it 'deletes a record if lock version matches' do
         address.save!
-        expect { address.destroy }.not_to raise_error
+        expect { address.delete }.not_to raise_error
       end
 
       it 'does not delete a record if lock version does not match' do
@@ -4879,7 +4951,7 @@ describe Dynamoid::Persistence do
         a1.city = 'Seattle'
         a1.save!
 
-        expect { a2.destroy }.to raise_exception(Dynamoid::Errors::StaleObjectError)
+        expect { a2.delete }.to raise_exception(Dynamoid::Errors::StaleObjectError)
       end
 
       it 'uses the correct lock_version even if it is modified' do
@@ -4887,7 +4959,7 @@ describe Dynamoid::Persistence do
         a1 = address
         a1.lock_version = 100
 
-        expect { a1.destroy }.not_to raise_error
+        expect { a1.delete }.not_to raise_error
       end
     end
 
