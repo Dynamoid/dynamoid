@@ -9,7 +9,7 @@ describe Dynamoid::TransactionWrite, '#commit' do
     end
   end
 
-  it 'persists registered changes' do
+  it 'persists changes' do
     klass.create_table
     transaction = described_class.new
     transaction.create klass
