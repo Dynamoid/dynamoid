@@ -5,6 +5,7 @@ require 'dynamoid/transaction_write/create'
 require 'dynamoid/transaction_write/delete'
 require 'dynamoid/transaction_write/destroy'
 require 'dynamoid/transaction_write/update'
+require 'dynamoid/transaction_write/update_attributes'
 require 'dynamoid/transaction_write/upsert'
 
 module Dynamoid
@@ -34,7 +35,7 @@ module Dynamoid
     end
 
     def save(model, options = {})
-      model.new_record? ? create(model, {}, options) : update(model, {}, options)
+      model.new_record? ? create(model, {}, options) : update_attributes(model, {}, options)
     end
 
     def create!(model_or_model_class, attributes = {}, options = {}, &block)
@@ -57,6 +58,13 @@ module Dynamoid
 
     def update(model_or_model_class, attributes = {}, options = {}, &block)
       add_action_and_validate Dynamoid::TransactionWrite::Update.new(model_or_model_class, attributes, options, &block)
+
+    def update_attributes(model, attributes = {}, options = {}, &block)
+      add_action_and_validate Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, options, &block)
+    end
+
+    def update_attributes!(model, attributes = {}, options = {}, &block)
+      add_action_and_validate Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, options.reverse_merge(raise_validation_error: true), &block)
     end
 
     def delete(model_or_model_class, key_or_attributes = {}, options = {})
