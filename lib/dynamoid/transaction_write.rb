@@ -4,7 +4,7 @@ require 'dynamoid/transaction_write/action'
 require 'dynamoid/transaction_write/create'
 require 'dynamoid/transaction_write/delete'
 require 'dynamoid/transaction_write/destroy'
-require 'dynamoid/transaction_write/update'
+require 'dynamoid/transaction_write/update_fields'
 require 'dynamoid/transaction_write/update_attributes'
 require 'dynamoid/transaction_write/upsert'
 
@@ -52,12 +52,13 @@ module Dynamoid
       add_action_and_validate Dynamoid::TransactionWrite::Upsert.new(model_or_model_class, attributes, options, &block)
     end
 
-    def update!(model_or_model_class, attributes = {}, options = {}, &block)
-      update(model_or_model_class, attributes, options.reverse_merge(raise_validation_error: true), &block)
+    def update_fields!(klass, hash_key, range_key = nil, attributes = {}, options = {}, &block)
+      update_fields(klass, hash_key, range_key, attributes, options.reverse_merge(raise_validation_error: true), &block)
     end
 
-    def update(model_or_model_class, attributes = {}, options = {}, &block)
-      add_action_and_validate Dynamoid::TransactionWrite::Update.new(model_or_model_class, attributes, options, &block)
+    def update_fields(klass, hash_key, range_key = nil, attributes = {}, options = {}, &block)
+      add_action_and_validate Dynamoid::TransactionWrite::UpdateFields.new(klass, hash_key, range_key, attributes, options, &block)
+    end
 
     def update_attributes(model, attributes = {}, options = {}, &block)
       add_action_and_validate Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, options, &block)

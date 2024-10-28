@@ -4,49 +4,36 @@ require_relative 'action'
 
 module Dynamoid
   class TransactionWrite
-    class Update < Action
+    class UpdateFields < Action
       # model is found if not otherwise specified so callbacks can be run
-      def initialize(model_or_model_class, attributes, options = {})
-        model = if model_or_model_class.is_a?(Dynamoid::Document)
-                  model_or_model_class
-                else
-                  find_from_attributes(model_or_model_class, attributes)
-                end
-        super(model, attributes, options)
-        write_attributes_to_model
-      end
+      def initialize(klass, hash_key, range_key, attributes, options = {})
+        optional_params = [range_key, attributes, options].compact
 
-      def run_callbacks
-        unless model
-          yield if block_given?
-          return
+        if optional_params.first.is_a?(Hash)
+          range_key = nil
+          attributes, options = optional_params[0..1]
+        else
+          range_key = optional_params.first
+          attributes, options = optional_params[1..2]
         end
-        model.run_callbacks(:save) do
-          model.run_callbacks(:update) do
-            model.run_callbacks(:validate) do
-              yield if block_given?
-            end
-          end
-        end
+
+        @hash_key = hash_key
+        @range_key = range_key
+
+        super(klass, attributes, options)
       end
 
       def to_h
-        if model
-          # model.hash_key = SecureRandom.uuid if model.hash_key.blank?
-          touch_model_timestamps(skip_created_at: true)
-          changes = model.changes.map { |k, v| [k.to_sym, v[1]] }.to_h # hash of dirty attributes
-        else
-          changes = attributes.clone || {}
-          # changes[model_class.hash_key] = SecureRandom.uuid
-          changes = add_timestamps(changes, skip_created_at: true)
-        end
+        changes = attributes.clone || {}
+        # changes[model_class.hash_key] = SecureRandom.uuid
+        changes = add_timestamps(changes, skip_created_at: true)
         changes.delete(model_class.hash_key) # can't update id!
         changes.delete(model_class.range_key) if model_class.range_key?
         item = Dynamoid::Dumping.dump_attributes(changes, model_class.attributes)
 
         # set 'key' that is used to look up record for updating
-        key = { model_class.hash_key => hash_key }
-        key[model_class.range_key] = range_key if model_class.range_key?
+        key = { model_class.hash_key => @hash_key }
+        key[model_class.range_key] = @range_key if model_class.range_key?
 
         # e.g. "SET #updated_at = :updated_at ADD record_count :i"
         item_keys = item.keys
@@ -81,6 +68,10 @@ module Dynamoid
         result[:update][:condition_expression] = condition_expression
 
         result
+      end
+
+      def skip_validation?
+        true
       end
 
       private
