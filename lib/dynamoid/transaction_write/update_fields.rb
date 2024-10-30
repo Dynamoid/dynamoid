@@ -1,39 +1,41 @@
 # frozen_string_literal: true
 
-require_relative 'action'
-
 module Dynamoid
   class TransactionWrite
-    class UpdateFields < Action
-      # model is found if not otherwise specified so callbacks can be run
-      def initialize(klass, hash_key, range_key, attributes, options = {})
-        optional_params = [range_key, attributes, options].compact
-
-        if optional_params.first.is_a?(Hash)
-          range_key = nil
-          attributes, options = optional_params[0..1]
-        else
-          range_key = optional_params.first
-          attributes, options = optional_params[1..2]
-        end
-
+    class UpdateFields
+      def initialize(model_class, hash_key, range_key, attributes)
+        @model_class = model_class
         @hash_key = hash_key
         @range_key = range_key
-
-        super(klass, attributes, options)
+        @attributes = attributes
       end
 
-      def to_h
-        changes = attributes.clone || {}
+      def on_registration
+        validate_primary_key!
+      end
+
+      def on_completing
+      end
+
+      def aborted?
+        false
+      end
+
+      def observable_by_user_result
+        nil
+      end
+
+      def action_request
+        changes = @attributes.clone || {}
         # changes[model_class.hash_key] = SecureRandom.uuid
         changes = add_timestamps(changes, skip_created_at: true)
-        changes.delete(model_class.hash_key) # can't update id!
-        changes.delete(model_class.range_key) if model_class.range_key?
-        item = Dynamoid::Dumping.dump_attributes(changes, model_class.attributes)
+        changes.delete(@model_class.hash_key) # can't update id!
+        changes.delete(@model_class.range_key) if @model_class.range_key?
+        item = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
         # set 'key' that is used to look up record for updating
-        key = { model_class.hash_key => @hash_key }
-        key[model_class.range_key] = @range_key if model_class.range_key?
+        key = { @model_class.hash_key => @hash_key }
+        key[@model_class.range_key] = @range_key if @model_class.range_key?
 
         # e.g. "SET #updated_at = :updated_at ADD record_count :i"
         item_keys = item.keys
@@ -43,23 +45,19 @@ module Dynamoid
         expression_attribute_values = item_keys.each_with_index.map { |k, i| [":_s#{i}", item[k]] }.to_h
         expression_attribute_names = {}
 
-        update_expression = set_additions(expression_attribute_values, update_expression)
-        update_expression = set_deletions(expression_attribute_values, update_expression)
-        expression_attribute_names, update_expression = set_removals(expression_attribute_names, update_expression)
-
         # only alias names for fields in models, other values such as for ADD do not have them
         # e.g. {"#updated_at" => "updated_at"}
         # attribute_keys_in_model = item_keys.intersection(model_class.attributes.keys)
         # expression_attribute_names = attribute_keys_in_model.map{|k| ["##{k}","#{k}"]}.to_h
         expression_attribute_names.merge!(item_keys.each_with_index.map { |k, i| ["#_n#{i}", k.to_s] }.to_h)
 
-        condition_expression = "attribute_exists(#{model_class.hash_key})" # fail if record is missing
-        condition_expression += " and attribute_exists(#{model_class.range_key})" if model_class.range_key? # needed?
+        condition_expression = "attribute_exists(#{@model_class.hash_key})" # fail if record is missing
+        condition_expression += " and attribute_exists(#{@model_class.range_key})" if @model_class.range_key? # needed?
 
         result = {
           update: {
             key: key,
-            table_name: model_class.table_name,
+            table_name: @model_class.table_name,
             update_expression: update_expression,
             expression_attribute_values: expression_attribute_values
           }
@@ -70,59 +68,21 @@ module Dynamoid
         result
       end
 
-      def skip_validation?
-        true
-      end
-
       private
 
-      # adds all of the ADD statements to the update_expression and returns it
-      def set_additions(expression_attribute_values, update_expression)
-        return update_expression unless additions.present?
-
-        # ADD statements can be used to increment a counter:
-        # txn.update!(UserCount, "UserCount#Red", {}, options: {add: {record_count: 1}})
-        add_keys = additions.keys
-        update_expression += " ADD #{add_keys.each_with_index.map { |k, i| "#{k} :_a#{i}" }.join(', ')}"
-        # convert any enumerables into sets
-        add_values = additions.transform_values do |v|
-          if !v.is_a?(Set) && v.is_a?(Enumerable)
-            Set.new(v)
-          else
-            v
-          end
-        end
-        add_keys.each_with_index { |k, i| expression_attribute_values[":_a#{i}"] = add_values[k] }
-        update_expression
+      def validate_primary_key!
+        raise Dynamoid::Errors::MissingHashKey if @hash_key.nil?
+        raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && @range_key.nil?
       end
 
-      # adds all of the DELETE statements to the update_expression and returns it
-      def set_deletions(expression_attribute_values, update_expression)
-        return update_expression unless deletions.present?
+      def add_timestamps(attributes, skip_created_at: false)
+        return attributes unless @model_class.timestamps_enabled?
 
-        delete_keys = deletions.keys
-        update_expression += " DELETE #{delete_keys.each_with_index.map { |k, i| "#{k} :_d#{i}" }.join(', ')}"
-        # values must be sets
-        delete_values = deletions.transform_values do |v|
-          if v.is_a?(Set)
-            v
-          else
-            Set.new(v.is_a?(Enumerable) ? v : [v])
-          end
-        end
-        delete_keys.each_with_index { |k, i| expression_attribute_values[":_d#{i}"] = delete_values[k] }
-        update_expression
-      end
-
-      # adds all of the removals as a REMOVE clause
-      def set_removals(expression_attribute_names, update_expression)
-        return expression_attribute_names, update_expression unless removals.present?
-
-        update_expression += " REMOVE #{removals.each_with_index.map { |_k, i| "#_r#{i}" }.join(', ')}"
-        expression_attribute_names = expression_attribute_names.merge(
-          removals.each_with_index.map { |k, i| ["#_r#{i}", k.to_s] }.to_h
-        )
-        [expression_attribute_names, update_expression]
+        result = attributes.clone
+        timestamp = DateTime.now.in_time_zone(Time.zone)
+        result[:created_at] ||= timestamp unless skip_created_at
+        result[:updated_at] ||= timestamp
+        result
       end
     end
   end

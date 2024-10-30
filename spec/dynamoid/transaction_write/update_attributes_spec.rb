@@ -23,6 +23,35 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
     end
   end
 
+  let(:klass_with_all_callbacks) do
+    new_class do
+      field :name
+
+      before_validation { ScratchPad << 'run before_validation' }
+      after_validation { ScratchPad << 'run after_validation' }
+
+      before_update { ScratchPad << 'run before_update' }
+      after_update { ScratchPad << 'run after_update' }
+      around_update :around_update_callback
+
+      before_save { ScratchPad << 'run before_save' }
+      after_save { ScratchPad << 'run after_save' }
+      around_save :around_save_callback
+
+      def around_update_callback
+        ScratchPad << 'start around_update'
+        yield
+        ScratchPad << 'finish around_update'
+      end
+
+      def around_save_callback
+        ScratchPad << 'start around_save'
+        yield
+        ScratchPad << 'finish around_save'
+      end
+    end
+  end
+
   it 'persists changes' do
     obj = klass.create!(name: 'Alex')
 
@@ -145,6 +174,17 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
       # expect(obj.changed?).to eql true # FIXME
     end
 
+    it 'returns true when model valid' do
+      obj = klass_with_validation.create!(name: 'oneone')
+
+      result = nil
+      described_class.execute do |txn|
+        result = txn.update_attributes(obj, name: 'oneone [Updated]')
+      end
+
+      expect(result).to eql true
+    end
+
     it 'returns false when model invalid' do
       obj = klass_with_validation.create!(name: 'oneone')
 
@@ -176,18 +216,18 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
       klass.find(obj_deleted.id).delete
       obj_deleted.name = 'one [updated]'
 
-      obj = klass.new(name: 'two')
+      obj_to_create = nil
 
       expect {
         described_class.execute do |txn|
           txn.update_attributes obj_deleted, name: 'one [updated]'
-          txn.create obj
+          obj_to_create = txn.create klass, name: 'two'
         end
       }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
 
       expect(klass.count).to eql 0
       # expect(obj_deleted.changed?).to eql true # FIXME
-      expect(obj.persisted?).to eql false
+      expect(obj_to_create.persisted?).to eql false
     end
   end
 
@@ -237,7 +277,6 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
           ScratchPad << 'finish around_save'
         end
       end
-
       obj = klass_with_callback.create!(name: 'Alex')
       ScratchPad.record []
 
@@ -319,9 +358,8 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
           ScratchPad << 'finish around_update'
         end
       end
-
       obj = klass_with_callback.create!(name: 'Alex')
-      ScratchPad.record []
+      ScratchPad.clear
 
       described_class.execute do |txn|
         txn.update_attributes obj, name: 'Bob'
@@ -331,35 +369,8 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
     end
 
     it 'runs callbacks in the proper order' do
-      klass_with_callbacks = new_class do
-        field :name
-
-        before_validation { ScratchPad << 'run before_validation' }
-        after_validation { ScratchPad << 'run after_validation' }
-
-        before_update { ScratchPad << 'run before_update' }
-        after_update { ScratchPad << 'run after_update' }
-        around_update :around_update_callback
-
-        before_save { ScratchPad << 'run before_save' }
-        after_save { ScratchPad << 'run after_save' }
-        around_save :around_save_callback
-
-        def around_update_callback
-          ScratchPad << 'start around_update'
-          yield
-          ScratchPad << 'finish around_update'
-        end
-
-        def around_save_callback
-          ScratchPad << 'start around_save'
-          yield
-          ScratchPad << 'finish around_save'
-        end
-      end
-
-      obj = klass_with_callbacks.create!(name: 'John')
-      ScratchPad.record []
+      obj = klass_with_all_callbacks.create!(name: 'John')
+      ScratchPad.clear
 
       described_class.execute do |txn|
         txn.update_attributes obj, name: 'Bob'
@@ -377,6 +388,33 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
                                            'finish around_save',
                                            'run after_save'
       ]
+    end
+
+    it 'runs callbacks immediately' do
+      obj = klass_with_all_callbacks.create!(name: 'John')
+      ScratchPad.clear
+      callbacks = nil
+
+      described_class.execute do |txn|
+        txn.update_attributes obj, name: 'Bob'
+
+        callbacks = ScratchPad.recorded.dup
+        ScratchPad.clear
+      end
+
+      expect(callbacks).to contain_exactly(
+        'run before_validation',
+        'run after_validation',
+        'run before_save',
+        'start around_save',
+        'run before_update',
+        'start around_update',
+        'finish around_update',
+        'run after_update',
+        'finish around_save',
+        'run after_save'
+      )
+      expect(ScratchPad.recorded).to eql []
     end
   end
 end
@@ -445,7 +483,7 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
       klass_with_validation.create_table
     end
 
-    it 'returns self when model valid' do
+    it 'returns true when model valid' do
       obj = klass_with_validation.create!(name: 'oneone')
 
       result = nil
@@ -453,7 +491,18 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
         result = txn.update_attributes!(obj, name: 'oneone [UPDATED]')
       end
 
-      expect(result).to equal obj
+      expect(result).to eql true
+    end
+
+    it 'returns true when model valid' do
+      obj = klass_with_validation.create!(name: 'oneone')
+
+      result = nil
+      described_class.execute do |txn|
+        result = txn.update_attributes!(obj, name: 'oneone [Updated]')
+      end
+
+      expect(result).to eql true
     end
 
     it 'raise DocumentNotValid when model invalid' do

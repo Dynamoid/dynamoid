@@ -23,6 +23,33 @@ describe Dynamoid::TransactionWrite, '.create' do
     end
   end
 
+  let(:klass_with_all_callbacks) do
+    new_class do
+      before_validation { ScratchPad << 'run before_validation' }
+      after_validation { ScratchPad << 'run after_validation' }
+
+      before_create { ScratchPad << 'run before_create' }
+      after_create { ScratchPad << 'run after_create' }
+      around_create :around_create_callback
+
+      before_save { ScratchPad << 'run before_save' }
+      after_save { ScratchPad << 'run after_save' }
+      around_save :around_save_callback
+
+      def around_create_callback
+        ScratchPad << 'start around_create'
+        yield
+        ScratchPad << 'finish around_create'
+      end
+
+      def around_save_callback
+        ScratchPad << 'start around_save'
+        yield
+        ScratchPad << 'finish around_save'
+      end
+    end
+  end
+
   it 'persists a new model and accepts model class and attributes' do
     klass.create_table
 
@@ -228,7 +255,6 @@ describe Dynamoid::TransactionWrite, '.create' do
         end
       end
       klass_with_callback.create_table
-      ScratchPad.record []
 
       described_class.execute do |txn|
         txn.create klass_with_callback
@@ -275,7 +301,6 @@ describe Dynamoid::TransactionWrite, '.create' do
       end
 
       klass_with_callback.create_table
-      ScratchPad.record []
 
       described_class.execute do |txn|
         txn.create klass_with_callback
@@ -311,36 +336,10 @@ describe Dynamoid::TransactionWrite, '.create' do
     end
 
     it 'runs callbacks in the proper order' do
-      klass_with_callbacks = new_class do
-        before_validation { ScratchPad << 'run before_validation' }
-        after_validation { ScratchPad << 'run after_validation' }
-
-        before_create { ScratchPad << 'run before_create' }
-        after_create { ScratchPad << 'run after_create' }
-        around_create :around_create_callback
-
-        before_save { ScratchPad << 'run before_save' }
-        after_save { ScratchPad << 'run after_save' }
-        around_save :around_save_callback
-
-        def around_create_callback
-          ScratchPad << 'start around_create'
-          yield
-          ScratchPad << 'finish around_create'
-        end
-
-        def around_save_callback
-          ScratchPad << 'start around_save'
-          yield
-          ScratchPad << 'finish around_save'
-        end
-      end
-
-      klass_with_callbacks.create_table
-      ScratchPad.record []
+      klass_with_all_callbacks.create_table
 
       described_class.execute do |txn|
-        txn.create klass_with_callbacks
+        txn.create klass_with_all_callbacks
       end
 
       expect(ScratchPad.recorded).to eql [ # rubocop:disable Style/StringConcatenation
@@ -355,6 +354,31 @@ describe Dynamoid::TransactionWrite, '.create' do
                                            'finish around_save',
                                            'run after_save'
       ]
+    end
+
+    it 'runs callbacks immediately' do
+      klass_with_all_callbacks.create_table
+      callbacks = nil
+
+      described_class.execute do |txn|
+        txn.create klass_with_all_callbacks
+
+        callbacks = ScratchPad.recorded.dup
+        ScratchPad.clear
+      end
+
+      expect(callbacks).to contain_exactly(
+        'run before_validation',
+        'run after_validation',
+        'run before_save',
+        'start around_save',
+        'run before_create',
+        'start around_create',
+        'finish around_create',
+        'run after_create',
+        'finish around_save',
+        'run after_save')
+      expect(ScratchPad.recorded).to eql []
     end
   end
 end

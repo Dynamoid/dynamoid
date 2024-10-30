@@ -1,106 +1,106 @@
 # frozen_string_literal: true
 
-require 'dynamoid/transaction_write/action'
 require 'dynamoid/transaction_write/create'
-require 'dynamoid/transaction_write/delete'
+require 'dynamoid/transaction_write/delete_with_primary_key'
+require 'dynamoid/transaction_write/delete_with_instance'
 require 'dynamoid/transaction_write/destroy'
+require 'dynamoid/transaction_write/save'
 require 'dynamoid/transaction_write/update_fields'
 require 'dynamoid/transaction_write/update_attributes'
 require 'dynamoid/transaction_write/upsert'
 
 module Dynamoid
   class TransactionWrite
-    attr_accessor :action_inputs, :models
+    attr_reader :actions
 
-    def initialize(_options = {})
-      @action_inputs = []
-      @models = []
-    end
-
-    def self.execute(options = {})
-      transaction = new(options)
-      yield(transaction)
+    def self.execute
+      transaction = self.new
+      yield transaction
       transaction.commit
     end
 
+    def initialize
+      @actions = []
+    end
+
     def commit
-      return unless @action_inputs.present? # nothing to commit
+      action_requests = @actions.reject(&:aborted?).map(&:action_request)
+      return if action_requests.empty?
 
-      Dynamoid.adapter.transact_write_items(@action_inputs)
-      models.each { |model| model.new_record = false }
+      Dynamoid.adapter.transact_write_items(action_requests)
+      @actions.reject(&:aborted?).each(&:on_completing)
+
+      nil
     end
 
-    def save!(model, options = {})
-      save(model, options.reverse_merge(raise_validation_error: true))
+    def save!(model, **options)
+      action = Dynamoid::TransactionWrite::Save.new(model, **options, raise_validation_error: true)
+      register_action action
     end
 
-    def save(model, options = {})
-      model.new_record? ? create(model, {}, options) : update_attributes(model, {}, options)
+    def save(model, **options)
+      action = Dynamoid::TransactionWrite::Save.new(model, **options, raise_validation_error: false)
+      register_action action
     end
 
-    def create!(model_or_model_class, attributes = {}, options = {}, &block)
-      create(model_or_model_class, attributes, options.reverse_merge(raise_validation_error: true), &block)
+    def create!(model_class, attributes = {})
+      action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_validation_error: true)
+      register_action action
     end
 
-    def create(model_or_model_class, attributes = {}, options = {}, &block)
-      add_action_and_validate Dynamoid::TransactionWrite::Create.new(model_or_model_class, attributes, options, &block)
+    def create(model_class, attributes = {})
+      action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_validation_error: false)
+      register_action action
     end
 
     # upsert! does not exist because upserting instances that can raise validation errors is not officially supported
 
-    def upsert(model_or_model_class, attributes = {}, options = {}, &block)
-      add_action_and_validate Dynamoid::TransactionWrite::Upsert.new(model_or_model_class, attributes, options, &block)
+    def upsert(model_class, attributes, options = {})
+      action = Dynamoid::TransactionWrite::Upsert.new(model_class, attributes, **options)
+      register_action action
     end
 
-    def update_fields!(klass, hash_key, range_key = nil, attributes = {}, options = {}, &block)
-      update_fields(klass, hash_key, range_key, attributes, options.reverse_merge(raise_validation_error: true), &block)
+    def update_fields(model_class, hash_key, range_key = nil, attributes)
+      action = Dynamoid::TransactionWrite::UpdateFields.new(model_class, hash_key, range_key, attributes)
+      register_action action
     end
 
-    def update_fields(klass, hash_key, range_key = nil, attributes = {}, options = {}, &block)
-      add_action_and_validate Dynamoid::TransactionWrite::UpdateFields.new(klass, hash_key, range_key, attributes, options, &block)
+    def update_attributes(model, attributes)
+      action = Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, raise_validation_error: false)
+      register_action action
     end
 
-    def update_attributes(model, attributes = {}, options = {}, &block)
-      add_action_and_validate Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, options, &block)
+    def update_attributes!(model, attributes)
+      action = Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, raise_validation_error: true)
+      register_action action
     end
 
-    def update_attributes!(model, attributes = {}, options = {}, &block)
-      add_action_and_validate Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, options.reverse_merge(raise_validation_error: true), &block)
+    def delete(model_or_model_class, primary_key = nil)
+      if model_or_model_class.is_a? Class
+        action = Dynamoid::TransactionWrite::DeleteWithPrimaryKey.new(model_or_model_class, primary_key)
+        register_action action
+      else
+        action = Dynamoid::TransactionWrite::DeleteWithInstance.new(model_or_model_class)
+        register_action action
+      end
     end
 
-    def delete(model_or_model_class, key_or_attributes = {}, options = {})
-      add_action_and_validate Dynamoid::TransactionWrite::Delete.new(model_or_model_class, key_or_attributes, options)
+    def destroy!(model)
+      action = Dynamoid::TransactionWrite::Destroy.new(model)
+      register_action action
     end
 
-    def destroy!(model_or_model_class, key_or_attributes = {}, options = {})
-      destroy(model_or_model_class, key_or_attributes, options.reverse_merge(raise_validation_error: true))
-    end
-
-    def destroy(model_or_model_class, key_or_attributes = {}, options = {})
-      add_action_and_validate Dynamoid::TransactionWrite::Destroy.new(model_or_model_class, key_or_attributes, options)
+    def destroy(model)
+      action = Dynamoid::TransactionWrite::Destroy.new(model)
+      register_action action
     end
 
     private
 
-    # validates unless validations are skipped
-    # runs callbacks unless callbacks are skipped
-    # raise validation error or returns false if not valid
-    # otherwise adds hash of action to list in preparation for committing
-    def add_action_and_validate(action)
-      if !action.skip_validation? && !action.valid?
-        raise Dynamoid::Errors::DocumentNotValid, action.model if action.raise_validation_error?
-
-        return false
-      end
-
-      action.run_callbacks do
-        @action_inputs << action.to_h
-      end
-
-      action.changes_applied # action has been processed and added to queue so mark as applied
-      models << action.model if action.model
-
-      action.model || true # return model if it exists
+    def register_action(action)
+      @actions << action
+      action.on_registration
+      action.observable_by_user_result
     end
   end
 end

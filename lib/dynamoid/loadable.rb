@@ -11,6 +11,7 @@ module Dynamoid
 
       self
     end
+    alias assign_attributes load
 
     # Reload an object from the database -- if you suspect the object has changed in the data store and you need those
     # changes to be reflected immediately, you would call this method. This is a consistent read.
