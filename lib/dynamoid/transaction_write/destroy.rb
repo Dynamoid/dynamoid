@@ -33,6 +33,7 @@ module Dynamoid
       end
 
       def observable_by_user_result
+        return false if @aborted
         @model
       end
 

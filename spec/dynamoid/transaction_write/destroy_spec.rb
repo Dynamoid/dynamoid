@@ -100,7 +100,7 @@ describe Dynamoid::TransactionWrite, '#destroy' do
     # end
   end
 
-  it 'aborts destroying and returns false if a before_destroy callback throws :abort' do
+  it 'aborts destroying and returns false if callback throws :abort' do
     klass = new_class do
       before_destroy { throw :abort }
     end
@@ -113,8 +113,7 @@ describe Dynamoid::TransactionWrite, '#destroy' do
       end
     }.not_to change { klass.count }
 
-    expect(result).to equal obj
-    expect(obj.destroyed?).to eql nil
+    expect(result).to eql false
   end
 
   it 'does not roll back the whole transaction when a destroying of some model aborted by a before_destroy callback' do
@@ -223,6 +222,20 @@ describe Dynamoid::TransactionWrite, '#destroy' do
         'finish around_destroy',
         'run after_destroy')
       expect(ScratchPad.recorded).to eql []
+    end
+
+    it 'returns false if :abort is thrown' do
+      klass_with_callback = new_class do
+        before_destroy { throw :abort }
+      end
+      obj = klass_with_callback.create!
+      result = nil
+
+      described_class.execute do |txn|
+        result = txn.destroy obj
+      end
+
+      expect(result).to eql false
     end
   end
 end
