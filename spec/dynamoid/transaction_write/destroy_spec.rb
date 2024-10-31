@@ -272,23 +272,22 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
     expect(result).to be_destroyed
   end
 
-  # FIXME
-  # it 'aborts destroying and raises RecordNotDestroyed if a before_destroy callback throws :abort' do
-  #   klass = new_class do
-  #     before_destroy { throw :abort }
-  #   end
-  #   obj = klass.create!
+  it 'aborts destroying and raises RecordNotDestroyed if callback throws :abort' do
+    klass = new_class do
+      before_destroy { throw :abort }
+    end
+    obj = klass.create!
 
-  #   expect {
-  #     expect {
-  #       described_class.execute do |txn|
-  #         txn.destroy! obj
-  #       end
-  #     }.to raise_error(Dynamoid::Errors::RecordNotDestroyed)
-  #   }.not_to change { klass.count }
+    expect {
+      expect {
+        described_class.execute do |txn|
+          txn.destroy! obj
+        end
+      }.to raise_error(Dynamoid::Errors::RecordNotDestroyed)
+    }.not_to change { klass.count }
 
-  #   expect(obj.destroyed?).to eql nil
-  # end
+    expect(obj.destroyed?).to eql nil
+  end
 
   # FIXME
   # it 'rolls back the whole transaction when a destroying of some model aborted by a before_destroy callback' do

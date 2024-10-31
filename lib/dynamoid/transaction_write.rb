@@ -85,12 +85,12 @@ module Dynamoid
     end
 
     def destroy!(model)
-      action = Dynamoid::TransactionWrite::Destroy.new(model)
+      action = Dynamoid::TransactionWrite::Destroy.new(model, raise_error: true)
       register_action action
     end
 
     def destroy(model)
-      action = Dynamoid::TransactionWrite::Destroy.new(model)
+      action = Dynamoid::TransactionWrite::Destroy.new(model, raise_error: false)
       register_action action
     end
 

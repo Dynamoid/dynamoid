@@ -3,8 +3,9 @@
 module Dynamoid
   class TransactionWrite
     class Destroy
-      def initialize(model)
+      def initialize(model, **options)
         @model = model
+        @options = options
         @model_class = model.class
         @aborted = false
       end
@@ -16,6 +17,10 @@ module Dynamoid
         @model.run_callbacks(:destroy) do
           @aborted = false
           true
+        end
+
+        if @aborted && @options[:raise_error]
+          raise Dynamoid::Errors::RecordNotDestroyed, @model
         end
       end
 
