@@ -21,6 +21,10 @@ module Dynamoid
         false
       end
 
+      def skip?
+        @attributes.empty?
+      end
+
       def observable_by_user_result
         nil
       end

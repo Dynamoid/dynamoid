@@ -67,6 +67,9 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
   # TODO:
   it 'raises exception if a model is not persisted'
 
+  # TODO:
+  it 'can be called without attributes to modify'
+
   describe 'primary key schema' do
     context 'simple primary key' do
       it 'persists changes in already persisted model' do
@@ -131,6 +134,16 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
       expect {
         described_class.execute do |txn|
           txn.update_attributes obj, name: 'Alex [Updated]'
+        end
+      }.not_to raise_error
+    end
+
+    it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+      obj = klass.create!
+
+      expect {
+        described_class.execute do |txn|
+          txn.update_attributes obj, {}
         end
       }.not_to raise_error
     end

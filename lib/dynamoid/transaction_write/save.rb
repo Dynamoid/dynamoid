@@ -51,6 +51,10 @@ module Dynamoid
         @aborted
       end
 
+      def skip?
+        @model.persisted? && !@model.changed?
+      end
+
       def observable_by_user_result
         !@validation_failed
       end

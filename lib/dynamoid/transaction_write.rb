@@ -24,11 +24,12 @@ module Dynamoid
     end
 
     def commit
-      action_requests = @actions.reject(&:aborted?).map(&:action_request)
-      return if action_requests.empty?
+      actions_to_commit = @actions.reject(&:aborted?).reject(&:skip?)
+      return if actions_to_commit.empty?
 
+      action_requests = actions_to_commit.map(&:action_request)
       Dynamoid.adapter.transact_write_items(action_requests)
-      @actions.reject(&:aborted?).each(&:on_completing)
+      actions_to_commit.each(&:on_completing)
 
       nil
     end
@@ -52,8 +53,6 @@ module Dynamoid
       action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_validation_error: false)
       register_action action
     end
-
-    # upsert! does not exist because upserting instances that can raise validation errors is not officially supported
 
     def upsert(model_class, attributes, options = {})
       action = Dynamoid::TransactionWrite::Upsert.new(model_class, attributes, **options)

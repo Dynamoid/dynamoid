@@ -28,6 +28,9 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
     expect(obj).not_to be_changed
   end
 
+  # TODO:
+  it 'can be called without attributes to modify'
+
   it 'returns nil' do
     obj = klass.create!(name: 'Alex')
 
@@ -103,6 +106,16 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
       expect {
         described_class.execute do |txn|
           txn.update_fields klass, obj.id, name: 'Alex [Updated]'
+        end
+      }.not_to raise_error
+    end
+
+    it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+      obj = klass.create!
+
+      expect {
+        described_class.execute do |txn|
+          txn.update_fields klass, obj.id, {}
         end
       }.not_to raise_error
     end

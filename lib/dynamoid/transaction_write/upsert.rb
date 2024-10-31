@@ -20,12 +20,17 @@ module Dynamoid
         false
       end
 
+      def skip?
+        attributes_to_assign = @attributes.except(@model_class.hash_key, @model_class.range_key)
+        attributes_to_assign.empty? && !@model_class.timestamps_enabled?
+      end
+
       def observable_by_user_result
         nil
       end
 
       def action_request
-        changes = @attributes.clone || {}
+        changes = @attributes.dup
         # changes[@model_class.hash_key] = SecureRandom.uuid
         changes = add_timestamps(changes, skip_created_at: true)
 
@@ -56,10 +61,10 @@ module Dynamoid
             key: key,
             table_name: @model_class.table_name,
             update_expression: update_expression,
+            expression_attribute_names: expression_attribute_names,
             expression_attribute_values: expression_attribute_values
           }
         }
-        result[:update][:expression_attribute_names] = expression_attribute_names if expression_attribute_names.present?
 
         result
       end

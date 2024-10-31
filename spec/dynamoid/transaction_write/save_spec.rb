@@ -180,6 +180,14 @@ describe Dynamoid::TransactionWrite, '.save' do
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
         expect {
           described_class.execute do |txn|
+            txn.save klass.new(name: 'Alex')
+          end
+        }.not_to raise_error
+      end
+
+      it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+        expect {
+          described_class.execute do |txn|
             txn.save klass.new
           end
         }.not_to raise_error
@@ -225,6 +233,16 @@ describe Dynamoid::TransactionWrite, '.save' do
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
         obj = klass.create!
         obj.name = 'Alex [Updated]'
+
+        expect {
+          described_class.execute do |txn|
+            txn.save obj
+          end
+        }.not_to raise_error
+      end
+
+      it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+        obj = klass.create!
 
         expect {
           described_class.execute do |txn|
@@ -386,15 +404,16 @@ describe Dynamoid::TransactionWrite, '.save' do
       obj_to_create = nil
 
       expect {
-        described_class.execute do |txn|
-          txn.save obj_deleted
-          obj_to_create = txn.create klass, name: 'two'
-        end
-      }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+        expect {
+          described_class.execute do |txn|
+            txn.save obj_deleted
+            obj_to_create = txn.create klass, name: 'two'
+          end
+        }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+      }.not_to change { klass.count }
 
-      expect(klass.count).to eql 0
-      # expect(obj1.changed?).to eql true # FIXME
-      expect(obj_to_create.persisted?).to eql false
+      expect(obj_to_create).to be_changed
+      expect(obj_to_create).not_to be_persisted
     end
   end
 

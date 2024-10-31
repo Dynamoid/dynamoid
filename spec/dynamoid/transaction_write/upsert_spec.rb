@@ -54,6 +54,16 @@ describe Dynamoid::TransactionWrite, '.upsert' do
     expect(result).to eql nil
   end
 
+  it 'can be called without attributes to modify' do
+    obj = klass.create!(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.upsert klass, id: obj.id
+      end
+    }.not_to raise_error
+  end
+
   describe 'primary key schema' do
     context 'simple primary key' do
       it 'persists a new model' do
@@ -163,14 +173,25 @@ describe Dynamoid::TransactionWrite, '.upsert' do
         end
       end
 
-      # FIXME
-      # it 'does not raise error if Config.timestamps=false', config: { timestamps: false }, log_level: :debug do
-      #   expect {
-      #     described_class.execute do |txn|
-      #       txn.upsert klass, id: SecureRandom.uuid
-      #     end
-      #   }.not_to raise_error
-      # end
+      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+        klass.create_table
+
+        expect {
+          described_class.execute do |txn|
+            txn.upsert klass, id: SecureRandom.uuid, name: 'Alex'
+          end
+        }.not_to raise_error
+      end
+
+      it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+        klass.create_table
+
+        expect {
+          described_class.execute do |txn|
+            txn.upsert klass, id: SecureRandom.uuid
+          end
+        }.not_to raise_error
+      end
     end
 
     context 'already created model' do
@@ -211,6 +232,16 @@ describe Dynamoid::TransactionWrite, '.upsert' do
         expect {
           described_class.execute do |txn|
             txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+          end
+        }.not_to raise_error
+      end
+
+      it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+        obj = klass.create!
+
+        expect {
+          described_class.execute do |txn|
+            txn.upsert klass, id: obj.id
           end
         }.not_to raise_error
       end

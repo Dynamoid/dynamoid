@@ -20,6 +20,10 @@ module Dynamoid
         @save_action.aborted?
       end
 
+      def skip?
+        @save_action.skip?
+      end
+
       def observable_by_user_result
         !@save_action.validation_failed?
       end
