@@ -81,23 +81,22 @@ describe Dynamoid::TransactionWrite, '#destroy' do
   end
 
   context 'when an issue detected on the DynamoDB side' do
-    # FIXME
-    # it 'does not roll back the changes when a model to destroy does not exist' do
-    #   obj1 = klass.create!(name: 'one', id: '1')
-    #   obj1.id = 'not-existing'
-    #   obj2 = klass.new(name: 'two', id: '2')
+    it 'does not raise exception and does not roll back the transaction when a model to destroy does not exist' do
+      obj_to_destroy = klass.create!(name: 'one', id: '1')
+      obj_to_destroy.id = 'not-existing'
+      obj_to_save = klass.new(name: 'two', id: '2')
 
-    #   expect {
-    #     described_class.execute do |txn|
-    #       txn.destroy obj1
-    #       txn.save obj2
-    #     end
-    #   }.to change { klass.count }.by(1)
+      expect {
+        described_class.execute do |txn|
+          txn.destroy obj_to_destroy
+          txn.save obj_to_save
+        end
+      }.to change { klass.count }.by(1)
 
-    #   expect(obj1.destroyed?).to eql nil
-    #   expect(obj2.persisted?).to eql true
-    #   expect(klass.all.to_a.map(&:id)).to contain_exactly('1', obj2.id)
-    # end
+      expect(obj_to_destroy.destroyed?).to eql true
+      expect(obj_to_save.persisted?).to eql true
+      expect(klass.all.to_a.map(&:id)).to contain_exactly('1', obj_to_save.id)
+    end
   end
 
   it 'aborts destroying and returns false if callback throws :abort' do
@@ -116,7 +115,7 @@ describe Dynamoid::TransactionWrite, '#destroy' do
     expect(result).to eql false
   end
 
-  it 'does not roll back the whole transaction when a destroying of some model aborted by a before_destroy callback' do
+  it 'does not roll back the transaction when a destroying of some model aborted by a before_destroy callback' do
     klass = new_class do
       before_destroy { throw :abort }
     end
@@ -247,7 +246,7 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
     end
   end
 
-  it 'deletes a model and accepts a model itself' do
+  it 'deletes a model' do
     obj = klass.create!(name: 'one')
 
     expect {
@@ -289,27 +288,20 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
     expect(obj.destroyed?).to eql nil
   end
 
-  # FIXME
-  # it 'rolls back the whole transaction when a destroying of some model aborted by a before_destroy callback' do
-  #   klass = new_class do
-  #     before_destroy { throw :abort }
-  #   end
+  it 'does not raise exception and does not roll back the transaction when a model to destroy does not exist' do
+    obj_to_destroy = klass.create!(name: 'one', id: '1')
+    obj_to_destroy.id = 'not-existing'
+    obj_to_save = klass.new(name: 'two', id: '2')
 
-  #   obj_to_destroy = klass.create!
-  #   obj_to_save = klass.new
+    expect {
+      described_class.execute do |txn|
+        txn.destroy! obj_to_destroy
+        txn.save obj_to_save
+      end
+    }.to change { klass.count }.by(1)
 
-  #   expect {
-  #     expect {
-  #     described_class.execute do |txn|
-  #       txn.save obj_to_save
-  #       txn.destroy! obj_to_destroy
-  #     end
-  #     }.to raise_error(Dynamoid::Errors::RecordNotDestroyed)
-  #   }.not_to change { klass.count }
-
-  #   expect(obj_to_save.persisted?).to eql false
-  #   expect(obj_to_destroy.destroyed?).to eql nil
-  #   expect(klass.exists?(obj_to_destroy.id)).to eql true
-  #   expect(klass.exists?(obj_to_save.id)).to eql false
-  # end
+    expect(obj_to_destroy.destroyed?).to eql true
+    expect(obj_to_save.persisted?).to eql true
+    expect(klass.all.to_a.map(&:id)).to contain_exactly('1', obj_to_save.id)
+  end
 end

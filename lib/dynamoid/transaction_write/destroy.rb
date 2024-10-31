@@ -45,16 +45,12 @@ module Dynamoid
       def action_request
         key = { @model_class.hash_key => @model.hash_key }
         key[@model_class.range_key] = @model.range_value if @model_class.range_key?
-        # force fast fail i.e. won't retry if record is missing
-        condition_expression = "attribute_exists(#{@model_class.hash_key})"
-        condition_expression += " and attribute_exists(#{@model_class.range_key})" if @model_class.range_key? # needed?
         result = {
           delete: {
             key: key,
             table_name: @model_class.table_name
           }
         }
-        result[:delete][:condition_expression] = condition_expression
         result
       end
 
