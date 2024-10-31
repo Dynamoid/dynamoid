@@ -32,7 +32,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
     expect(obj.name).to eql 'Alex'
   end
 
-  it 'persists changes in already persisted model' do
+  it 'persists changes of already existing model' do
     obj = klass.create!(name: 'Alex')
 
     described_class.execute do |txn|
@@ -43,18 +43,16 @@ describe Dynamoid::TransactionWrite, '.upsert' do
     expect(obj_loaded.name).to eql 'Alex [Updated]'
   end
 
-  # FIXME:
-  #it 'returns nil' do
-  #  klass.create_table
-  #  obj = klass.new(name: 'two')
+  it 'returns nil' do
+    obj = klass.create!(name: 'Alex')
 
-  #  result = true
-  #  described_class.execute do |txn|
-  #    result = txn.save obj
-  #  end
+    result = true
+    described_class.execute do |txn|
+      result = txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+    end
 
-  #  expect(result).to eql nil
-  #end
+    expect(result).to eql nil
+  end
 
   describe 'primary key schema' do
     context 'simple primary key' do
@@ -132,27 +130,21 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
   describe 'timestamps' do
     context 'new model' do
-      before do
+      it 'sets updated_at only if Config.timestamps=true', config: { timestamps: true } do
         klass.create_table
+        id_new = SecureRandom.uuid
+
+        travel 1.hour do
+          time_now = Time.now
+
+          described_class.execute do |txn|
+            txn.upsert klass, id: id_new
+          end
+
+          obj = klass.find(id_new)
+          expect(obj.updated_at.to_i).to eql time_now.to_i
+        end
       end
-
-      # FIXME
-      # it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
-      #   klass.create_table
-      #   id_new = SecureRandom.uuid
-
-      #   travel 1.hour do
-      #     time_now = Time.now
-
-      #     described_class.execute do |txn|
-      #       txn.upsert klass, id: id_new
-      #     end
-
-      #     obj = klass.find(id_new)
-      #     expect(obj.created_at.to_i).to eql time_now.to_i
-      #     expect(obj.updated_at.to_i).to eql time_now.to_i
-      #   end
-      # end
 
       it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
         klass.create_table

@@ -38,7 +38,7 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do
 
     expect(result).to be_a(klass)
     expect(result).to equal(obj)
-    # expect(result).to be_destroyed # FIXME
+    expect(result).to be_destroyed
   end
 
   describe 'primary key schemas' do
@@ -82,7 +82,7 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do
       expect(klass.all.to_a.map(&:id)).to contain_exactly('1', '2')
 
       expect(obj1.destroyed?).to eql true
-      # expect(obj2.persisted?).to eql true # FIXME
+      expect(obj2.persisted?).to eql true
     end
   end
 
@@ -162,19 +162,16 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
     expect(klass.exists?(obj.id)).to eql false
   end
 
-  # FIXME
-  # it 'returns a model' do
-  #   obj = klass.create!(name: 'one')
+  it 'returns nil' do
+    obj = klass.create!(name: 'one')
 
-  #   result = nil
-  #   described_class.execute do |txn|
-  #     result = txn.delete klass, obj.id
-  #   end
+    result = true
+    described_class.execute do |txn|
+      result = txn.delete klass, obj.id
+    end
 
-  #   expect(result).to be_a(klass)
-  #   expect(result).to eql(obj)
-  #   expect(result).to be_destroyed
-  # end
+    expect(result).to eql nil
+  end
 
   describe 'primary key schemas' do
     context 'simple primary key' do
@@ -233,7 +230,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
       expect(klass.all.to_a.map(&:id)).to contain_exactly('1', '2')
 
       expect(obj_to_delete.destroyed?).to eql nil
-      # expect(obj_to_save.persisted?).to eql true # FIXME
+      expect(obj_to_save).to be_persisted
     end
   end
 

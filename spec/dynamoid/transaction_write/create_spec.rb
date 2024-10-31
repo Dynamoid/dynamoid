@@ -76,6 +76,9 @@ describe Dynamoid::TransactionWrite, '.create' do
     expect(obj.name).to eql 'Alex'
   end
 
+  # TODO:
+  it 'can be called without attributes to modify'
+
   describe 'primary key schema' do
     context 'simple primary key' do
       it 'persists a model' do
@@ -138,6 +141,14 @@ describe Dynamoid::TransactionWrite, '.create' do
     it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
       expect {
         described_class.execute do |txn|
+          txn.create klass, name: 'Alex'
+        end
+      }.not_to raise_error
+    end
+
+    it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+      expect {
+        described_class.execute do |txn|
           txn.create klass, {}
         end
       }.not_to raise_error
@@ -165,17 +176,16 @@ describe Dynamoid::TransactionWrite, '.create' do
       }.not_to change { klass_with_validation.count }
     end
 
-    # FIXME
-    #it 'still returns a new model even if it is invalid' do
-    #  obj = nil
-    #  described_class.execute do |txn|
-    #    obj = txn.create(klass_with_validation, name: 'one')
-    #  end
+    it 'returns a new model even if it is invalid' do
+      obj = nil
+      described_class.execute do |txn|
+        obj = txn.create(klass_with_validation, name: 'one')
+      end
 
-    #  expect(obj).to be_a(klass_with_validation)
-    #  expect(obj.name).to eql 'one'
-    #  expect(obj).to_not be_persisted
-    #end
+      expect(obj).to be_a(klass_with_validation)
+      expect(obj.name).to eql 'one'
+      expect(obj).to_not be_persisted
+    end
 
     it 'does not roll back the whole transaction when a model to be created is invalid' do
       obj_invalid = nil
@@ -188,12 +198,11 @@ describe Dynamoid::TransactionWrite, '.create' do
         end
       }.to change { klass_with_validation.count }.by(1)
 
-      # FIXME
-      # expect(obj_invalid).to_not be_persisted
-      # expect(obj_valid).to be_persisted
+      expect(obj_invalid).to_not be_persisted
+      expect(obj_valid).to be_persisted
 
-      # obj_valid_loaded = klass_with_validation.find(obj_valid.id)
-      # expect(obj_valid_loaded.name).to eql 'twotwo'
+      obj_valid_loaded = klass_with_validation.find(obj_valid.id)
+      expect(obj_valid_loaded.name).to eql 'twotwo'
     end
   end
 

@@ -25,20 +25,19 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
 
     obj_loaded = klass.find(obj.id)
     expect(obj_loaded.name).to eql 'Alex [Updated]'
-    # expect(obj.changed?).to eql false # FIXME
+    expect(obj).not_to be_changed
   end
 
-  # FIXME
-  # it 'returns nil' do
-  #   obj = klass.create!(name: 'Alex')
+  it 'returns nil' do
+    obj = klass.create!(name: 'Alex')
 
-  #   result = true
-  #   described_class.execute do |txn|
-  #     result = txn.update_fields klass, obj.id, name: 'Alex [Updated]'
-  #   end
+    result = true
+    described_class.execute do |txn|
+      result = txn.update_fields klass, obj.id, name: 'Alex [Updated]'
+    end
 
-  #   expect(result).to eql nil
-  # end
+    expect(result).to eql nil
+  end
 
   describe 'primary key schema' do
     context 'simple primary key' do
@@ -109,28 +108,25 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
     end
   end
 
-  # FIXME
-  #context 'when an issue detected on the DynamoDB side' do
-  #  it 'rolls back the changes when model does not exist' do
-  #    obj1 = klass.create!(name: 'one')
-  #    klass.find(obj1.id).delete
-  #    obj2 = klass.new(name: 'two')
+  context 'when an issue detected on the DynamoDB side' do
+    it 'rolls back the changes when model does not exist' do
+      obj1 = klass.create!(name: 'one')
+      klass.find(obj1.id).delete
+      obj2 = nil
 
-  #    expect {
-  #      described_class.execute do |txn|
-  #        txn.update_fields klass, obj1.id, { name: 'one [updated]' }
-  #        txn.create obj2
-  #      end
-  #    }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+      expect {
+        described_class.execute do |txn|
+          txn.update_fields klass, obj1.id, { name: 'one [updated]' }
+          obj2 = txn.create klass, name: 'two'
+        end
+      }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
 
-  #    expect(klass.count).to eql 0
-  #    expect(obj1.changed?).to eql true # FIXME
-  #    expect(obj2.persisted?).to eql false
-  #  end
-  #end
+      expect(klass.count).to eql 0
+      expect(obj2.persisted?).to eql false
+    end
+  end
 
   describe 'callbacks' do
-    # FIXME
     it 'does not run any callback' do
       klass_with_callbacks = new_class do
         field :name

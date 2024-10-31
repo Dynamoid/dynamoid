@@ -64,19 +64,6 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
     expect(obj.changed?).to eql false
   end
 
-  # FIXME:
-  # it 'returns true' do
-  #   klass.create_table
-  #   obj = klass.create!(name: 'Alex')
-
-  #   result = nil
-  #   described_class.execute do |txn|
-  #     result = txn.update_attributes(obj, name: 'Alex [Updated]')
-  #   end
-
-  #   expect(result).to eql true
-  # end
-
   # TODO:
   it 'raises exception if a model is not persisted'
 
@@ -168,10 +155,10 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
         described_class.execute do |txn|
           txn.update_attributes obj, name: 'one'
         end
-      }.not_to change { obj.reload.name }
+      }.not_to change { klass_with_validation.find(obj.id).name }
 
-      # expect(obj.name).to eql 'one' # FIXME
-      # expect(obj.changed?).to eql true # FIXME
+      expect(obj.name).to eql 'one'
+      expect(obj).to be_changed
     end
 
     it 'returns true when model valid' do
@@ -226,8 +213,8 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
       }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
 
       expect(klass.count).to eql 0
-      # expect(obj_deleted.changed?).to eql true # FIXME
-      expect(obj_to_create.persisted?).to eql false
+      expect(obj_deleted).to be_changed
+      expect(obj_to_create).not_to be_persisted
     end
   end
 

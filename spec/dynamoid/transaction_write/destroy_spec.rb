@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionWrite, '.destroy' do
+describe Dynamoid::TransactionWrite, '#destroy' do
   let(:klass) do
     new_class do
       field :name
@@ -50,9 +50,8 @@ describe Dynamoid::TransactionWrite, '.destroy' do
       result = txn.destroy obj
     end
 
-    expect(result).to be_a(klass)
     expect(result).to equal(obj)
-    # expect(result).to be_destroyed # FIXME
+    expect(result).to be_destroyed
   end
 
   describe 'primary key schemas' do
@@ -114,7 +113,7 @@ describe Dynamoid::TransactionWrite, '.destroy' do
       end
     }.not_to change { klass.count }
 
-    # expect(result).to eql false # FIXME
+    expect(result).to equal obj
     expect(obj.destroyed?).to eql nil
   end
 
@@ -133,7 +132,7 @@ describe Dynamoid::TransactionWrite, '.destroy' do
       end
     }.to change { klass.count }.by(1)
 
-    #expect(obj_to_save.persisted?).to eql true # FIXME
+    expect(obj_to_save.persisted?).to eql true
     expect(obj_to_destroy.destroyed?).to eql nil
     expect(klass.exists?(obj_to_destroy.id)).to eql true
     expect(klass.exists?(obj_to_save.id)).to eql true
@@ -257,7 +256,7 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
 
     expect(result).to be_a(klass)
     expect(result).to equal(obj)
-    # expect(result).to be_destroyed # FIXME
+    expect(result).to be_destroyed
   end
 
   # FIXME

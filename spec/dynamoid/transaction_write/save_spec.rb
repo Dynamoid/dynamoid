@@ -91,19 +91,6 @@ describe Dynamoid::TransactionWrite, '.save' do
     expect(obj.changed?).to eql false
   end
 
-  # FIXME:
-  #it 'returns true' do
-  #  klass.create_table
-  #  obj = klass.new(name: 'two')
-
-  #  result = nil
-  #  described_class.execute do |txn|
-  #    result = txn.save obj
-  #  end
-
-  #  expect(result).to eql true
-  #end
-
   describe 'primary key schema' do
     context 'simple primary key' do
       it 'persists a new model' do
