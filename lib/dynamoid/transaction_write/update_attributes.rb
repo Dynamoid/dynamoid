@@ -4,7 +4,8 @@ module Dynamoid
   class TransactionWrite
     class UpdateAttributes
       def initialize(model, attributes, **options)
-        model.assign_attributes(attributes)
+        @model = model
+        @model.assign_attributes(attributes)
         @save_action = Save.new(model, **options)
       end
 
@@ -25,7 +26,7 @@ module Dynamoid
       end
 
       def observable_by_user_result
-        !@save_action.validation_failed?
+        @save_action.observable_by_user_result
       end
 
       def action_request

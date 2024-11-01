@@ -206,20 +206,63 @@ describe Dynamoid::TransactionWrite, '.create' do
     end
   end
 
-  context 'when an issue detected on the DynamoDB side' do
-    it 'rolls back the changes when id is not unique' do
-      existing = klass.create!(name: 'Alex')
-
-      expect {
-        described_class.execute do |txn|
-          txn.create klass, name: 'Alex', id: existing.id
-          txn.create klass, name: 'Michael'
-        end
-      }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
-
-      expect(klass.count).to eql 1
-      expect(klass.all.to_a).to eql [existing]
+  it 'aborts creation and returns false if callback throws :abort' do
+    klass = new_class do
+      field :name
+      before_create { throw :abort }
     end
+    klass.create_table
+    obj = nil
+
+    expect {
+      described_class.execute do |txn|
+        obj = txn.create klass, name: 'Alex'
+      end
+    }.not_to change { klass.count }
+
+    expect(obj).not_to be_persisted
+    expect(obj).to be_changed
+  end
+
+  it 'does not roll back the transaction when a model creation aborted by a callback' do
+    klass_with_callback = new_class do
+      field :name
+      before_create { throw :abort }
+    end
+    klass = new_class do
+      field :name
+    end
+    klass_with_callback.create_table
+    klass.create_table
+
+    obj_to_save = klass.new(name: 'Michael')
+    obj_to_create = nil
+
+    expect {
+      described_class.execute do |txn|
+        txn.save obj_to_save
+        obj_to_create = txn.create klass_with_callback, name: 'Alex'
+      end
+    }.to change { klass.count }.by(1)
+
+    expect(obj_to_save).to be_persisted
+    expect(klass.exists?(obj_to_save.id)).to eql true
+    expect(obj_to_create).not_to be_persisted
+    expect(obj_to_create).to be_changed
+  end
+
+  it 'rolls back the transaction when id is not unique' do
+    existing = klass.create!(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.create klass, name: 'Alex', id: existing.id
+        txn.create klass, name: 'Michael'
+      end
+    }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+
+    expect(klass.count).to eql 1
+    expect(klass.all.to_a).to eql [existing]
   end
 
   describe 'callbacks' do
@@ -463,5 +506,47 @@ describe Dynamoid::TransactionWrite, '.create!' do
         }.to raise_error(Dynamoid::Errors::DocumentNotValid)
       }.to_not change { klass_with_validation.count }
     end
+  end
+
+  it 'aborts creation and raises exception if callback throws :abort' do
+    klass = new_class do
+      field :name
+      before_create { throw :abort }
+    end
+    klass.create_table
+
+    expect {
+      expect {
+        described_class.execute do |txn|
+          txn.create! klass, name: 'Alex'
+        end
+      }.to raise_error(Dynamoid::Errors::RecordNotSaved)
+    }.not_to change { klass.count }
+  end
+
+  it 'rolls back the transaction when a model a model creation aborted by a callback' do
+    klass_with_callback = new_class do
+      field :name
+      before_create { throw :abort }
+    end
+    klass = new_class do
+      field :name
+    end
+    klass_with_callback.create_table
+    klass.create_table
+
+    obj_to_save = klass.new(name: 'Michael')
+
+    expect {
+      expect {
+        described_class.execute do |txn|
+          txn.save obj_to_save
+          txn.create! klass_with_callback, name: 'Alex'
+        end
+      }.to raise_error(Dynamoid::Errors::RecordNotSaved)
+    }.not_to change { klass.count }
+
+    expect(obj_to_save).not_to be_persisted
+    expect(obj_to_save).to be_changed
   end
 end

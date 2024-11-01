@@ -23,11 +23,20 @@ module Dynamoid
       end
     end
 
+    class RecordNotSaved < Error
+      attr_reader :record
+
+      def initialize(record)
+        super('Failed to save the item')
+        @record = record
+      end
+    end
+
     class RecordNotDestroyed < Error
       attr_reader :record
 
       def initialize(record)
-        super('Failed to destroy item')
+        super('Failed to destroy the item')
         @record = record
       end
     end

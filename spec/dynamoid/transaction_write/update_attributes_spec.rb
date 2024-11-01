@@ -210,25 +210,59 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
     end
   end
 
-  context 'when an issue detected on the DynamoDB side' do
-    it 'rolls back the changes when a model does not exist anymore' do
-      obj_deleted = klass.create!(name: 'one')
-      klass.find(obj_deleted.id).delete
-      obj_deleted.name = 'one [updated]'
-
-      obj_to_create = nil
-
-      expect {
-        described_class.execute do |txn|
-          txn.update_attributes obj_deleted, name: 'one [updated]'
-          obj_to_create = txn.create klass, name: 'two'
-        end
-      }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
-
-      expect(klass.count).to eql 0
-      expect(obj_deleted).to be_changed
-      expect(obj_to_create).not_to be_persisted
+  it 'aborts updating and returns false if callback throws :abort' do
+    klass = new_class do
+      before_update { throw :abort }
     end
+    obj = klass.create!(name: 'Alex')
+
+    result = nil
+    expect {
+      described_class.execute do |txn|
+        result = txn.update_attributes obj, name: 'Alex [Updated]'
+      end
+    }.not_to change { klass.count }
+
+    expect(result).to eql false
+  end
+
+  it 'does not roll back the transaction when a model updating aborted by a callback' do
+    klass = new_class do
+      before_update { throw :abort }
+    end
+
+    obj_to_update = klass.create!(name: 'Alex')
+    obj_to_save = klass.new
+
+    expect {
+      described_class.execute do |txn|
+        txn.save obj_to_save
+        txn.update_attributes obj_to_update, name: 'Alex [Updated]'
+      end
+    }.to change { klass.count }.by(1)
+
+    expect(obj_to_save.persisted?).to eql true
+    expect(klass.exists?(obj_to_save.id)).to eql true
+    expect(obj_to_update.changed?).to eql false
+  end
+
+  it 'does not raise exception and does not roll back the transaction when a model to update does not exist anymore' do
+    obj_deleted = klass.create!(name: 'Alex')
+    klass.find(obj_deleted.id).delete
+    obj_deleted.name = 'Alex [updated]'
+    obj_to_create = nil
+
+    expect {
+      described_class.execute do |txn|
+        txn.update_attributes obj_deleted, name: 'Alex [Updated]'
+        obj_to_create = txn.create klass, name: 'Michael'
+      end
+    }.to change { klass.count }.by(2)
+
+    expect(obj_to_create).to be_persisted
+    expect(obj_deleted).to be_persisted
+    expect(obj_deleted).not_to be_destroyed
+    expect(klass.find(obj_deleted.id).name).to eql 'Alex [Updated]'
   end
 
   describe 'callbacks' do
@@ -529,5 +563,62 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
       expect(obj_valid.reload.name).to eql 'twotwo'
       expect(obj_invalid.reload.name).to eql 'oneone'
     end
+  end
+
+  it 'aborts updating and raises exception if callback throws :abort' do
+    klass = new_class do
+      field :name
+      before_update { throw :abort }
+    end
+    obj = klass.create!(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.update_attributes! obj, name: 'Alex [Updated]'
+      end
+    }.to raise_error(Dynamoid::Errors::RecordNotSaved)
+
+    expect(klass.find(obj.id).name).to eql 'Alex'
+  end
+
+  it 'rolls back the transaction when a model updating aborted by a callback' do
+    klass = new_class do
+      field :name
+      before_update { throw :abort }
+    end
+
+    obj_to_update = klass.create!(name: 'Alex')
+    obj_to_save = klass.new
+
+    expect {
+      expect {
+        described_class.execute do |txn|
+          txn.save obj_to_save
+          txn.update_attributes! obj_to_update, name: 'Alex [Updated]'
+        end
+      }.to raise_error(Dynamoid::Errors::RecordNotSaved)
+    }.not_to change { klass.count }
+
+    expect(obj_to_save.persisted?).to eql false
+    expect(obj_to_update.changed?).to eql true
+  end
+
+  it 'does not raise exception and does not roll back the transaction when a model to update does not exist anymore' do
+    obj_deleted = klass.create!(name: 'Alex')
+    klass.find(obj_deleted.id).delete
+    obj_deleted.name = 'Alex [updated]'
+    obj_to_create = nil
+
+    expect {
+      described_class.execute do |txn|
+        txn.update_attributes! obj_deleted, name: 'Alex [Updated]'
+        obj_to_create = txn.create klass, name: 'Michael'
+      end
+    }.to change { klass.count }.by(2)
+
+    expect(obj_to_create).to be_persisted
+    expect(obj_deleted).to be_persisted
+    expect(obj_deleted).not_to be_destroyed
+    expect(klass.find(obj_deleted.id).name).to eql 'Alex [Updated]'
   end
 end

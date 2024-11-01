@@ -9,17 +9,16 @@ module Dynamoid
         @options = options
 
         @aborted = false
-        @validation_failed = false
         @was_new_record = model.new_record?
+        @valid = nil
       end
 
       def on_registration
-        unless @model.valid?
-          if @options[:raise_validation_error]
+        unless @valid = @model.valid?
+          if @options[:raise_error]
             raise Dynamoid::Errors::DocumentNotValid, @model
           else
             @aborted = true
-            @validation_failed = true
             return
           end
         end
@@ -34,6 +33,10 @@ module Dynamoid
               true
             end
           end
+        end
+
+        if @aborted && @options[:raise_error]
+          raise Dynamoid::Errors::RecordNotSaved, @model
         end
       end
 
@@ -56,7 +59,7 @@ module Dynamoid
       end
 
       def observable_by_user_result
-        !@validation_failed
+        @valid && !@aborted
       end
 
       def action_request
@@ -65,10 +68,6 @@ module Dynamoid
         else
           action_request_to_update
         end
-      end
-
-      def validation_failed?
-        @validation_failed
       end
 
       private
@@ -119,9 +118,6 @@ module Dynamoid
         # expression_attribute_names = attribute_keys_in_model.map{|k| ["##{k}","#{k}"]}.to_h
         expression_attribute_names.merge!(item_keys.each_with_index.map { |k, i| ["#_n#{i}", k.to_s] }.to_h)
 
-        condition_expression = "attribute_exists(#{@model_class.hash_key})" # fail if record is missing
-        condition_expression += " and attribute_exists(#{@model_class.range_key})" if @model_class.range_key? # needed?
-
         result = {
           update: {
             key: key,
@@ -131,7 +127,6 @@ module Dynamoid
           }
         }
         result[:update][:expression_attribute_names] = expression_attribute_names if expression_attribute_names.present?
-        result[:update][:condition_expression] = condition_expression
 
         result
       end

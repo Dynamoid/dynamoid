@@ -35,22 +35,22 @@ module Dynamoid
     end
 
     def save!(model, **options)
-      action = Dynamoid::TransactionWrite::Save.new(model, **options, raise_validation_error: true)
+      action = Dynamoid::TransactionWrite::Save.new(model, **options, raise_error: true)
       register_action action
     end
 
     def save(model, **options)
-      action = Dynamoid::TransactionWrite::Save.new(model, **options, raise_validation_error: false)
+      action = Dynamoid::TransactionWrite::Save.new(model, **options, raise_error: false)
       register_action action
     end
 
     def create!(model_class, attributes = {})
-      action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_validation_error: true)
+      action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_error: true)
       register_action action
     end
 
     def create(model_class, attributes = {})
-      action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_validation_error: false)
+      action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_error: false)
       register_action action
     end
 
@@ -65,12 +65,12 @@ module Dynamoid
     end
 
     def update_attributes(model, attributes)
-      action = Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, raise_validation_error: false)
+      action = Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, raise_error: false)
       register_action action
     end
 
     def update_attributes!(model, attributes)
-      action = Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, raise_validation_error: true)
+      action = Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, raise_error: true)
       register_action action
     end
 
