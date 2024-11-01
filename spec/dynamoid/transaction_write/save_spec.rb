@@ -346,6 +346,25 @@ describe Dynamoid::TransactionWrite, '.save' do
         expect(obj).to be_changed
       end
 
+      context 'validate: false option' do
+        it 'persists an invalid model' do
+          obj = klass_with_validation.new(name: 'one')
+          expect(obj.valid?).to eql false
+
+          expect {
+            described_class.execute do |txn|
+              txn.save obj, validate: false
+            end
+          }.to change { klass_with_validation.count }.by(1)
+
+          obj_loaded = klass_with_validation.find(obj.id)
+          expect(obj_loaded.name).to eql 'one'
+
+          expect(obj).to be_persisted
+          expect(obj).not_to be_changed
+        end
+      end
+
       it 'returns true when model valid' do
         obj = klass_with_validation.new(name: 'oneone')
         expect(obj.valid?).to eql true
@@ -418,6 +437,24 @@ describe Dynamoid::TransactionWrite, '.save' do
 
         expect(obj).to be_persisted
         expect(obj).to be_changed
+      end
+
+      context 'validate: false option' do
+        it 'persists an invalid model' do
+          obj = klass_with_validation.create!(name: 'oneone')
+          obj.name = 'one'
+          expect(obj.valid?).to eql false
+
+          described_class.execute do |txn|
+            txn.save obj, validate: false
+          end
+
+          obj_loaded = klass_with_validation.find(obj.id)
+          expect(obj_loaded.name).to eql 'one'
+
+          expect(obj).to be_persisted
+          expect(obj).not_to be_changed
+        end
       end
 
       it 'returns true when model valid' do
@@ -810,6 +847,45 @@ describe Dynamoid::TransactionWrite, '.save' do
           'run after_save')
         expect(ScratchPad.recorded).to eql []
       end
+
+      it 'skips *_validation callbacks when validate: false option specified and valid model' do
+        klass_with_callbacks = new_class do
+          before_validation { ScratchPad << 'run before_validation' }
+          after_validation { ScratchPad << 'run after_validation' }
+
+          field :name
+          validates :name, presence: true
+        end
+
+        ScratchPad.record []
+        klass_with_callbacks.create_table
+        obj = klass_with_callbacks.new(name: 'Alex')
+
+        described_class.execute do |txn|
+          txn.save obj, validate: false
+        end
+
+        expect(ScratchPad.recorded).to eql []
+      end
+
+      it 'skips *_validation callbacks when validate: false option specified and invalid model' do
+        klass_with_callbacks = new_class do
+          before_validation { ScratchPad << 'run before_validation' }
+          after_validation { ScratchPad << 'run after_validation' }
+
+          field :name
+          validates :name, presence: true
+        end
+        ScratchPad.record []
+        klass_with_callbacks.create_table
+        obj = klass_with_callbacks.new(name: '')
+
+        described_class.execute do |txn|
+          txn.save obj, validate: false
+        end
+
+        expect(ScratchPad.recorded).to eql []
+      end
     end
 
     context 'persisted model' do
@@ -1076,6 +1152,23 @@ describe Dynamoid::TransactionWrite, '.save!' do
           txn.save! obj
         end
       }.to raise_error(Dynamoid::Errors::DocumentNotValid)
+    end
+
+    it 'persists an invalid model when validate: false option specified' do
+      obj = klass_with_validation.new(name: 'one')
+      expect(obj.valid?).to eql false
+
+      expect {
+        described_class.execute do |txn|
+          txn.save! obj, validate: false
+        end
+      }.to change { klass_with_validation.count }.by(1)
+
+      obj_loaded = klass_with_validation.find(obj.id)
+      expect(obj_loaded.name).to eql 'one'
+
+      expect(obj).to be_persisted
+      expect(obj).not_to be_changed
     end
 
     it 'rolls back the whole transaction when a model to be created is invalid' do

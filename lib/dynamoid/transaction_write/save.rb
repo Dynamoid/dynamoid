@@ -16,12 +16,14 @@ module Dynamoid
       def on_registration
         validate_model!
 
-        unless @valid = @model.valid?
-          if @options[:raise_error]
-            raise Dynamoid::Errors::DocumentNotValid, @model
-          else
-            @aborted = true
-            return
+        unless @options[:validate] == false
+          unless @valid = @model.valid?
+            if @options[:raise_error]
+              raise Dynamoid::Errors::DocumentNotValid, @model
+            else
+              @aborted = true
+              return
+            end
           end
         end
 
