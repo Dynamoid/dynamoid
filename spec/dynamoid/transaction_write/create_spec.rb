@@ -275,6 +275,20 @@ describe Dynamoid::TransactionWrite, '.create' do
     expect(klass.all.to_a).to eql [existing]
   end
 
+  it 'is not marked as persisted and is marked as changed when the transaction rolled back' do
+    obj = nil
+
+    expect {
+      described_class.execute do |txn|
+        obj = txn.create klass, name: 'Alex'
+        raise "trigger rollback"
+      end
+    }.to raise_error("trigger rollback")
+
+    expect(obj).not_to be_persisted
+    expect(obj).to be_changed
+  end
+
   describe 'callbacks' do
     before do
       ScratchPad.clear
@@ -539,7 +553,7 @@ describe Dynamoid::TransactionWrite, '.create!' do
     }.not_to change { klass.count }
   end
 
-  it 'rolls back the transaction when a model a model creation aborted by a callback' do
+  it 'rolls back the transaction when a model creation aborted by a callback' do
     klass_with_callback = new_class do
       field :name
       before_create { throw :abort }

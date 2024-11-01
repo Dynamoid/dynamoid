@@ -245,9 +245,9 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
       end
     }.to change { klass.count }.by(1)
 
-    expect(obj_to_save.persisted?).to eql true
+    expect(obj_to_save).to be_persisted
     expect(klass.exists?(obj_to_save.id)).to eql true
-    expect(obj_to_update.changed?).to eql false
+    expect(obj_to_update).not_to be_changed
   end
 
   it 'does not raise exception and does not roll back the transaction when a model to update does not exist anymore' do
@@ -267,6 +267,19 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
     expect(obj_deleted).to be_persisted
     expect(obj_deleted).not_to be_destroyed
     expect(klass.find(obj_deleted.id).name).to eql 'Alex [Updated]'
+  end
+
+  it 'is marked as changed when the transaction rolled back' do
+    obj = klass.create!(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.update_attributes obj, name: 'Alex [Updated]'
+        raise "trigger rollback"
+      end
+    }.to raise_error("trigger rollback")
+
+    expect(obj).to be_changed
   end
 
   describe 'callbacks' do
@@ -603,7 +616,7 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
       }.to raise_error(Dynamoid::Errors::RecordNotSaved)
     }.not_to change { klass.count }
 
-    expect(obj_to_save.persisted?).to eql false
+    expect(obj_to_save).not_to be_persisted
     expect(obj_to_update.changed?).to eql true
   end
 

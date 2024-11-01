@@ -135,7 +135,7 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
       }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
 
       expect(klass.count).to eql 0
-      expect(obj2.persisted?).to eql false
+      expect(obj2).not_to be_persisted
     end
   end
 

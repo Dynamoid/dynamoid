@@ -16,7 +16,7 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do
     end
   end
 
-  it 'deletes a model and accepts a model itself' do
+  it 'deletes a model' do
     obj = klass.create!(name: 'one')
 
     expect {
@@ -26,19 +26,18 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do
     }.to change { klass.count }.by(-1)
 
     expect(klass.exists?(obj.id)).to eql false
+    expect(obj).to be_destroyed
   end
 
   it 'returns a model' do
     obj = klass.create!(name: 'one')
-
     result = nil
+
     described_class.execute do |txn|
       result = txn.delete obj
     end
 
-    expect(result).to be_a(klass)
     expect(result).to equal(obj)
-    expect(result).to be_destroyed
   end
 
   describe 'primary key schemas' do
@@ -81,9 +80,22 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do
       expect(klass.count).to eql 2
       expect(klass.all.to_a.map(&:id)).to contain_exactly('1', '2')
 
-      expect(obj1.destroyed?).to eql true
-      expect(obj2.persisted?).to eql true
+      expect(obj1).to be_destroyed
+      expect(obj2).to be_persisted
     end
+  end
+
+  it 'is not marked as destroyed when the transaction rolled back' do
+    obj = klass.create!
+
+    expect {
+      described_class.execute do |txn|
+        txn.delete obj
+        raise "trigger rollback"
+      end
+    }.to raise_error("trigger rollback")
+
+    expect(obj).not_to be_destroyed
   end
 
   describe 'callbacks' do
@@ -229,7 +241,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
       expect(klass.count).to eql 2
       expect(klass.all.to_a.map(&:id)).to contain_exactly('1', '2')
 
-      expect(obj_to_delete.destroyed?).to eql nil
+      expect(obj_to_delete).not_to be_destroyed
       expect(obj_to_save).to be_persisted
     end
   end

@@ -40,18 +40,18 @@ describe Dynamoid::TransactionWrite, '#destroy' do
     }.to change { klass.count }.by(-1)
 
     expect(klass.exists?(obj.id)).to eql false
+    expect(obj).to be_destroyed
   end
 
   it 'returns a model' do
     obj = klass.create!(name: 'one')
-
     result = nil
+
     described_class.execute do |txn|
       result = txn.destroy obj
     end
 
     expect(result).to equal(obj)
-    expect(result).to be_destroyed
   end
 
   describe 'primary key schemas' do
@@ -93,8 +93,8 @@ describe Dynamoid::TransactionWrite, '#destroy' do
         end
       }.to change { klass.count }.by(1)
 
-      expect(obj_to_destroy.destroyed?).to eql true
-      expect(obj_to_save.persisted?).to eql true
+      expect(obj_to_destroy).to be_destroyed
+      expect(obj_to_save).to be_persisted
       expect(klass.all.to_a.map(&:id)).to contain_exactly('1', obj_to_save.id)
     end
   end
@@ -130,10 +130,24 @@ describe Dynamoid::TransactionWrite, '#destroy' do
       end
     }.to change { klass.count }.by(1)
 
-    expect(obj_to_save.persisted?).to eql true
-    expect(obj_to_destroy.destroyed?).to eql nil
+    expect(obj_to_save).to be_persisted
+    expect(obj_to_destroy).not_to be_destroyed
+
     expect(klass.exists?(obj_to_destroy.id)).to eql true
     expect(klass.exists?(obj_to_save.id)).to eql true
+  end
+
+  it 'is not marked as destroyed when the transaction rolled back' do
+    obj = klass.create!
+
+    expect {
+      described_class.execute do |txn|
+        txn.destroy obj
+        raise "trigger rollback"
+      end
+    }.to raise_error("trigger rollback")
+
+    expect(obj).not_to be_destroyed
   end
 
   describe 'callbacks' do
@@ -300,8 +314,9 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
       end
     }.to change { klass.count }.by(1)
 
-    expect(obj_to_destroy.destroyed?).to eql true
-    expect(obj_to_save.persisted?).to eql true
+    expect(obj_to_destroy).to be_destroyed
+    expect(obj_to_save).to be_persisted
+
     expect(klass.all.to_a.map(&:id)).to contain_exactly('1', obj_to_save.id)
   end
 end

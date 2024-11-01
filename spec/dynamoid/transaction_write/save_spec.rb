@@ -74,8 +74,8 @@ describe Dynamoid::TransactionWrite, '.save' do
 
     obj_loaded = klass.find(obj.id)
     expect(obj_loaded.name).to eql 'Alex'
-    expect(obj.persisted?).to eql true
-    expect(obj.changed?).to eql false
+    expect(obj).to be_persisted
+    expect(obj).not_to be_changed
   end
 
   it 'persists changes in already persisted model' do
@@ -88,7 +88,7 @@ describe Dynamoid::TransactionWrite, '.save' do
 
     obj_loaded = klass.find(obj.id)
     expect(obj_loaded.name).to eql 'Alex [Updated]'
-    expect(obj.changed?).to eql false
+    expect(obj).not_to be_changed
   end
 
   describe 'primary key schema' do
@@ -536,6 +536,34 @@ describe Dynamoid::TransactionWrite, '.save' do
     expect(obj_to_create).not_to be_changed
   end
 
+  it 'is marked as not persusted and is marked as changed at creation when the transaction rolled back' do
+    obj = klass.new(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.save obj
+        raise "trigger rollback"
+      end
+    }.to raise_error("trigger rollback")
+
+    expect(obj).not_to be_persisted
+    expect(obj).to be_changed
+  end
+
+  it 'is marked as changed at updating when the transaction rolled back' do
+    obj = klass.create!(name: 'Alex')
+    obj.name = 'Alex [Updated]'
+
+    expect {
+      described_class.execute do |txn|
+        txn.save obj
+        raise "trigger rollback"
+      end
+    }.to raise_error("trigger rollback")
+
+    expect(obj).to be_changed
+  end
+
   describe 'callbacks' do
     before do
       ScratchPad.clear
@@ -947,8 +975,8 @@ describe Dynamoid::TransactionWrite, '.save!' do
 
     obj_loaded = klass.find(obj.id)
     expect(obj_loaded.name).to eql 'Alex'
-    expect(obj.persisted?).to eql true
-    expect(obj.changed?).to eql false
+    expect(obj).to be_persisted
+    expect(obj).not_to be_changed
   end
 
   it 'persists changes in already persisted model' do
