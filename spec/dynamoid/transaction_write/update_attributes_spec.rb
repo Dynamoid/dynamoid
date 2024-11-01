@@ -159,6 +159,9 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
 
       obj_loaded = klass_with_validation.find(obj.id)
       expect(obj_loaded.name).to eql 'twotwo'
+
+      expect(obj).to be_persisted
+      expect(obj).not_to be_changed
     end
 
     it 'does not persist invalid model' do
@@ -171,6 +174,7 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
       }.not_to change { klass_with_validation.find(obj.id).name }
 
       expect(obj.name).to eql 'one'
+      expect(obj).to be_persisted
       expect(obj).to be_changed
     end
 

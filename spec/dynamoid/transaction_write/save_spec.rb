@@ -269,6 +269,9 @@ describe Dynamoid::TransactionWrite, '.save' do
 
         obj_loaded = klass_with_validation.find(obj.id)
         expect(obj_loaded.name).to eql 'oneone'
+
+        expect(obj).to be_persisted
+        expect(obj).not_to be_changed
       end
 
       it 'does not persist invalid model' do
@@ -280,6 +283,9 @@ describe Dynamoid::TransactionWrite, '.save' do
             txn.save obj
           end
         }.not_to change { klass_with_validation.count }
+
+        expect(obj).not_to be_persisted
+        expect(obj).to be_changed
       end
 
       it 'returns true when model valid' do
@@ -336,6 +342,9 @@ describe Dynamoid::TransactionWrite, '.save' do
 
         obj_loaded = klass_with_validation.find(obj.id)
         expect(obj_loaded.name).to eql 'twotwo'
+
+        expect(obj).to be_persisted
+        expect(obj).not_to be_changed
       end
 
       it 'does not persist invalid model' do
@@ -348,6 +357,9 @@ describe Dynamoid::TransactionWrite, '.save' do
             txn.save obj
           end
         }.not_to change { klass_with_validation.count }
+
+        expect(obj).to be_persisted
+        expect(obj).to be_changed
       end
 
       it 'returns true when model valid' do

@@ -161,19 +161,29 @@ describe Dynamoid::TransactionWrite, '.create' do
     end
 
     it 'persists a valid model' do
+      obj = nil
+
       expect {
         described_class.execute do |txn|
-          txn.create(klass_with_validation, name: 'oneone')
+          obj = txn.create(klass_with_validation, name: 'oneone')
         end
       }.to change { klass_with_validation.count }.by(1)
+
+      expect(obj).to be_persisted
+      expect(obj).not_to be_changed
     end
 
     it 'does not persist invalid model' do
+      obj = nil
+
       expect {
         described_class.execute do |txn|
-          txn.create(klass_with_validation, name: 'one')
+          obj = txn.create(klass_with_validation, name: 'one')
         end
       }.not_to change { klass_with_validation.count }
+
+      expect(obj).not_to be_persisted
+      expect(obj).to be_changed
     end
 
     it 'returns a new model even if it is invalid' do
@@ -481,11 +491,16 @@ describe Dynamoid::TransactionWrite, '.create!' do
     end
 
     it 'persists a valid model' do
+      obj = nil
+
       expect {
         described_class.execute do |txn|
-          txn.create!(klass_with_validation, name: 'oneone')
+          obj = txn.create!(klass_with_validation, name: 'oneone')
         end
       }.to change { klass_with_validation.count }.by(1)
+
+      expect(obj).to be_persisted
+      expect(obj).not_to be_changed
     end
 
     it 'raise DocumentNotValid when invalid model' do

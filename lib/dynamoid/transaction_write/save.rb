@@ -59,7 +59,7 @@ module Dynamoid
       end
 
       def observable_by_user_result
-        @valid && !@aborted
+        !@aborted
       end
 
       def action_request
