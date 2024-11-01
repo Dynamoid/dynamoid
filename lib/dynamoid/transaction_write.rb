@@ -74,9 +74,9 @@ module Dynamoid
       register_action action
     end
 
-    def delete(model_or_model_class, primary_key = nil)
+    def delete(model_or_model_class, hash_key = nil, range_key = nil)
       if model_or_model_class.is_a? Class
-        action = Dynamoid::TransactionWrite::DeleteWithPrimaryKey.new(model_or_model_class, primary_key)
+        action = Dynamoid::TransactionWrite::DeleteWithPrimaryKey.new(model_or_model_class, hash_key, range_key)
         register_action action
       else
         action = Dynamoid::TransactionWrite::DeleteWithInstance.new(model_or_model_class)

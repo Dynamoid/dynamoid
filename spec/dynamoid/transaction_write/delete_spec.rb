@@ -204,7 +204,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
 
         expect {
           described_class.execute do |txn|
-            txn.delete klass_with_composite_key, id: obj.id, age: obj.age
+            txn.delete klass_with_composite_key, obj.id, obj.age
           end
         }.to change { klass_with_composite_key.count }.by(-1)
       end
@@ -212,7 +212,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
       it 'raises MissingHashKey if partition key is not specified' do
         expect {
           described_class.execute do |txn|
-            txn.delete klass_with_composite_key, id: nil, age: 5
+            txn.delete klass_with_composite_key, nil, 5
           end
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
@@ -220,7 +220,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
       it 'raises MissingRangeKey if sort key is not specified' do
         expect {
           described_class.execute do |txn|
-            txn.delete klass_with_composite_key, id: 'foo', age: nil
+            txn.delete klass_with_composite_key, 'foo', nil
           end
         }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
       end
@@ -234,7 +234,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
       obj_to_save = klass.new(name: 'two', id: '2')
 
       described_class.execute do |txn|
-        txn.delete klass, id: obj_to_delete.id
+        txn.delete klass, obj_to_delete.id
         txn.save obj_to_save
       end
 
@@ -288,7 +288,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
       ScratchPad.clear
 
       described_class.execute do |txn|
-        txn.delete klass_with_callbacks, id: obj.id
+        txn.delete klass_with_callbacks, obj.id
       end
 
       expect(ScratchPad.recorded).to eql([])

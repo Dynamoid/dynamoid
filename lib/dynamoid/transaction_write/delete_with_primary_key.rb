@@ -3,9 +3,10 @@
 module Dynamoid
   class TransactionWrite
     class DeleteWithPrimaryKey
-      def initialize(model_class, primary_key)
+      def initialize(model_class, hash_key, range_key)
         @model_class = model_class
-        @primary_key = primary_key
+        @hash_key = hash_key
+        @range_key = range_key
       end
 
       def on_registration
@@ -28,8 +29,8 @@ module Dynamoid
       end
 
       def action_request
-        key = { @model_class.hash_key => hash_key }
-        key[@model_class.range_key] = range_key if @model_class.range_key?
+        key = { @model_class.hash_key => @hash_key }
+        key[@model_class.range_key] = @range_key if @model_class.range_key?
         {
           delete: {
             key: key,
@@ -41,22 +42,8 @@ module Dynamoid
       private
 
       def validate_primary_key!
-        raise Dynamoid::Errors::MissingHashKey if hash_key.nil?
-        raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && range_key.nil?
-      end
-
-      def hash_key
-        if @primary_key.is_a? Hash
-          @primary_key[@model_class.hash_key]
-        else
-          @primary_key
-        end
-      end
-
-      def range_key
-        if @primary_key.is_a? Hash
-          @primary_key[@model_class.range_key] if @model_class.range_key?
-        end
+        raise Dynamoid::Errors::MissingHashKey if @hash_key.nil?
+        raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && @range_key.nil?
       end
     end
   end
