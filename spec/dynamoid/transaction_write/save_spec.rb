@@ -141,6 +141,64 @@ describe Dynamoid::TransactionWrite, '.save' do
     end
   end
 
+  describe 'primary key validation' do
+    context 'simple primary key' do
+      context 'persisted model' do
+        it 'requires partition key to be specified' do
+          obj = klass.create!(name: 'Alex')
+          obj.id = nil
+          obj.name = 'Alex [Updated]'
+
+          expect {
+            described_class.execute do |txn|
+              txn.save obj
+            end
+          }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+      end
+    end
+
+    context 'composite key' do
+      context 'new model' do
+        it 'requires sort key to be specified' do
+          obj = klass_with_composite_key.new name: 'Alex', age: nil
+
+          expect {
+            described_class.execute do |txn|
+              txn.save obj
+            end
+          }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        end
+      end
+
+      context 'persisted model' do
+        it 'requires partition key to be specified' do
+          obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+          obj.id = nil
+          obj.name = 'Alex [Updated]'
+
+          expect {
+            described_class.execute do |txn|
+              txn.save obj
+            end
+          }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+
+        it 'requires sort key to be specified' do
+          obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+          obj.age = nil
+          obj.name = 'Alex [Updated]'
+
+          expect {
+            described_class.execute do |txn|
+              txn.save obj
+            end
+          }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        end
+      end
+    end
+  end
+
   describe 'timestamps' do
     context 'new model' do
       before do

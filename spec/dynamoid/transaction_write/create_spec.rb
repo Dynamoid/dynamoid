@@ -105,6 +105,20 @@ describe Dynamoid::TransactionWrite, '.create' do
     end
   end
 
+  describe 'primary key validation' do
+    context 'composite key' do
+      it 'requires sort key to be specified' do
+        klass_with_composite_key.create_table
+
+        expect {
+          described_class.execute do |txn|
+            txn.create klass_with_composite_key, name: 'Alex', age: nil
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+      end
+    end
+  end
+
   describe 'timestamps' do
     before do
       klass.create_table

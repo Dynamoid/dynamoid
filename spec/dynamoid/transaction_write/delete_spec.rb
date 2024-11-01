@@ -66,6 +66,45 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do
     end
   end
 
+  describe 'primary key validation' do
+    context 'simple primary key' do
+      it 'requires partition key to be specified' do
+        obj = klass.create!(name: 'one')
+        obj.id = nil
+
+        expect {
+          described_class.execute do |txn|
+            txn.delete obj
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+    end
+
+    context 'composite key' do
+      it 'requires partition key to be specified' do
+        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+        obj.id = nil
+
+        expect {
+          described_class.execute do |txn|
+            txn.delete obj
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+
+      it 'requires sort key to be specified' do
+        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+        obj.age = nil
+
+        expect {
+          described_class.execute do |txn|
+            txn.delete obj
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+      end
+    end
+  end
+
   context 'when an issue detected on the DynamoDB side' do
     it 'does not roll back the changes when a model to delete does not exist' do
       obj1 = klass.create!(name: 'one', id: '1')

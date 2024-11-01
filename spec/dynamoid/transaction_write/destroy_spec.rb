@@ -80,6 +80,45 @@ describe Dynamoid::TransactionWrite, '#destroy' do
     end
   end
 
+  describe 'primary key validation' do
+    context 'simple primary key' do
+      it 'requires partition key to be specified' do
+        obj = klass.create!(name: 'one')
+        obj.id = nil
+
+        expect {
+          described_class.execute do |txn|
+            txn.destroy obj
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+    end
+
+    context 'composite key' do
+      it 'requires partition key to be specified' do
+        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+        obj.id = nil
+
+        expect {
+          described_class.execute do |txn|
+            txn.destroy obj
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+
+      it 'requires sort key to be specified' do
+        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+        obj.age = nil
+
+        expect {
+          described_class.execute do |txn|
+            txn.destroy obj
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+      end
+    end
+  end
+
   context 'when an issue detected on the DynamoDB side' do
     it 'does not raise exception and does not roll back the transaction when a model to destroy does not exist' do
       obj_to_destroy = klass.create!(name: 'one', id: '1')

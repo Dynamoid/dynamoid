@@ -86,14 +86,6 @@ describe Dynamoid::TransactionWrite, '.upsert' do
           end
         }.to change { klass.find(obj.id).name }.to('Alex [Updated]')
       end
-
-      it 'requires partition key to be specified' do
-        expect {
-          described_class.execute do |txn|
-            txn.upsert klass, nil, { name: 'threethree' }
-          end
-        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
-      end
     end
 
     context 'composite key' do
@@ -117,7 +109,21 @@ describe Dynamoid::TransactionWrite, '.upsert' do
           end
         }.to change { obj.reload.name }.to('Alex [Updated]')
       end
+    end
+  end
 
+  describe 'primary key validation' do
+    context 'simple primary key' do
+      it 'requires partition key to be specified' do
+        expect {
+          described_class.execute do |txn|
+            txn.upsert klass, nil, { name: 'threethree' }
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+    end
+
+    context 'composite key' do
       it 'requires partition key to be specified' do
         expect {
           described_class.execute do |txn|

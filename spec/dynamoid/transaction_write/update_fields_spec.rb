@@ -68,6 +68,42 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
     end
   end
 
+  describe 'primary key validation' do
+    context 'simple primary key' do
+      it 'requires partition key to be specified' do
+        obj = klass.create!(name: 'Alex')
+
+        expect {
+          described_class.execute do |txn|
+            txn.update_fields klass_with_composite_key, nil, name: 'Alex [Updated]'
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+    end
+
+    context 'composite key' do
+      it 'requires partition key to be specified' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+
+        expect {
+          described_class.execute do |txn|
+            txn.update_fields klass_with_composite_key, nil, 3, name: 'Alex [Updated]'
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+
+      it 'requires sort key to be specified' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+
+        expect {
+          described_class.execute do |txn|
+            txn.update_fields klass_with_composite_key, obj.id, nil, name: 'Alex [Updated]'
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+      end
+    end
+  end
+
   describe 'timestamps' do
     it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
       obj = klass.create!

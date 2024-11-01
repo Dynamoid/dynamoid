@@ -14,6 +14,8 @@ module Dynamoid
       end
 
       def on_registration
+        validate_model!
+
         unless @valid = @model.valid?
           if @options[:raise_error]
             raise Dynamoid::Errors::DocumentNotValid, @model
@@ -71,6 +73,11 @@ module Dynamoid
       end
 
       private
+
+      def validate_model!
+        raise Dynamoid::Errors::MissingHashKey if !@was_new_record && @model.hash_key.nil?
+        raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && @model.range_value.nil?
+      end
 
       def action_request_to_create
         @model.hash_key = SecureRandom.uuid if @model.hash_key.nil?
