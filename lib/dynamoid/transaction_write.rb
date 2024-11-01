@@ -54,8 +54,8 @@ module Dynamoid
       register_action action
     end
 
-    def upsert(model_class, attributes, options = {})
-      action = Dynamoid::TransactionWrite::Upsert.new(model_class, attributes, **options)
+    def upsert(model_class, hash_key, range_key = nil, attributes)
+      action = Dynamoid::TransactionWrite::Upsert.new(model_class, hash_key, range_key, attributes)
       register_action action
     end
 

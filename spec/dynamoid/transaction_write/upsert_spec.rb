@@ -24,7 +24,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
     expect {
       described_class.execute do |txn|
-        txn.upsert klass, id: id_new, name: 'Alex'
+        txn.upsert klass, id_new, name: 'Alex'
       end
     }.to change { klass.count }.by(1)
 
@@ -36,7 +36,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
     obj = klass.create!(name: 'Alex')
 
     described_class.execute do |txn|
-      txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+      txn.upsert klass, obj.id, name: 'Alex [Updated]'
     end
 
     obj_loaded = klass.find(obj.id)
@@ -48,20 +48,20 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
     result = true
     described_class.execute do |txn|
-      result = txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+      result = txn.upsert klass, obj.id, name: 'Alex [Updated]'
     end
 
     expect(result).to eql nil
   end
 
-  it 'can be called without attributes to modify' do
+  it 'cannot be called without attributes to modify' do
     obj = klass.create!(name: 'Alex')
 
     expect {
       described_class.execute do |txn|
-        txn.upsert klass, id: obj.id
+        txn.upsert klass, obj.id
       end
-    }.not_to raise_error
+    }.to raise_error(ArgumentError)
   end
 
   describe 'primary key schema' do
@@ -72,7 +72,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, id: id_new
+            txn.upsert klass, id_new, {}
           end
         }.to change { klass.count }.by(1)
       end
@@ -82,7 +82,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+            txn.upsert klass, obj.id, name: 'Alex [Updated]'
           end
         }.to change { klass.find(obj.id).name }.to('Alex [Updated]')
       end
@@ -90,7 +90,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
       it 'requires partition key to be specified' do
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, { name: 'threethree' }
+            txn.upsert klass, nil, { name: 'threethree' }
           end
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
@@ -103,7 +103,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass_with_composite_key, id: id_new, age: 3
+            txn.upsert klass_with_composite_key, id_new, 3, {}
           end
         }.to change { klass_with_composite_key.count }.by(1)
       end
@@ -113,7 +113,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass_with_composite_key, id: obj.id, age: obj.age, name: 'Alex [Updated]'
+            txn.upsert klass_with_composite_key, obj.id, obj.age, name: 'Alex [Updated]'
           end
         }.to change { obj.reload.name }.to('Alex [Updated]')
       end
@@ -121,7 +121,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
       it 'requires partition key to be specified' do
         expect {
           described_class.execute do |txn|
-            txn.upsert klass_with_composite_key, name: 'Alex'
+            txn.upsert klass_with_composite_key, nil, name: 'Alex'
           end
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
@@ -131,7 +131,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass_with_composite_key, id: id_new, name: 'Alex'
+            txn.upsert klass_with_composite_key, id_new, nil, name: 'Alex'
           end
         }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
       end
@@ -148,7 +148,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
           time_now = Time.now
 
           described_class.execute do |txn|
-            txn.upsert klass, id: id_new
+            txn.upsert klass, id_new, {}
           end
 
           obj = klass.find(id_new)
@@ -164,7 +164,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
           created_at = updated_at = Time.now
 
           described_class.execute do |txn|
-            txn.upsert klass, id: id_new, created_at: created_at, updated_at: updated_at
+            txn.upsert klass, id_new, created_at: created_at, updated_at: updated_at
           end
 
           obj = klass.find(id_new)
@@ -178,7 +178,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, id: SecureRandom.uuid, name: 'Alex'
+            txn.upsert klass, SecureRandom.uuid, name: 'Alex'
           end
         }.not_to raise_error
       end
@@ -188,7 +188,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, id: SecureRandom.uuid
+            txn.upsert klass, SecureRandom.uuid, {}
           end
         }.not_to raise_error
       end
@@ -202,7 +202,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
           time_now = Time.now
 
           described_class.execute do |txn|
-            txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+            txn.upsert klass, obj.id, name: 'Alex [Updated]'
           end
 
           obj.reload
@@ -217,7 +217,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
           created_at = updated_at = Time.now
 
           described_class.execute do |txn|
-            txn.upsert klass, id: obj.id, created_at: created_at, updated_at: updated_at
+            txn.upsert klass, obj.id, created_at: created_at, updated_at: updated_at
           end
 
           obj.reload
@@ -231,7 +231,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, id: obj.id, name: 'Alex [Updated]'
+            txn.upsert klass, obj.id, name: 'Alex [Updated]'
           end
         }.not_to raise_error
       end
@@ -241,7 +241,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, id: obj.id
+            txn.upsert klass, obj.id, {}
           end
         }.not_to raise_error
       end
@@ -297,7 +297,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
       ScratchPad.clear
 
       described_class.execute do |txn|
-        txn.upsert klass_with_callbacks, id: obj.id, name: 'Alex [Updated]'
+        txn.upsert klass_with_callbacks, obj.id, name: 'Alex [Updated]'
       end
 
       expect(ScratchPad.recorded).to eql([])

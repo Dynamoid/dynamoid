@@ -3,10 +3,11 @@
 module Dynamoid
   class TransactionWrite
     class Upsert
-      def initialize(model_class, attributes, **options)
+      def initialize(model_class, hash_key, range_key, attributes)
         @model_class = model_class
+        @hash_key = hash_key
+        @range_key = range_key
         @attributes = attributes
-        @options = options
       end
 
       def on_registration
@@ -33,14 +34,11 @@ module Dynamoid
         changes = @attributes.dup
         # changes[@model_class.hash_key] = SecureRandom.uuid
         changes = add_timestamps(changes, skip_created_at: true)
-
-        changes.delete(@model_class.hash_key) # can't update id!
-        changes.delete(@model_class.range_key) if @model_class.range_key?
         item = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
         # set 'key' that is used to look up record for updating
-        key = { @model_class.hash_key => hash_key }
-        key[@model_class.range_key] = range_key if @model_class.range_key?
+        key = { @model_class.hash_key => @hash_key }
+        key[@model_class.range_key] = @range_key if @model_class.range_key?
 
         # e.g. "SET #updated_at = :updated_at ADD record_count :i"
         item_keys = item.keys
@@ -72,17 +70,8 @@ module Dynamoid
       private
 
       def validate_primary_key!
-        raise Dynamoid::Errors::MissingHashKey if hash_key.nil?
-        raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && range_key.nil?
-      end
-
-      def hash_key
-        @attributes[@model_class.hash_key]
-      end
-
-      def range_key
-        return nil unless @model_class.range_key?
-        @attributes[@model_class.range_key]
+        raise Dynamoid::Errors::MissingHashKey if @hash_key.nil?
+        raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && @range_key.nil?
       end
 
       def add_timestamps(attributes, skip_created_at: false)
