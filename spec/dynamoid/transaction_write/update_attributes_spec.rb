@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionWrite, '#update_attributes' do
+describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -64,10 +64,10 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
     expect(obj.changed?).to eql false
   end
 
-  # TODO:
+  # TODO: implement the test later
   it 'raises exception if a model is not persisted'
 
-  # TODO:
+  # TODO: implement the test later
   it 'can be called without attributes to modify'
 
   describe 'primary key schema' do
@@ -308,7 +308,7 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
         txn.update_attributes obj_deleted, name: 'Alex [Updated]'
         obj_to_create = txn.create klass, name: 'Michael'
       end
-    }.to change { klass.count }.by(2)
+    }.to change(klass, :count).by(2)
 
     expect(obj_to_create).to be_persisted
     expect(obj_deleted).to be_persisted
@@ -322,9 +322,9 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
     expect {
       described_class.execute do |txn|
         txn.update_attributes obj, name: 'Alex [Updated]'
-        raise "trigger rollback"
+        raise 'trigger rollback'
       end
-    }.to raise_error("trigger rollback")
+    }.to raise_error('trigger rollback')
 
     expect(obj).to be_changed
   end
@@ -474,17 +474,17 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
         txn.update_attributes obj, name: 'Bob'
       end
 
-      expect(ScratchPad.recorded).to eql [ # rubocop:disable Style/StringConcatenation
-                                           'run before_validation',
-                                           'run after_validation',
-                                           'run before_save',
-                                           'start around_save',
-                                           'run before_update',
-                                           'start around_update',
-                                           'finish around_update',
-                                           'run after_update',
-                                           'finish around_save',
-                                           'run after_save'
+      expect(ScratchPad.recorded).to eql [
+        'run before_validation',
+        'run after_validation',
+        'run before_save',
+        'start around_save',
+        'run before_update',
+        'start around_update',
+        'finish around_update',
+        'run after_update',
+        'finish around_save',
+        'run after_save'
       ]
     end
 
@@ -592,17 +592,6 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
       expect(result).to eql true
     end
 
-    it 'returns true when model valid' do
-      obj = klass_with_validation.create!(name: 'oneone')
-
-      result = nil
-      described_class.execute do |txn|
-        result = txn.update_attributes!(obj, name: 'oneone [Updated]')
-      end
-
-      expect(result).to eql true
-    end
-
     it 'raise DocumentNotValid when model invalid' do
       obj = klass_with_validation.create!(name: 'oneone')
 
@@ -686,7 +675,7 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
         txn.update_attributes! obj_deleted, name: 'Alex [Updated]'
         obj_to_create = txn.create klass, name: 'Michael'
       end
-    }.to change { klass.count }.by(2)
+    }.to change(klass, :count).by(2)
 
     expect(obj_to_create).to be_persisted
     expect(obj_deleted).to be_persisted

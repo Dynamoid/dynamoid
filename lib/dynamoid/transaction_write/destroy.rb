@@ -26,6 +26,7 @@ module Dynamoid
 
       def on_completing
         return if @aborted
+
         @model.destroyed = true
       end
 
@@ -39,19 +40,19 @@ module Dynamoid
 
       def observable_by_user_result
         return false if @aborted
+
         @model
       end
 
       def action_request
         key = { @model_class.hash_key => @model.hash_key }
         key[@model_class.range_key] = @model.range_value if @model_class.range_key?
-        result = {
+        {
           delete: {
             key: key,
             table_name: @model_class.table_name
           }
         }
-        result
       end
 
       private

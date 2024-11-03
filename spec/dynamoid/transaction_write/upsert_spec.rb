@@ -26,7 +26,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
       described_class.execute do |txn|
         txn.upsert klass, id_new, name: 'Alex'
       end
-    }.to change { klass.count }.by(1)
+    }.to change(klass, :count).by(1)
 
     obj = klass.find(id_new)
     expect(obj.name).to eql 'Alex'
@@ -74,7 +74,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
           described_class.execute do |txn|
             txn.upsert klass, id_new, {}
           end
-        }.to change { klass.count }.by(1)
+        }.to change(klass, :count).by(1)
       end
 
       it 'persists changes in already persisted model' do
@@ -97,7 +97,7 @@ describe Dynamoid::TransactionWrite, '.upsert' do
           described_class.execute do |txn|
             txn.upsert klass_with_composite_key, id_new, 3, {}
           end
-        }.to change { klass_with_composite_key.count }.by(1)
+        }.to change(klass_with_composite_key, :count).by(1)
       end
 
       it 'persists changes in already persisted model' do

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionWrite, '#destroy' do
+describe Dynamoid::TransactionWrite, '#destroy' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -37,7 +37,7 @@ describe Dynamoid::TransactionWrite, '#destroy' do
       described_class.execute do |txn|
         txn.destroy obj
       end
-    }.to change { klass.count }.by(-1)
+    }.to change(klass, :count).by(-1)
 
     expect(klass.exists?(obj.id)).to eql false
     expect(obj).to be_destroyed
@@ -63,7 +63,7 @@ describe Dynamoid::TransactionWrite, '#destroy' do
           described_class.execute do |txn|
             txn.destroy obj
           end
-        }.to change { klass.count }.by(-1)
+        }.to change(klass, :count).by(-1)
       end
     end
 
@@ -75,7 +75,7 @@ describe Dynamoid::TransactionWrite, '#destroy' do
           described_class.execute do |txn|
             txn.destroy obj
           end
-        }.to change { klass_with_composite_key.count }.by(-1)
+        }.to change(klass_with_composite_key, :count).by(-1)
       end
     end
   end
@@ -130,7 +130,7 @@ describe Dynamoid::TransactionWrite, '#destroy' do
           txn.destroy obj_to_destroy
           txn.save obj_to_save
         end
-      }.to change { klass.count }.by(1)
+      }.to change(klass, :count).by(1)
 
       expect(obj_to_destroy).to be_destroyed
       expect(obj_to_save).to be_persisted
@@ -190,9 +190,9 @@ describe Dynamoid::TransactionWrite, '#destroy' do
     expect {
       described_class.execute do |txn|
         txn.destroy obj
-        raise "trigger rollback"
+        raise 'trigger rollback'
       end
-    }.to raise_error("trigger rollback")
+    }.to raise_error('trigger rollback')
 
     expect(obj).not_to be_destroyed
   end
@@ -256,11 +256,11 @@ describe Dynamoid::TransactionWrite, '#destroy' do
         txn.destroy obj
       end
 
-      expect(ScratchPad.recorded).to eql [ # rubocop:disable Style/StringConcatenation
-                                           'run before_destroy',
-                                           'start around_destroy',
-                                           'finish around_destroy',
-                                           'run after_destroy'
+      expect(ScratchPad.recorded).to eql [
+        'run before_destroy',
+        'start around_destroy',
+        'finish around_destroy',
+        'run after_destroy'
       ]
     end
 
@@ -280,7 +280,8 @@ describe Dynamoid::TransactionWrite, '#destroy' do
         'run before_destroy',
         'start around_destroy',
         'finish around_destroy',
-        'run after_destroy')
+        'run after_destroy'
+      )
       expect(ScratchPad.recorded).to eql []
     end
 
@@ -318,7 +319,7 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
       described_class.execute do |txn|
         txn.destroy! obj
       end
-    }.to change { klass.count }.by(-1)
+    }.to change(klass, :count).by(-1)
 
     expect(klass.exists?(obj.id)).to eql false
   end
@@ -367,7 +368,7 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
         txn.destroy! obj_to_destroy
         txn.save obj_to_save
       end
-    }.to change { klass.count }.by(1)
+    }.to change(klass, :count).by(1)
 
     expect(obj_to_destroy).to be_destroyed
     expect(obj_to_save).to be_persisted

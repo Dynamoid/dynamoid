@@ -871,17 +871,17 @@ describe Dynamoid::Persistence do
         end
 
         klass_with_callbacks.create!
-        expect(ScratchPad.recorded).to eql [ # rubocop:disable Style/StringConcatenation
-                                             'run before_validation',
-                                             'run after_validation',
-                                             'run before_save',
-                                             'start around_save',
-                                             'run before_create',
-                                             'start around_create',
-                                             'finish around_create',
-                                             'run after_create',
-                                             'finish around_save',
-                                             'run after_save'
+        expect(ScratchPad.recorded).to eql [
+          'run before_validation',
+          'run after_validation',
+          'run before_save',
+          'start around_save',
+          'run before_create',
+          'start around_create',
+          'finish around_create',
+          'run after_create',
+          'finish around_save',
+          'run after_save'
         ]
       end
     end
@@ -2010,7 +2010,7 @@ describe Dynamoid::Persistence do
       }.to('[Updated]')
     end
 
-    # TODO:
+    # TODO: implement the test later
     # it 'raises ...Error when range key is missing'
 
     # TODO: add this case for save/save! and update_attributes/other update operations

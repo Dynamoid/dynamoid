@@ -35,4 +35,3 @@ module ScratchPad
     "<ScratchPad @record=#{@record.inspect}>"
   end
 end
-

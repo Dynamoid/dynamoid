@@ -14,7 +14,7 @@ module Dynamoid
     attr_reader :actions
 
     def self.execute
-      transaction = self.new
+      transaction = new
       yield transaction
       transaction.commit
     end
@@ -68,12 +68,12 @@ module Dynamoid
       end
     end
 
-    def upsert(model_class, hash_key, range_key = nil, attributes)
+    def upsert(model_class, hash_key, range_key = nil, attributes) # rubocop:disable Style/OptionalArguments
       action = Dynamoid::TransactionWrite::Upsert.new(model_class, hash_key, range_key, attributes)
       register_action action
     end
 
-    def update_fields(model_class, hash_key, range_key = nil, attributes)
+    def update_fields(model_class, hash_key, range_key = nil, attributes) # rubocop:disable Style/OptionalArguments
       action = Dynamoid::TransactionWrite::UpdateFields.new(model_class, hash_key, range_key, attributes)
       register_action action
     end
@@ -89,13 +89,12 @@ module Dynamoid
     end
 
     def delete(model_or_model_class, hash_key = nil, range_key = nil)
-      if model_or_model_class.is_a? Class
-        action = Dynamoid::TransactionWrite::DeleteWithPrimaryKey.new(model_or_model_class, hash_key, range_key)
-        register_action action
-      else
-        action = Dynamoid::TransactionWrite::DeleteWithInstance.new(model_or_model_class)
-        register_action action
-      end
+      action = if model_or_model_class.is_a? Class
+                 Dynamoid::TransactionWrite::DeleteWithPrimaryKey.new(model_or_model_class, hash_key, range_key)
+               else
+                 Dynamoid::TransactionWrite::DeleteWithInstance.new(model_or_model_class)
+               end
+      register_action action
     end
 
     def destroy!(model)

@@ -15,6 +15,6 @@ describe Dynamoid::TransactionWrite, '#commit' do
     transaction.create klass
     transaction.create klass
 
-    expect { transaction.commit }.to change { klass.count }.by(2)
+    expect { transaction.commit }.to change(klass, :count).by(2)
   end
 end

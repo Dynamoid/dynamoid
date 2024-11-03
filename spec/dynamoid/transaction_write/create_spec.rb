@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionWrite, '.create' do
+describe Dynamoid::TransactionWrite, '.create' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -57,7 +57,7 @@ describe Dynamoid::TransactionWrite, '.create' do
       described_class.execute do |txn|
         txn.create klass, name: 'Alex'
       end
-    }.to change { klass.count }.by(1)
+    }.to change(klass, :count).by(1)
 
     obj = klass.last
     expect(obj.name).to eql 'Alex'
@@ -84,7 +84,7 @@ describe Dynamoid::TransactionWrite, '.create' do
       described_class.execute do |txn|
         result = txn.create klass, [{ name: 'Alex' }, { name: 'Michael' }]
       end
-    }.to change { klass.count }.by(2)
+    }.to change(klass, :count).by(2)
 
     expect(klass.pluck(:name)).to contain_exactly('Alex', 'Michael')
     expect(result.size).to eq 2
@@ -100,7 +100,7 @@ describe Dynamoid::TransactionWrite, '.create' do
 
       described_class.execute do |txn|
         obj = txn.create klass, { name: 'Alex' } do |u|
-          u.name += " [Updated]"
+          u.name += ' [Updated]'
         end
       end
 
@@ -113,7 +113,7 @@ describe Dynamoid::TransactionWrite, '.create' do
 
       described_class.execute do |txn|
         objects = txn.create klass, [{ name: 'Alex' }, { name: 'Michael' }] do |u|
-          u.name += " [Updated]"
+          u.name += ' [Updated]'
         end
       end
 
@@ -121,7 +121,7 @@ describe Dynamoid::TransactionWrite, '.create' do
     end
   end
 
-  # TODO:
+  # TODO: implement the test later
   it 'can be called without attributes to modify'
 
   describe 'primary key schema' do
@@ -133,7 +133,7 @@ describe Dynamoid::TransactionWrite, '.create' do
           described_class.execute do |txn|
             txn.create klass, name: 'Alex'
           end
-        }.to change { klass.count }.by(1)
+        }.to change(klass, :count).by(1)
       end
     end
 
@@ -145,7 +145,7 @@ describe Dynamoid::TransactionWrite, '.create' do
           described_class.execute do |txn|
             txn.create klass_with_composite_key, name: 'Alex', age: 3
           end
-        }.to change { klass_with_composite_key.count }.by(1)
+        }.to change(klass_with_composite_key, :count).by(1)
       end
     end
   end
@@ -226,7 +226,7 @@ describe Dynamoid::TransactionWrite, '.create' do
         described_class.execute do |txn|
           obj = txn.create(klass_with_validation, name: 'oneone')
         end
-      }.to change { klass_with_validation.count }.by(1)
+      }.to change(klass_with_validation, :count).by(1)
 
       expect(obj).to be_persisted
       expect(obj).not_to be_changed
@@ -239,7 +239,7 @@ describe Dynamoid::TransactionWrite, '.create' do
         described_class.execute do |txn|
           obj = txn.create(klass_with_validation, name: 'one')
         end
-      }.not_to change { klass_with_validation.count }
+      }.not_to change(klass_with_validation, :count)
 
       expect(obj).not_to be_persisted
       expect(obj).to be_changed
@@ -253,7 +253,7 @@ describe Dynamoid::TransactionWrite, '.create' do
 
       expect(obj).to be_a(klass_with_validation)
       expect(obj.name).to eql 'one'
-      expect(obj).to_not be_persisted
+      expect(obj).not_to be_persisted
     end
 
     it 'does not roll back the whole transaction when a model to be created is invalid' do
@@ -265,9 +265,9 @@ describe Dynamoid::TransactionWrite, '.create' do
           obj_invalid = txn.create(klass_with_validation, name: 'one')
           obj_valid = txn.create(klass_with_validation, name: 'twotwo')
         end
-      }.to change { klass_with_validation.count }.by(1)
+      }.to change(klass_with_validation, :count).by(1)
 
-      expect(obj_invalid).to_not be_persisted
+      expect(obj_invalid).not_to be_persisted
       expect(obj_valid).to be_persisted
 
       obj_valid_loaded = klass_with_validation.find(obj_valid.id)
@@ -348,9 +348,9 @@ describe Dynamoid::TransactionWrite, '.create' do
     expect {
       described_class.execute do |txn|
         obj = txn.create klass, name: 'Alex'
-        raise "trigger rollback"
+        raise 'trigger rollback'
       end
-    }.to raise_error("trigger rollback")
+    }.to raise_error('trigger rollback')
 
     expect(obj).not_to be_persisted
     expect(obj).to be_changed
@@ -485,17 +485,17 @@ describe Dynamoid::TransactionWrite, '.create' do
         txn.create klass_with_all_callbacks
       end
 
-      expect(ScratchPad.recorded).to eql [ # rubocop:disable Style/StringConcatenation
-                                           'run before_validation',
-                                           'run after_validation',
-                                           'run before_save',
-                                           'start around_save',
-                                           'run before_create',
-                                           'start around_create',
-                                           'finish around_create',
-                                           'run after_create',
-                                           'finish around_save',
-                                           'run after_save'
+      expect(ScratchPad.recorded).to eql [
+        'run before_validation',
+        'run after_validation',
+        'run before_save',
+        'start around_save',
+        'run before_create',
+        'start around_create',
+        'finish around_create',
+        'run after_create',
+        'finish around_save',
+        'run after_save'
       ]
     end
 
@@ -520,7 +520,8 @@ describe Dynamoid::TransactionWrite, '.create' do
         'finish around_create',
         'run after_create',
         'finish around_save',
-        'run after_save')
+        'run after_save'
+      )
       expect(ScratchPad.recorded).to eql []
     end
   end
@@ -547,7 +548,7 @@ describe Dynamoid::TransactionWrite, '.create!' do
       described_class.execute do |txn|
         txn.create! klass, name: 'Alex'
       end
-    }.to change { klass.count }.by(1)
+    }.to change(klass, :count).by(1)
 
     obj = klass.last
     expect(obj.name).to eql 'Alex'
@@ -574,7 +575,7 @@ describe Dynamoid::TransactionWrite, '.create!' do
       described_class.execute do |txn|
         result = txn.create! klass, [{ name: 'Alex' }, { name: 'Michael' }]
       end
-    }.to change { klass.count }.by(2)
+    }.to change(klass, :count).by(2)
 
     expect(klass.pluck(:name)).to contain_exactly('Alex', 'Michael')
     expect(result.size).to eq 2
@@ -590,7 +591,7 @@ describe Dynamoid::TransactionWrite, '.create!' do
 
       described_class.execute do |txn|
         obj = txn.create! klass, { name: 'Alex' } do |u|
-          u.name += " [Updated]"
+          u.name += ' [Updated]'
         end
       end
 
@@ -603,7 +604,7 @@ describe Dynamoid::TransactionWrite, '.create!' do
 
       described_class.execute do |txn|
         objects = txn.create! klass, [{ name: 'Alex' }, { name: 'Michael' }] do |u|
-          u.name += " [Updated]"
+          u.name += ' [Updated]'
         end
       end
 
@@ -623,7 +624,7 @@ describe Dynamoid::TransactionWrite, '.create!' do
         described_class.execute do |txn|
           obj = txn.create!(klass_with_validation, name: 'oneone')
         end
-      }.to change { klass_with_validation.count }.by(1)
+      }.to change(klass_with_validation, :count).by(1)
 
       expect(obj).to be_persisted
       expect(obj).not_to be_changed
@@ -645,7 +646,7 @@ describe Dynamoid::TransactionWrite, '.create!' do
             txn.create!(klass_with_validation, name: 'one')
           end
         }.to raise_error(Dynamoid::Errors::DocumentNotValid)
-      }.to_not change { klass_with_validation.count }
+      }.not_to change(klass_with_validation, :count)
     end
   end
 

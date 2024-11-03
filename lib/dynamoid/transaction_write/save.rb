@@ -16,14 +16,12 @@ module Dynamoid
       def on_registration
         validate_model!
 
-        unless @options[:validate] == false
-          unless @valid = @model.valid?
-            if @options[:raise_error]
-              raise Dynamoid::Errors::DocumentNotValid, @model
-            else
-              @aborted = true
-              return
-            end
+        if @options[:validate] != false && !(@valid = @model.valid?)
+          if @options[:raise_error]
+            raise Dynamoid::Errors::DocumentNotValid, @model
+          else
+            @aborted = true
+            return
           end
         end
 
@@ -142,8 +140,6 @@ module Dynamoid
 
         result
       end
-
-      private
 
       def touch_model_timestamps(skip_created_at:)
         return unless @model_class.timestamps_enabled?

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionWrite, '#delete(model)' do
+describe Dynamoid::TransactionWrite, '#delete(model)' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -23,7 +23,7 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do
       described_class.execute do |txn|
         txn.delete obj
       end
-    }.to change { klass.count }.by(-1)
+    }.to change(klass, :count).by(-1)
 
     expect(klass.exists?(obj.id)).to eql false
     expect(obj).to be_destroyed
@@ -49,7 +49,7 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do
           described_class.execute do |txn|
             txn.delete obj
           end
-        }.to change { klass.count }.by(-1)
+        }.to change(klass, :count).by(-1)
       end
     end
 
@@ -61,7 +61,7 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do
           described_class.execute do |txn|
             txn.delete obj
           end
-        }.to change { klass_with_composite_key.count }.by(-1)
+        }.to change(klass_with_composite_key, :count).by(-1)
       end
     end
   end
@@ -130,9 +130,9 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do
     expect {
       described_class.execute do |txn|
         txn.delete obj
-        raise "trigger rollback"
+        raise 'trigger rollback'
       end
-    }.to raise_error("trigger rollback")
+    }.to raise_error('trigger rollback')
 
     expect(obj).not_to be_destroyed
   end
@@ -208,7 +208,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
       described_class.execute do |txn|
         txn.delete klass, obj.id
       end
-    }.to change { klass.count }.by(-1)
+    }.to change(klass, :count).by(-1)
 
     expect(klass.exists?(obj.id)).to eql false
   end
@@ -233,7 +233,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
           described_class.execute do |txn|
             txn.delete klass, obj.id
           end
-        }.to change { klass.count }.by(-1)
+        }.to change(klass, :count).by(-1)
       end
     end
 
@@ -245,7 +245,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
           described_class.execute do |txn|
             txn.delete klass_with_composite_key, obj.id, obj.age
           end
-        }.to change { klass_with_composite_key.count }.by(-1)
+        }.to change(klass_with_composite_key, :count).by(-1)
       end
 
       it 'raises MissingHashKey if partition key is not specified' do

@@ -14,8 +14,7 @@ module Dynamoid
         validate_primary_key!
       end
 
-      def on_completing
-      end
+      def on_completing; end
 
       def aborted?
         false
@@ -54,7 +53,7 @@ module Dynamoid
         # expression_attribute_names = attribute_keys_in_model.map{|k| ["##{k}","#{k}"]}.to_h
         expression_attribute_names.merge!(item_keys.each_with_index.map { |k, i| ["#_n#{i}", k.to_s] }.to_h)
 
-        result = {
+        {
           update: {
             key: key,
             table_name: @model_class.table_name,
@@ -63,8 +62,6 @@ module Dynamoid
             expression_attribute_values: expression_attribute_values
           }
         }
-
-        result
       end
 
       private

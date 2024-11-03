@@ -7,7 +7,7 @@ module Dynamoid
         @model = model_class.new(attributes)
 
         if block
-          block.call(@model)
+          yield(@model)
         end
 
         @save_action = Save.new(@model, **options)

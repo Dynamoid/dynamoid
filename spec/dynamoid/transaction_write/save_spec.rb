@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionWrite, '.save' do
+describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -70,7 +70,7 @@ describe Dynamoid::TransactionWrite, '.save' do
       described_class.execute do |txn|
         txn.save obj
       end
-    }.to change { klass.count }.by(1)
+    }.to change(klass, :count).by(1)
 
     obj_loaded = klass.find(obj.id)
     expect(obj_loaded.name).to eql 'Alex'
@@ -115,7 +115,7 @@ describe Dynamoid::TransactionWrite, '.save' do
           described_class.execute do |txn|
             txn.save obj
           end
-        }.to change { klass.count }.by(1)
+        }.to change(klass, :count).by(1)
       end
 
       it 'persists changes in already persisted model' do
@@ -139,7 +139,7 @@ describe Dynamoid::TransactionWrite, '.save' do
           described_class.execute do |txn|
             txn.save obj
           end
-        }.to change { klass_with_composite_key.count }.by(1)
+        }.to change(klass_with_composite_key, :count).by(1)
       end
 
       it 'persists changes in already persisted model' do
@@ -383,7 +383,7 @@ describe Dynamoid::TransactionWrite, '.save' do
           described_class.execute do |txn|
             txn.save obj
           end
-        }.not_to change { klass_with_validation.count }
+        }.not_to change(klass_with_validation, :count)
 
         expect(obj).not_to be_persisted
         expect(obj).to be_changed
@@ -398,7 +398,7 @@ describe Dynamoid::TransactionWrite, '.save' do
             described_class.execute do |txn|
               txn.save obj, validate: false
             end
-          }.to change { klass_with_validation.count }.by(1)
+          }.to change(klass_with_validation, :count).by(1)
 
           obj_loaded = klass_with_validation.find(obj.id)
           expect(obj_loaded.name).to eql 'one'
@@ -444,7 +444,7 @@ describe Dynamoid::TransactionWrite, '.save' do
             txn.save obj_invalid
             txn.save obj_valid
           end
-        }.to change { klass_with_validation.count }.by(1)
+        }.to change(klass_with_validation, :count).by(1)
 
         expect(klass_with_validation.all.map(&:id)).to contain_exactly(obj_valid.id)
       end
@@ -476,7 +476,7 @@ describe Dynamoid::TransactionWrite, '.save' do
           described_class.execute do |txn|
             txn.save obj
           end
-        }.not_to change { klass_with_validation.count }
+        }.not_to change(klass_with_validation, :count)
 
         expect(obj).to be_persisted
         expect(obj).to be_changed
@@ -680,11 +680,11 @@ describe Dynamoid::TransactionWrite, '.save' do
     obj_to_create = nil
 
     expect {
-        described_class.execute do |txn|
-          txn.save obj_deleted
-          obj_to_create = txn.create klass, name: 'two'
-        end
-    }.to change { klass.count }.by(2)
+      described_class.execute do |txn|
+        txn.save obj_deleted
+        obj_to_create = txn.create klass, name: 'two'
+      end
+    }.to change(klass, :count).by(2)
 
     expect(obj_to_create).to be_persisted
     expect(obj_to_create).not_to be_changed
@@ -696,9 +696,9 @@ describe Dynamoid::TransactionWrite, '.save' do
     expect {
       described_class.execute do |txn|
         txn.save obj
-        raise "trigger rollback"
+        raise 'trigger rollback'
       end
-    }.to raise_error("trigger rollback")
+    }.to raise_error('trigger rollback')
 
     expect(obj).not_to be_persisted
     expect(obj).to be_changed
@@ -711,9 +711,9 @@ describe Dynamoid::TransactionWrite, '.save' do
     expect {
       described_class.execute do |txn|
         txn.save obj
-        raise "trigger rollback"
+        raise 'trigger rollback'
       end
-    }.to raise_error("trigger rollback")
+    }.to raise_error('trigger rollback')
 
     expect(obj).to be_changed
   end
@@ -867,17 +867,17 @@ describe Dynamoid::TransactionWrite, '.save' do
           txn.save obj
         end
 
-        expect(ScratchPad.recorded).to eql [ # rubocop:disable Style/StringConcatenation
-                            'run before_validation',
-                            'run after_validation',
-                            'run before_save',
-                            'start around_save',
-                            'run before_create',
-                            'start around_create',
-                            'finish around_create',
-                            'run after_create',
-                            'finish around_save',
-                            'run after_save'
+        expect(ScratchPad.recorded).to eql [
+          'run before_validation',
+          'run after_validation',
+          'run before_save',
+          'start around_save',
+          'run before_create',
+          'start around_create',
+          'finish around_create',
+          'run after_create',
+          'finish around_save',
+          'run after_save'
         ]
       end
 
@@ -903,7 +903,8 @@ describe Dynamoid::TransactionWrite, '.save' do
           'finish around_create',
           'run after_create',
           'finish around_save',
-          'run after_save')
+          'run after_save'
+        )
         expect(ScratchPad.recorded).to eql []
       end
 
@@ -1098,17 +1099,17 @@ describe Dynamoid::TransactionWrite, '.save' do
           txn.save obj
         end
 
-        expect(ScratchPad.recorded).to eql [ # rubocop:disable Style/StringConcatenation
-                                             'run before_validation',
-                                             'run after_validation',
-                                             'run before_save',
-                                             'start around_save',
-                                             'run before_update',
-                                             'start around_update',
-                                             'finish around_update',
-                                             'run after_update',
-                                             'finish around_save',
-                                             'run after_save'
+        expect(ScratchPad.recorded).to eql [
+          'run before_validation',
+          'run after_validation',
+          'run before_save',
+          'start around_save',
+          'run before_update',
+          'start around_update',
+          'finish around_update',
+          'run after_update',
+          'finish around_save',
+          'run after_save'
         ]
       end
 
@@ -1135,7 +1136,8 @@ describe Dynamoid::TransactionWrite, '.save' do
           'finish around_update',
           'run after_update',
           'finish around_save',
-          'run after_save')
+          'run after_save'
+        )
         expect(ScratchPad.recorded).to eql []
       end
     end
@@ -1164,7 +1166,7 @@ describe Dynamoid::TransactionWrite, '.save!' do
       described_class.execute do |txn|
         txn.save! obj
       end
-    }.to change { klass.count }.by(1)
+    }.to change(klass, :count).by(1)
 
     obj_loaded = klass.find(obj.id)
     expect(obj_loaded.name).to eql 'Alex'
@@ -1221,7 +1223,7 @@ describe Dynamoid::TransactionWrite, '.save!' do
         described_class.execute do |txn|
           txn.save! obj, validate: false
         end
-      }.to change { klass_with_validation.count }.by(1)
+      }.to change(klass_with_validation, :count).by(1)
 
       obj_loaded = klass_with_validation.find(obj.id)
       expect(obj_loaded.name).to eql 'one'
@@ -1244,7 +1246,7 @@ describe Dynamoid::TransactionWrite, '.save!' do
             txn.save! obj_invalid
           end
         }.to raise_error(Dynamoid::Errors::DocumentNotValid)
-      }.not_to change { klass_with_validation.count }
+      }.not_to change(klass_with_validation, :count)
     end
 
     it 'rolls back the whole transaction when a model to be saved is invalid' do
@@ -1393,7 +1395,7 @@ describe Dynamoid::TransactionWrite, '.save!' do
           obj_to_create = txn.create klass, name: 'Michael'
         end
       }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
-    }.not_to change { klass.count }
+    }.not_to change(klass, :count)
 
     expect(klass.count).to eql 1
     expect(klass.all.to_a).to eql [existing]

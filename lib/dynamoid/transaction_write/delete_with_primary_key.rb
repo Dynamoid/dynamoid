@@ -13,8 +13,7 @@ module Dynamoid
         validate_primary_key!
       end
 
-      def on_completing
-      end
+      def on_completing; end
 
       def aborted?
         false

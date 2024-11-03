@@ -28,7 +28,7 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
     expect(obj).not_to be_changed
   end
 
-  # TODO:
+  # TODO: implement the test later
   it 'can be called without attributes to modify'
 
   it 'returns nil' do
