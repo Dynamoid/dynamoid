@@ -3,8 +3,13 @@
 module Dynamoid
   class TransactionWrite
     class Create
-      def initialize(model_class, attributes = {}, **options)
+      def initialize(model_class, attributes = {}, **options, &block)
         @model = model_class.new(attributes)
+
+        if block
+          block.call(@model)
+        end
+
         @save_action = Save.new(@model, **options)
       end
 

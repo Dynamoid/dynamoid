@@ -92,6 +92,35 @@ describe Dynamoid::TransactionWrite, '.create' do
     expect(result).to be_all(&:persisted?)
     expect(result.map(&:name)).to contain_exactly('Alex', 'Michael')
   end
+
+  context 'when a block specified' do
+    it 'calls a block and passes a model as argument' do
+      klass.create_table
+      obj = nil
+
+      described_class.execute do |txn|
+        obj = txn.create klass, { name: 'Alex' } do |u|
+          u.name += " [Updated]"
+        end
+      end
+
+      expect(obj.name).to eql 'Alex [Updated]'
+    end
+
+    it 'calls a block and passes each model as argument if there are multiple models' do
+      klass.create_table
+      objects = nil
+
+      described_class.execute do |txn|
+        objects = txn.create klass, [{ name: 'Alex' }, { name: 'Michael' }] do |u|
+          u.name += " [Updated]"
+        end
+      end
+
+      expect(objects.map(&:name)).to contain_exactly('Alex [Updated]', 'Michael [Updated]')
+    end
+  end
+
   # TODO:
   it 'can be called without attributes to modify'
 
@@ -544,6 +573,34 @@ describe Dynamoid::TransactionWrite, '.create!' do
     expect(result).to be_all { |obj| obj.is_a? klass }
     expect(result).to be_all(&:persisted?)
     expect(result.map(&:name)).to contain_exactly('Alex', 'Michael')
+  end
+
+  context 'when a block specified' do
+    it 'calls a block and passes a model as argument' do
+      klass.create_table
+      obj = nil
+
+      described_class.execute do |txn|
+        obj = txn.create! klass, { name: 'Alex' } do |u|
+          u.name += " [Updated]"
+        end
+      end
+
+      expect(obj.name).to eql 'Alex [Updated]'
+    end
+
+    it 'calls a block and passes each model as argument if there are multiple models' do
+      klass.create_table
+      objects = nil
+
+      described_class.execute do |txn|
+        objects = txn.create! klass, [{ name: 'Alex' }, { name: 'Michael' }] do |u|
+          u.name += " [Updated]"
+        end
+      end
+
+      expect(objects.map(&:name)).to contain_exactly('Alex [Updated]', 'Michael [Updated]')
+    end
   end
 
   describe 'validation' do

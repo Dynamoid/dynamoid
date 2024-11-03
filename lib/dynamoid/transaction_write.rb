@@ -44,26 +44,26 @@ module Dynamoid
       register_action action
     end
 
-    def create!(model_class, attributes = {})
+    def create!(model_class, attributes = {}, &block)
       if attributes.is_a? Array
         attributes.map do |attr|
-          action = Dynamoid::TransactionWrite::Create.new(model_class, attr, raise_error: true)
+          action = Dynamoid::TransactionWrite::Create.new(model_class, attr, raise_error: true, &block)
           register_action action
         end
       else
-        action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_error: true)
+        action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_error: true, &block)
         register_action action
       end
     end
 
-    def create(model_class, attributes = {})
+    def create(model_class, attributes = {}, &block)
       if attributes.is_a? Array
         attributes.map do |attr|
-          action = Dynamoid::TransactionWrite::Create.new(model_class, attr, raise_error: false)
+          action = Dynamoid::TransactionWrite::Create.new(model_class, attr, raise_error: false, &block)
           register_action action
         end
       else
-        action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_error: false)
+        action = Dynamoid::TransactionWrite::Create.new(model_class, attributes, raise_error: false, &block)
         register_action action
       end
     end
