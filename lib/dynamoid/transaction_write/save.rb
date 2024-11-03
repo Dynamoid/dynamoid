@@ -146,7 +146,7 @@ module Dynamoid
         return unless @model_class.timestamps_enabled?
 
         timestamp = DateTime.now.in_time_zone(Time.zone)
-        @model.updated_at = timestamp
+        @model.updated_at = timestamp unless @options[:touch] == false && !@was_new_record
         @model.created_at ||= timestamp unless skip_created_at
       end
 

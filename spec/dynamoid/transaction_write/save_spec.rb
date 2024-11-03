@@ -311,6 +311,35 @@ describe Dynamoid::TransactionWrite, '.save' do
     end
   end
 
+  context 'when `touch: false` option passed' do
+    it 'does not update updated_at attribute' do
+      obj = klass.create!
+      updated_at = obj.updated_at
+
+      travel 1.minute do
+        obj.name = 'foo'
+
+        described_class.execute do |txn|
+          txn.save obj, touch: false
+        end
+      end
+
+      expect(obj.updated_at).to eq updated_at
+      expect(klass.find(obj.id).updated_at.to_i).to eql updated_at.to_i
+    end
+
+    it 'sets updated_at attribute for a new record' do
+      klass.create_table
+      obj = klass.new(name: 'foo')
+
+      described_class.execute do |txn|
+        txn.save obj, touch: false
+      end
+
+      expect(klass.find(obj.id).updated_at).to be_present
+    end
+  end
+
   describe 'validation' do
     context 'new model' do
       before do
