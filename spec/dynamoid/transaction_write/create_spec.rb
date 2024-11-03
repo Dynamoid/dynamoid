@@ -50,7 +50,7 @@ describe Dynamoid::TransactionWrite, '.create' do
     end
   end
 
-  it 'persists a new model and accepts model class and attributes' do
+  it 'persists a new model' do
     klass.create_table
 
     expect {
@@ -76,6 +76,22 @@ describe Dynamoid::TransactionWrite, '.create' do
     expect(obj.name).to eql 'Alex'
   end
 
+  it 'creates multiple documents' do
+    klass.create_table
+    result = nil
+
+    expect {
+      described_class.execute do |txn|
+        result = txn.create klass, [{ name: 'Alex' }, { name: 'Michael' }]
+      end
+    }.to change { klass.count }.by(2)
+
+    expect(klass.pluck(:name)).to contain_exactly('Alex', 'Michael')
+    expect(result.size).to eq 2
+    expect(result).to be_all { |obj| obj.is_a? klass }
+    expect(result).to be_all(&:persisted?)
+    expect(result.map(&:name)).to contain_exactly('Alex', 'Michael')
+  end
   # TODO:
   it 'can be called without attributes to modify'
 
@@ -487,7 +503,7 @@ describe Dynamoid::TransactionWrite, '.create!' do
     end
   end
 
-  it 'persists a new model and accepts model class and attributes' do
+  it 'persists a new model' do
     klass.create_table
 
     expect {
@@ -511,6 +527,23 @@ describe Dynamoid::TransactionWrite, '.create!' do
     expect(obj).to be_a(klass)
     expect(obj).to be_persisted
     expect(obj.name).to eql 'Alex'
+  end
+
+  it 'creates multiple documents' do
+    klass.create_table
+    result = nil
+
+    expect {
+      described_class.execute do |txn|
+        result = txn.create! klass, [{ name: 'Alex' }, { name: 'Michael' }]
+      end
+    }.to change { klass.count }.by(2)
+
+    expect(klass.pluck(:name)).to contain_exactly('Alex', 'Michael')
+    expect(result.size).to eq 2
+    expect(result).to be_all { |obj| obj.is_a? klass }
+    expect(result).to be_all(&:persisted?)
+    expect(result.map(&:name)).to contain_exactly('Alex', 'Michael')
   end
 
   describe 'validation' do
