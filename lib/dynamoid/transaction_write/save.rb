@@ -42,6 +42,10 @@ module Dynamoid
         if @aborted && @options[:raise_error]
           raise Dynamoid::Errors::RecordNotSaved, @model
         end
+
+        if @was_new_record && @model.hash_key.nil?
+          @model.hash_key = SecureRandom.uuid
+        end
       end
 
       def on_completing
@@ -82,7 +86,6 @@ module Dynamoid
       end
 
       def action_request_to_create
-        @model.hash_key = SecureRandom.uuid if @model.hash_key.nil?
         touch_model_timestamps(skip_created_at: false)
         # model always exists
         item = Dynamoid::Dumping.dump_attributes(@model.attributes, @model_class.attributes)

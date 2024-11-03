@@ -91,6 +91,20 @@ describe Dynamoid::TransactionWrite, '.save' do
     expect(obj).not_to be_changed
   end
 
+  it 'assigns id immediately at model creation' do
+    klass.create_table
+    obj = klass.new(name: 'Alex')
+    id = nil
+
+    described_class.execute do |txn|
+      txn.save obj
+      id = obj.id
+    end
+
+    expect(id).to be_present
+    expect(id).to eql obj.id
+  end
+
   describe 'primary key schema' do
     context 'simple primary key' do
       it 'persists a new model' do
