@@ -276,6 +276,10 @@ describe Dynamoid::TransactionWrite, '.create' do
   end
 
   it 'aborts creation and returns false if callback throws :abort' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass = new_class do
       field :name
       before_create { throw :abort }
@@ -294,6 +298,10 @@ describe Dynamoid::TransactionWrite, '.create' do
   end
 
   it 'does not roll back the transaction when a model creation aborted by a callback' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass_with_callback = new_class do
       field :name
       before_create { throw :abort }
@@ -642,6 +650,10 @@ describe Dynamoid::TransactionWrite, '.create!' do
   end
 
   it 'aborts creation and raises exception if callback throws :abort' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass = new_class do
       field :name
       before_create { throw :abort }
@@ -658,6 +670,10 @@ describe Dynamoid::TransactionWrite, '.create!' do
   end
 
   it 'rolls back the transaction when a model creation aborted by a callback' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass_with_callback = new_class do
       field :name
       before_create { throw :abort }

@@ -4852,6 +4852,10 @@ describe Dynamoid::Persistence do
       end
 
       it 'aborts destroying and returns false if a before_destroy callback throws :abort' do
+        if ActiveSupport.version < Gem::Version.new('5.0')
+          skip "Rails 4.x and below don't support aborting with `throw :abort`"
+        end
+
         klass = new_class do
           before_destroy { throw :abort }
         end
@@ -4870,6 +4874,10 @@ describe Dynamoid::Persistence do
 
   describe 'destroy!' do
     it 'aborts destroying and raises RecordNotDestroyed if a before_destroy callback throws :abort' do
+      if ActiveSupport.version < Gem::Version.new('5.0')
+        skip "Rails 4.x and below don't support aborting with `throw :abort`"
+      end
+
       klass = new_class do
         before_destroy { throw :abort }
       end

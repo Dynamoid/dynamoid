@@ -139,6 +139,10 @@ describe Dynamoid::TransactionWrite, '#destroy' do
   end
 
   it 'aborts destroying and returns false if callback throws :abort' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass = new_class do
       before_destroy { throw :abort }
     end
@@ -155,6 +159,10 @@ describe Dynamoid::TransactionWrite, '#destroy' do
   end
 
   it 'does not roll back the transaction when a destroying of some model aborted by a before_destroy callback' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass = new_class do
       before_destroy { throw :abort }
     end
@@ -277,6 +285,10 @@ describe Dynamoid::TransactionWrite, '#destroy' do
     end
 
     it 'returns false if :abort is thrown' do
+      if ActiveSupport.version < Gem::Version.new('5.0')
+        skip "Rails 4.x and below don't support aborting with `throw :abort`"
+      end
+
       klass_with_callback = new_class do
         before_destroy { throw :abort }
       end
@@ -325,6 +337,10 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
   end
 
   it 'aborts destroying and raises RecordNotDestroyed if callback throws :abort' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass = new_class do
       before_destroy { throw :abort }
     end

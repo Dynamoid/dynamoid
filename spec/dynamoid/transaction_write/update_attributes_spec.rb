@@ -254,6 +254,10 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
   end
 
   it 'aborts updating and returns false if callback throws :abort' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass = new_class do
       before_update { throw :abort }
     end
@@ -270,6 +274,10 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do
   end
 
   it 'does not roll back the transaction when a model updating aborted by a callback' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass = new_class do
       before_update { throw :abort }
     end
@@ -622,6 +630,10 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
   end
 
   it 'aborts updating and raises exception if callback throws :abort' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass = new_class do
       field :name
       before_update { throw :abort }
@@ -638,6 +650,10 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
   end
 
   it 'rolls back the transaction when a model updating aborted by a callback' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
     klass = new_class do
       field :name
       before_update { throw :abort }
