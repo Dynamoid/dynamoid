@@ -284,7 +284,17 @@ module Dynamoid
 
     class BinaryUndumper < Base
       def process(value)
-        Base64.strict_decode64(value)
+        store_as_binary = if @options[:store_as_native_binary].nil?
+                            Dynamoid.config.store_binary_as_native
+                          else
+                            @options[:store_as_native_binary]
+                          end
+
+        if store_as_binary
+          value.string # expect StringIO here
+        else
+          Base64.strict_decode64(value)
+        end
       end
     end
 

@@ -1606,20 +1606,87 @@ describe 'Dumping' do
   end
 
   describe 'Binary field' do
-    let(:klass) do
-      new_class do
-        field :image, :binary
-      end
-    end
-
     let(:unfrozen_string) { +"\x00\x88\xFF" }
     let(:binary_value) { unfrozen_string.force_encoding('ASCII-8BIT') }
 
-    it 'encodes a string in base64-encoded format' do
-      obj = klass.create(image: binary_value)
+    context 'default non-native binary' do
+      let(:klass) do
+        new_class do
+          field :image, :binary
+        end
+      end
 
-      expect(reload(obj).image).to eql(binary_value)
-      expect(raw_attributes(obj)[:image]).to eql(Base64.strict_encode64(binary_value))
+      it 'encodes a string in base64-encoded format' do
+        obj = klass.create(image: binary_value)
+
+        expect(reload(obj).image).to eql(binary_value)
+        expect(raw_attributes(obj)[:image]).to eql(Base64.strict_encode64(binary_value))
+      end
+    end
+
+    context 'native binary' do
+      let(:klass) do
+        new_class do
+          field :image, :binary, store_as_native_binary: true
+        end
+      end
+
+      it 'converts string to StringIO object' do
+        obj = klass.create(image: binary_value)
+
+        expect(reload(obj).image).to eql(binary_value)
+        expect(raw_attributes(obj)[:image].class).to eql(StringIO)
+        expect(raw_attributes(obj)[:image].string).to eql(binary_value)
+      end
+
+      it 'accepts StringIO object' do
+        image = StringIO.new(binary_value)
+        obj = klass.create(image: image)
+
+        expect(reload(obj).image).to eql(binary_value)
+        expect(raw_attributes(obj)[:image].class).to eql(StringIO)
+        expect(raw_attributes(obj)[:image].string).to eql(binary_value)
+      end
+
+      it 'accepts IO object' do
+        Tempfile.create('image') do |image|
+          image.write(binary_value)
+          image.rewind
+
+          obj = klass.create(image: image)
+
+          expect(reload(obj).image).to eql(binary_value)
+          expect(raw_attributes(obj)[:image].class).to eql(StringIO)
+          expect(raw_attributes(obj)[:image].string).to eql(binary_value)
+        end
+      end
+    end
+
+    context 'store_binary_as_native config option' do
+      it 'is stored as binary if store_binary_as_native config option is true',
+         config: { store_binary_as_native: true } do
+        klass = new_class do
+          field :image, :binary
+        end
+
+        obj = klass.create(image: binary_value)
+
+        expect(reload(obj).image).to eql(binary_value)
+        expect(raw_attributes(obj)[:image].class).to eql(StringIO)
+        expect(raw_attributes(obj)[:image].string).to eql(binary_value)
+      end
+
+      it 'is not stored as binary if store_binary_as_native config option is false',
+         config: { store_binary_as_native: false } do
+        klass = new_class do
+          field :image, :binary
+        end
+
+        obj = klass.create(image: binary_value)
+
+        expect(reload(obj).image).to eql(binary_value)
+        expect(raw_attributes(obj)[:image]).to eql(Base64.strict_encode64(binary_value))
+      end
     end
   end
 end

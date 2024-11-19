@@ -342,6 +342,24 @@ class Document
 end
 ```
 
+#### Note on binary type
+
+By default binary fields are persisted as DynamoDB String value encoded
+in the Base64 encoding. DynamoDB supports binary data natively. To use
+it instead of String a `store_binary_as_native` field option should be
+set:
+
+```ruby
+class Document
+  include Dynamoid::Document
+
+  field :image, :binary, store_binary_as_native: true
+end
+```
+
+There is also a global config option `store_binary_as_native` that is
+`false` by default as well.
+
 #### Magic Columns
 
 You get magic columns of `id` (`string`), `created_at` (`datetime`), and
@@ -1138,6 +1156,9 @@ Listed below are all configuration options.
 * `store_boolean_as_native` - if `true` Dynamoid stores boolean fields
   as native DynamoDB boolean values. Otherwise boolean fields are stored
   as string values `'t'` and `'f'`. Default is `true`
+* `store_binary_as_native` - if `true` Dynamoid stores binary fields
+  as native DynamoDB binary values. Otherwise binary fields are stored
+  as Base64 encoded string values. Default is `false`
 * `backoff` - is a hash: key is a backoff strategy (symbol), value is
   parameters for the strategy. Is used in batch operations. Default id
   `nil`

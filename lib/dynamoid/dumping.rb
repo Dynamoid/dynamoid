@@ -297,10 +297,24 @@ module Dynamoid
       end
     end
 
-    # string -> string
+    # string -> StringIO
     class BinaryDumper < Base
       def process(value)
-        Base64.strict_encode64(value)
+        store_as_binary = if @options[:store_as_native_binary].nil?
+                            Dynamoid.config.store_binary_as_native
+                          else
+                            @options[:store_as_native_binary]
+                          end
+
+        if store_as_binary
+          if value.is_a?(StringIO) || value.is_a?(IO)
+            value
+          else
+            StringIO.new(value)
+          end
+        else
+          Base64.strict_encode64(value)
+        end
       end
     end
 
