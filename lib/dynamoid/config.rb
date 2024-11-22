@@ -50,6 +50,7 @@ module Dynamoid
     option :store_date_as_string, default: false # store Date fields in ISO 8601 string format
     option :store_empty_string_as_nil, default: true # store attribute's empty String value as null
     option :store_boolean_as_native, default: true
+    option :store_binary_as_native, default: false
     option :backoff, default: nil # callable object to handle exceeding of table throughput limit
     option :backoff_strategies, default: {
       constant: BackoffStrategies::ConstantBackoff,

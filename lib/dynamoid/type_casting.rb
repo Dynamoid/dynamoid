@@ -288,7 +288,9 @@ module Dynamoid
 
     class BinaryTypeCaster < Base
       def process(value)
-        if value.is_a? String
+        if value.is_a?(StringIO) || value.is_a?(IO)
+          value
+        elsif value.is_a?(String)
           value.dup
         else
           value.to_s

@@ -2,5 +2,5 @@
 # TODO: Comment out the following to see code needing to be refactored for thread safety!
 ThreadSafety/ClassAndModuleAttributes:
   Enabled: false
-ThreadSafety/InstanceVariableInClassMethod:
+ThreadSafety/ClassInstanceVariable:
   Enabled: false
