@@ -671,12 +671,21 @@ describe 'Type casting' do
       expect(obj.image).to eql('string representation')
     end
 
-    it 'dups a string' do
-      value = 'foo'
+    it 'does not convert StringIO objects' do
+      value = StringIO.new('foo')
       obj = klass.new(image: value)
 
-      expect(obj.image).to eql(value)
-      expect(obj.image).not_to equal(value)
+      expect(obj.image).to equal(value)
+    end
+
+    it 'does not convert IO objects' do
+      Tempfile.create('image') do |value|
+        value.write('foo')
+        value.rewind
+
+        obj = klass.new(image: value)
+        expect(obj.image).to equal(value)
+      end
     end
   end
 
