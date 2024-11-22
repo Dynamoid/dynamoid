@@ -274,7 +274,7 @@ describe 'Type casting' do
 
         obj = klass.new(values: Set.new([1, 1.5, '2'.to_d]))
 
-        expect(obj.values).to eql(Set.new([1, 1, 2]))
+        expect(obj.values).to eql(Set.new([1, 2]))
       end
 
       it 'type casts numbers' do
