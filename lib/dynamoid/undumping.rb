@@ -256,7 +256,9 @@ module Dynamoid
           # String
           # Array
           # Hash
-          YAML.safe_load(value, permitted_classes: [Symbol, Set, Date, Time, DateTime])
+          YAML.safe_load(value, permitted_classes: [
+            Symbol, Set, Date, Time, DateTime, ActiveSupport::HashWithIndifferentAccess
+          ])
         else
           YAML.load(value)
         end
