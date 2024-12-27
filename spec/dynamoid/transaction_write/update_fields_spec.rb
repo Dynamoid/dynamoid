@@ -42,6 +42,16 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
     expect(result).to eql nil
   end
 
+  it 'raises an UnknownAttribute error when adding an attribute that is not declared in the model' do
+    obj = klass.create!(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.update_fields(klass, obj.id, age: 26)
+      end
+    }.to raise_error Dynamoid::Errors::UnknownAttribute
+  end
+
   describe 'primary key schema' do
     context 'simple primary key' do
       it 'persists changes in already persisted model' do

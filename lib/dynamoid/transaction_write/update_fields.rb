@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
   class TransactionWrite
@@ -14,6 +15,7 @@ module Dynamoid
 
       def on_registration
         validate_primary_key!
+        Dynamoid::Persistence::UpdateValidations.validate_attributes_exist(@model_class, @attributes)
       end
 
       def on_commit; end

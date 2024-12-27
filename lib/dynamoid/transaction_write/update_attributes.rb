@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
   class TransactionWrite
