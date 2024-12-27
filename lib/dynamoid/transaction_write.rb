@@ -18,9 +18,12 @@ module Dynamoid
 
       begin
         yield transaction
-      rescue
+      rescue => error
         transaction.rollback
-        raise
+
+        unless error.is_a?(Dynamoid::Errors::Rollback)
+          raise error
+        end
       else
         transaction.commit
       end

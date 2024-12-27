@@ -99,7 +99,7 @@ describe Dynamoid::TransactionWrite, '.execute' do
         end
       end
 
-      it 'runs #after_rollback callbacks for each involved model' do
+      it 'runs #after_rollback callbacks for each involved model and re-raises exception' do
         klass_with_exception = new_class do
           before_create { raise 'from a callback' }
         end
@@ -116,6 +116,8 @@ describe Dynamoid::TransactionWrite, '.execute' do
         expect(ScratchPad.recorded).to eql ['run after_rollback']
       end
 
+      # Test here that #after_rollback callbacks are called for all the actions that run callbacks.
+      # Do not test such actions in specs for the #commit method because it is excessive.
       context '#create action' do
         it 'runs #after_rollback callbacks for a model' do
           expect {
@@ -176,6 +178,31 @@ describe Dynamoid::TransactionWrite, '.execute' do
 
           expect(ScratchPad.recorded).to eql ['run after_rollback']
         end
+      end
+    end
+
+    context 'transaction interrupted by Dynamoid::Error::Rollback exception' do
+      before do
+        ScratchPad.clear
+      end
+
+      let(:klass) do
+        new_class do
+          field :name
+
+          after_commit { ScratchPad << 'run after_commit' }
+          after_rollback { ScratchPad << 'run after_rollback' }
+        end
+      end
+
+      it 'runs #after_rollback callbacks for each involved model and does not re-raise exception' do
+        described_class.execute do |t|
+          t.create klass
+          raise Dynamoid::Errors::Rollback
+          t.create klass
+        end
+
+        expect(ScratchPad.recorded).to eql ['run after_rollback']
       end
     end
   end

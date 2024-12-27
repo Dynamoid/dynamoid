@@ -89,5 +89,7 @@ module Dynamoid
     class UnknownAttribute < Error; end
 
     class SubclassNotFound < Error; end
+
+    class Rollback < Error; end
   end
 end
