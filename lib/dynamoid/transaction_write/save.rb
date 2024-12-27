@@ -54,6 +54,12 @@ module Dynamoid
         if @was_new_record
           @model.new_record = false
         end
+
+        @model.run_callbacks(:commit)
+      end
+
+      def on_failure
+        @model.run_callbacks(:rollback)
       end
 
       def aborted?

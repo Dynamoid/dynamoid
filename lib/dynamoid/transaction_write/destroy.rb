@@ -28,6 +28,11 @@ module Dynamoid
         return if @aborted
 
         @model.destroyed = true
+        @model.run_callbacks(:commit)
+      end
+
+      def on_failure
+        @model.run_callbacks(:rollback)
       end
 
       def aborted?

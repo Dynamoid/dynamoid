@@ -16,6 +16,9 @@ module Dynamoid
         @model.destroyed = true
       end
 
+      def on_failure
+      end
+
       def aborted?
         false
       end

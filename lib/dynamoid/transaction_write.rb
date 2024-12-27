@@ -15,8 +15,15 @@ module Dynamoid
 
     def self.execute
       transaction = new
-      yield transaction
-      transaction.commit
+
+      begin
+        yield transaction
+      rescue
+        transaction.run_on_failure_callbacks
+        raise
+      else
+        transaction.commit
+      end
     end
 
     def initialize
@@ -32,6 +39,14 @@ module Dynamoid
       actions_to_commit.each(&:on_completing)
 
       nil
+    rescue Aws::Errors::ServiceError
+      run_on_failure_callbacks
+      raise
+    end
+
+    def run_on_failure_callbacks
+      actions_to_commit = @actions.reject(&:aborted?).reject(&:skip?)
+      actions_to_commit.each(&:on_failure)
     end
 
     def save!(model, **options)

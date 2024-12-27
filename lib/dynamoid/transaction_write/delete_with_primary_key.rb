@@ -15,6 +15,9 @@ module Dynamoid
 
       def on_completing; end
 
+      def on_failure
+      end
+
       def aborted?
         false
       end

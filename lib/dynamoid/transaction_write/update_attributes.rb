@@ -17,6 +17,10 @@ module Dynamoid
         @save_action.on_completing
       end
 
+      def on_failure
+        @save_action.on_failure
+      end
+
       def aborted?
         @save_action.aborted?
       end
