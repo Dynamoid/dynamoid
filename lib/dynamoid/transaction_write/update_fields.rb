@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'base'
+
 module Dynamoid
   class TransactionWrite
-    class UpdateFields
+    class UpdateFields < Base
       def initialize(model_class, hash_key, range_key, attributes)
         @model_class = model_class
         @hash_key = hash_key
@@ -14,16 +16,15 @@ module Dynamoid
         validate_primary_key!
       end
 
-      def on_completing; end
+      def on_commit; end
 
-      def on_failure
-      end
+      def on_rollback; end
 
       def aborted?
         false
       end
 
-      def skip?
+      def skipped?
         @attributes.empty?
       end
 

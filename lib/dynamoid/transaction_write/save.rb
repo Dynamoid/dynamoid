@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'base'
+
 module Dynamoid
   class TransactionWrite
-    class Save
+    class Save < Base
       def initialize(model, **options)
         @model = model
         @model_class = model.class
@@ -46,7 +48,7 @@ module Dynamoid
         end
       end
 
-      def on_completing
+      def on_commit
         return if @aborted
 
         @model.changes_applied
@@ -58,7 +60,7 @@ module Dynamoid
         @model.run_callbacks(:commit)
       end
 
-      def on_failure
+      def on_rollback
         @model.run_callbacks(:rollback)
       end
 
@@ -66,7 +68,7 @@ module Dynamoid
         @aborted
       end
 
-      def skip?
+      def skipped?
         @model.persisted? && !@model.changed?
       end
 

@@ -19,7 +19,7 @@ module Dynamoid
       begin
         yield transaction
       rescue
-        transaction.run_on_failure_callbacks
+        transaction.rollback
         raise
       else
         transaction.commit
@@ -31,22 +31,21 @@ module Dynamoid
     end
 
     def commit
-      actions_to_commit = @actions.reject(&:aborted?).reject(&:skip?)
+      actions_to_commit = @actions.reject(&:aborted?).reject(&:skipped?)
       return if actions_to_commit.empty?
 
       action_requests = actions_to_commit.map(&:action_request)
       Dynamoid.adapter.transact_write_items(action_requests)
-      actions_to_commit.each(&:on_completing)
+      actions_to_commit.each(&:on_commit)
 
       nil
     rescue Aws::Errors::ServiceError
-      run_on_failure_callbacks
+      run_on_rollback_callbacks
       raise
     end
 
-    def run_on_failure_callbacks
-      actions_to_commit = @actions.reject(&:aborted?).reject(&:skip?)
-      actions_to_commit.each(&:on_failure)
+    def rollback
+      run_on_rollback_callbacks
     end
 
     def save!(model, **options)
@@ -128,6 +127,11 @@ module Dynamoid
       @actions << action
       action.on_registration
       action.observable_by_user_result
+    end
+
+    def run_on_rollback_callbacks
+      actions_to_commit = @actions.reject(&:aborted?).reject(&:skipped?)
+      actions_to_commit.each(&:on_rollback)
     end
   end
 end

@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'base'
+
 module Dynamoid
   class TransactionWrite
-    class UpdateAttributes
+    class UpdateAttributes < Base
       def initialize(model, attributes, **options)
         @model = model
         @model.assign_attributes(attributes)
@@ -13,20 +15,20 @@ module Dynamoid
         @save_action.on_registration
       end
 
-      def on_completing
-        @save_action.on_completing
+      def on_commit
+        @save_action.on_commit
       end
 
-      def on_failure
-        @save_action.on_failure
+      def on_rollback
+        @save_action.on_rollback
       end
 
       def aborted?
         @save_action.aborted?
       end
 
-      def skip?
-        @save_action.skip?
+      def skipped?
+        @save_action.skipped?
       end
 
       def observable_by_user_result

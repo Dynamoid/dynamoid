@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'base'
+
 module Dynamoid
   class TransactionWrite
-    class DeleteWithInstance
+    class DeleteWithInstance < Base
       def initialize(model)
         @model = model
         @model_class = model.class
@@ -12,18 +14,17 @@ module Dynamoid
         validate_model!
       end
 
-      def on_completing
+      def on_commit
         @model.destroyed = true
       end
 
-      def on_failure
-      end
+      def on_rollback; end
 
       def aborted?
         false
       end
 
-      def skip?
+      def skipped?
         false
       end
 
