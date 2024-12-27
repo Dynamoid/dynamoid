@@ -33,7 +33,11 @@ module Dynamoid
 
       def action_request
         key = { @model_class.hash_key => @hash_key }
-        key[@model_class.range_key] = @range_key if @model_class.range_key?
+
+        if @model_class.range_key?
+          key[@model_class.range_key] = @range_key
+        end
+
         {
           delete: {
             key: key,

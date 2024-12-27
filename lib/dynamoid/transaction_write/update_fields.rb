@@ -35,46 +35,48 @@ module Dynamoid
       end
 
       def action_request
-        changes = @attributes.clone || {}
-        # changes[model_class.hash_key] = SecureRandom.uuid
+        # changed attributes to persist
+        changes = @attributes.dup
         changes = add_timestamps(changes, skip_created_at: true)
-        changes.delete(@model_class.hash_key) # can't update id!
-        changes.delete(@model_class.range_key) if @model_class.range_key?
-        item = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
+        changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
-        # set 'key' that is used to look up record for updating
+        # primary key to look up an item to update
         key = { @model_class.hash_key => @hash_key }
         key[@model_class.range_key] = @range_key if @model_class.range_key?
 
-        # e.g. "SET #updated_at = :updated_at ADD record_count :i"
-        item_keys = item.keys
-        update_expression = "SET #{item_keys.each_with_index.map { |_k, i| "#_n#{i} = :_s#{i}" }.join(', ')}"
-
-        # e.g. {":updated_at" => 1645453.234, ":i" => 1}
-        expression_attribute_values = item_keys.each_with_index.map { |k, i| [":_s#{i}", item[k]] }.to_h
+        # Build UpdateExpression and keep names and values placeholders mapping
+        # in ExpressionAttributeNames and ExpressionAttributeValues.
+        update_expression_statements = []
         expression_attribute_names = {}
+        expression_attribute_values = {}
 
-        # only alias names for fields in models, other values such as for ADD do not have them
-        # e.g. {"#updated_at" => "updated_at"}
-        # attribute_keys_in_model = item_keys.intersection(model_class.attributes.keys)
-        # expression_attribute_names = attribute_keys_in_model.map{|k| ["##{k}","#{k}"]}.to_h
-        expression_attribute_names.merge!(item_keys.each_with_index.map { |k, i| ["#_n#{i}", k.to_s] }.to_h)
+        changes_dumped.each_with_index do |(name, value), i|
+          name_placeholder = "#_n#{i}"
+          value_placeholder = ":_s#{i}"
 
-        condition_expression = "attribute_exists(#{@model_class.hash_key})" # fail if record is missing
-        condition_expression += " and attribute_exists(#{@model_class.range_key})" if @model_class.range_key? # needed?
+          update_expression_statements << "#{name_placeholder} = #{value_placeholder}"
+          expression_attribute_names[name_placeholder] = name
+          expression_attribute_values[value_placeholder] = value
+        end
 
-        result = {
+        update_expression = "SET #{update_expression_statements.join(', ')}"
+
+        # require primary key to exist
+        condition_expression = "attribute_exists(#{@model_class.hash_key})"
+        if @model_class.range_key?
+          condition_expression += " AND attribute_exists(#{@model_class.range_key})"
+        end
+
+        {
           update: {
             key: key,
             table_name: @model_class.table_name,
             update_expression: update_expression,
-            expression_attribute_values: expression_attribute_values
+            expression_attribute_names: expression_attribute_names,
+            expression_attribute_values: expression_attribute_values,
+            condition_expression: condition_expression
           }
         }
-        result[:update][:expression_attribute_names] = expression_attribute_names if expression_attribute_names.present?
-        result[:update][:condition_expression] = condition_expression
-
-        result
       end
 
       private

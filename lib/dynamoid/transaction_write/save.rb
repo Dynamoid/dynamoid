@@ -93,60 +93,61 @@ module Dynamoid
 
       def action_request_to_create
         touch_model_timestamps(skip_created_at: false)
-        # model always exists
-        item = Dynamoid::Dumping.dump_attributes(@model.attributes, @model_class.attributes)
 
+        attributes_dumped = Dynamoid::Dumping.dump_attributes(@model.attributes, @model_class.attributes)
+
+        # require primary key not to exist yet
         condition = "attribute_not_exists(#{@model_class.hash_key})"
-        condition += " and attribute_not_exists(#{@model_class.range_key})" if @model_class.range_key? # needed?
-        result = {
+        if @model_class.range_key?
+          condition += " AND attribute_not_exists(#{@model_class.range_key})"
+        end
+
+        {
           put: {
-            item: sanitize_item(item),
+            item: attributes_dumped,
             table_name: @model_class.table_name,
+            condition_expression: condition
           }
         }
-        result[:put][:condition_expression] = condition
-
-        result
       end
 
       def action_request_to_update
-        # model.hash_key = SecureRandom.uuid if model.hash_key.blank?
         touch_model_timestamps(skip_created_at: true)
-        changes = @model.changes.map { |k, v| [k.to_sym, v[1]] }.to_h # hash of dirty attributes
 
-        changes.delete(@model_class.hash_key) # can't update id!
-        changes.delete(@model_class.range_key) if @model_class.range_key?
-        item = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
+        # changed attributes to persist
+        changes = @model.attributes.slice(*@model.changed.map(&:to_sym))
+        changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
-        # set 'key' that is used to look up record for updating
+        # primary key to look up an item to update
         key = { @model_class.hash_key => @model.hash_key }
         key[@model_class.range_key] = @model.range_value if @model_class.range_key?
 
-        # e.g. "SET #updated_at = :updated_at ADD record_count :i"
-        item_keys = item.keys
-        update_expression = "SET #{item_keys.each_with_index.map { |_k, i| "#_n#{i} = :_s#{i}" }.join(', ')}"
-
-        # e.g. {":updated_at" => 1645453.234, ":i" => 1}
-        expression_attribute_values = item_keys.each_with_index.map { |k, i| [":_s#{i}", item[k]] }.to_h
+        # Build UpdateExpression and keep names and values placeholders mapping
+        # in ExpressionAttributeNames and ExpressionAttributeValues.
+        update_expression_statements = []
         expression_attribute_names = {}
+        expression_attribute_values = {}
 
-        # only alias names for fields in models, other values such as for ADD do not have them
-        # e.g. {"#updated_at" => "updated_at"}
-        # attribute_keys_in_model = item_keys.intersection(model_class.attributes.keys)
-        # expression_attribute_names = attribute_keys_in_model.map{|k| ["##{k}","#{k}"]}.to_h
-        expression_attribute_names.merge!(item_keys.each_with_index.map { |k, i| ["#_n#{i}", k.to_s] }.to_h)
+        changes_dumped.each_with_index do |(name, value), i|
+          name_placeholder = "#_n#{i}"
+          value_placeholder = ":_s#{i}"
 
-        result = {
+          update_expression_statements << "#{name_placeholder} = #{value_placeholder}"
+          expression_attribute_names[name_placeholder] = name
+          expression_attribute_values[value_placeholder] = value
+        end
+
+        update_expression = "SET #{update_expression_statements.join(', ')}"
+
+        {
           update: {
             key: key,
             table_name: @model_class.table_name,
             update_expression: update_expression,
+            expression_attribute_names: expression_attribute_names,
             expression_attribute_values: expression_attribute_values
           }
         }
-        result[:update][:expression_attribute_names] = expression_attribute_names if expression_attribute_names.present?
-
-        result
       end
 
       def touch_model_timestamps(skip_created_at:)
@@ -155,19 +156,6 @@ module Dynamoid
         timestamp = DateTime.now.in_time_zone(Time.zone)
         @model.updated_at = timestamp unless @options[:touch] == false && !@was_new_record
         @model.created_at ||= timestamp unless skip_created_at
-      end
-
-      # copied from the protected method in AwsSdkV3
-      def sanitize_item(attributes)
-        config_value = Dynamoid.config.store_attribute_with_nil_value
-        store_attribute_with_nil_value = config_value.nil? ? false : !!config_value
-
-        attributes.reject do |_, v|
-          ((v.is_a?(Set) || v.is_a?(String)) && v.empty?) ||
-            (!store_attribute_with_nil_value && v.nil?)
-        end.transform_values do |v|
-          v.is_a?(Hash) ? v.stringify_keys : v
-        end
       end
     end
   end
