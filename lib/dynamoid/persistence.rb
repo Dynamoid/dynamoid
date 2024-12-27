@@ -168,7 +168,7 @@ module Dynamoid
 
       # Create a model.
       #
-      # Initializes a new model and immediately saves it to DynamoDB.
+      # Initializes a new model and immediately saves it into DynamoDB.
       #
       #   User.create(first_name: 'Mark', last_name: 'Tyler')
       #
@@ -176,7 +176,8 @@ module Dynamoid
       #
       #   User.create([{ first_name: 'Alice' }, { first_name: 'Bob' }])
       #
-      # Creates a model and pass it into a block to set other attributes.
+      # Instantiates a model and pass it into an optional block to set other
+      # attributes.
       #
       #   User.create(first_name: 'Mark') do |u|
       #     u.age = 21
@@ -184,7 +185,7 @@ module Dynamoid
       #
       # Validates model and runs callbacks.
       #
-      # @param attrs [Hash|Array[Hash]] Attributes of the models
+      # @param attrs [Hash|Array<Hash>] Attributes of a model
       # @param block [Proc] Block to process a document after initialization
       # @return [Dynamoid::Document] The created document
       # @since 0.2.0
@@ -198,12 +199,28 @@ module Dynamoid
 
       # Create a model.
       #
-      # Initializes a new object and immediately saves it to the Dynamoid.
+      # Initializes a new object and immediately saves it into DynamoDB.
+      #
+      #   User.create!(first_name: 'Mark', last_name: 'Tyler')
+      #
       # Raises an exception +Dynamoid::Errors::DocumentNotValid+ if validation
-      # failed. Accepts both Hash and Array of Hashes and can create several
+      # failed.
+      #
+      # Accepts both Hash and Array of Hashes and can create several
       # models.
       #
-      # @param attrs [Hash|Array[Hash]] Attributes with which to create the object.
+      #   User.create!([{ first_name: 'Alice' }, { first_name: 'Bob' }])
+      #
+      # Instantiates a model and pass it into an optional block to set other
+      # attributes.
+      #
+      #   User.create!(first_name: 'Mark') do |u|
+      #     u.age = 21
+      #   end
+      #
+      # Validates model and runs callbacks.
+      #
+      # @param attrs [Hash|Array<Hash>] Attributes with which to create the object.
       # @param block [Proc] Block to process a document after initialization
       # @return [Dynamoid::Document] The created document
       # @since 0.2.0
@@ -350,7 +367,7 @@ module Dynamoid
       # an updated document back with one HTTP request.
       #
       # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
-      # attributes is not on the model
+      # attributes is not declared in the model class.
       #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
@@ -406,7 +423,7 @@ module Dynamoid
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
       # @param counters [Hash] value to increase by
-      # @option counters [true | Symbol | Array[Symbol]] :touch to update update_at attribute and optionally the specified ones
+      # @option counters [true | Symbol | Array<Symbol>] :touch to update update_at attribute and optionally the specified ones
       # @return [Model class] self
       def inc(hash_key_value, range_key_value = nil, counters)
         Inc.call(self, hash_key_value, range_key_value, counters)
@@ -492,7 +509,7 @@ module Dynamoid
     #
     # +save+ by default sets timestamps attributes - +created_at+ and
     # +updated_at+ when creates new model and updates +updated_at+ attribute
-    # when update already existing one.
+    # when updates already existing one.
     #
     # Changing +updated_at+ attribute at updating a model can be skipped with
     # +touch: false+ option:
@@ -537,7 +554,9 @@ module Dynamoid
     end
 
     # Update multiple attributes at once, saving the object once the updates
-    # are complete. Returns +true+ if saving is successful and +false+
+    # are complete.
+    #
+    # Returns +true+ if saving is successful and +false+
     # otherwise.
     #
     #   user.update_attributes(age: 27, last_name: 'Tylor')
@@ -806,7 +825,7 @@ module Dynamoid
     #
     # @param attribute [Symbol] attribute name
     # @param by [Numeric] value to add (optional)
-    # @param touch [true | Symbol | Array[Symbol]] to update update_at attribute and optionally the specified ones
+    # @param touch [true | Symbol | Array<Symbol>] to update update_at attribute and optionally the specified ones
     # @return [Dynamoid::Document] self
     def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
@@ -857,7 +876,7 @@ module Dynamoid
     #
     # @param attribute [Symbol] attribute name
     # @param by [Numeric] value to subtract (optional)
-    # @param touch [true | Symbol | Array[Symbol]] to update update_at attribute and optionally the specified ones
+    # @param touch [true | Symbol | Array<Symbol>] to update update_at attribute and optionally the specified ones
     # @return [Dynamoid::Document] self
     def decrement!(attribute, by = 1, touch: nil)
       increment!(attribute, -by, touch: touch)
