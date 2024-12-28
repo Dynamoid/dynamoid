@@ -54,6 +54,7 @@ jobs:
           - "3.1"
           - "3.2"
           - "3.3"
+          - "3.4"
         exclude:
 
           # Rails 7.1 requires Ruby 2.7 and above
@@ -120,6 +121,14 @@ jobs:
           - ruby: "3.3"
             gemfile: rails_5_1
           - ruby: "3.3"
+            gemfile: rails_5_2
+          - ruby: "3.4"
+            gemfile: rails_4_2
+          - ruby: "3.4"
+            gemfile: rails_5_0
+          - ruby: "3.4"
+            gemfile: rails_5_1
+          - ruby: "3.4"
             gemfile: rails_5_2
 
           - ruby: "jruby"
