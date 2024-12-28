@@ -63,4 +63,10 @@ module Dynamoid
   def adapter
     @adapter ||= Adapter.new
   end
+
+  # @private
+  def deprecator
+    # all the deprecated behavior will be removed in the next major version
+    @deprecator ||= ActiveSupport::Deprecation.new('4.0', 'Dynamoid')
+  end
 end
