@@ -264,7 +264,9 @@ describe 'Type casting' do
 
         obj = klass.new(values: Set.new([{ name: 'John' }]))
 
-        expect(obj.values).to eql(Set.new(['{:name=>"John"}']))
+        # Hash#to_s uses different formats on different Ruby versions that are
+        # supported and tested. So do not hardcode an exact String literal.
+        expect(obj.values).to eql(Set.new([{ name: 'John' }.to_s]))
       end
 
       it 'type casts integers' do
@@ -358,7 +360,9 @@ describe 'Type casting' do
 
         obj = klass.new(values: [{ name: 'John' }])
 
-        expect(obj.values).to eql(['{:name=>"John"}'])
+        # Hash#to_s uses different formats on different Ruby versions that are
+        # supported and tested. So do not hardcode an exact String literal.
+        expect(obj.values).to eql([{ name: 'John' }.to_s])
       end
 
       it 'type casts integers' do

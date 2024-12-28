@@ -348,9 +348,10 @@ describe Dynamoid::Document do
     end
 
     it 'raises an error if specified wrong field name' do
+      # error messages may very on different Ruby versions and use either ` or '.
       expect do
         model_with_wrong_field_name.create
-      end.to raise_error(NoMethodError, /undefined method `foo='/)
+      end.to raise_error(NoMethodError, /undefined method (`|')foo='/)
     end
   end
 
