@@ -81,7 +81,7 @@ describe Dynamoid::TransactionWrite, '#commit' do
 
         expect {
           t.create klass_with_exception
-        }.to raise_error('from a callback' )
+        }.to raise_error('from a callback')
 
         expect(ScratchPad.recorded).to eql []
       end

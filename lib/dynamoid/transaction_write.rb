@@ -110,11 +110,11 @@ module Dynamoid
 
       begin
         yield transaction
-      rescue => error
+      rescue StandardError => e
         transaction.rollback
 
-        unless error.is_a?(Dynamoid::Errors::Rollback)
-          raise error
+        unless e.is_a?(Dynamoid::Errors::Rollback)
+          raise e
         end
       else
         transaction.commit

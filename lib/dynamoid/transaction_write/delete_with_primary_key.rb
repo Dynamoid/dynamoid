@@ -6,6 +6,8 @@ module Dynamoid
   class TransactionWrite
     class DeleteWithPrimaryKey < Base
       def initialize(model_class, hash_key, range_key)
+        super()
+
         @model_class = model_class
         @hash_key = hash_key
         @range_key = range_key

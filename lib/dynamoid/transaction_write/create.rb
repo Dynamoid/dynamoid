@@ -6,6 +6,8 @@ module Dynamoid
   class TransactionWrite
     class Create < Base
       def initialize(model_class, attributes = {}, **options, &block)
+        super()
+
         @model = model_class.new(attributes)
 
         if block

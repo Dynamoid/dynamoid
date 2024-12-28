@@ -7,6 +7,8 @@ module Dynamoid
   class TransactionWrite
     class UpdateAttributes < Base
       def initialize(model, attributes, **options)
+        super()
+
         @model = model
         @model.assign_attributes(attributes)
         @save_action = Save.new(model, **options)

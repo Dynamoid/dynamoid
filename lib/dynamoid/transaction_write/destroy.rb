@@ -6,6 +6,8 @@ module Dynamoid
   class TransactionWrite
     class Destroy < Base
       def initialize(model, **options)
+        super()
+
         @model = model
         @options = options
         @model_class = model.class

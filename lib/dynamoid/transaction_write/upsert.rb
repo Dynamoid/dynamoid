@@ -7,6 +7,8 @@ module Dynamoid
   class TransactionWrite
     class Upsert < Base
       def initialize(model_class, hash_key, range_key, attributes)
+        super()
+
         @model_class = model_class
         @hash_key = hash_key
         @range_key = range_key

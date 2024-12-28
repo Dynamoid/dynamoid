@@ -6,6 +6,8 @@ module Dynamoid
   class TransactionWrite
     class Save < Base
       def initialize(model, **options)
+        super()
+
         @model = model
         @model_class = model.class
         @options = options

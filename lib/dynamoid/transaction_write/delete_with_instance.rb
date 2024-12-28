@@ -6,6 +6,8 @@ module Dynamoid
   class TransactionWrite
     class DeleteWithInstance < Base
       def initialize(model)
+        super()
+
         @model = model
         @model_class = model.class
       end

@@ -35,7 +35,7 @@ describe Dynamoid::TransactionWrite, '.execute' do
         end
       end
 
-      context '#create action' do
+      describe '#create action' do
         it 'runs #after_commit callbacks for a model' do
           klass.create_table
 
@@ -47,7 +47,7 @@ describe Dynamoid::TransactionWrite, '.execute' do
         end
       end
 
-      context '#destroy action' do
+      describe '#destroy action' do
         it 'runs #after_commit callbacks for a model' do
           object = klass.create!
 
@@ -59,7 +59,7 @@ describe Dynamoid::TransactionWrite, '.execute' do
         end
       end
 
-      context '#save action' do
+      describe '#save action' do
         it 'runs #after_commit callbacks for a model' do
           klass.create_table
           object = klass.new
@@ -72,7 +72,7 @@ describe Dynamoid::TransactionWrite, '.execute' do
         end
       end
 
-      context '#update_attributes action' do
+      describe '#update_attributes action' do
         it 'runs #after_commit callbacks for a model' do
           object = klass.create!
 
@@ -108,17 +108,15 @@ describe Dynamoid::TransactionWrite, '.execute' do
           described_class.execute do |t|
             t.create klass
             raise 'from a transaction'
-            t.create klass
           end
         }.to raise_error('from a transaction')
-
 
         expect(ScratchPad.recorded).to eql ['run after_rollback']
       end
 
       # Test here that #after_rollback callbacks are called for all the actions that run callbacks.
       # Do not test such actions in specs for the #commit method because it is excessive.
-      context '#create action' do
+      describe '#create action' do
         it 'runs #after_rollback callbacks for a model' do
           expect {
             described_class.execute do |t|
@@ -127,12 +125,11 @@ describe Dynamoid::TransactionWrite, '.execute' do
             end
           }.to raise_error('from a transaction')
 
-
           expect(ScratchPad.recorded).to eql ['run after_rollback']
         end
       end
 
-      context '#destroy action' do
+      describe '#destroy action' do
         it 'runs #after_rollback callbacks for a model' do
           object = klass.create!
 
@@ -143,12 +140,11 @@ describe Dynamoid::TransactionWrite, '.execute' do
             end
           }.to raise_error('from a transaction')
 
-
           expect(ScratchPad.recorded).to eql ['run after_rollback']
         end
       end
 
-      context '#save action' do
+      describe '#save action' do
         it 'runs #after_rollback callbacks for a model' do
           object = klass.new
 
@@ -159,12 +155,11 @@ describe Dynamoid::TransactionWrite, '.execute' do
             end
           }.to raise_error('from a transaction')
 
-
           expect(ScratchPad.recorded).to eql ['run after_rollback']
         end
       end
 
-      context '#update_attributes action' do
+      describe '#update_attributes action' do
         it 'runs #after_rollback callbacks for a model' do
           object = klass.create!
 
@@ -174,7 +169,6 @@ describe Dynamoid::TransactionWrite, '.execute' do
               raise 'from a transaction'
             end
           }.to raise_error('from a transaction')
-
 
           expect(ScratchPad.recorded).to eql ['run after_rollback']
         end
@@ -199,7 +193,6 @@ describe Dynamoid::TransactionWrite, '.execute' do
         described_class.execute do |t|
           t.create klass
           raise Dynamoid::Errors::Rollback
-          t.create klass
         end
 
         expect(ScratchPad.recorded).to eql ['run after_rollback']
@@ -207,4 +200,3 @@ describe Dynamoid::TransactionWrite, '.execute' do
     end
   end
 end
-
