@@ -4,43 +4,26 @@ require_relative 'base'
 
 module Dynamoid
   class TransactionWrite
-    class Destroy < Base
-      def initialize(model, **options)
+    class DeleteWithInstance < Base
+      def initialize(model)
         super()
 
         @model = model
-        @options = options
         @model_class = model.class
-        @aborted = false
       end
 
       def on_registration
         validate_model!
-
-        @aborted = true
-        @model.run_callbacks(:destroy) do
-          @aborted = false
-          true
-        end
-
-        if @aborted && @options[:raise_error]
-          raise Dynamoid::Errors::RecordNotDestroyed, @model
-        end
       end
 
       def on_commit
-        return if @aborted
-
         @model.destroyed = true
-        @model.run_callbacks(:commit)
       end
 
-      def on_rollback
-        @model.run_callbacks(:rollback)
-      end
+      def on_rollback; end
 
       def aborted?
-        @aborted
+        false
       end
 
       def skipped?
@@ -48,8 +31,6 @@ module Dynamoid
       end
 
       def observable_by_user_result
-        return false if @aborted
-
         @model
       end
 

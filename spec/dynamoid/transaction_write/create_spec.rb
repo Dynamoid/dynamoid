@@ -1,200 +1,702 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative 'context'
 
-# Dynamoid.config.logger.level = :debug
+describe Dynamoid::TransactionWrite, '.create' do # rubocop:disable RSpec/MultipleDescribes
+  let(:klass) do
+    new_class do
+      field :name
+    end
+  end
 
-describe Dynamoid::TransactionWrite, '.create' do
-  include_context 'transaction_write'
+  let(:klass_with_composite_key) do
+    new_class do
+      range :age, :integer
+      field :name
+    end
+  end
 
-  context 'creates' do
+  let(:klass_with_validation) do
+    new_class do
+      field :name
+      validates :name, length: { minimum: 4 }
+    end
+  end
+
+  let(:klass_with_all_callbacks) do
+    new_class do
+      before_validation { ScratchPad << 'run before_validation' }
+      after_validation { ScratchPad << 'run after_validation' }
+
+      before_create { ScratchPad << 'run before_create' }
+      after_create { ScratchPad << 'run after_create' }
+      around_create :around_create_callback
+
+      before_save { ScratchPad << 'run before_save' }
+      after_save { ScratchPad << 'run after_save' }
+      around_save :around_save_callback
+
+      def around_create_callback
+        ScratchPad << 'start around_create'
+        yield
+        ScratchPad << 'finish around_create'
+      end
+
+      def around_save_callback
+        ScratchPad << 'start around_save'
+        yield
+        ScratchPad << 'finish around_save'
+      end
+    end
+  end
+
+  it 'persists a new model' do
+    klass.create_table
+
+    expect {
+      described_class.execute do |txn|
+        txn.create klass, name: 'Alex'
+      end
+    }.to change(klass, :count).by(1)
+
+    obj = klass.last
+    expect(obj.name).to eql 'Alex'
+  end
+
+  it 'returns a new model' do
+    klass.create_table
+
+    obj = nil
+    described_class.execute do |txn|
+      obj = txn.create klass, name: 'Alex'
+    end
+
+    expect(obj).to be_a(klass)
+    expect(obj).to be_persisted
+    expect(obj.name).to eql 'Alex'
+  end
+
+  it 'creates multiple documents' do
+    klass.create_table
+    result = nil
+
+    expect {
+      described_class.execute do |txn|
+        result = txn.create klass, [{ name: 'Alex' }, { name: 'Michael' }]
+      end
+    }.to change(klass, :count).by(2)
+
+    expect(klass.pluck(:name)).to contain_exactly('Alex', 'Michael')
+    expect(result.size).to eq 2
+    expect(result).to be_all { |obj| obj.is_a? klass }
+    expect(result).to be_all(&:persisted?)
+    expect(result.map(&:name)).to contain_exactly('Alex', 'Michael')
+  end
+
+  context 'when a block specified' do
+    it 'calls a block and passes a model as argument' do
+      klass.create_table
+      obj = nil
+
+      described_class.execute do |txn|
+        obj = txn.create klass, { name: 'Alex' } do |u|
+          u.name += ' [Updated]'
+        end
+      end
+
+      expect(obj.name).to eql 'Alex [Updated]'
+    end
+
+    it 'calls a block and passes each model as argument if there are multiple models' do
+      klass.create_table
+      objects = nil
+
+      described_class.execute do |txn|
+        objects = txn.create klass, [{ name: 'Alex' }, { name: 'Michael' }] do |u|
+          u.name += ' [Updated]'
+        end
+      end
+
+      expect(objects.map(&:name)).to contain_exactly('Alex [Updated]', 'Michael [Updated]')
+    end
+  end
+
+  # TODO: implement the test later
+  it 'can be called without attributes to modify'
+
+  describe 'primary key schema' do
     context 'simple primary key' do
-      before do
+      it 'persists a model' do
         klass.create_table
-      end
 
-      it 'with attribute in constructor' do
-        obj1 = klass.new(name: 'one')
-        expect(obj1.persisted?).to eql(false)
-        described_class.execute do |txn|
-          txn.create! obj1
-        end
-        expect(obj1.persisted?).to eql(true)
-        obj1_found = klass.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('one')
-      end
-
-      it 'with attribute in transaction' do
-        obj2 = klass.new
-        described_class.execute do |txn|
-          txn.create! obj2, name: 'two'
-        end
-        obj2_found = klass.find(obj2.id)
-        expect(obj2_found).to eql(obj2)
-        expect(obj2_found.name).to eql('two')
-      end
-
-      it 'with class constructed in transaction' do
-        obj3 = nil
-        described_class.execute do |txn|
-          obj3 = txn.create! klass, name: 'three'
-        end
-        obj3_found = klass.find(obj3.id)
-        expect(obj3_found).to eql(obj3)
-        expect(obj3_found.name).to eql('three')
+        expect {
+          described_class.execute do |txn|
+            txn.create klass, name: 'Alex'
+          end
+        }.to change(klass, :count).by(1)
       end
     end
 
     context 'composite key' do
-      before do
+      it 'persists a model' do
         klass_with_composite_key.create_table
-      end
 
-      it 'with attribute in constructor' do
-        obj1 = klass_with_composite_key.new(name: 'one', age: 1)
-        described_class.execute do |txn|
-          txn.create! obj1
-        end
-        obj1_found = klass_with_composite_key.find(obj1.id, range_key: 1)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('one')
-      end
-
-      it 'with attribute in transaction' do
-        obj2 = klass_with_composite_key.new
-        described_class.execute do |txn|
-          txn.create! obj2, name: 'two', age: 2
-        end
-        obj2_found = klass_with_composite_key.find(obj2.id, range_key: 2)
-        expect(obj2_found).to eql(obj2)
-        expect(obj2_found.name).to eql('two')
-      end
-
-      it 'with class constructed in transaction' do
-        obj3 = nil
-        described_class.execute do |txn|
-          obj3 = txn.create! klass_with_composite_key, name: 'three', age: 3
-        end
-        obj3_found = klass_with_composite_key.find(obj3.id, range_key: 3)
-        expect(obj3_found).to eql(obj3)
-        expect(obj3_found.name).to eql('three')
+        expect {
+          described_class.execute do |txn|
+            txn.create klass_with_composite_key, name: 'Alex', age: 3
+          end
+        }.to change(klass_with_composite_key, :count).by(1)
       end
     end
+  end
 
-    it 'creates timestamps' do
+  describe 'primary key validation' do
+    context 'composite key' do
+      it 'requires sort key to be specified' do
+        klass_with_composite_key.create_table
+
+        expect {
+          described_class.execute do |txn|
+            txn.create klass_with_composite_key, name: 'Alex', age: nil
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+      end
+    end
+  end
+
+  describe 'timestamps' do
+    before do
       klass.create_table
-      obj1 = klass.new(name: 'one')
-      expect(obj1.created_at).to be_nil
-      expect(obj1.updated_at).to be_nil
+    end
+
+    it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+      travel 1.hour do
+        time_now = Time.now
+
+        obj = nil
+        described_class.execute do |txn|
+          obj = txn.create klass, name: 'Alex'
+        end
+
+        expect(obj.created_at.to_i).to eql time_now.to_i
+        expect(obj.updated_at.to_i).to eql time_now.to_i
+      end
+    end
+
+    it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+      travel 1.hour do
+        created_at = updated_at = Time.now
+
+        obj = nil
+        described_class.execute do |txn|
+          obj = txn.create klass, created_at: created_at, updated_at: updated_at
+        end
+
+        expect(obj.created_at.to_i).to eql created_at.to_i
+        expect(obj.updated_at.to_i).to eql updated_at.to_i
+      end
+    end
+
+    it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+      expect {
+        described_class.execute do |txn|
+          txn.create klass, name: 'Alex'
+        end
+      }.not_to raise_error
+    end
+
+    it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+      expect {
+        described_class.execute do |txn|
+          txn.create klass, {}
+        end
+      }.not_to raise_error
+    end
+  end
+
+  describe 'validation' do
+    before do
+      klass_with_validation.create_table
+    end
+
+    it 'persists a valid model' do
+      obj = nil
+
+      expect {
+        described_class.execute do |txn|
+          obj = txn.create(klass_with_validation, name: 'oneone')
+        end
+      }.to change(klass_with_validation, :count).by(1)
+
+      expect(obj).to be_persisted
+      expect(obj).not_to be_changed
+    end
+
+    it 'does not persist invalid model' do
+      obj = nil
+
+      expect {
+        described_class.execute do |txn|
+          obj = txn.create(klass_with_validation, name: 'one')
+        end
+      }.not_to change(klass_with_validation, :count)
+
+      expect(obj).not_to be_persisted
+      expect(obj).to be_changed
+    end
+
+    it 'returns a new model even if it is invalid' do
+      obj = nil
       described_class.execute do |txn|
-        txn.create! obj1
+        obj = txn.create(klass_with_validation, name: 'one')
       end
-      obj1_found = klass.find(obj1.id)
-      expect(obj1_found.created_at.to_f).to be_within(1.seconds).of Time.now.to_f
-      expect(obj1_found.updated_at.to_f).to be_within(1.seconds).of Time.now.to_f
+
+      expect(obj).to be_a(klass_with_validation)
+      expect(obj.name).to eql 'one'
+      expect(obj).not_to be_persisted
     end
 
-    context 'validates' do
-      before do
-        klass_with_validation.create_table
-      end
+    it 'does not roll back the whole transaction when a model to be created is invalid' do
+      obj_invalid = nil
+      obj_valid = nil
 
-      it 'does not create when invalid' do
-        obj1 = klass_with_validation.new(name: 'one')
-        described_class.execute do |txn|
-          expect(txn.create(obj1)).to eql(false)
-        end
-        expect(obj1.id).to be_nil
-      end
-
-      it 'rolls back when invalid' do
-        obj1 = klass_with_validation.new(name: 'one')
-        obj2 = klass_with_validation.new(name: 'twotwo')
-        described_class.execute do |txn|
-          expect(txn.create(obj1)).to eql(false)
-          expect(txn.create(obj2)).to be_present
-        end
-        expect(obj1.id).to be_nil
-        expect(klass_with_validation).to exist(obj2.id)
-      end
-
-      it 'succeeds when valid' do
-        obj1 = klass_with_validation.new(name: 'oneone')
-        described_class.execute do |txn|
-          expect(txn.create(obj1)).to be_present
-        end
-
-        obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('oneone')
-      end
-
-      it 'raises DocumentNotValid when not valid' do
-        obj1 = klass_with_validation.new(name: 'one')
-        expect {
-          described_class.execute do |txn|
-            txn.create! obj1
-          end
-        }.to raise_error(Dynamoid::Errors::DocumentNotValid)
-        expect(obj1.id).to be_nil # hash key should NOT be auto-generated if validation fails
-      end
-
-      it 'rolls back and raises DocumentNotValid when not valid' do
-        obj1 = klass_with_validation.new(name: 'one')
-        obj2 = klass_with_validation.new(name: 'twotwo')
-        expect {
-          described_class.execute do |txn|
-            txn.create! obj2
-            txn.create! obj1
-          end
-        }.to raise_error(Dynamoid::Errors::DocumentNotValid)
-        expect(obj1.id).to be_nil
-        expect(obj2.id).to be_present
-        expect(klass_with_validation).not_to exist(obj2.id)
-      end
-
-      it 'does not raise exception when valid' do
-        obj1 = klass_with_validation.new(name: 'oneone')
-        described_class.execute do |txn|
-          txn.create!(obj1)
-        end
-
-        obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('oneone')
-      end
-
-      it 'does not raise exception when skipping validation' do
-        obj1 = klass_with_validation.new(name: 'one')
-        described_class.execute do |txn|
-          # this use is infrequent, normal entry is from save!(obj, options)
-          txn.create!(obj1, {}, skip_validation: true)
-        end
-
-        obj1_found = klass_with_validation.find(obj1.id)
-        expect(obj1_found).to eql(obj1)
-        expect(obj1_found.name).to eql('one')
-      end
-    end
-
-    it 'uses callbacks' do
-      klass_with_callbacks.create_table
       expect {
         described_class.execute do |txn|
-          txn.create! klass_with_callbacks.new(name: 'two')
+          obj_invalid = txn.create(klass_with_validation, name: 'one')
+          obj_valid = txn.create(klass_with_validation, name: 'twotwo')
         end
-      }.to output('validating validated saving creating created saved ').to_stdout
+      }.to change(klass_with_validation, :count).by(1)
+
+      expect(obj_invalid).not_to be_persisted
+      expect(obj_valid).to be_persisted
+
+      obj_valid_loaded = klass_with_validation.find(obj_valid.id)
+      expect(obj_valid_loaded.name).to eql 'twotwo'
+    end
+  end
+
+  it 'aborts creation and returns false if callback throws :abort' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
     end
 
-    it 'uses around callbacks' do
-      klass_with_around_callbacks.create_table
+    klass = new_class do
+      field :name
+      before_create { throw :abort }
+    end
+    klass.create_table
+    obj = nil
+
+    expect {
+      described_class.execute do |txn|
+        obj = txn.create klass, name: 'Alex'
+      end
+    }.not_to change { klass.count }
+
+    expect(obj).not_to be_persisted
+    expect(obj).to be_changed
+  end
+
+  it 'does not roll back the transaction when a model creation aborted by a callback' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
+    klass_with_callback = new_class do
+      field :name
+      before_create { throw :abort }
+    end
+    klass = new_class do
+      field :name
+    end
+    klass_with_callback.create_table
+    klass.create_table
+
+    obj_to_save = klass.new(name: 'Michael')
+    obj_to_create = nil
+
+    expect {
+      described_class.execute do |txn|
+        txn.save obj_to_save
+        obj_to_create = txn.create klass_with_callback, name: 'Alex'
+      end
+    }.to change { klass.count }.by(1)
+
+    expect(obj_to_save).to be_persisted
+    expect(klass.exists?(obj_to_save.id)).to eql true
+    expect(obj_to_create).not_to be_persisted
+    expect(obj_to_create).to be_changed
+  end
+
+  it 'rolls back the transaction when id is not unique' do
+    existing = klass.create!(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.create klass, name: 'Alex', id: existing.id
+        txn.create klass, name: 'Michael'
+      end
+    }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+
+    expect(klass.count).to eql 1
+    expect(klass.all.to_a).to eql [existing]
+  end
+
+  it 'is not marked as persisted and is marked as changed when the transaction rolled back' do
+    obj = nil
+
+    expect {
+      described_class.execute do |txn|
+        obj = txn.create klass, name: 'Alex'
+        raise 'trigger rollback'
+      end
+    }.to raise_error('trigger rollback')
+
+    expect(obj).not_to be_persisted
+    expect(obj).to be_changed
+  end
+
+  describe 'callbacks' do
+    before do
+      ScratchPad.clear
+    end
+
+    it 'runs before_create callback' do
+      klass_with_callback = new_class do
+        before_create { ScratchPad.record 'run before_create' }
+      end
+      klass_with_callback.create_table
+
+      described_class.execute do |txn|
+        txn.create klass_with_callback
+      end
+
+      expect(ScratchPad.recorded).to eql 'run before_create'
+    end
+
+    it 'runs after_create callback' do
+      klass_with_callback = new_class do
+        after_create { ScratchPad.record 'run after_create' }
+      end
+      klass_with_callback.create_table
+
+      described_class.execute do |txn|
+        txn.create klass_with_callback
+      end
+
+      expect(ScratchPad.recorded).to eql 'run after_create'
+    end
+
+    it 'runs around_create callback' do
+      klass_with_callback = new_class do
+        around_create :around_create_callback
+
+        def around_create_callback
+          ScratchPad << 'start around_create'
+          yield
+          ScratchPad << 'finish around_create'
+        end
+      end
+      klass_with_callback.create_table
+
+      described_class.execute do |txn|
+        txn.create klass_with_callback
+      end
+
+      expect(ScratchPad.recorded).to eql ['start around_create', 'finish around_create']
+    end
+
+    it 'runs before_save callback' do
+      klass_with_callback = new_class do
+        before_save { ScratchPad.record 'run before_save' }
+      end
+      klass_with_callback.create_table
+
+      described_class.execute do |txn|
+        txn.create klass_with_callback
+      end
+
+      expect(ScratchPad.recorded).to eql 'run before_save'
+    end
+
+    it 'runs after_save callbacks' do
+      klass_with_callback = new_class do
+        after_save { ScratchPad.record 'run after_save' }
+      end
+      klass_with_callback.create_table
+
+      described_class.execute do |txn|
+        txn.create klass_with_callback
+      end
+
+      expect(ScratchPad.recorded).to eql 'run after_save'
+    end
+
+    it 'runs around_save callback' do
+      klass_with_callback = new_class do
+        around_save :around_save_callback
+
+        def around_save_callback
+          ScratchPad << 'start around_save'
+          yield
+          ScratchPad << 'finish around_save'
+        end
+      end
+
+      klass_with_callback.create_table
+
+      described_class.execute do |txn|
+        txn.create klass_with_callback
+      end
+
+      expect(ScratchPad.recorded).to eql ['start around_save', 'finish around_save']
+    end
+
+    it 'runs before_validation callback' do
+      klass_with_callback = new_class do
+        before_validation { ScratchPad.record 'run before_validation' }
+      end
+      klass_with_callback.create_table
+
+      described_class.execute do |txn|
+        txn.create klass_with_callback
+      end
+
+      expect(ScratchPad.recorded).to eql 'run before_validation'
+    end
+
+    it 'runs after_validation callback' do
+      klass_with_callback = new_class do
+        after_validation { ScratchPad.record 'run after_validation' }
+      end
+      klass_with_callback.create_table
+
+      described_class.execute do |txn|
+        txn.create klass_with_callback
+      end
+
+      expect(ScratchPad.recorded).to eql 'run after_validation'
+    end
+
+    it 'runs callbacks in the proper order' do
+      klass_with_all_callbacks.create_table
+
+      described_class.execute do |txn|
+        txn.create klass_with_all_callbacks
+      end
+
+      expect(ScratchPad.recorded).to eql [
+        'run before_validation',
+        'run after_validation',
+        'run before_save',
+        'start around_save',
+        'run before_create',
+        'start around_create',
+        'finish around_create',
+        'run after_create',
+        'finish around_save',
+        'run after_save'
+      ]
+    end
+
+    it 'runs callbacks immediately' do
+      klass_with_all_callbacks.create_table
+      callbacks = nil
+
+      described_class.execute do |txn|
+        txn.create klass_with_all_callbacks
+
+        callbacks = ScratchPad.recorded.dup
+        ScratchPad.clear
+      end
+
+      expect(callbacks).to contain_exactly(
+        'run before_validation',
+        'run after_validation',
+        'run before_save',
+        'start around_save',
+        'run before_create',
+        'start around_create',
+        'finish around_create',
+        'run after_create',
+        'finish around_save',
+        'run after_save'
+      )
+      expect(ScratchPad.recorded).to eql []
+    end
+  end
+end
+
+describe Dynamoid::TransactionWrite, '.create!' do
+  let(:klass) do
+    new_class do
+      field :name
+    end
+  end
+
+  let(:klass_with_validation) do
+    new_class do
+      field :name
+      validates :name, length: { minimum: 4 }
+    end
+  end
+
+  it 'persists a new model' do
+    klass.create_table
+
+    expect {
+      described_class.execute do |txn|
+        txn.create! klass, name: 'Alex'
+      end
+    }.to change(klass, :count).by(1)
+
+    obj = klass.last
+    expect(obj.name).to eql 'Alex'
+  end
+
+  it 'returns a new model' do
+    klass.create_table
+
+    obj = nil
+    described_class.execute do |txn|
+      obj = txn.create! klass, name: 'Alex'
+    end
+
+    expect(obj).to be_a(klass)
+    expect(obj).to be_persisted
+    expect(obj.name).to eql 'Alex'
+  end
+
+  it 'creates multiple documents' do
+    klass.create_table
+    result = nil
+
+    expect {
+      described_class.execute do |txn|
+        result = txn.create! klass, [{ name: 'Alex' }, { name: 'Michael' }]
+      end
+    }.to change(klass, :count).by(2)
+
+    expect(klass.pluck(:name)).to contain_exactly('Alex', 'Michael')
+    expect(result.size).to eq 2
+    expect(result).to be_all { |obj| obj.is_a? klass }
+    expect(result).to be_all(&:persisted?)
+    expect(result.map(&:name)).to contain_exactly('Alex', 'Michael')
+  end
+
+  context 'when a block specified' do
+    it 'calls a block and passes a model as argument' do
+      klass.create_table
+      obj = nil
+
+      described_class.execute do |txn|
+        obj = txn.create! klass, { name: 'Alex' } do |u|
+          u.name += ' [Updated]'
+        end
+      end
+
+      expect(obj.name).to eql 'Alex [Updated]'
+    end
+
+    it 'calls a block and passes each model as argument if there are multiple models' do
+      klass.create_table
+      objects = nil
+
+      described_class.execute do |txn|
+        objects = txn.create! klass, [{ name: 'Alex' }, { name: 'Michael' }] do |u|
+          u.name += ' [Updated]'
+        end
+      end
+
+      expect(objects.map(&:name)).to contain_exactly('Alex [Updated]', 'Michael [Updated]')
+    end
+  end
+
+  describe 'validation' do
+    before do
+      klass_with_validation.create_table
+    end
+
+    it 'persists a valid model' do
+      obj = nil
+
       expect {
         described_class.execute do |txn|
-          txn.create! klass_with_around_callbacks.new(name: 'two')
+          obj = txn.create!(klass_with_validation, name: 'oneone')
         end
-      }.to output('saving creating created saved ').to_stdout
+      }.to change(klass_with_validation, :count).by(1)
+
+      expect(obj).to be_persisted
+      expect(obj).not_to be_changed
     end
+
+    it 'raise DocumentNotValid when invalid model' do
+      expect {
+        described_class.execute do |txn|
+          txn.create!(klass_with_validation, name: 'one')
+        end
+      }.to raise_error(Dynamoid::Errors::DocumentNotValid)
+    end
+
+    it 'rolls back the whole transaction when a model to be created is invalid' do
+      expect {
+        expect {
+          described_class.execute do |txn|
+            txn.create!(klass_with_validation, name: 'twotwo')
+            txn.create!(klass_with_validation, name: 'one')
+          end
+        }.to raise_error(Dynamoid::Errors::DocumentNotValid)
+      }.not_to change(klass_with_validation, :count)
+    end
+  end
+
+  it 'aborts creation and raises exception if callback throws :abort' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
+    klass = new_class do
+      field :name
+      before_create { throw :abort }
+    end
+    klass.create_table
+
+    expect {
+      expect {
+        described_class.execute do |txn|
+          txn.create! klass, name: 'Alex'
+        end
+      }.to raise_error(Dynamoid::Errors::RecordNotSaved)
+    }.not_to change { klass.count }
+  end
+
+  it 'rolls back the transaction when a model creation aborted by a callback' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
+    klass_with_callback = new_class do
+      field :name
+      before_create { throw :abort }
+    end
+    klass = new_class do
+      field :name
+    end
+    klass_with_callback.create_table
+    klass.create_table
+
+    obj_to_save = klass.new(name: 'Michael')
+
+    expect {
+      expect {
+        described_class.execute do |txn|
+          txn.save obj_to_save
+          txn.create! klass_with_callback, name: 'Alex'
+        end
+      }.to raise_error(Dynamoid::Errors::RecordNotSaved)
+    }.not_to change { klass.count }
+
+    expect(obj_to_save).not_to be_persisted
+    expect(obj_to_save).to be_changed
   end
 end

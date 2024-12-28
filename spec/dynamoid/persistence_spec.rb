@@ -756,134 +756,122 @@ describe Dynamoid::Persistence do
     end
 
     describe 'callbacks' do
+      before do
+        ScratchPad.clear
+      end
+
       it 'runs before_create callback' do
         klass_with_callback = new_class do
-          field :name
-          before_create { print 'run before_create' }
+          before_create { ScratchPad.record 'run before_create' }
         end
 
-        expect do
-          klass_with_callback.create(name: 'Alex')
-        end.to output('run before_create').to_stdout
+        klass_with_callback.create!
+        expect(ScratchPad.recorded).to eql 'run before_create'
       end
 
       it 'runs after_create callback' do
         klass_with_callback = new_class do
-          field :name
-          after_create { print 'run after_create' }
+          after_create { ScratchPad.record 'run after_create' }
         end
 
-        expect do
-          klass_with_callback.create(name: 'Alex')
-        end.to output('run after_create').to_stdout
+        klass_with_callback.create!
+        expect(ScratchPad.recorded).to eql 'run after_create'
       end
 
       it 'runs around_create callback' do
         klass_with_callback = new_class do
-          field :name
           around_create :around_create_callback
 
           def around_create_callback
-            print 'start around_create'
+            ScratchPad << 'start around_create'
             yield
-            print 'finish around_create'
+            ScratchPad << 'finish around_create'
           end
         end
 
-        expect do
-          klass_with_callback.create(name: 'Alex')
-        end.to output('start around_createfinish around_create').to_stdout
+        klass_with_callback.create!
+        expect(ScratchPad.recorded).to eql ['start around_create', 'finish around_create']
       end
 
       it 'runs before_save callback' do
         klass_with_callback = new_class do
-          field :name
-          before_save { print 'run before_save' }
+          before_save { ScratchPad.record 'run before_save' }
         end
 
-        expect do
-          klass_with_callback.create(name: 'Alex')
-        end.to output('run before_save').to_stdout
+        klass_with_callback.create!
+        expect(ScratchPad.recorded).to eql 'run before_save'
       end
 
       it 'runs after_save callbacks' do
         klass_with_callback = new_class do
-          field :name
-          after_save { print 'run after_save' }
+          after_save { ScratchPad.record 'run after_save' }
         end
 
-        expect do
-          klass_with_callback.create(name: 'Alex')
-        end.to output('run after_save').to_stdout
+        klass_with_callback.create!
+        expect(ScratchPad.recorded).to eql 'run after_save'
       end
 
       it 'runs around_save callback' do
         klass_with_callback = new_class do
-          field :name
           around_save :around_save_callback
 
           def around_save_callback
-            print 'start around_save'
+            ScratchPad << 'start around_save'
             yield
-            print 'finish around_save'
+            ScratchPad << 'finish around_save'
           end
         end
 
-        expect do
-          klass_with_callback.create(name: 'Alex')
-        end.to output('start around_savefinish around_save').to_stdout
+        klass_with_callback.create!
+        expect(ScratchPad.recorded).to eql ['start around_save', 'finish around_save']
       end
 
       it 'runs before_validation callback' do
         klass_with_callback = new_class do
-          field :name
-          before_validation { print 'run before_validation' }
+          before_validation { ScratchPad.record 'run before_validation' }
         end
 
-        expect do
-          klass_with_callback.create(name: 'Alex')
-        end.to output('run before_validation').to_stdout
+        klass_with_callback.create!
+        expect(ScratchPad.recorded).to eql 'run before_validation'
       end
 
       it 'runs after_validation callback' do
         klass_with_callback = new_class do
-          field :name
-          after_validation { print 'run after_validation' }
+          after_validation { ScratchPad.record 'run after_validation' }
         end
 
-        expect do
-          klass_with_callback.create(name: 'Alex')
-        end.to output('run after_validation').to_stdout
+        klass_with_callback.create!
+        expect(ScratchPad.recorded).to eql 'run after_validation'
       end
 
       it 'runs callbacks in the proper order' do
         klass_with_callbacks = new_class do
-          before_validation { puts 'run before_validation' }
-          after_validation { puts 'run after_validation' }
+          before_validation { ScratchPad << 'run before_validation' }
+          after_validation { ScratchPad << 'run after_validation' }
 
-          before_create { puts 'run before_create' }
-          after_create { puts 'run after_create' }
+          before_create { ScratchPad << 'run before_create' }
+          after_create { ScratchPad << 'run after_create' }
           around_create :around_create_callback
 
-          before_save { puts 'run before_save' }
-          after_save { puts 'run after_save' }
+          before_save { ScratchPad << 'run before_save' }
+          after_save { ScratchPad << 'run after_save' }
           around_save :around_save_callback
 
           def around_create_callback
-            puts 'start around_create'
+            ScratchPad << 'start around_create'
             yield
-            puts 'finish around_create'
+            ScratchPad << 'finish around_create'
           end
 
           def around_save_callback
-            puts 'start around_save'
+            ScratchPad << 'start around_save'
             yield
-            puts 'finish around_save'
+            ScratchPad << 'finish around_save'
           end
         end
 
-        # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [ # rubocop:disable Style/StringConcatenation
+        klass_with_callbacks.create!
+        expect(ScratchPad.recorded).to eql [
           'run before_validation',
           'run after_validation',
           'run before_save',
@@ -894,9 +882,7 @@ describe Dynamoid::Persistence do
           'run after_create',
           'finish around_save',
           'run after_save'
-        ].join("\n") + "\n"
-
-        expect { klass_with_callbacks.create }.to output(expected_output).to_stdout
+        ]
       end
     end
 
@@ -2022,6 +2008,24 @@ describe Dynamoid::Persistence do
       end.to change {
         document_class_with_range.find(obj.id, range_key: 'New').title
       }.to('[Updated]')
+    end
+
+    # TODO: implement the test later
+    # it 'raises ...Error when range key is missing'
+
+    # TODO: add this case for save/save! and update_attributes/other update operations
+    # as well as you cannot update id (partition key)
+    it 'does not allow to update a range key value' do
+      document_class_with_range = new_class do
+        field :title
+        range :category
+      end
+
+      obj = document_class_with_range.create!(category: 'New')
+
+      expect {
+        document_class_with_range.upsert(obj.id, 'New', category: '[Updated]')
+      }.to raise_error(Aws::DynamoDB::Errors::ValidationException)
     end
 
     it 'uses dumped value of sort key to call UpdateItem' do
@@ -4797,8 +4801,19 @@ describe Dynamoid::Persistence do
     end
   end
 
-  context 'destroy' do
+  describe 'destroy' do
     # TODO: adopt test cases for the `delete` method
+
+    it 'does not raise exception when model does not exist' do
+      klass = new_class
+      obj = klass.create
+      obj2 = klass.find(obj.id)
+      obj.delete
+      expect(klass.exists?(obj.id)).to eql false
+
+      obj2.destroy
+      expect(obj2.destroyed?).to eql true
+    end
 
     describe 'callbacks' do
       it 'runs before_destroy callback' do
@@ -4835,10 +4850,50 @@ describe Dynamoid::Persistence do
 
         expect { obj.destroy }.to output('start around_destroyfinish around_destroy').to_stdout
       end
+
+      it 'aborts destroying and returns false if a before_destroy callback throws :abort' do
+        if ActiveSupport.version < Gem::Version.new('5.0')
+          skip "Rails 4.x and below don't support aborting with `throw :abort`"
+        end
+
+        klass = new_class do
+          before_destroy { throw :abort }
+        end
+        obj = klass.create!
+
+        result = nil
+        expect {
+          result = obj.destroy
+        }.not_to change { klass.count }
+
+        expect(result).to eql false
+        # expect(obj.destroyed?).to eql false # FIXME
+      end
     end
   end
 
-  context 'delete' do
+  describe 'destroy!' do
+    it 'aborts destroying and raises RecordNotDestroyed if a before_destroy callback throws :abort' do
+      if ActiveSupport.version < Gem::Version.new('5.0')
+        skip "Rails 4.x and below don't support aborting with `throw :abort`"
+      end
+
+      klass = new_class do
+        before_destroy { throw :abort }
+      end
+      obj = klass.create!
+
+      expect {
+        expect {
+          obj.destroy!
+        }.to raise_error(Dynamoid::Errors::RecordNotDestroyed)
+      }.not_to change { klass.count }
+
+      # expect(obj.destroyed?).to eql false # FIXME
+    end
+  end
+
+  describe 'delete' do
     it 'deletes an item' do
       klass = new_class
       obj = klass.create
@@ -4865,10 +4920,21 @@ describe Dynamoid::Persistence do
       }.to(nil)
     end
 
+    it 'does not raise exception when model does not exist' do
+      klass = new_class
+      obj = klass.create
+      obj2 = klass.find(obj.id)
+      obj.delete
+      expect(klass.exists?(obj.id)).to eql false
+
+      obj2.delete
+      expect(obj2.destroyed?).to eql true
+    end
+
     context 'with lock version' do
       it 'deletes a record if lock version matches' do
         address.save!
-        expect { address.destroy }.not_to raise_error
+        expect { address.delete }.not_to raise_error
       end
 
       it 'does not delete a record if lock version does not match' do
@@ -4879,7 +4945,7 @@ describe Dynamoid::Persistence do
         a1.city = 'Seattle'
         a1.save!
 
-        expect { a2.destroy }.to raise_exception(Dynamoid::Errors::StaleObjectError)
+        expect { a2.delete }.to raise_exception(Dynamoid::Errors::StaleObjectError)
       end
 
       it 'uses the correct lock_version even if it is modified' do
@@ -4887,7 +4953,7 @@ describe Dynamoid::Persistence do
         a1 = address
         a1.lock_version = 100
 
-        expect { a1.destroy }.not_to raise_error
+        expect { a1.delete }.not_to raise_error
       end
     end
 

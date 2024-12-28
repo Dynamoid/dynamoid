@@ -5,7 +5,7 @@ require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
   class TransactionWrite
-    class Upsert < Base
+    class UpdateFields < Base
       def initialize(model_class, hash_key, range_key, attributes)
         super()
 
@@ -29,8 +29,7 @@ module Dynamoid
       end
 
       def skipped?
-        attributes_to_assign = @attributes.except(@model_class.hash_key, @model_class.range_key)
-        attributes_to_assign.empty? && !@model_class.timestamps_enabled?
+        @attributes.empty?
       end
 
       def observable_by_user_result
@@ -64,13 +63,20 @@ module Dynamoid
 
         update_expression = "SET #{update_expression_statements.join(', ')}"
 
+        # require primary key to exist
+        condition_expression = "attribute_exists(#{@model_class.hash_key})"
+        if @model_class.range_key?
+          condition_expression += " AND attribute_exists(#{@model_class.range_key})"
+        end
+
         {
           update: {
             key: key,
             table_name: @model_class.table_name,
             update_expression: update_expression,
             expression_attribute_names: expression_attribute_names,
-            expression_attribute_values: expression_attribute_values
+            expression_attribute_values: expression_attribute_values,
+            condition_expression: condition_expression
           }
         }
       end

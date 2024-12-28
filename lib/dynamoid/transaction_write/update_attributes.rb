@@ -1,20 +1,17 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
   class TransactionWrite
-    class Create < Base
-      def initialize(model_class, attributes = {}, **options, &block)
+    class UpdateAttributes < Base
+      def initialize(model, attributes, **options)
         super()
 
-        @model = model_class.new(attributes)
-
-        if block
-          yield(@model)
-        end
-
-        @save_action = Save.new(@model, **options)
+        @model = model
+        @model.assign_attributes(attributes)
+        @save_action = Save.new(model, **options)
       end
 
       def on_registration
@@ -34,11 +31,11 @@ module Dynamoid
       end
 
       def skipped?
-        false
+        @save_action.skipped?
       end
 
       def observable_by_user_result
-        @model
+        @save_action.observable_by_user_result
       end
 
       def action_request
