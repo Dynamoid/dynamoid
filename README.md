@@ -1066,6 +1066,10 @@ on the base table*
 
 ### Transactions in Dynamoid
 
+> [!WARNING]
+> Please note that this API is experimental and can be changed in
+> future releases.
+
 Multiple modifying actions can be grouped together and submitted as an
 all-or-nothing operation. Atomic modifying operations are supported in
 Dynamoid using transactions. If any action in the transaction fails they
@@ -1073,12 +1077,12 @@ all fail.
 
 The following actions are supported:
 
-* `#create` - add a new model if it does not already exist
-* `#save` - create or update model
-* `#update_attributes` - modifies one or more attributes from an existig
-  model
+* `#create`/`#create!` - add a new model if it does not already exist
+* `#save`/`#save!` - create or update model
+* `#update_attributes`/`#update_attributes!` - modifies one or more attributes from an existig
+model
 * `#delete` - remove an model without callbacks nor validations
-* `#destroy` - remove an model
+* `#destroy`/`#destroy!` - remove an model
 * `#upsert` - add a new model or update an existing one, no callbacks
 * `#update_fields` - update a model without its instantiation
 
@@ -1106,7 +1110,7 @@ Dynamoid::TransactionWrite.execute do |txn|
   txn.create(User, id: user_id)
   txn.create(UserEmail, id: "UserEmail##{email}", user_id: user_id)
   txn.create(Address, id: 'A#2', street: '456')
-  txn.upsert(Address, id: 'A#1', street: '123')
+  txn.upsert(Address, 'A#1', street: '123')
 end
 ```
 
@@ -1176,7 +1180,7 @@ user.red = true
 
 Dynamoid::TransactionWrite.execute do |txn|
   if txn.save(user) # won't raise validation exception
-    txn.update(UserCount, id: 'UserCount#Red', count: 5)
+    txn.update_fields(UserCount, user.id, count: 5)
   else
     puts 'ALERT: user not valid, skipping'
   end
@@ -1192,7 +1196,7 @@ transaction = Dynamoid::TransactionWrite.new
 
 transaction.create(User, id: user_id)
 transaction.create(UserEmail, id: "UserEmail##{email}", user_id: user_id)
-transaction.upsert(Address, id: 'A#1', street: '123')
+transaction.upsert(Address, 'A#1', street: '123')
 
 transaction.commit # changes are persisted in this moment
 ```
