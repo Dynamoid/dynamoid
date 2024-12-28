@@ -39,6 +39,8 @@ jobs:
           - rails_6_1
           - rails_7_0
           - rails_7_1
+          - rails_7_2
+          - rails_8_0
         rubygems:
           - default
         bundler:
@@ -56,6 +58,36 @@ jobs:
           - "3.3"
           - "3.4"
         exclude:
+
+          # Rails 8.0 requires Ruby 3.2 and above
+          - gemfile: rails_8_0
+            ruby: "2.3"
+          - gemfile: rails_8_0
+            ruby: "2.4"
+          - gemfile: rails_8_0
+            ruby: "2.5"
+          - gemfile: rails_8_0
+            ruby: "2.6"
+          - gemfile: rails_8_0
+            ruby: "2.7"
+          - gemfile: rails_8_0
+            ruby: "3.0"
+          - gemfile: rails_8_0
+            ruby: "3.1"
+
+          # Rails 7.2 requires Ruby 3.1 and above
+          - gemfile: rails_7_2
+            ruby: "2.3"
+          - gemfile: rails_7_2
+            ruby: "2.4"
+          - gemfile: rails_7_2
+            ruby: "2.5"
+          - gemfile: rails_7_2
+            ruby: "2.6"
+          - gemfile: rails_7_2
+            ruby: "2.7"
+          - gemfile: rails_7_2
+            ruby: "3.0"
 
           # Rails 7.1 requires Ruby 2.7 and above
           - gemfile: rails_7_1
@@ -139,6 +171,8 @@ jobs:
             gemfile: rails_5_1
           - ruby: "jruby"
             gemfile: rails_5_2
+          - ruby: "jruby"       # Rails 8.0 requires Ruby >= 3.2 but current JRuby (9.4.9.0) compatible with Ruby 3.1
+            gemfile: rails_8_0
 
         include:
           - ruby: "jruby-9.3.9.0"
