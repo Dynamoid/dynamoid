@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'fixtures/fields'
 
 describe Dynamoid::Fields do
   let(:address) { Address.new }
@@ -318,38 +319,14 @@ describe Dynamoid::Fields do
     end
 
     it 'supports default value for custom type' do
-      user_class = Class.new do
-        attr_accessor :name
-
-        def initialize(name)
-          self.name = name
-        end
-
-        def dynamoid_dump
-          name
-        end
-
-        def eql?(other)
-          name == other.name
-        end
-
-        def hash
-          name.hash
-        end
-
-        def self.dynamoid_load(string)
-          new(string.to_s)
-        end
-      end
-
-      model_class = new_class(user: user_class.new('Mary')) do |options|
-        field :user, user_class, default: options[:user]
+      model_class = new_class do
+        field :user, FieldsSpecs::User, default: FieldsSpecs::User.new('Mary')
       end
 
       model = model_class.create
       model = model_class.find(model.id)
 
-      expect(model.user).to eql user_class.new('Mary')
+      expect(model.user).to eql FieldsSpecs::User.new('Mary')
     end
   end
 

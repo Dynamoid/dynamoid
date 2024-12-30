@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'fixtures/dumping'
 
 describe 'Dumping' do
   describe 'Boolean field' do
@@ -664,40 +665,14 @@ describe 'Dumping' do
       end
 
       context 'set of custom type' do
-        let(:user_class) do
-          Class.new do
-            attr_accessor :name
-
-            def initialize(name)
-              self.name = name
-            end
-
-            def dynamoid_dump
-              name
-            end
-
-            def eql?(other)
-              name == other.name
-            end
-
-            def hash
-              name.hash
-            end
-
-            def self.dynamoid_load(string)
-              new(string.to_s)
-            end
-          end
-        end
-
         let(:class_with_typed_set) do
-          new_class(user_class: user_class) do |options|
-            field :values, :set, of: options[:user_class]
+          new_class do
+            field :values, :set, of: DumpingSpecs::User
           end
         end
 
         it 'uses custom dumping mechanizm' do
-          user = user_class.new('John')
+          user = DumpingSpecs::User.new('John')
           obj = class_with_typed_set.create(values: Set.new([user]))
 
           expect(reload(obj).values).to eql(Set.new([user]))
@@ -961,40 +936,14 @@ describe 'Dumping' do
       end
 
       context 'array of custom type' do
-        let(:user_class) do
-          Class.new do
-            attr_accessor :name
-
-            def initialize(name)
-              self.name = name
-            end
-
-            def dynamoid_dump
-              name
-            end
-
-            def eql?(other)
-              name == other.name
-            end
-
-            def hash
-              name.hash
-            end
-
-            def self.dynamoid_load(string)
-              new(string.to_s)
-            end
-          end
-        end
-
         let(:class_with_typed_array) do
-          new_class(user_class: user_class) do |options|
-            field :values, :array, of: options[:user_class]
+          new_class do
+            field :values, :array, of: DumpingSpecs::User
           end
         end
 
         it 'uses custom dumping mechanizm' do
-          user = user_class.new('John')
+          user = DumpingSpecs::User.new('John')
           obj = class_with_typed_array.create(values: [user])
 
           expect(reload(obj).values).to eql([user])
@@ -1467,36 +1416,14 @@ describe 'Dumping' do
 
   describe 'Custom type field' do
     context 'Custom type provided' do
-      let(:user_class) do
-        Class.new do
-          attr_accessor :name
-
-          def initialize(name)
-            self.name = name
-          end
-
-          def dynamoid_dump
-            name
-          end
-
-          def eql?(other)
-            name == other.name
-          end
-
-          def self.dynamoid_load(string)
-            new(string.to_s)
-          end
-        end
-      end
-
       let(:klass) do
-        new_class(user_class: user_class) do |options|
-          field :user, options[:user_class]
+        new_class do |_options|
+          field :user, DumpingSpecs::User
         end
       end
 
       it 'dumps and loads self' do
-        user = user_class.new('John')
+        user = DumpingSpecs::User.new('John')
         obj = klass.create(user: user)
 
         expect(obj.user).to eql(user)
@@ -1506,44 +1433,14 @@ describe 'Dumping' do
     end
 
     context 'Adapter provided' do
-      let(:user_class) do
-        Class.new do
-          attr_accessor :name
-
-          def initialize(name)
-            self.name = name
-          end
-
-          def eql?(other)
-            name == other.name
-          end
-        end
-      end
-
-      let(:adapter) do
-        Class.new.tap do |c|
-          c.class_exec(user_class) do |user_class|
-            @user_class = user_class
-
-            def self.dynamoid_dump(user)
-              user.name
-            end
-
-            def self.dynamoid_load(string)
-              @user_class.new(string.to_s)
-            end
-          end
-        end
-      end
-
       let(:klass) do
-        new_class(adapter: adapter) do |options|
-          field :user, options[:adapter]
+        new_class do
+          field :user, DumpingSpecs::UserValueAdapter
         end
       end
 
       it 'dumps and loads custom type' do
-        user = user_class.new('John')
+        user = DumpingSpecs::UserValue.new('John')
         obj = klass.create(user: user)
 
         expect(obj.user).to eql(user)
@@ -1553,49 +1450,14 @@ describe 'Dumping' do
     end
 
     context 'DynamoDB type specified' do
-      let(:user_class) do
-        Class.new do
-          attr_accessor :name
-
-          def initialize(name)
-            self.name = name
-          end
-
-          def eql?(other)
-            name == other.name
-          end
-        end
-      end
-
-      let(:adapter) do
-        Class.new.tap do |c|
-          c.class_exec(user_class) do |user_class|
-            @user_class = user_class
-
-            def self.dynamoid_dump(user)
-              user.name.split
-            end
-
-            def self.dynamoid_load(array)
-              array = array.name.split if array.is_a?(@user_class)
-              @user_class.new(array.join(' '))
-            end
-
-            def self.dynamoid_field_type
-              :array
-            end
-          end
-        end
-      end
-
       let(:klass) do
-        new_class(adapter: adapter) do |options|
-          field :user, options[:adapter]
+        new_class do
+          field :user, DumpingSpecs::UserValueToArrayAdapter
         end
       end
 
       it 'stores converted value in a specified type' do
-        user = user_class.new('John Doe')
+        user = DumpingSpecs::UserValue.new('John Doe')
         obj = klass.create(user: user)
 
         expect(obj.user).to eql(user)
