@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'fixtures/persistence'
 
 describe Dynamoid::Persistence do
   let(:address) { Address.new }
@@ -27,54 +28,6 @@ describe Dynamoid::Persistence do
   end
 
   describe '.create_table' do
-    let(:user_class) do
-      Class.new do
-        attr_accessor :name
-
-        def initialize(name)
-          self.name = name
-        end
-
-        def dynamoid_dump
-          name
-        end
-
-        def eql?(other)
-          name == other.name
-        end
-
-        def self.dynamoid_load(string)
-          new(string.to_s)
-        end
-      end
-    end
-
-    let(:user_class_with_type) do
-      Class.new do
-        attr_accessor :age
-
-        def initialize(age)
-          self.age = age
-        end
-
-        def dynamoid_dump
-          age
-        end
-
-        def eql?(other)
-          age == other.age
-        end
-
-        def self.dynamoid_load(string)
-          new(string.to_i)
-        end
-
-        def self.dynamoid_field_type
-          :number
-        end
-      end
-    end
-
     it 'creates a table' do
       klass = new_class
 
@@ -187,13 +140,13 @@ describe Dynamoid::Persistence do
 
       describe 'custom type' do
         it 'maps custom type to String by default' do
-          klass = new_class(partition_key: { name: :id, type: user_class })
+          klass = new_class(partition_key: { name: :id, type: PersistenceSpec::User })
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
         end
 
         it 'uses specified type if .dynamoid_field_type method declared' do
-          klass = new_class(partition_key: { name: :id, type: user_class_with_type })
+          klass = new_class(partition_key: { name: :id, type: PersistenceSpec::UserWithAge })
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
         end
@@ -365,7 +318,7 @@ describe Dynamoid::Persistence do
 
       describe 'custom type' do
         it 'maps custom type to String by default' do
-          klass = new_class(sort_key_type: user_class) do |options|
+          klass = new_class(sort_key_type: PersistenceSpec::User) do |options|
             range :prop, options[:sort_key_type]
           end
           klass.create_table
@@ -374,7 +327,7 @@ describe Dynamoid::Persistence do
         end
 
         it 'uses specified type if .dynamoid_field_type method declared' do
-          klass = new_class(sort_key_type: user_class_with_type) do |options|
+          klass = new_class(sort_key_type: PersistenceSpec::UserWithAge) do |options|
             range :prop, options[:sort_key_type]
           end
           klass.create_table

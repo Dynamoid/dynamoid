@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'fixtures/indexes'
 
 describe Dynamoid::Indexes do
   let(:doc_class) do
@@ -378,20 +379,8 @@ describe Dynamoid::Indexes do
         context 'with custom type key params' do
           let(:doc_class) do
             new_class do
-              # rubocop:disable Lint/ConstantDefinitionInBlock
-              class CustomType
-                def dynamoid_dump
-                  name
-                end
-
-                def self.dynamoid_load(string)
-                  new(string.to_s)
-                end
-              end
-              # rubocop:enable Lint/ConstantDefinitionInBlock
-
-              field :custom_type_field, CustomType
-              field :custom_type_range_field, CustomType
+              field :custom_type_field, IndexesSpecs::CustomType
+              field :custom_type_range_field, IndexesSpecs::CustomType
             end
           end
 
