@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'fixtures/dirty'
 
 describe Dynamoid::Dirty do
   let(:model) do
@@ -290,8 +291,8 @@ describe Dynamoid::Dirty do
       expect(obj.name_change).to eq(%w[Alex xelA])
 
       obj = model.create(name: 'Alex')
-      obj.name.reverse!
-      expect(obj.name_change).to eq(nil)
+      obj.name_will_change!
+      expect(obj.name_change).to eq(%w[Alex Alex])
     end
   end
 
@@ -359,6 +360,15 @@ describe Dynamoid::Dirty do
         expect(b_loaded.changed?).to eq false
         expect(b_loaded.changes).to eq({})
       end
+
+      it 'detects in-place change of loaded from storage model' do
+        a = model.create(name: 'Alex')
+        a_loaded = model.find(a.id)
+
+        expect(a_loaded.changes).to eq({})
+        a_loaded.name.upcase!
+        expect(a_loaded.changes).to eq('name' => %w[Alex ALEX])
+      end
     end
 
     describe '.new' do
@@ -375,6 +385,14 @@ describe Dynamoid::Dirty do
         expect(a.changed?).to eq true
         expect(a.changes).to eq('name' => [nil, 'Alex'])
       end
+
+      it 'reports in-place change in newly instantiated model' do
+        a = model.new(name: 'Alex')
+
+        expect(a.changes).to eq('name' => [nil, 'Alex'])
+        a.name.upcase!
+        expect(a.changes).to eq('name' => [nil, 'ALEX'])
+      end
     end
 
     describe '.create' do
@@ -383,6 +401,14 @@ describe Dynamoid::Dirty do
 
         expect(a.changed?).to eq false
         expect(a.changes).to eq({})
+      end
+
+      it 'detects in-place change of loaded from storage model' do
+        a = model.create(name: 'Alex')
+
+        expect(a.changes).to eq({})
+        a.name.upcase!
+        expect(a.changes).to eq('name' => %w[Alex ALEX])
       end
     end
 
@@ -394,6 +420,15 @@ describe Dynamoid::Dirty do
         expect(a_updated.changed?).to eq false
         expect(a_updated.changes).to eq({})
       end
+
+      it 'detects in-place change of updated model' do
+        a = model.create(name: 'Alex')
+        a_updated = model.update(a.id, name: 'Bob')
+
+        expect(a_updated.changes).to eq({})
+        a_updated.name.upcase!
+        expect(a_updated.changes).to eq('name' => %w[Bob BOB])
+      end
     end
 
     describe '.update_fields' do
@@ -403,6 +438,15 @@ describe Dynamoid::Dirty do
 
         expect(a_updated.changed?).to eq false
         expect(a_updated.changes).to eq({})
+      end
+
+      it 'detects in-place change of updated model' do
+        a = model.create(name: 'Alex')
+        a_updated = model.update_fields(a.id, name: 'Bob')
+
+        expect(a_updated.changes).to eq({})
+        a_updated.name.upcase!
+        expect(a_updated.changes).to eq('name' => %w[Bob BOB])
       end
     end
 
@@ -414,6 +458,16 @@ describe Dynamoid::Dirty do
         expect(a_updated.changed?).to eq false
         expect(a_updated.changes).to eq({})
       end
+
+      it 'detects in-place change of updated model' do
+        a = model.create(name: 'Alex')
+
+        a_updated = model.upsert(a.id, name: 'Bob')
+
+        expect(a_updated.changes).to eq({})
+        a_updated.name.upcase!
+        expect(a_updated.changes).to eq('name' => %w[Bob BOB])
+      end
     end
 
     describe '#reload' do
@@ -423,6 +477,15 @@ describe Dynamoid::Dirty do
         a.reload
 
         expect(a.changed?).to eq false
+        expect(a.changes).to eq({})
+      end
+
+      it 'cleans model in-place changes' do
+        a = model.create(name: 'Alex')
+        a.name.upcase!
+
+        expect(a.changes).to eq('name' => %w[Alex ALEX])
+        a.reload
         expect(a.changes).to eq({})
       end
     end
@@ -443,6 +506,24 @@ describe Dynamoid::Dirty do
         expect(a_loaded.changed?).to eq false
         expect(a_loaded.changes).to eq({})
       end
+
+      it 'detects in-place change of updated model (Query)' do
+        a = model.create(name: 'Alex')
+        (a_loaded,) = model.where(id: a.id).to_a
+
+        expect(a.changes).to eq({})
+        a_loaded.name.upcase!
+        expect(a_loaded.changes).to eq('name' => %w[Alex ALEX])
+      end
+
+      it 'detects in-place change of updated model (Scan)' do
+        a = model.create(name: 'Alex')
+        (a_loaded,) = model.where(name: a.name).to_a
+
+        expect(a_loaded.changes).to eq({})
+        a_loaded.name.upcase!
+        expect(a_loaded.changes).to eq('name' => %w[Alex ALEX])
+      end
     end
 
     describe '#save' do
@@ -451,6 +532,16 @@ describe Dynamoid::Dirty do
         a.save
 
         expect(a.changed?).to eq false
+        expect(a.changes).to eq({})
+      end
+
+      it 'cleans model unsaved in-place changes' do
+        a = model.new(name: 'Alex')
+
+        a.name.upcase!
+        expect(a.changes).to eq('name' => [nil, 'ALEX'])
+
+        a.save
         expect(a.changes).to eq({})
       end
     end
@@ -463,6 +554,16 @@ describe Dynamoid::Dirty do
         expect(a.changed?).to eq false
         expect(a.changes).to eq({})
       end
+
+      it 'cleans model unsaved in-place changes' do
+        a = model.create(name: 'Alex')
+
+        a.name.upcase!
+        expect(a.changes).to eq('name' => %w[Alex ALEX])
+
+        a.update_attributes(name: 'Bob')
+        expect(a.changes).to eq({})
+      end
     end
 
     describe '#update_attribute' do
@@ -471,6 +572,16 @@ describe Dynamoid::Dirty do
         a.update_attribute(:name, 'Bob')
 
         expect(a.changed?).to eq false
+        expect(a.changes).to eq({})
+      end
+
+      it 'cleans model unsaved in-place changes' do
+        a = model.create(name: 'Alex')
+
+        a.name.upcase!
+        expect(a.changes).to eq('name' => %w[Alex ALEX])
+
+        a.update_attribute(:name, 'Bob')
         expect(a.changes).to eq({})
       end
     end
@@ -485,15 +596,207 @@ describe Dynamoid::Dirty do
         expect(a.changed?).to eq false
         expect(a.changes).to eq({})
       end
+
+      it 'cleans model unsaved in-place changes' do
+        a = model.create(name: 'Alex')
+
+        a.name.upcase!
+        expect(a.changes).to eq('name' => %w[Alex ALEX])
+
+        a.update do |t|
+          t.set(name: 'Bob')
+        end
+        expect(a.changes).to eq({})
+      end
     end
 
     describe '#touch' do
-      it 'cleans model unsaved changes' do
+      it 'does not clean model unsaved changes' do
         a = model.create(name: 'Alex')
-        a.touch
+        a.name = 'Bob'
 
-        expect(a.changed?).to eq false
-        expect(a.changes).to eq({})
+        expect(a.changes).to eq('name' => %w[Alex Bob])
+        a.touch
+        expect(a.changes).to eq('name' => %w[Alex Bob])
+      end
+
+      it 'does not clean model unsaved in-place changes' do
+        a = model.create(name: 'Alex')
+        a.name.upcase!
+
+        expect(a.changes).to eq('name' => %w[Alex ALEX])
+        a.touch
+        expect(a.changes).to eq('name' => %w[Alex ALEX])
+      end
+    end
+  end
+
+  context 'in-place changes' do
+    let(:klass_with_string) do
+      new_class do
+        field :name, :string
+      end
+    end
+
+    let(:klass_with_set) do
+      new_class do
+        field :names, :set
+      end
+    end
+
+    let(:klass_with_set_of_custom_type) do
+      new_class do
+        field :users, :set, of: DirtySpec::User
+      end
+    end
+
+    let(:klass_with_array) do
+      new_class do
+        field :names, :array
+      end
+    end
+
+    let(:klass_with_map) do
+      new_class do
+        field :config, :map
+      end
+    end
+
+    let(:klass_with_raw) do
+      new_class do
+        field :metadata, :raw
+      end
+    end
+
+    let(:klass_with_serialized) do
+      new_class do
+        field :metadata, :serialized
+      end
+    end
+
+    let(:klass_with_binary) do
+      new_class do
+        field :image, :binary
+      end
+    end
+
+    let(:klass_with_custom_type) do
+      new_class do
+        field :user, DirtySpec::User
+      end
+    end
+
+    context 'string type' do
+      it 'detects in-place modifying a String value' do
+        obj = klass_with_string.create!(name: +'Alex')
+        obj.name.upcase!
+
+        expect(obj.changes).to eq('name' => %w[Alex ALEX])
+      end
+    end
+
+    context 'set type' do
+      it 'detects adding elements' do
+        obj = klass_with_set.create!(names: ['Alex'])
+        obj.names << 'Michael'
+
+        expect(obj.changes).to eq('names' => [Set['Alex'], Set['Alex', 'Michael']])
+      end
+
+      it 'detects removing elements' do
+        obj = klass_with_set.create!(names: %w[Alex Michael])
+        obj.names.delete('Michael')
+
+        expect(obj.changes).to eq('names' => [Set['Alex', 'Michael'], Set['Alex']])
+      end
+
+      it 'detects in-place modifying of a Set element' do
+        obj = klass_with_set_of_custom_type.create!(users: [DirtySpec::User.new(+'Alex')])
+        obj.users.map { |u| u.name.upcase! }
+
+        expect(obj.changes).to eq('users' => [Set[DirtySpec::User.new('Alex')], Set[DirtySpec::User.new('ALEX')]])
+      end
+    end
+
+    context 'array type' do
+      it 'detects adding elements' do
+        obj = klass_with_array.create!(names: ['Alex'])
+        obj.names << 'Michael'
+
+        expect(obj.changes).to eq('names' => [%w[Alex], %w[Alex Michael]])
+      end
+
+      it 'detects removing elements' do
+        obj = klass_with_array.create!(names: %w[Alex Michael])
+        obj.names.delete('Michael')
+
+        expect(obj.changes).to eq('names' => [%w[Alex Michael], %w[Alex]])
+      end
+
+      it 'detects in-place modifying of an Array element' do
+        obj = klass_with_array.create!(names: [+'Alex'])
+        obj.names.each(&:upcase!)
+
+        expect(obj.changes).to eq('names' => [%w[Alex], %w[ALEX]])
+      end
+    end
+
+    context 'map type' do
+      it 'detects adding key-value pair' do
+        obj = klass_with_map.create!(config: { 'level' => 'debug' })
+        obj.config['namespace'] = 'us-west'
+
+        expect(obj.changes).to eq('config' => [{ 'level' => 'debug' }, { 'level' => 'debug', 'namespace' => 'us-west' }])
+      end
+
+      it 'detects removing key-value pairs' do
+        obj = klass_with_map.create!(config: { 'level' => 'debug', 'namespace' => 'us-west' })
+        obj.config.delete('namespace')
+
+        expect(obj.changes).to eq('config' => [{ 'level' => 'debug', 'namespace' => 'us-west' }, { 'level' => 'debug' }])
+      end
+
+      it 'detects in-place modifying a value of a key-value pair' do
+        obj = klass_with_map.create!(config: { 'level' => +'debug' })
+        obj.config['level'].upcase!
+
+        expect(obj.changes).to eq('config' => [{ 'level' => 'debug' }, { 'level' => 'DEBUG' }])
+      end
+    end
+
+    context 'raw type' do
+      it 'detects structure changing' do
+        obj = klass_with_raw.create!(metadata: { 'a' => 1 })
+        obj.metadata['b'] = [1, 2, 3]
+
+        expect(obj.changes).to eq('metadata' => [{ 'a' => 1 }, { 'a' => 1, 'b' => [1, 2, 3] }])
+      end
+    end
+
+    context 'serialized' do
+      it 'detects structure changing' do
+        obj = klass_with_serialized.create!(metadata: { 'a' => 1 })
+        obj.metadata['b'] = [1, 2, 3]
+
+        expect(obj.changes).to eq('metadata' => [{ 'a' => 1 }, { 'a' => 1, 'b' => [1, 2, 3] }])
+      end
+    end
+
+    context 'binary type' do
+      it 'detects in-place modifying a String value' do
+        obj = klass_with_binary.create!(image: '012345689'.b)
+        obj.image.sub!('0123', '----')
+
+        expect(obj.changes).to eq('image' => %w[012345689 ----45689])
+      end
+    end
+
+    context 'custom type' do
+      it 'detects in-place modifying a String value' do
+        obj = klass_with_custom_type.create!(user: DirtySpec::User.new(+'Alex'))
+        obj.user.name.upcase!
+
+        expect(obj.changes).to eq('user' => [DirtySpec::User.new('Alex'), DirtySpec::User.new('ALEX')])
       end
     end
   end

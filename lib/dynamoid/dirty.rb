@@ -36,8 +36,11 @@ module Dynamoid
         end
       end
 
-      def from_database(*)
-        super.tap(&:clear_changes_information)
+      def from_database(attributes_from_database)
+        super.tap do |model|
+          model.clear_changes_information
+          model.assign_attributes_from_database(DeepDupper.dup_attributes(model.attributes, model.class))
+        end
       end
     end
 
@@ -108,7 +111,7 @@ module Dynamoid
     #
     # @return [ActiveSupport::HashWithIndifferentAccess]
     def changes
-      ActiveSupport::HashWithIndifferentAccess[changed.map { |name| [name, attribute_change(name)] }]
+      ActiveSupport::HashWithIndifferentAccess[changed_attributes.map { |name, old_value| [name, [old_value, read_attribute(name)]] }]
     end
 
     # Returns a hash of attributes that were changed before the model was saved.
@@ -132,19 +135,21 @@ module Dynamoid
     #
     # @return [ActiveSupport::HashWithIndifferentAccess]
     def changed_attributes
-      @changed_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
+      attributes_changed_by_setter.merge(attributes_changed_in_place)
     end
 
     # Clear all dirty data: current changes and previous changes.
     def clear_changes_information
       @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
-      @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+      @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
+      @attributes_from_database = HashWithIndifferentAccess.new(DeepDupper.dup_attributes(@attributes, self.class))
     end
 
     # Clears dirty data and moves +changes+ to +previous_changes+.
     def changes_applied
       @previously_changed = changes
-      @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+      @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
+      @attributes_from_database = HashWithIndifferentAccess.new(DeepDupper.dup_attributes(@attributes, self.class))
     end
 
     # Remove changes information for the provided attributes.
@@ -152,6 +157,9 @@ module Dynamoid
     # @param attributes [Array[String]] - a list of attributes to clear changes for
     def clear_attribute_changes(names)
       attributes_changed_by_setter.except!(*names)
+
+      slice = HashWithIndifferentAccess.new(@attributes).slice(*names)
+      attributes_from_database.merge!(DeepDupper.dup_attributes(slice, self.class))
     end
 
     # Handle <tt>*_changed?</tt> for +method_missing+.
@@ -220,12 +228,16 @@ module Dynamoid
       previous_changes[name] if attribute_previously_changed?(name)
     end
 
+    # @private
+    def assign_attributes_from_database(attributes_from_database)
+      @attributes_from_database = HashWithIndifferentAccess.new(attributes_from_database)
+    end
+
     private
 
     def changes_include?(name)
-      attributes_changed_by_setter.include?(name)
+      attribute_changed_by_setter?(name) || attribute_changed_in_place?(name)
     end
-    alias attribute_changed_by_setter? changes_include?
 
     # Handle <tt>*_change</tt> for +method_missing+.
     def attribute_change(name)
@@ -259,13 +271,76 @@ module Dynamoid
       previous_changes.include?(name)
     end
 
-    # This is necessary because `changed_attributes` might be overridden in
-    # other implemntations (e.g. in `ActiveRecord`)
-    alias attributes_changed_by_setter changed_attributes
+    def attributes_changed_by_setter
+      @attributes_changed_by_setter ||= ActiveSupport::HashWithIndifferentAccess.new
+    end
+
+    def attribute_changed_by_setter?(name)
+      attributes_changed_by_setter.include?(name)
+    end
+
+    def attributes_from_database
+      @attributes_from_database ||= ActiveSupport::HashWithIndifferentAccess.new
+    end
 
     # Force an attribute to have a particular "before" value
     def set_attribute_was(name, old_value)
       attributes_changed_by_setter[name] = old_value
+    end
+
+    def attributes_changed_in_place
+      attributes_from_database.select do |name, _|
+        attribute_changed_in_place?(name)
+      end
+    end
+
+    def attribute_changed_in_place?(name)
+      return false if attribute_changed_by_setter?(name)
+
+      value_from_database = attributes_from_database[name]
+      return false if value_from_database.nil?
+
+      value = read_attribute(name)
+      value != value_from_database
+    end
+
+    module DeepDupper
+      def self.dup_attributes(attributes, klass)
+        attributes.map do |name, value|
+          type_options = klass.attributes[name.to_sym]
+          value_duplicate = dup_attribute(value, type_options)
+          [name, value_duplicate]
+        end.to_h
+      end
+
+      def self.dup_attribute(value, type_options)
+        type, of = type_options.values_at(:type, :of)
+
+        case value
+        when NilClass, TrueClass, FalseClass, Numeric, Symbol, IO
+          # till Ruby 2.4 these immutable objects could not be duplicated
+          # IO objects cannot be duplicated - is used for binary fields
+          value
+        when String
+          value.dup
+        when Array
+          if of.is_a? Class # custom type
+            value.map { |e| dup_attribute(e, type: of) }
+          else
+            value.deep_dup
+          end
+        when Set
+          Set.new(value.map { |e| dup_attribute(e, type: of) })
+        when Hash
+          value.deep_dup
+        else
+          if type.is_a? Class # custom type
+            Marshal.load(Marshal.dump(value)) # dup instance variables
+          else
+            value.dup # date, datetime
+          end
+        end
+      end
     end
   end
 end
