@@ -517,7 +517,7 @@ module Dynamoid
       # @since 1.0.0
       #
       # @todo Provide support for various other options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#query-instance_method
-      def query(table_name, key_conditions, non_key_conditions = {}, options = {})
+      def query(table_name, key_conditions, non_key_conditions = [], options = {})
         Enumerator.new do |yielder|
           table = describe_table(table_name)
 
@@ -550,7 +550,7 @@ module Dynamoid
       # @since 1.0.0
       #
       # @todo: Provide support for various options http://docs.aws.amazon.com/sdkforruby/api/Aws/DynamoDB/Client.html#scan-instance_method
-      def scan(table_name, conditions = {}, options = {})
+      def scan(table_name, conditions = [], options = {})
         Enumerator.new do |yielder|
           table = describe_table(table_name)
 
@@ -563,7 +563,7 @@ module Dynamoid
         end
       end
 
-      def scan_count(table_name, conditions = {}, options = {})
+      def scan_count(table_name, conditions = [], options = {})
         table = describe_table(table_name)
         options[:select] = 'COUNT'
 

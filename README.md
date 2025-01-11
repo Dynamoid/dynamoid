@@ -719,7 +719,7 @@ users = User.import([{ name: 'Josh' }, { name: 'Nick' }])
 
 ### Querying
 
-Querying can be done in one of three ways:
+Querying can be done in one of the following ways:
 
 ```ruby
 Address.find(address.id)              # Find directly by ID.
@@ -727,6 +727,27 @@ Address.where(city: 'Chicago').all    # Find by any number of matching criteria.
                                       # Though presently only "where" is supported.
 Address.find_by_city('Chicago')       # The same as above, but using ActiveRecord's older syntax.
 ```
+
+There is also a way to `#where` with a condition expression:
+
+```ruby
+Address.where('city = :c', c: 'Chicago')
+```
+
+A condition expression may contain operators (e.g. `<`, `>=`, `<>`),
+keywords (e.g. `AND`, `OR`, `BETWEEN`) and built-in functions (e.g.
+`begins_with`, `contains`) (see (documentation
+)[https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html]
+for full syntax description).
+
+**Warning:** Values (specified for a String condition expression) are
+sent as is so Dynamoid field types that aren't supported natively by
+DynamoDB (e.g. `datetime` and `date`) require explicit casting.
+
+**Warning:** String condition expressions will be used by DynamoDB only
+at filtering, so conditions on key attributes should be specified as a
+Hash to perform Query operation instead of Scan. Don't use key
+attributes in `#where`'s String condition expressions.
 
 And you can also query on associations:
 

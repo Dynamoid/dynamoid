@@ -95,20 +95,27 @@ module Dynamoid
       #
       # Internally +where+ performs either +Scan+ or +Query+ operation.
       #
+      # Conditions can be specified as an expression as well:
+      #
+      #   Post.where('links_count = :v', v: 2)
+      #
+      # This way complex expressions can be constructed (e.g. with AND, OR, and NOT
+      # keyword):
+      #
+      #   Address.where('city = :c AND (post_code = :pc1 OR post_code = :pc2)', city: 'A', pc1: '001', pc2: '002')
+      #
+      # See documentation for condition expression's syntax and examples:
+      # - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html
+      # - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.FilterExpression.html
+      #
       # @return [Dynamoid::Criteria::Chain]
       # @since 0.2.0
-      def where(args)
-        detector = NonexistentFieldsDetector.new(args, @source)
-        if detector.found?
-          Dynamoid.logger.warn(detector.warning_message)
+      def where(conditions, placeholders = nil)
+        if conditions.is_a?(Hash)
+          where_with_hash(conditions)
+        else
+          where_with_string(conditions, placeholders)
         end
-
-        @where_conditions.update(args.symbolize_keys)
-
-        # we should re-initialize keys detector every time we change @where_conditions
-        @key_fields_detector = KeyFieldsDetector.new(@where_conditions, @source, forced_index_name: @forced_index_name)
-
-        self
       end
 
       # Turns on strongly consistent reads.
@@ -500,6 +507,29 @@ module Dynamoid
 
       private
 
+      def where_with_hash(conditions)
+        detector = NonexistentFieldsDetector.new(conditions, @source)
+        if detector.found?
+          Dynamoid.logger.warn(detector.warning_message)
+        end
+
+        @where_conditions.update_with_hash(conditions.symbolize_keys)
+
+        # we should re-initialize keys detector every time we change @where_conditions
+        @key_fields_detector = KeyFieldsDetector.new(@where_conditions, @source, forced_index_name: @forced_index_name)
+
+        self
+      end
+
+      def where_with_string(query, placeholders)
+        @where_conditions.update_with_string(query, placeholders)
+
+        # we should re-initialize keys detector every time we change @where_conditions
+        @key_fields_detector = KeyFieldsDetector.new(@where_conditions, @source, forced_index_name: @forced_index_name)
+
+        self
+      end
+
       # The actual records referenced by the association.
       #
       # @return [Enumerator] an iterator of the found records.
@@ -635,12 +665,12 @@ module Dynamoid
       end
 
       def query_non_key_conditions
-        opts = {}
+        hash_conditions = {}
 
         # Honor STI and :type field if it presents
         if @source.attributes.key?(@source.inheritance_field) &&
            @key_fields_detector.hash_key.to_sym != @source.inheritance_field.to_sym
-          @where_conditions.update(sti_condition)
+          @where_conditions.update_with_hash(sti_condition)
         end
 
         # TODO: Separate key conditions and non-key conditions properly:
@@ -650,11 +680,17 @@ module Dynamoid
           .reject { |k, _| k.to_s =~ /^#{@key_fields_detector.range_key}\./ }
         keys.each do |key|
           name, condition = field_condition(key, @where_conditions[key])
-          opts[name] ||= []
-          opts[name] << condition
+          hash_conditions[name] ||= []
+          hash_conditions[name] << condition
         end
 
-        opts
+        string_conditions = []
+        @where_conditions.string_conditions.each do |query, placeholders|
+          placeholders ||= {}
+          string_conditions << [query, placeholders]
+        end
+
+        [hash_conditions] + string_conditions
       end
 
       # TODO: casting should be operator aware
@@ -721,16 +757,25 @@ module Dynamoid
       def scan_conditions
         # Honor STI and :type field if it presents
         if sti_condition
-          @where_conditions.update(sti_condition)
+          @where_conditions.update_with_hash(sti_condition)
         end
 
-        {}.tap do |opts|
+        hash_conditions = {}
+        hash_conditions.tap do |opts|
           @where_conditions.keys.map(&:to_sym).each do |key|
             name, condition = field_condition(key, @where_conditions[key])
             opts[name] ||= []
             opts[name] << condition
           end
         end
+
+        string_conditions = []
+        @where_conditions.string_conditions.each do |query, placeholders|
+          placeholders ||= {}
+          string_conditions << [query, placeholders]
+        end
+
+        [hash_conditions] + string_conditions
       end
 
       def scan_options

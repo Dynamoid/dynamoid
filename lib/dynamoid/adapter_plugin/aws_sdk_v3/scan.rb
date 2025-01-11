@@ -13,7 +13,7 @@ module Dynamoid
       class Scan
         attr_reader :client, :table, :conditions, :options
 
-        def initialize(client, table, conditions = {}, options = {})
+        def initialize(client, table, conditions = [], options = {})
           @client = client
           @table = table
           @conditions = conditions
