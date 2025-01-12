@@ -20,7 +20,24 @@ module Dynamoid
         private
 
         def build
-          clauses = @conditions.map do |name, attribute_conditions|
+          clauses = []
+
+          @conditions.each do |conditions|
+            if conditions.is_a? Hash
+              clauses << build_for_hash(conditions) unless conditions.empty?
+            elsif conditions.is_a? Array
+              query, placeholders = conditions
+              clauses << build_for_string(query, placeholders)
+            else
+              raise ArgumentError, "expected Hash or Array but actual value is #{conditions}"
+            end
+          end
+
+          @expression = clauses.join(' AND ')
+        end
+
+        def build_for_hash(hash)
+          clauses = hash.map do |name, attribute_conditions|
             attribute_conditions.map do |operator, value|
               # replace attribute names with placeholders unconditionally to support
               # - special characters (e.g. '.', ':', and '#') and
@@ -62,7 +79,21 @@ module Dynamoid
             end
           end.flatten
 
-          @expression = clauses.join(' AND ')
+          if clauses.empty?
+            nil
+          else
+            clauses.join(' AND ')
+          end
+        end
+
+        def build_for_string(query, placeholders)
+          placeholders.each do |(k, v)|
+            k = k.to_s
+            k = ":#{k}" unless k.start_with?(':')
+            @value_placeholders[k] = v
+          end
+
+          "(#{query})"
         end
 
         def name_placeholder_for(name)

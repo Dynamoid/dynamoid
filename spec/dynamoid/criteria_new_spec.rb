@@ -60,7 +60,7 @@ describe Dynamoid::Criteria do
     actual = klass.record_limit(1).all.to_a
 
     expect(actual.size).to eq 1
-    expect(actual[0]).to satisfy { |v| v.name == 'Alex' || v.name == 'Bob' }
+    expect(actual[0]).to satisfy { |v| %w[Alex Bob].include?(v.name) }
   end
 
   it 'supports querying with .scan_limit method' do
@@ -72,7 +72,7 @@ describe Dynamoid::Criteria do
     actual = klass.scan_limit(1).all.to_a
 
     expect(actual.size).to eq 1
-    expect(actual[0]).to satisfy { |v| v.name == 'Alex' || v.name == 'Bob' }
+    expect(actual[0]).to satisfy { |v| %w[Alex Bob].include?(v.name) }
   end
 
   it 'supports querying with .batch method' do

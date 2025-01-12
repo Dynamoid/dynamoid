@@ -69,7 +69,7 @@ module Dynamoid
           limit = [record_limit, scan_limit, batch_size].compact.min
 
           # key condition expression
-          convertor = FilterExpressionConvertor.new(@key_conditions, name_placeholders, value_placeholders, name_placeholder_sequence, value_placeholder_sequence)
+          convertor = FilterExpressionConvertor.new([@key_conditions], name_placeholders, value_placeholders, name_placeholder_sequence, value_placeholder_sequence)
           key_condition_expression = convertor.expression
           value_placeholders = convertor.value_placeholders
           name_placeholders = convertor.name_placeholders

@@ -1338,6 +1338,70 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
+  describe '#where with String query' do
+    let(:klass) do
+      new_class do
+        field :first_name # `name` is a reserved keyword
+        field :age, :integer
+      end
+    end
+
+    it 'filters by specified conditions' do
+      obj1 = klass.create!(first_name: 'Alex', age: 42)
+      obj2 = klass.create!(first_name: 'Michael', age: 50)
+
+      expect(klass.where('age > :age', age: 42).all).to contain_exactly(obj2)
+      expect(klass.where('first_name = :name', name: 'Alex').all).to contain_exactly(obj1)
+    end
+
+    it 'accepts placeholder names with ":" prefix' do
+      obj1 = klass.create!(first_name: 'Alex', age: 42)
+      obj2 = klass.create!(first_name: 'Michael', age: 50)
+
+      expect(klass.where('age > :age', ':age': 42).all).to contain_exactly(obj2)
+      expect(klass.where('first_name = :name', ':name': 'Alex').all).to contain_exactly(obj1)
+    end
+
+    it 'combines with a call with String query with logical AND' do
+      obj1 = klass.create!(first_name: 'Alex', age: 42)
+      obj2 = klass.create!(first_name: 'Michael', age: 50)
+      obj3 = klass.create!(first_name: 'Alex', age: 18)
+
+      expect(klass.where('age < :age', age: 40).where('first_name = :name', name: 'Alex').all).to contain_exactly(obj3)
+    end
+
+    it 'combines with a call with Hash query with logical AND' do
+      obj1 = klass.create!(first_name: 'Alex', age: 42)
+      obj2 = klass.create!(first_name: 'Michael', age: 50)
+      obj3 = klass.create!(first_name: 'Alex', age: 18)
+
+      expect(klass.where('age < :age', age: 40).where(first_name: 'Alex').all).to contain_exactly(obj3)
+    end
+
+    context 'Query' do
+      it 'filters by specified conditions' do
+        obj = klass.create!(first_name: 'Alex', age: 42)
+
+        expect(klass.where(id: obj.id).where('age = :age', age: 42).all.to_a).to eq([obj])
+        expect(klass.where(id: obj.id).where('age <> :age', age: 42).all.to_a).to eq([])
+      end
+    end
+
+    context 'Scan' do
+      it 'filters by specified conditions' do
+        obj = klass.create!(first_name: 'Alex', age: 42)
+        expect(klass.where('age = :age', age: 42).all.to_a).to eq([obj])
+      end
+
+      it 'performs Scan when key attributes are used only in String query' do
+        obj = klass.create!(first_name: 'Alex', age: 42)
+
+        expect(Dynamoid.adapter.client).to receive(:scan).and_call_original
+        expect(klass.where('id = :id', id: obj.id).all.to_a).to eq([obj])
+      end
+    end
+  end
+
   describe '#find_by_pages' do
     let(:model) do
       new_class do
@@ -1598,6 +1662,20 @@ describe Dynamoid::Criteria::Chain do
 
           expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
+
+        it 'works well when #where is called with a String query' do
+          klass = new_class do
+            field :title
+          end
+
+          document = klass.create!(title: 'title#1')
+          klass.create!
+
+          chain = described_class.new(klass)
+          chain = chain.where(id: document.id).where('title = :v', v: document.title)
+
+          expect { chain.delete_all }.to change { klass.count }.by(-1)
+        end
       end
 
       context 'Scan (partition key is not specified)' do
@@ -1625,6 +1703,20 @@ describe Dynamoid::Criteria::Chain do
 
           chain = described_class.new(klass)
           chain = chain.where(title: 'Doc #1')
+
+          expect { chain.delete_all }.to change { klass.count }.by(-1)
+        end
+
+        it 'works well when #where is called with a String query' do
+          klass = new_class do
+            field :title
+          end
+
+          klass.create!(title: 'Doc #1')
+          klass.create!(title: 'Doc #2')
+
+          chain = described_class.new(klass)
+          chain = chain.where('title = :v', v: 'Doc #1')
 
           expect { chain.delete_all }.to change { klass.count }.by(-1)
         end
@@ -1880,6 +1972,7 @@ describe Dynamoid::Criteria::Chain do
 
           table name: :customer, key: :name
           range :age, :integer
+          field :year_of_birth, :integer
         end
       end
 
@@ -1889,6 +1982,18 @@ describe Dynamoid::Criteria::Chain do
         customer3 = model.create(name: 'Bob', age: 12)
 
         expect(model.where(name: 'Bob', 'age.lt': 10).count).to eql(2)
+      end
+
+      it 'returns count of filtered documents when #where called with a String query' do
+        customer1 = model.create(name: 'Bob', age: 5, year_of_birth: 2000)
+        customer2 = model.create(name: 'Bob', age: 9, year_of_birth: 2010)
+        customer3 = model.create(name: 'Bob', age: 12, year_of_birth: 2020)
+
+        expect(
+          model.where(name: 'Bob', 'age.lt': 10)
+          .where('year_of_birth > :year', year: 2005)
+          .count
+        ).to eql(1)
       end
     end
 
@@ -1905,6 +2010,14 @@ describe Dynamoid::Criteria::Chain do
         customer3 = model.create(age: 12)
 
         expect(model.where('age.lt': 10).count).to eql(2)
+      end
+
+      it 'returns count of filtered documents when #where called with a String query' do
+        customer1 = model.create(age: 5)
+        customer2 = model.create(age: 9)
+        customer3 = model.create(age: 12)
+
+        expect(model.where('age < :age', age: 10).count).to eql(2)
       end
     end
   end

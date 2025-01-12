@@ -175,13 +175,13 @@ jobs:
             gemfile: rails_8_0
 
         include:
-          - ruby: "jruby-9.3.9.0"
+          - ruby: "jruby-9.3.15.0"
             gemfile: rails_4_2
-          - ruby: "jruby-9.3.9.0"
+          - ruby: "jruby-9.3.15.0"
             gemfile: rails_5_0
-          - ruby: "jruby-9.3.9.0"
+          - ruby: "jruby-9.3.15.0"
             gemfile: rails_5_1
-          - ruby: "jruby-9.3.9.0"
+          - ruby: "jruby-9.3.15.0"
             gemfile: rails_5_2
 
     name: ${{ matrix.gemfile }}, Ruby ${{ matrix.ruby }}

@@ -4,24 +4,31 @@ module Dynamoid
   module Criteria
     # @private
     class WhereConditions
+      attr_reader :string_conditions
+
       def initialize
-        @conditions = []
+        @hash_conditions = []
+        @string_conditions = []
       end
 
-      def update(hash)
-        @conditions << hash.symbolize_keys
+      def update_with_hash(hash)
+        @hash_conditions << hash.symbolize_keys
+      end
+
+      def update_with_string(query, placeholders)
+        @string_conditions << [query, placeholders]
       end
 
       def keys
-        @conditions.flat_map(&:keys)
+        @hash_conditions.flat_map(&:keys)
       end
 
       def empty?
-        @conditions.empty?
+        @hash_conditions.empty? && @string_conditions.empty?
       end
 
       def [](key)
-        hash = @conditions.find { |h| h.key?(key) }
+        hash = @hash_conditions.find { |h| h.key?(key) }
         hash[key] if hash
       end
     end
