@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## 3.11.0
+
+### Fixed
+* [#829](https://github.com/Dynamoid/dynamoid/pull/829) Fixed saving of in-place field changes
+* [#812](https://github.com/Dynamoid/dynamoid/pull/812) Restored sanitizing of attribute names in `#where` conditions
+* [#721](https://github.com/Dynamoid/dynamoid/pull/721) Fixed code examples in README.md (@ndjndj)
+### Added
+* [#688](https://github.com/Dynamoid/dynamoid/pull/688) Transactional modifying was added utilizing `TransactWriteItems` operation (@ckhsponge)
+* [#794](https://github.com/Dynamoid/dynamoid/pull/794) Added new config option `store_empty_string_as_nil`
+* [#828](https://github.com/Dynamoid/dynamoid/pull/828) Added Ruby 3.4, Rails 8.0 and Rails 7.2 in CI
+### Changed
+* [#832](https://github.com/Dynamoid/dynamoid/pull/832) Support String condition expressions with `#where`
+* [#822](https://github.com/Dynamoid/dynamoid/pull/822) Support binary type natively. Also added new config option `store_binary_as_native` (@dalibor)
+
 ## 3.10.0
 ### Fixed
 * [#681](https://github.com/Dynamoid/dynamoid/pull/681) Fixed saving persisted model and deleting attributes with `nil` value if `config.store_attribute_with_nil_value` is `false`
