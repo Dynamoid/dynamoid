@@ -24,8 +24,8 @@ DynamoDB is not like other document-based databases you might know, and
 is very different indeed from relational databases. It sacrifices
 anything beyond the simplest relational queries and transactional
 support to provide a fast, cost-efficient, and highly durable storage
-solution. If your database requires complicated relational queries and
-transaction support, then this modest Gem cannot provide them for you,
+solution. If your database requires complicated relational queries
+then this modest Gem cannot provide them for you
 and neither can DynamoDB. In those cases you would do better to look
 elsewhere for your database needs.
 
@@ -1187,6 +1187,19 @@ Dynamoid::TransactionWrite.execute do |txn|
   # sets the name and title for a user
   # The user is found by id (that equals 1)
   txn.update_fields(User, '1', name: 'bob', title: 'mister')
+
+  # sets the name, increments a count and deletes a field
+  txn.update_fields(User, 1) do |u1| # a User instance is provided
+    u1.set(name: 'bob')
+    u1.add(article_count: 1)
+    u1.delete(:title)
+  end
+
+  # adds to a set of integers and deletes from a set of strings
+  txn.update_fields(User, 2) do |u2|
+    u2.add(friend_ids: [1, 2])
+    u2.delete(child_names: ['bebe'])
+  end
 end
 ```
 

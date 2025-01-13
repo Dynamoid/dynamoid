@@ -12,7 +12,11 @@ module Dynamoid
         @model_class = model_class
         @hash_key = hash_key
         @range_key = range_key
-        @attributes = attributes
+        @attributes = attributes || {}
+
+        @item_updater = ItemUpdater.new
+
+        yield(self) if block_given?
       end
 
       def on_registration
@@ -29,11 +33,31 @@ module Dynamoid
       end
 
       def skipped?
-        @attributes.empty?
+        @attributes.empty? && @item_updater.empty?
       end
 
       def observable_by_user_result
         nil
+      end
+
+      # sets a value in the attributes
+      def set(attributes)
+        @attributes.merge!(attributes)
+      end
+
+      # adds to array of fields for use in REMOVE update expression
+      def remove(field)
+        @item_updater.remove(field)
+      end
+
+      # increments a number or adds to a set, starts at 0 or [] if it doesn't yet exist
+      def add(values)
+        @item_updater.add(values)
+      end
+
+      # deletes a value or values from a set type or simply sets a field to nil
+      def delete(field_or_values)
+        @item_updater.delete(field_or_values)
       end
 
       def action_request
@@ -62,6 +86,10 @@ module Dynamoid
         end
 
         update_expression = "SET #{update_expression_statements.join(', ')}"
+
+        expression_attribute_names, update_expression = @item_updater.merge_update_expression(
+          expression_attribute_names, expression_attribute_values, update_expression
+        )
 
         # require primary key to exist
         condition_expression = "attribute_exists(#{@model_class.hash_key})"
