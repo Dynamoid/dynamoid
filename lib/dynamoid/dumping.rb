@@ -323,10 +323,10 @@ module Dynamoid
       def process(value)
         field_class = @options[:type]
 
-        if value.respond_to?(:dynamoid_dump)
-          value.dynamoid_dump
-        elsif field_class.respond_to?(:dynamoid_dump)
+        if field_class.respond_to?(:dynamoid_dump)
           field_class.dynamoid_dump(value)
+        elsif value.respond_to?(:dynamoid_dump)
+          value.dynamoid_dump
         else
           raise ArgumentError, "Neither #{field_class} nor #{value} supports serialization for Dynamoid."
         end

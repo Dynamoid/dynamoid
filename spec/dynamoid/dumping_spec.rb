@@ -1449,6 +1449,21 @@ describe 'Dumping' do
       end
     end
 
+    context 'Custom type with adapter interface provided' do
+      let(:klass) do
+        new_class do |_options|
+          field :user, DumpingSpecs::UserWithAdapterInterface
+        end
+      end
+
+      it "prefers adapter's .dynamoid_dump method over #dynamoid_dump" do
+        user = DumpingSpecs::UserWithAdapterInterface.new('John')
+        obj = klass.create(user: user)
+
+        expect(raw_attributes(obj)[:user]).to eql('John (dumped with .dynamoid_dump)')
+      end
+    end
+
     context 'DynamoDB type specified' do
       let(:klass) do
         new_class do
