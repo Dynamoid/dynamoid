@@ -34,7 +34,7 @@ module DumpingSpecs
     end
 
     def dynamoid_dump
-      name + ' (dumped with #dynamoid_dump)'
+      "#{name} (dumped with #dynamoid_dump)"
     end
 
     def eql?(other)
@@ -46,7 +46,7 @@ module DumpingSpecs
     end
 
     def self.dynamoid_dump(user)
-      user.name + ' (dumped with .dynamoid_dump)'
+      "#{user.name} (dumped with .dynamoid_dump)"
     end
 
     def self.dynamoid_load(string)
@@ -77,7 +77,7 @@ module DumpingSpecs
     end
 
     def self.dynamoid_load(string)
-      User.new(string.to_s)
+      UserValue.new(string.to_s)
     end
   end
 
@@ -87,8 +87,8 @@ module DumpingSpecs
     end
 
     def self.dynamoid_load(array)
-      array = array.name.split if array.is_a?(User)
-      User.new(array.join(' '))
+      array = array.name.split if array.is_a?(UserValue)
+      UserValue.new(array.join(' '))
     end
 
     def self.dynamoid_field_type
