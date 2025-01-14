@@ -646,7 +646,7 @@ describe Dynamoid::Dirty do
 
     let(:klass_with_set_of_custom_type) do
       new_class do
-        field :users, :set, of: DirtySpec::User
+        field :users, :set, of: DirtySpec::UserWithEquality
       end
     end
 
@@ -686,6 +686,12 @@ describe Dynamoid::Dirty do
       end
     end
 
+    let(:klass_with_comparable_custom_type) do
+      new_class do
+        field :user, DirtySpec::UserWithEquality, comparable: true
+      end
+    end
+
     context 'string type' do
       it 'detects in-place modifying a String value' do
         obj = klass_with_string.create!(name: +'Alex')
@@ -711,10 +717,15 @@ describe Dynamoid::Dirty do
       end
 
       it 'detects in-place modifying of a Set element' do
-        obj = klass_with_set_of_custom_type.create!(users: [DirtySpec::User.new(+'Alex')])
+        obj = klass_with_set_of_custom_type.create!(users: [DirtySpec::UserWithEquality.new(+'Alex')])
         obj.users.map { |u| u.name.upcase! }
 
-        expect(obj.changes).to eq('users' => [Set[DirtySpec::User.new('Alex')], Set[DirtySpec::User.new('ALEX')]])
+        expect(obj.changes).to eq(
+          'users' => [
+            Set[DirtySpec::UserWithEquality.new('Alex')],
+            Set[DirtySpec::UserWithEquality.new('ALEX')]
+          ]
+        )
       end
     end
 
@@ -792,11 +803,56 @@ describe Dynamoid::Dirty do
     end
 
     context 'custom type' do
-      it 'detects in-place modifying a String value' do
+      it 'detects in-place modifying' do
         obj = klass_with_custom_type.create!(user: DirtySpec::User.new(+'Alex'))
         obj.user.name.upcase!
+        ScratchPad.record []
 
-        expect(obj.changes).to eq('user' => [DirtySpec::User.new('Alex'), DirtySpec::User.new('ALEX')])
+        old_value, new_value = obj.changes['user']
+
+        expect(old_value.name).to eq 'Alex'
+        expect(new_value.name).to eq 'ALEX'
+        expect(ScratchPad.recorded).to eq([])
+      end
+
+      it 'detects in-place modifying when custom type is safely comparable' do
+        obj = klass_with_comparable_custom_type.create!(user: DirtySpec::UserWithEquality.new(+'Alex'))
+        obj.user.name.upcase!
+        ScratchPad.record []
+
+        old_value, new_value = obj.changes['user']
+
+        expect(old_value.name).to eq 'Alex'
+        expect(new_value.name).to eq 'ALEX'
+
+        expect(ScratchPad.recorded.size).to eq(1)
+        record = ScratchPad.recorded[0]
+
+        expect(record[0]).to eq('==')
+        expect(record[1]).to equal(new_value)
+        expect(record[2]).to equal(old_value)
+      end
+
+      it 'reports no in-place changes when field is not modified' do
+        obj = klass_with_custom_type.create!(user: DirtySpec::User.new('Alex'))
+
+        ScratchPad.record []
+        expect(obj.changes['user']).to eq(nil)
+        expect(ScratchPad.recorded).to eq([])
+      end
+
+      it 'reports no in-place changes when field is not modified and custom type is safely comparable' do
+        obj = klass_with_comparable_custom_type.create!(user: DirtySpec::UserWithEquality.new('Alex'))
+        ScratchPad.record []
+
+        expect(obj.changes['user']).to eq(nil)
+
+        expect(ScratchPad.recorded.size).to eq(1)
+        record = ScratchPad.recorded[0]
+
+        expect(record[0]).to eq('==')
+        expect(record[1]).to equal(obj.user)
+        expect(record[2]).to eq(obj.user) # an implicit 'from-database' copy
       end
     end
   end

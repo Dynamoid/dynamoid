@@ -37,14 +37,6 @@ module DumpingSpecs
       "#{name} (dumped with #dynamoid_dump)"
     end
 
-    def eql?(other)
-      name == other.name
-    end
-
-    def hash
-      name.hash
-    end
-
     def self.dynamoid_dump(user)
       "#{user.name} (dumped with .dynamoid_dump)"
     end
