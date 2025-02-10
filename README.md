@@ -1106,7 +1106,6 @@ model
 * `#destroy`/`#destroy!` - remove an model
 * `#upsert` - add a new model or update an existing one, no callbacks
 * `#update_fields` - update a model without its instantiation
-* `#update` - update a model using a block that supports set, add, and delete operations on fields
 
 These methods are supposed to behave exactly like their
 non-transactional counterparts.
@@ -1169,14 +1168,14 @@ Dynamoid::TransactionWrite.execute do |txn|
   txn.update_fields(User, '1', name: 'bob', title: 'mister')
 
   # sets the name, increments a count and deletes a field
-  txn.update(user) do |u| # a User instance is provided
+  txn.update_fields(User, 1) do |u| # a User instance is provided
     u.set(name: 'bob')
     u.add(article_count: 1)
     u.delete(:title)
   end
 
   # adds to a set of integers and deletes from a set of strings
-  txn.update(user) do |u|
+  txn.update_fields(User, 1) do |u|
     u.add(friend_ids: [1, 2])
     u.delete(child_names: ['bebe'])
   end

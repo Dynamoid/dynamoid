@@ -5,10 +5,10 @@ require 'dynamoid/transaction_write/delete_with_primary_key'
 require 'dynamoid/transaction_write/delete_with_instance'
 require 'dynamoid/transaction_write/destroy'
 require 'dynamoid/transaction_write/save'
-require 'dynamoid/transaction_write/update'
 require 'dynamoid/transaction_write/update_fields'
 require 'dynamoid/transaction_write/update_attributes'
 require 'dynamoid/transaction_write/upsert'
+require 'dynamoid/transaction_write/item_updater'
 
 module Dynamoid
   # The class +TransactionWrite+ provides means to perform multiple modifying
@@ -346,6 +346,16 @@ module Dynamoid
     #     t.update_fields(User, '1', 'Tylor', age: 26)
     #   end
     #
+    # Updates can also be performed in a block.
+    #   Dynamoid::TransactionWrite.execute do |t|
+    #     t.update(User, 1) do |u|
+    #       u.set age: 27, last_name: 'Tylor'
+    #       u.add article_count: 1 # increment a counter
+    #       u.delete favorite_colors: 'green' # remove from a set
+    #       u.delete :first_name # clear a field
+    #     end
+    #   end
+    #
     # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
     # attributes is not declared in the model class.
     #
@@ -354,8 +364,8 @@ module Dynamoid
     # @param range_key [Scalar value] range key value (optional)
     # @param attributes [Hash]
     # @return [nil]
-    def update_fields(model_class, hash_key, range_key = nil, attributes) # rubocop:disable Style/OptionalArguments
-      action = Dynamoid::TransactionWrite::UpdateFields.new(model_class, hash_key, range_key, attributes)
+    def update_fields(model_class, hash_key, range_key = nil, attributes = {}, &block) # rubocop:disable Style/OptionalArguments
+      action = Dynamoid::TransactionWrite::UpdateFields.new(model_class, hash_key, range_key, attributes, &block)
       register_action action
     end
 
@@ -392,27 +402,6 @@ module Dynamoid
     # @param attributes [Hash] a hash of attributes to update
     def update_attributes!(model, attributes)
       action = Dynamoid::TransactionWrite::UpdateAttributes.new(model, attributes, raise_error: true)
-      register_action action
-    end
-
-    # Update attributes using a block.
-    #
-    #   Dynamoid::TransactionWrite.execute do |t|
-    #     t.update(user) do |u|
-    #       u.set age: 27, last_name: 'Tylor'
-    #       u.add article_count: 1 # increment a counter
-    #       u.delete favorite_colors: 'green' # remove from a set
-    #       u.delete :first_name # clear a field
-    #     end
-    #   end
-    #
-    # Returns +true+ if saving is successful and +false+
-    # otherwise.
-    #
-    # @param model [Dynamoid::Document] a model
-    # @return [true|false] Whether updating successful or not
-    def update(model, &block)
-      action = Dynamoid::TransactionWrite::Update.new(model, raise_error: false, &block)
       register_action action
     end
 
