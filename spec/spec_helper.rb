@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
 # Standard Libs
-# N/A
+
+# Explicit requiring the "logger" library is needed for Rails 6.0-7.0
+# See the following for details:
+# - https://github.com/rails/rails/issues/54260
+# - https://github.com/rails/rails/pull/49372
+require 'logger'
 
 # Third Party Libs
 # https://guides.rubyonrails.org/active_support_core_extensions.html#stand-alone-active-support
