@@ -23,7 +23,7 @@ jobs:
         bundler:
           - latest
         ruby:
-          - "3.3"
+          - "3.4"
     runs-on: ubuntu-latest
     env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/style.gemfile

@@ -301,7 +301,19 @@ module Dynamoid
       return false if value_from_database.nil?
 
       value = read_attribute(name)
-      value != value_from_database
+      type_options = self.class.attributes[name.to_sym]
+
+      unless type_options[:type].is_a?(Class) && !type_options[:comparable]
+        # common case
+        value != value_from_database
+      else
+        # objects of a custom type that does not implement its own `#==` method
+        # (that's declared by `comparable: false` or just not specifying the
+        # option `comparable`) are compared by comparing their dumps
+        dump = Dumping.dump_field(value, type_options)
+        dump_from_database = Dumping.dump_field(value_from_database, type_options)
+        dump != dump_from_database
+      end
     end
 
     module DeepDupper
@@ -318,26 +330,25 @@ module Dynamoid
 
         case value
         when NilClass, TrueClass, FalseClass, Numeric, Symbol, IO
-          # till Ruby 2.4 these immutable objects could not be duplicated
-          # IO objects cannot be duplicated - is used for binary fields
+          # Till Ruby 2.4 these immutable objects could not be duplicated.
+          # IO objects (used for the binary type) cannot be duplicated as well.
           value
-        when String
-          value.dup
         when Array
-          if of.is_a? Class # custom type
+          if of.is_a? Class
+            # custom type
             value.map { |e| dup_attribute(e, type: of) }
           else
             value.deep_dup
           end
         when Set
           Set.new(value.map { |e| dup_attribute(e, type: of) })
-        when Hash
-          value.deep_dup
         else
-          if type.is_a? Class # custom type
-            Marshal.load(Marshal.dump(value)) # dup instance variables
+          if type.is_a? Class
+            # custom type
+            dump = Dumping.dump_field(value, type_options)
+            Undumping.undump_field(dump.deep_dup, type_options)
           else
-            value.dup # date, datetime
+            value.deep_dup
           end
         end
       end

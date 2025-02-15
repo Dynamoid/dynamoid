@@ -1,6 +1,6 @@
 # It would be good to make the gem more thread safe, but at the moment it is not entirely.
 # TODO: Comment out the following to see code needing to be refactored for thread safety!
-ThreadSafety/ClassAndModuleAttributes:
-  Enabled: false
 ThreadSafety/ClassInstanceVariable:
+  Enabled: false
+ThreadSafety/ClassAndModuleAttributes:
   Enabled: false

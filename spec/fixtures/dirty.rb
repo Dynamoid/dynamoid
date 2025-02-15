@@ -12,20 +12,30 @@ module DirtySpec
       @name
     end
 
+    def self.dynamoid_load(string)
+      new(string.to_s)
+    end
+  end
+
+  class UserWithEquality < User
     def eql?(other)
+      if ScratchPad.recorded.is_a? Array
+        ScratchPad << ['eql?', self, other]
+      end
+
       @name == other.name
     end
 
     def ==(other)
+      if ScratchPad.recorded.is_a? Array
+        ScratchPad << ['==', self, other]
+      end
+
       @name == other.name
     end
 
     def hash
       @name.hash
-    end
-
-    def self.dynamoid_load(string)
-      new(string.to_s)
     end
   end
 end

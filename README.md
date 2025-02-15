@@ -471,6 +471,27 @@ method, which would return either `:string` or `:number`.
 DynamoDB may support some other attribute types that are not yet
 supported by Dynamoid.
 
+If a custom type implements `#==` method you can specify `comparable:
+true` option in a field declaration to specify that an object is safely
+comparable for the purpose of detecting changes. By default old and new
+objects will be compared by their serialized representation.
+
+```ruby
+class Money
+  # ...
+
+  def ==(other)
+    # comparison logic
+  end
+end
+
+class User
+  # ...
+
+  field :balance, Money, comparable: true
+end
+```
+
 ### Sort key
 
 Along with partition key table may have a sort key. In order to declare
