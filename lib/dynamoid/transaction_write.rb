@@ -8,6 +8,7 @@ require 'dynamoid/transaction_write/save'
 require 'dynamoid/transaction_write/update_fields'
 require 'dynamoid/transaction_write/update_attributes'
 require 'dynamoid/transaction_write/upsert'
+require 'dynamoid/transaction_write/item_updater'
 
 module Dynamoid
   # The class +TransactionWrite+ provides means to perform multiple modifying
@@ -345,6 +346,16 @@ module Dynamoid
     #     t.update_fields(User, '1', 'Tylor', age: 26)
     #   end
     #
+    # Updates can also be performed in a block.
+    #   Dynamoid::TransactionWrite.execute do |t|
+    #     t.update(User, 1) do |u|
+    #       u.set age: 27, last_name: 'Tylor'
+    #       u.add article_count: 1 # increment a counter
+    #       u.delete favorite_colors: 'green' # remove from a set
+    #       u.delete :first_name # clear a field
+    #     end
+    #   end
+    #
     # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
     # attributes is not declared in the model class.
     #
@@ -353,8 +364,8 @@ module Dynamoid
     # @param range_key [Scalar value] range key value (optional)
     # @param attributes [Hash]
     # @return [nil]
-    def update_fields(model_class, hash_key, range_key = nil, attributes) # rubocop:disable Style/OptionalArguments
-      action = Dynamoid::TransactionWrite::UpdateFields.new(model_class, hash_key, range_key, attributes)
+    def update_fields(model_class, hash_key, range_key = nil, attributes = {}, &block) # rubocop:disable Style/OptionalArguments
+      action = Dynamoid::TransactionWrite::UpdateFields.new(model_class, hash_key, range_key, attributes, &block)
       register_action action
     end
 

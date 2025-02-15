@@ -1187,6 +1187,19 @@ Dynamoid::TransactionWrite.execute do |txn|
   # sets the name and title for a user
   # The user is found by id (that equals 1)
   txn.update_fields(User, '1', name: 'bob', title: 'mister')
+
+  # sets the name, increments a count and deletes a field
+  txn.update_fields(User, 1) do |u| # a User instance is provided
+    u.set(name: 'bob')
+    u.add(article_count: 1)
+    u.delete(:title)
+  end
+
+  # adds to a set of integers and deletes from a set of strings
+  txn.update_fields(User, 1) do |u|
+    u.add(friend_ids: [1, 2])
+    u.delete(child_names: ['bebe'])
+  end
 end
 ```
 
