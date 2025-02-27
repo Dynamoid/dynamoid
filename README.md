@@ -1189,16 +1189,16 @@ Dynamoid::TransactionWrite.execute do |txn|
   txn.update_fields(User, '1', name: 'bob', title: 'mister')
 
   # sets the name, increments a count and deletes a field
-  txn.update_fields(User, 1) do |u1| # a User instance is provided
-    u1.set(name: 'bob')
-    u1.add(article_count: 1)
-    u1.delete(:title)
+  txn.update_fields(User, 1) do |t|
+    t.set(name: 'bob')
+    t.add(article_count: 1)
+    t.delete(:title)
   end
 
   # adds to a set of integers and deletes from a set of strings
-  txn.update_fields(User, 2) do |u2|
-    u2.add(friend_ids: [1, 2])
-    u2.delete(child_names: ['bebe'])
+  txn.update_fields(User, 2) do |t|
+    t.add(friend_ids: [1, 2])
+    t.delete(child_names: ['bebe'])
   end
 end
 ```
