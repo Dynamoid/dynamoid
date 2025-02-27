@@ -86,7 +86,16 @@ module Dynamoid
 
     class UnsupportedKeyType < Error; end
 
-    class UnknownAttribute < Error; end
+    class UnknownAttribute < Error
+      attr_reader :model_class, :attribute_name
+
+      def initialize(model_class, attribute_name)
+        super("Attribute #{attribute_name} does not exist in #{model_class}")
+
+        @model_class = model_class
+        @attribute_name = attribute_name
+      end
+    end
 
     class SubclassNotFound < Error; end
 

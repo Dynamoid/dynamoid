@@ -620,8 +620,7 @@ module Dynamoid
     # attributes. Supports following operations: +add+, +delete+ and +set+.
     #
     # Operation +add+ just adds a value for numeric attributes and join
-    # collections if attribute is a collection (one of +array+, +set+ or
-    # +map+).
+    # collections if attribute is a set.
     #
     #   user.update! do |t|
     #     t.add(age: 1, followers_count: 5)
@@ -646,7 +645,7 @@ module Dynamoid
     # {parameter}[https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.AttributeUpdates.html]
     # of +UpdateItem+ operation.
     #
-    # It's an atomic operation. So adding or deleting elements in a collection
+    # It's atomic operations. So adding or deleting elements in a collection
     # or incrementing or decrementing a numeric field is atomic and does not
     # interfere with other write requests.
     #
@@ -716,8 +715,7 @@ module Dynamoid
     # attributes. Supports following operations: +add+, +delete+ and +set+.
     #
     # Operation +add+ just adds a value for numeric attributes and join
-    # collections if attribute is a collection (one of +array+, +set+ or
-    # +map+).
+    # collections if attribute is a set.
     #
     #   user.update do |t|
     #     t.add(age: 1, followers_count: 5)

@@ -8,6 +8,7 @@ require 'dynamoid/transaction_write/save'
 require 'dynamoid/transaction_write/update_fields'
 require 'dynamoid/transaction_write/update_attributes'
 require 'dynamoid/transaction_write/upsert'
+require 'dynamoid/transaction_write/item_updater'
 
 module Dynamoid
   # The class +TransactionWrite+ provides means to perform multiple modifying
@@ -345,6 +346,52 @@ module Dynamoid
     #     t.update_fields(User, '1', 'Tylor', age: 26)
     #   end
     #
+    # Updates can also be performed in a block.
+    #
+    #   Dynamoid::TransactionWrite.execute do |t|
+    #     t.update_fields(User, 1) do |u|
+    #       u.add(article_count: 1)
+    #       u.delete(favorite_colors: 'green')
+    #       u.set(age: 27, last_name: 'Tylor')
+    #     end
+    #   end
+    #
+    # Operation +add+ just adds a value for numeric attributes and join
+    # collections if attribute is a set.
+    #
+    #   t.update_fields(User, 1) do |u|
+    #     u.add(age: 1, followers_count: 5)
+    #     u.add(hobbies: ['skying', 'climbing'])
+    #   end
+    #
+    # Operation +delete+ is applied to collection attribute types and
+    # substructs one collection from another.
+    #
+    #   t.update_fields(User, 1) do |u|
+    #     u.delete(hobbies: ['skying'])
+    #   end
+    #
+    # Operation +set+ just changes an attribute value:
+    #
+    #   t.update_fields(User, 1) do |u|
+    #     u.set(age: 21)
+    #   end
+    #
+    # Operation +remove+ removes one or more attributes from an item.
+    #
+    #   t.update_fields(User, 1) do |u|
+    #     u.remove(:age)
+    #   end
+    #
+    # All the operations work like +ADD+, +DELETE+, +REMOVE+, and +SET+ actions supported
+    # by +UpdateExpression+
+    # {parameter}[https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html]
+    # of +UpdateItem+ operation.
+    #
+    # It's atomic operations. So adding or deleting elements in a collection
+    # or incrementing or decrementing a numeric field is atomic and does not
+    # interfere with other write requests.
+    #
     # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
     # attributes is not declared in the model class.
     #
@@ -353,8 +400,14 @@ module Dynamoid
     # @param range_key [Scalar value] range key value (optional)
     # @param attributes [Hash]
     # @return [nil]
-    def update_fields(model_class, hash_key, range_key = nil, attributes) # rubocop:disable Style/OptionalArguments
-      action = Dynamoid::TransactionWrite::UpdateFields.new(model_class, hash_key, range_key, attributes)
+    def update_fields(model_class, hash_key, range_key = nil, attributes = nil, &block)
+      # given no attributes, but there may be a block
+      if range_key.is_a?(Hash) && !attributes
+        attributes = range_key
+        range_key = nil
+      end
+
+      action = Dynamoid::TransactionWrite::UpdateFields.new(model_class, hash_key, range_key, attributes, &block)
       register_action action
     end
 
