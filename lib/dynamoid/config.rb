@@ -62,6 +62,8 @@ module Dynamoid
     option :http_open_timeout, default: nil     #                                                  - default: 15
     option :http_read_timeout, default: nil     #                                                  - default: 60
     option :create_table_on_save, default: true
+    option :use_yaml_unsafe_load, default: false
+    option :yaml_column_permitted_classes, default: [Symbol, Set, Date, Time, DateTime] # classes to allow when using YAML.safe_load
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #
