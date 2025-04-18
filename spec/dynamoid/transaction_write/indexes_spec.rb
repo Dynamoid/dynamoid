@@ -7,7 +7,7 @@ describe Dynamoid::Indexes do
     new_class(class_name: 'Ferret') do
       field :name
       field :age, :number
-      global_secondary_index hash_key: :name, range_key: :age, projected_attributes: :all, name: "str_num"
+      global_secondary_index hash_key: :name, range_key: :age, projected_attributes: :all, name: 'str_num'
     end
   end
 
@@ -16,7 +16,6 @@ describe Dynamoid::Indexes do
   end
 
   describe '.global_secondary_index' do
-
     it 'can save in transaction' do
       doc = klass_with_gsi.new(name: 'abc', age: 1)
       Dynamoid::TransactionWrite.execute do |txn|
