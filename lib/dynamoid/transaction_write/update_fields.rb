@@ -53,6 +53,7 @@ module Dynamoid
         changes = @attributes.dup
         changes = add_timestamps(changes, skip_created_at: true)
         changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
+        changes_dumped = sanitize_item(changes_dumped)
 
         builder.set_attributes(changes_dumped)
 

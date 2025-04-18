@@ -42,6 +42,18 @@ module Dynamoid
       def action_request
         raise 'Not implemented'
       end
+
+      # copied from aws_sdk_v3
+      def sanitize_item(attributes)
+        config_value = Dynamoid.config.store_attribute_with_nil_value
+        store_attribute_with_nil_value = config_value.nil? ? false : !!config_value
+
+        attributes.reject do |_, v|
+          !store_attribute_with_nil_value && v.nil?
+        end.transform_values do |v|
+          v.is_a?(Hash) ? v.stringify_keys : v
+        end
+      end
     end
   end
 end
