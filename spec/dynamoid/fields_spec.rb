@@ -448,4 +448,16 @@ describe Dynamoid::Fields do
       expect(obj.name_changed?).to eq false
     end
   end
+
+  describe '.table' do
+    context 'when specify key option and key_type' do
+      it 'hash_key attribute is defined by key_type type' do
+        klass = new_class do
+          table key: :hash_key, key_type: :integer
+        end
+
+        expect(klass.attributes[:hash_key][:type]).to eq(:integer)
+      end
+    end
+  end
 end
