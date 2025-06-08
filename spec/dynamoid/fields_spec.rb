@@ -462,7 +462,7 @@ describe Dynamoid::Fields do
     end
 
     it 'writes an attribute with an alias' do
-      skip "should be fixed"
+      skip 'should be fixed'
       address[:CityName] = 'Chicago'
       expect(address.city).to eq 'Chicago'
     end
@@ -514,14 +514,13 @@ describe Dynamoid::Fields do
     let(:address) { Address.create(deliverable: true) }
     let(:original_id) { address.id }
 
-
     it 'reads a written attribute' do
       address.city = 'Chicago'
       expect(address.read_attribute(:city)).to eq 'Chicago'
     end
 
     it 'reads a written attribute with the alias' do
-      skip "should be fixed"
+      skip 'should be fixed'
       address.write_attribute(:city, 'Chicago')
       expect(address[:CityName]).to eq 'Chicago'
     end

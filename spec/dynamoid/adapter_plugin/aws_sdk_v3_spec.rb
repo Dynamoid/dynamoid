@@ -1023,7 +1023,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     it_behaves_like 'range queries'
 
     describe 'query' do
-      include_examples 'correctly handling limits', :query
+      it_behaves_like 'correctly handling limits', :query
     end
 
     # Scan
