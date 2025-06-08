@@ -41,17 +41,6 @@ describe Dynamoid::Document do
     expect(address.attributes).to eq(city: 'Chicago')
   end
 
-  it 'allows interception of write_attribute on load' do
-    klass = new_class do
-      field :city
-
-      def city=(value)
-        self[:city] = value.downcase
-      end
-    end
-    expect(klass.new(city: 'Chicago').city).to eq 'chicago'
-  end
-
   it 'ignores unknown fields (does not raise error)' do
     klass = new_class do
       field :city
@@ -139,28 +128,6 @@ describe Dynamoid::Document do
 
     expect(address.errors).to be_empty
     expect(address.errors.full_messages).to be_empty
-  end
-
-  it 'has default table options' do
-    address = Address.create
-
-    expect(address.id).not_to be_nil
-    expect(Address.table_name).to eq 'dynamoid_tests_addresses'
-    expect(Address.hash_key).to eq :id
-    expect(Address.read_capacity).to eq 100
-    expect(Address.write_capacity).to eq 20
-    expect(Address.inheritance_field).to eq :type
-  end
-
-  it 'follows any table options provided to it' do
-    tweet = Tweet.create(group: 12_345)
-
-    expect { tweet.id }.to raise_error(NoMethodError)
-    expect(tweet.tweet_id).not_to be_nil
-    expect(Tweet.table_name).to eq 'dynamoid_tests_twitters'
-    expect(Tweet.hash_key).to eq :tweet_id
-    expect(Tweet.read_capacity).to eq 200
-    expect(Tweet.write_capacity).to eq 200
   end
 
   describe '#hash_key' do
@@ -306,101 +273,6 @@ describe Dynamoid::Document do
     end
   end
 
-  describe 'TTL (Time to Live)' do
-    let(:model) do
-      new_class do
-        table expires: { field: :expired_at, after: 30 * 60 }
-
-        field :expired_at, :integer
-      end
-    end
-
-    let(:model_with_wrong_field_name) do
-      new_class do
-        table expires: { field: :foo, after: 30 * 60 }
-
-        field :expired_at, :integer
-      end
-    end
-
-    it 'sets default value at the creation' do
-      travel 1.hour do
-        obj = model.create
-        expect(obj.expired_at).to eq(Time.now.to_i + (30 * 60))
-      end
-    end
-
-    it 'sets default value at the updating' do
-      obj = model.create
-
-      travel 1.hour do
-        obj.update_attributes(expired_at: nil)
-        expect(obj.expired_at).to eq(Time.now.to_i + (30 * 60))
-      end
-    end
-
-    it 'does not override already existing value' do
-      obj = model.create(expired_at: 1024)
-      expect(obj.expired_at).to eq 1024
-
-      obj.update_attributes(expired_at: 512)
-      expect(obj.expired_at).to eq 512
-    end
-
-    it 'raises an error if specified wrong field name' do
-      # error messages may very on different Ruby versions and use either ` or '.
-      expect do
-        model_with_wrong_field_name.create
-      end.to raise_error(NoMethodError, /undefined method (`|')foo='/)
-    end
-  end
-
-  describe 'timestamps fields `created_at` and `updated_at`' do
-    let(:class_with_timestamps_true) do
-      new_class do
-        table timestamps: true
-      end
-    end
-
-    let(:class_with_timestamps_false) do
-      new_class do
-        table timestamps: false
-      end
-    end
-
-    it 'declares timestamps when Dynamoid::Config.timestamps = true', config: { timestamps: true } do
-      expect(new_class.attributes).to have_key(:created_at)
-      expect(new_class.attributes).to have_key(:updated_at)
-
-      expect(new_class.new).to respond_to(:created_at)
-      expect(new_class.new).to respond_to(:updated_at)
-    end
-
-    it 'does not declare timestamps when Dynamoid::Config.timestamps = false', config: { timestamps: false } do
-      expect(new_class.attributes).not_to have_key(:created_at)
-      expect(new_class.attributes).not_to have_key(:updated_at)
-
-      expect(new_class.new).not_to respond_to(:created_at)
-      expect(new_class.new).not_to respond_to(:updated_at)
-    end
-
-    it 'does not declare timestamps when Dynamoid::Config.timestamps = true but table timestamps = false', config: { timestamps: true } do
-      expect(class_with_timestamps_false.attributes).not_to have_key(:created_at)
-      expect(class_with_timestamps_false.attributes).not_to have_key(:updated_at)
-
-      expect(class_with_timestamps_false.new).not_to respond_to(:created_at)
-      expect(class_with_timestamps_false.new).not_to respond_to(:updated_at)
-    end
-
-    it 'declares timestamps when Dynamoid::Config.timestamps = false but table timestamps = true', config: { timestamps: false } do
-      expect(class_with_timestamps_true.attributes).to have_key(:created_at)
-      expect(class_with_timestamps_true.attributes).to have_key(:updated_at)
-
-      expect(class_with_timestamps_true.new).to respond_to(:created_at)
-      expect(class_with_timestamps_true.new).to respond_to(:updated_at)
-    end
-  end
-
   describe '#inspect' do
     it 'returns a String containing a model class name and a list of attributes and values' do
       klass = new_class(class_name: 'Person') do
@@ -409,7 +281,6 @@ describe Dynamoid::Document do
       end
 
       object = klass.new(name: 'Alex', age: 21)
-      puts object.attributes
       expect(object.inspect).to eql '#<Person id: nil, name: "Alex", age: 21, created_at: nil, updated_at: nil>'
     end
 

@@ -197,9 +197,19 @@ module Dynamoid
       #     field :id, :integer
       #   end
       #
+      # To declare a new attribute with not-default type as a table hash key a
+      # :key_type option can be used:
+      #
+      #   class User
+      #     include Dynamoid::Document
+      #
+      #     table key: :user_id, key_type: :integer
+      #   end
+      #
       # @param options [Hash] options to override default table settings
       # @option options [Symbol] :name name of a table
       # @option options [Symbol] :key name of a hash key attribute
+      # @option options [Symbol] :key_type type of a hash key attribute
       # @option options [Symbol] :inheritance_field name of an attribute used for STI
       # @option options [Symbol] :capacity_mode table billing mode - either +provisioned+ or +on_demand+
       # @option options [Integer] :write_capacity table write capacity units
@@ -210,11 +220,11 @@ module Dynamoid
       # @since 0.4.0
       def table(options)
         self.options = options
-
         # a default 'id' column is created when Dynamoid::Document is included
         unless attributes.key? hash_key
           remove_field :id
-          field(hash_key)
+          key_type = options[:key_type] || :string
+          field(hash_key, key_type)
         end
 
         # The created_at/updated_at fields are declared in the `included` callback first.

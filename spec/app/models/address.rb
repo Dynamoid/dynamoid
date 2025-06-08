@@ -3,7 +3,7 @@
 class Address
   include Dynamoid::Document
 
-  field :city
+  field :city, :string, alias: :CityName
   field :options, :serialized
   field :deliverable, :boolean
   field :latitude, :number

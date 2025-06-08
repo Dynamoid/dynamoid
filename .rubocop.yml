@@ -7,8 +7,10 @@ inherit_from:
   - .rubocop_todo.yml
 
 require:
-  - rubocop-md
   - rubocop-packaging
+
+plugins:
+  - rubocop-md
   - rubocop-performance
   - rubocop-rake
   - rubocop-rspec
@@ -97,7 +99,9 @@ Style/DateTime:
   Enabled: false
 Style/MissingRespondToMissing:
   Enabled: false
-Naming/PredicateName:
+Naming/PredicatePrefix:
+  Enabled: false
+Naming/PredicateMethod:
   Enabled: false
 Security/YAMLLoad:
   Enabled: false
