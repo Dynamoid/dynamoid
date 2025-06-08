@@ -197,6 +197,15 @@ module Dynamoid
       #     field :id, :integer
       #   end
       #
+      # To declare a new attribute with not-default type as a table hash key a
+      # :key_type option can be used:
+      #
+      #   class User
+      #     include Dynamoid::Document
+      #
+      #     table key: :user_id, key_type: :integer
+      #   end
+      #
       # @param options [Hash] options to override default table settings
       # @option options [Symbol] :name name of a table
       # @option options [Symbol] :key name of a hash key attribute
