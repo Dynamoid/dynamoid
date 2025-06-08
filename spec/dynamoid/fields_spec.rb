@@ -78,13 +78,24 @@ describe Dynamoid::Fields do
       end
     end
 
-    context 'when specify key option and key_type' do
-      it 'hash_key attribute is defined by key_type type' do
+    context 'when :key and :key_type options specified' do
+      it 'changes a hash key attribute declared type' do
         klass = new_class do
           table key: :hash_key, key_type: :integer
         end
 
         expect(klass.attributes[:hash_key][:type]).to eq(:integer)
+      end
+
+      it 'changes a hash key attribute actual type' do
+        klass = new_class do
+          table key: :hash_key, key_type: :integer
+          field :name
+        end
+
+        klass.create!(hash_key: 42, name: 'Alex')
+        obj = klass.find(42)
+        expect(obj.name).to eq 'Alex'
       end
     end
   end
