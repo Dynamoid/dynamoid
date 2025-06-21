@@ -685,9 +685,10 @@ module Dynamoid
 
         begin
           table_name = self.class.table_name
+          partition_key_dumped = Dumping.dump_field(hash_key, self.class.attributes[self.class.hash_key])
           update_item_options = options.merge(conditions: conditions)
 
-          new_attrs = Dynamoid.adapter.update_item(table_name, hash_key, update_item_options) do |t|
+          new_attrs = Dynamoid.adapter.update_item(table_name, partition_key_dumped, update_item_options) do |t|
             item_updater = ItemUpdaterWithDumping.new(self.class, t)
 
             item_updater.add(lock_version: 1) if self.class.attributes[:lock_version]
@@ -926,6 +927,7 @@ module Dynamoid
     # @since 0.2.0
     def delete
       options = range_key ? { range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
+      partition_key_dumped = Dumping.dump_field(hash_key, self.class.attributes[self.class.hash_key])
 
       # Add an optimistic locking check if the lock_version column exists
       if self.class.attributes[:lock_version]
@@ -941,7 +943,7 @@ module Dynamoid
 
       @destroyed = true
 
-      Dynamoid.adapter.delete(self.class.table_name, hash_key, options)
+      Dynamoid.adapter.delete(self.class.table_name, partition_key_dumped, options)
 
       self.class.associations.each_key do |name|
         send(name).disassociate_source

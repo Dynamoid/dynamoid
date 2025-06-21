@@ -21,8 +21,9 @@ module Dynamoid
 
       def call
         touch = @counters.delete(:touch)
+        hash_key_dumped = cast_and_dump(@model_class.hash_key, @hash_key)
 
-        Dynamoid.adapter.update_item(@model_class.table_name, @hash_key, update_item_options) do |t|
+        Dynamoid.adapter.update_item(@model_class.table_name, hash_key_dumped, update_item_options) do |t|
           item_updater = ItemUpdaterWithCastingAndDumping.new(@model_class, t)
 
           @counters.each do |name, value|
@@ -43,10 +44,8 @@ module Dynamoid
 
       def update_item_options
         if @model_class.range_key
-          range_key_options = @model_class.attributes[@model_class.range_key]
-          value_casted = TypeCasting.cast_field(@range_key, range_key_options)
-          value_dumped = Dumping.dump_field(value_casted, range_key_options)
-          { range_key: value_dumped }
+          range_key_dumped = cast_and_dump(@model_class.range_key, @range_key)
+          { range_key: range_key_dumped }
         else
           {}
         end
@@ -59,6 +58,12 @@ module Dynamoid
         names << :updated_at if @model_class.timestamps_enabled?
         names += Array.wrap(touch) if touch != true
         names
+      end
+
+      def cast_and_dump(name, value)
+        options = @model_class.attributes[name]
+        value_casted = TypeCasting.cast_field(value, options)
+        Dumping.dump_field(value_casted, options)
       end
     end
   end

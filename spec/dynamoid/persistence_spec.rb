@@ -1663,7 +1663,18 @@ describe Dynamoid::Persistence do
       }.to('[Updated]')
     end
 
-    it 'uses dumped value of sort key to call UpdateItem' do
+    it 'uses dumped value of partition key to update item' do
+      klass = new_class(partition_key: { name: :published_on, type: :date }) do
+        field :title
+      end
+
+      obj = klass.create!(published_on: '2018-10-07'.to_date, title: 'Old')
+      klass.update_fields('2018-10-07'.to_date, title: 'New')
+
+      expect(obj.reload.title).to eq 'New'
+    end
+
+    it 'uses dumped value of sort key to update item' do
       document_class_with_range = new_class do
         field :title
         range :published_on, :date
@@ -1981,7 +1992,18 @@ describe Dynamoid::Persistence do
       }.to raise_error(Aws::DynamoDB::Errors::ValidationException)
     end
 
-    it 'uses dumped value of sort key to call UpdateItem' do
+    it 'uses dumped value of partition key to update item' do
+      klass = new_class(partition_key: { name: :published_on, type: :date }) do
+        field :title
+      end
+
+      obj = klass.create!(published_on: '2018-10-07'.to_date, title: 'Old')
+      klass.upsert('2018-10-07'.to_date, title: 'New')
+
+      expect(obj.reload.title).to eq 'New'
+    end
+
+    it 'uses dumped value of sort key to update item' do
       document_class_with_range = new_class do
         field :title
         range :published_on, :date
@@ -2194,7 +2216,18 @@ describe Dynamoid::Persistence do
       expect(obj.reload.links_count).to eql(7)
     end
 
-    it 'uses dumped value of sort key to call UpdateItem' do
+    it 'uses dumped value of partition key to update item' do
+      klass = new_class(partition_key: { name: :published_on, type: :date }) do
+        field :links_count, :integer
+      end
+
+      obj = klass.create!(published_on: '2018-10-07'.to_date, links_count: 2)
+      klass.inc('2018-10-07'.to_date, links_count: 5)
+
+      expect(obj.reload.links_count).to eql(7)
+    end
+
+    it 'uses dumped value of sort key to update item' do
       class_with_sort_key = new_class do
         range :published_on, :date
         field :links_count, :integer
@@ -2613,6 +2646,64 @@ describe Dynamoid::Persistence do
         expect {
           obj2.save # lock_version 1 -> 2
         }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+    end
+
+    context 'primary key dumping' do
+      context 'new model' do
+        it 'uses dumped value of partition key to update item' do
+          klass = new_class(partition_key: { name: :published_on, type: :date }) do
+            field :title
+          end
+
+          obj = klass.new(published_on: '2018-10-07'.to_date, title: 'Some title')
+          obj.save
+          obj_loaded = klass.find(obj.published_on)
+
+          expect(obj_loaded.title).to eq 'Some title'
+        end
+
+        it 'uses dumped value of sort key to update item' do
+          klass = new_class do
+            range :published_on, :date
+            field :title
+          end
+
+          obj = klass.new(published_on: '2018-02-23'.to_date, title: 'Some title')
+          obj.save
+          obj_loaded = klass.find(obj.id, range_key: obj.published_on)
+
+          expect(obj_loaded.title).to eq 'Some title'
+        end
+      end
+
+      context 'persised model' do
+        it 'uses dumped value of partition key to update item' do
+          klass = new_class(partition_key: { name: :published_on, type: :date }) do
+            field :title
+          end
+
+          obj = klass.create!(published_on: '2018-10-07'.to_date, title: 'Old')
+          obj.title = 'New'
+          obj.save
+          obj_loaded = klass.find(obj.published_on)
+
+          expect(obj_loaded.title).to eq 'New'
+        end
+
+        it 'uses dumped value of sort key to update item' do
+          klass = new_class do
+            range :published_on, :date
+            field :title
+          end
+
+          obj = klass.create!(published_on: '2018-02-23'.to_date, title: 'Old')
+          obj.title = 'New'
+          obj.save
+          obj_loaded = klass.find(obj.id, range_key: obj.published_on)
+
+          expect(obj_loaded.title).to eq 'New'
+        end
       end
     end
 
@@ -4521,12 +4612,22 @@ describe Dynamoid::Persistence do
       end.to raise_error(Dynamoid::Errors::StaleObjectError)
     end
 
-    it 'uses dumped value of sort key to call UpdateItem' do
+    it 'uses dumped value of partition key to update item' do
+      klass = new_class(partition_key: { name: :published_on, type: :date }) do
+        field :name
+      end
+
+      obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Old')
+      obj.update { |d| d.set(name: 'New') }
+
+      expect(obj.reload.name).to eql('New')
+    end
+
+    it 'uses dumped value of sort key to update item' do
       klass = new_class do
         range :activated_on, :date
         field :name
       end
-      klass.create_table
 
       obj = klass.create!(activated_on: Date.today, name: 'Old value')
       obj.update { |d| d.set(name: 'New value') }
@@ -4861,7 +4962,17 @@ describe Dynamoid::Persistence do
       expect(obj.delete).to eq obj
     end
 
-    it 'uses dumped value of sort key to call DeleteItem' do
+    it 'uses dumped value of partition key to delete item' do
+      klass = new_class(partition_key: { name: :published_on, type: :date })
+
+      obj = klass.create!(published_on: '2018-10-07'.to_date)
+
+      expect { obj.delete }.to change {
+        klass.where(published_on: obj.published_on).first
+      }.to(nil)
+    end
+
+    it 'uses dumped value of sort key to delete item' do
       klass = new_class do
         range :activated_on, :date
       end

@@ -16,6 +16,8 @@ module Dynamoid
         @sort_key = sort_key
         @attributes = attributes.symbolize_keys
         @conditions = conditions
+
+        @partition_key_dumped = cast_and_dump(@model_class.hash_key, @partition_key)
       end
 
       def call
@@ -33,7 +35,7 @@ module Dynamoid
       private
 
       def update_item
-        Dynamoid.adapter.update_item(@model_class.table_name, @partition_key, options_to_update_item) do |t|
+        Dynamoid.adapter.update_item(@model_class.table_name, @partition_key_dumped, options_to_update_item) do |t|
           item_updater = ItemUpdaterWithCastingAndDumping.new(@model_class, t)
 
           @attributes.each do |k, v|
@@ -50,17 +52,22 @@ module Dynamoid
         options = {}
 
         if @model_class.range_key
-          value_casted = TypeCasting.cast_field(@sort_key, @model_class.attributes[@model_class.range_key])
-          value_dumped = Dumping.dump_field(value_casted, @model_class.attributes[@model_class.range_key])
-          options[:range_key] = value_dumped
+          range_key_dumped = cast_and_dump(@model_class.range_key, @sort_key)
+          options[:range_key] = range_key_dumped
         end
 
         conditions = @conditions.deep_dup
         conditions[:if] ||= {}
-        conditions[:if][@model_class.hash_key] = @partition_key
+        conditions[:if][@model_class.hash_key] = @partition_key_dumped
         options[:conditions] = conditions
 
         options
+      end
+
+      def cast_and_dump(name, value)
+        options = @model_class.attributes[name]
+        value_casted = TypeCasting.cast_field(value, options)
+        Dumping.dump_field(value_casted, options)
       end
     end
   end

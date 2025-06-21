@@ -109,12 +109,16 @@ module Dynamoid
       def _find_all(ids, options = {})
         raise Errors::MissingRangeKey if range_key && ids.any? { |_pk, sk| sk.nil? }
 
-        if range_key
-          ids = ids.map do |pk, sk|
-            sk_casted = TypeCasting.cast_field(sk, attributes[range_key])
-            sk_dumped = Dumping.dump_field(sk_casted, attributes[range_key])
+        ids = ids.map do |id|
+          if range_key
+            # expect [hash key, range key] pair
+            pk, sk = id
+            pk_dumped = cast_and_dump(hash_key, pk)
+            sk_dumped = cast_and_dump(range_key, sk)
 
-            [pk, sk_dumped]
+            [pk_dumped, sk_dumped]
+          else
+            cast_and_dump(hash_key, id)
           end
         end
 
@@ -155,15 +159,13 @@ module Dynamoid
       def _find_by_id(id, options = {})
         raise Errors::MissingRangeKey if range_key && options[:range_key].nil?
 
-        if range_key
-          key = options[:range_key]
-          key_casted = TypeCasting.cast_field(key, attributes[range_key])
-          key_dumped = Dumping.dump_field(key_casted, attributes[range_key])
+        partition_key_dumped = cast_and_dump(hash_key, id)
 
-          options[:range_key] = key_dumped
+        if range_key
+          options[:range_key] = cast_and_dump(range_key, options[:range_key])
         end
 
-        if item = Dynamoid.adapter.read(table_name, id, options.slice(:range_key, :consistent_read))
+        if item = Dynamoid.adapter.read(table_name, partition_key_dumped, options.slice(:range_key, :consistent_read))
           model = from_database(item)
           model.run_callbacks :find
           model
@@ -307,6 +309,14 @@ module Dynamoid
         else
           super
         end
+      end
+
+      private
+
+      def cast_and_dump(name, value)
+        attribute_options = attributes[name]
+        casted_value = TypeCasting.cast_field(value, attribute_options)
+        Dumping.dump_field(casted_value, attribute_options)
       end
     end
   end
