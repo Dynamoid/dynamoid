@@ -3,8 +3,6 @@
 require 'spec_helper'
 
 describe Dynamoid::Finders do
-  let!(:address) { Address.create(city: 'Chicago') }
-
   describe '.find' do
     let(:klass) do
       new_class(class_name: 'Document')
@@ -110,6 +108,22 @@ describe Dynamoid::Finders do
             expect(klass.find('blah-blah', raise_error: false)).to eq nil
           end
         end
+      end
+
+      it 'uses dumped value of partition key to update item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date })
+
+        obj = klass.create!(published_on: '2018-10-07'.to_date)
+        expect(klass.find(obj.published_on)).to eql(obj)
+      end
+
+      it 'uses dumped value of sort key to update item' do
+        klass = new_class do
+          range :published_on, :date
+        end
+
+        obj = klass.create!(published_on: '2018-10-07'.to_date)
+        expect(klass.find(obj.id, range_key: obj.published_on)).to eql(obj)
       end
     end
 
@@ -270,6 +284,26 @@ describe Dynamoid::Finders do
         end
       end
 
+      it 'uses dumped value of partition key to update item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date })
+        objects = (1..2).map { |i| klass.create(published_on: '2018-10-07'.to_date + i) }
+        obj1, obj2 = objects
+
+        expect(klass.find([obj1.published_on, obj2.published_on])).to match_array(objects)
+      end
+
+      it 'uses dumped value of sort key to update item' do
+        klass = new_class do
+          range :published_on, :date
+        end
+
+        objects = (1..2).map { |i| klass.create(published_on: '2018-10-07'.to_date + i) }
+        obj1, obj2 = objects
+        found_objects = klass.find([[obj1.id, obj1.published_on], [obj2.id, obj2.published_on]])
+
+        expect(found_objects).to match_array(objects)
+      end
+
       context 'field is not declared in document' do
         let(:class_with_not_declared_field) do
           new_class do
@@ -386,6 +420,8 @@ describe Dynamoid::Finders do
   end
 
   it 'sends consistent option to the adapter' do
+    address = Address.create(city: 'Chicago')
+
     expect(Dynamoid.adapter).to receive(:get_item)
       .with(anything, anything, hash_including(consistent_read: true))
       .and_call_original
@@ -394,6 +430,7 @@ describe Dynamoid::Finders do
 
   context 'with users' do
     it 'finds using method_missing for attributes' do
+      address = Address.create(city: 'Chicago')
       array = Address.find_by_city('Chicago')
 
       expect(array).to eq address

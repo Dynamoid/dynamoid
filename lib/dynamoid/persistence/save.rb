@@ -36,8 +36,10 @@ module Dynamoid
           Dynamoid.adapter.write(@model.class.table_name, attributes_dumped, conditions_for_write)
         else
           attributes_to_persist = @model.attributes.slice(*@model.changed.map(&:to_sym))
+          partition_key_dumped = dump(@model.class.hash_key, @model.hash_key)
+          options = options_to_update_item(partition_key_dumped)
 
-          Dynamoid.adapter.update_item(@model.class.table_name, @model.hash_key, options_to_update_item) do |t|
+          Dynamoid.adapter.update_item(@model.class.table_name, partition_key_dumped, options) do |t|
             item_updater = ItemUpdaterWithDumping.new(@model.class, t)
 
             attributes_to_persist.each do |name, value|
@@ -63,11 +65,9 @@ module Dynamoid
         conditions = {}
 
         # Add an 'exists' check to prevent overwriting existing records with new ones
-        if @model.new_record?
-          conditions[:unless_exists] = [@model.class.hash_key]
-          if @model.range_key
-            conditions[:unless_exists] << @model.range_key
-          end
+        conditions[:unless_exists] = [@model.class.hash_key]
+        if @model.range_key
+          conditions[:unless_exists] << @model.range_key
         end
 
         # Add an optimistic locking check if the lock_version column exists
@@ -81,17 +81,17 @@ module Dynamoid
         conditions
       end
 
-      def options_to_update_item
+      def options_to_update_item(partition_key_dumped)
         options = {}
 
         if @model.class.range_key
-          value_dumped = Dumping.dump_field(@model.range_value, @model.class.attributes[@model.class.range_key])
+          value_dumped = dump(@model.class.range_key, @model.range_value)
           options[:range_key] = value_dumped
         end
 
         conditions = {}
         conditions[:if] ||= {}
-        conditions[:if][@model.class.hash_key] = @model.hash_key
+        conditions[:if][@model.class.hash_key] = partition_key_dumped
 
         # Add an optimistic locking check if the lock_version column exists
         # Uses the original lock_version value from Dirty API
@@ -104,6 +104,11 @@ module Dynamoid
         options[:conditions] = conditions
 
         options
+      end
+
+      def dump(name, value)
+        options = @model.class.attributes[name]
+        Dumping.dump_field(value, options)
       end
     end
   end

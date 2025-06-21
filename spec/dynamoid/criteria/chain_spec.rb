@@ -256,6 +256,36 @@ describe Dynamoid::Criteria::Chain do
         model.where(name: 'Bob', 'age.foo': 10).to_a
       end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
     end
+
+    context 'primary key dumping' do
+      it 'uses dumped value of partition key to query item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date })
+
+        obj1 = klass.create(published_on: Date.today + 1)
+        obj2 = klass.create(published_on: Date.today + 2)
+
+        chain = described_class.new(klass)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+
+        objects_found = chain.where(published_on: obj1.published_on).all
+        expect(objects_found).to contain_exactly(obj1)
+      end
+
+      it 'uses dumped value of sort key to query item' do
+        klass = new_class do
+          range :published_on, :date
+        end
+
+        obj1 = klass.create(published_on: Date.today + 1)
+        obj2 = klass.create(published_on: Date.today + 2)
+
+        chain = described_class.new(klass)
+        expect(chain).to receive(:raw_pages_via_query).and_call_original
+
+        objects_found = chain.where(id: obj1.id, published_on: obj1.published_on).all
+        expect(objects_found).to contain_exactly(obj1)
+      end
+    end
   end
 
   # http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LegacyConditionalParameters.QueryFilter.html
