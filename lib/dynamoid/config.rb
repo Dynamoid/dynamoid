@@ -36,6 +36,7 @@ module Dynamoid
     option :read_capacity, default: 100
     option :write_capacity, default: 20
     option :warn_on_scan, default: true
+    option :error_on_scan, default: false
     option :endpoint, default: nil
     option :identity_map, default: false
     option :timestamps, default: true

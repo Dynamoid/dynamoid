@@ -563,7 +563,7 @@ module Dynamoid
         if @key_fields_detector.key_present?
           raw_pages_via_query
         else
-          issue_scan_warning if Dynamoid::Config.warn_on_scan && !@where_conditions.empty?
+          validate_scan_conditions
           raw_pages_via_scan
         end
       end
@@ -596,6 +596,12 @@ module Dynamoid
             y.yield items, options
           end
         end
+      end
+
+      def validate_scan_conditions
+        raise Dynamoid::Errors::ScanProhibited if Dynamoid::Config.error_on_scan && !@where_conditions.empty?
+
+        issue_scan_warning if Dynamoid::Config.warn_on_scan && !@where_conditions.empty?
       end
 
       def issue_scan_warning

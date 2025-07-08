@@ -117,6 +117,23 @@ describe Dynamoid::Criteria do
     end
   end
 
+  context 'when scans using non-indexed fields and error_on_scan config option is true' do
+    before do
+      @error_on_scan = Dynamoid::Config.error_on_scan
+      Dynamoid::Config.error_on_scan = true
+    end
+
+    after do
+      Dynamoid::Config.error_on_scan = @error_on_scan
+    end
+
+    it 'raises an error' do
+      expect {
+        User.where(name: 'x', password: 'password').all
+      }.to raise_error(Dynamoid::Errors::ScanProhibited)
+    end
+  end
+
   context 'when doing intentional, full-table scan (query is empty) and warn_on_scan config option is true' do
     before do
       @warn_on_scan = Dynamoid::Config.warn_on_scan
@@ -131,6 +148,21 @@ describe Dynamoid::Criteria do
       expect(Dynamoid.logger).not_to receive(:warn)
 
       User.all
+    end
+  end
+
+  context 'when doing intentional, full-table scan (query is empty) and error_on_scan config option is true' do
+    before do
+      @error_on_scan = Dynamoid::Config.error_on_scan
+      Dynamoid::Config.error_on_scan = true
+    end
+
+    after do
+      Dynamoid::Config.error_on_scan = @error_on_scan
+    end
+
+    it 'does not raise an error' do
+      expect { User.all }.not_to raise_error(Dynamoid::Errors::ScanProhibited)
     end
   end
 end

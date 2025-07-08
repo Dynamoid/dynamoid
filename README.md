@@ -1303,6 +1303,7 @@ Listed below are all configuration options.
 * `write_capacity` - is used at table or indices creation. Default is 20
   (units)
 * `warn_on_scan` - log warnings when scan table. Default is `true`
+* `error_on_scan` - raises an error when scan table. Default is `false`
 * `endpoint` - if provided, it communicates with the DynamoDB listening
   at the endpoint. This is useful for testing with
   [DynamoDB Local](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html)
