@@ -100,5 +100,11 @@ module Dynamoid
     class SubclassNotFound < Error; end
 
     class Rollback < Error; end
+
+    class ScanProhibited < Error
+      def initialize(_msg = nil)
+        super('Scan operations prohibited. Modify Dynamoid::Config.error_on_scan to change this behavior.')
+      end
+    end
   end
 end
