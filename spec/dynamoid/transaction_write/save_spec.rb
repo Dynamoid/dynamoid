@@ -690,7 +690,7 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
     expect(obj_to_create).not_to be_changed
   end
 
-  it 'is marked as not persusted and is marked as changed at creation when the transaction rolled back' do
+  it 'is marked as not persisted and is marked as changed at creation when the transaction rolled back' do
     obj = klass.new(name: 'Alex')
 
     expect {
