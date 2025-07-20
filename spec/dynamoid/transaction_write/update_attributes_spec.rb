@@ -52,7 +52,7 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable R
     end
   end
 
-  it 'persists changes' do
+  it 'persists changes in already presisted model' do
     obj = klass.create!(name: 'Alex')
 
     described_class.execute do |txn|
@@ -316,7 +316,7 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable R
     expect(klass.find(obj_deleted.id).name).to eql 'Alex [Updated]'
   end
 
-  it 'is marked as changed when the transaction rolled back' do
+  it 'keeps a model as changed when the transaction rolled back' do
     obj = klass.create!(name: 'Alex')
 
     expect {
@@ -545,6 +545,10 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable R
 end
 
 describe Dynamoid::TransactionWrite, '#update_attributes!' do
+  # The only difference in specs structure between
+  # #update_attributes and #update_attributes! is missing a section
+  # for callbacks here
+
   let(:klass) do
     new_class do
       field :name
@@ -600,6 +604,98 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
           end
         }.to change { obj.reload.name }.to('Alex [Updated]')
       end
+    end
+  end
+
+  describe 'primary key validation' do
+    context 'simple primary key' do
+      it 'requires partition key to be specified' do
+        obj = klass.create!(name: 'Alex')
+        obj.id = nil
+
+        expect {
+          described_class.execute do |txn|
+            txn.update_attributes! obj, name: 'Alex [Updated]'
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+    end
+
+    context 'composite key' do
+      it 'requires partition key to be specified' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+        obj.id = nil
+
+        expect {
+          described_class.execute do |txn|
+            txn.update_attributes! obj, name: 'Alex [Updated]'
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+
+      it 'requires sort key to be specified' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+        obj.age = nil
+
+        expect {
+          described_class.execute do |txn|
+            txn.update_attributes! obj, name: 'Alex [Updated]'
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+      end
+    end
+  end
+
+  describe 'timestamps' do
+    it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+      obj = klass.create!
+
+      travel 1.hour do
+        time_now = Time.now
+
+        described_class.execute do |txn|
+          txn.update_attributes! obj, name: 'Alex [Updated]'
+        end
+
+        obj.reload
+        expect(obj.updated_at.to_i).to eql time_now.to_i
+      end
+    end
+
+    it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+      obj = klass.create!
+
+      travel 1.hour do
+        created_at = updated_at = Time.now
+
+        described_class.execute do |txn|
+          txn.update_attributes! obj, created_at: created_at, updated_at: updated_at
+        end
+
+        obj.reload
+        expect(obj.created_at.to_i).to eql created_at.to_i
+        expect(obj.updated_at.to_i).to eql updated_at.to_i
+      end
+    end
+
+    it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+      obj = klass.create!
+
+      expect {
+        described_class.execute do |txn|
+          txn.update_attributes! obj, name: 'Alex [Updated]'
+        end
+      }.not_to raise_error
+    end
+
+    it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+      obj = klass.create!
+
+      expect {
+        described_class.execute do |txn|
+          txn.update_attributes! obj, {}
+        end
+      }.not_to raise_error
     end
   end
 
@@ -708,6 +804,19 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
     expect(obj_deleted).to be_persisted
     expect(obj_deleted).not_to be_destroyed
     expect(klass.find(obj_deleted.id).name).to eql 'Alex [Updated]'
+  end
+
+  it 'keeps a model as changed when the transaction rolled back' do
+    obj = klass.create!(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.update_attributes! obj, name: 'Alex [Updated]'
+        raise 'trigger rollback'
+      end
+    }.to raise_error('trigger rollback')
+
+    expect(obj).to be_changed
   end
 
   it 'uses dumped value of partition key to update item' do

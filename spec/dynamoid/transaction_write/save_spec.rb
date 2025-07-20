@@ -1211,6 +1211,9 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
 end
 
 describe Dynamoid::TransactionWrite, '.save!' do
+  # The only difference in specs structure between #save and #save! is missing
+  # a section for callbacks here
+
   let(:klass) do
     new_class do
       field :name
@@ -1467,6 +1470,51 @@ describe Dynamoid::TransactionWrite, '.save!' do
     expect(klass.all.to_a).to eql [existing]
     expect(obj_to_create).not_to be_persisted
     expect(obj_to_create).to be_changed
+  end
+
+  it 'does not roll back the transaction when a model to update does not exist' do
+    obj_deleted = klass.create!(name: 'one')
+    klass.find(obj_deleted.id).delete
+    obj_deleted.name = 'one [updated]'
+    obj_to_create = nil
+
+    expect {
+      described_class.execute do |txn|
+        txn.save! obj_deleted
+        obj_to_create = txn.create klass, name: 'two'
+      end
+    }.to change(klass, :count).by(2)
+
+    expect(obj_to_create).to be_persisted
+    expect(obj_to_create).not_to be_changed
+  end
+
+  it 'is marked as not persisted and is marked as changed at creation when the transaction rolled back' do
+    obj = klass.new(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.save! obj
+        raise 'trigger rollback'
+      end
+    }.to raise_error('trigger rollback')
+
+    expect(obj).not_to be_persisted
+    expect(obj).to be_changed
+  end
+
+  it 'is marked as changed at updating when the transaction rolled back' do
+    obj = klass.create!(name: 'Alex')
+    obj.name = 'Alex [Updated]'
+
+    expect {
+      described_class.execute do |txn|
+        txn.save! obj
+        raise 'trigger rollback'
+      end
+    }.to raise_error('trigger rollback')
+
+    expect(obj).to be_changed
   end
 
   context 'primary key is of non-native DynamoDB type' do
