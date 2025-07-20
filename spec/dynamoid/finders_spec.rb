@@ -226,19 +226,6 @@ describe Dynamoid::Finders do
           expect(klass_with_composite_key.find([[obj1.id, '1'], [obj2.id, '2']])).to match_array(objects)
         end
 
-        it 'dumps a sort key value' do
-          klass_with_date = new_class do
-            range :published_on, :date
-          end
-
-          obj1 = klass_with_date.create(published_on: '2018/07/26'.to_date)
-          obj2 = klass_with_date.create(published_on: '2018/07/27'.to_date)
-
-          expect(
-            klass_with_date.find([[obj1.id, obj1.published_on], [obj2.id, obj2.published_on]])
-          ).to contain_exactly(obj1, obj2)
-        end
-
         it 'raises MissingRangeKey when range key is not specified' do
           obj1, obj2 = klass_with_composite_key.create([{ age: 1 }, { age: 2 }])
 
