@@ -88,7 +88,7 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
 
         expect {
           described_class.execute do |t|
-            t.update_fields klass_with_composite_key, nil, name: 'Alex [Updated]'
+            t.update_fields klass, nil, name: 'Alex [Updated]'
           end
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
