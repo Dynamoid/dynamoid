@@ -88,7 +88,7 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
 
         expect {
           described_class.execute do |t|
-            t.update_fields klass_with_composite_key, nil, name: 'Alex [Updated]'
+            t.update_fields klass, nil, name: 'Alex [Updated]'
           end
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
@@ -115,6 +115,33 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
         }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
       end
     end
+  end
+
+  it 'uses dumped value of partition key to update item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+    described_class.execute do |t|
+      t.update_fields klass, obj.published_on, name: 'Alex [Updated]'
+    end
+
+    expect(obj.reload.name).to eql('Alex [Updated]')
+  end
+
+  it 'uses dumped value of sort key to update item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+
+    described_class.execute do |txn|
+      txn.update_fields klass, obj.id, obj.activated_on, name: 'Alex [Updated]'
+    end
+
+    expect(obj.reload.name).to eql('Alex [Updated]')
   end
 
   describe 'timestamps' do

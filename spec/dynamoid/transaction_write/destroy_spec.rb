@@ -197,6 +197,37 @@ describe Dynamoid::TransactionWrite, '#destroy' do # rubocop:disable RSpec/Multi
     expect(obj).not_to be_destroyed
   end
 
+  it 'uses dumped value of partition key to destroy item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+    expect(klass.exists?(obj.published_on)).to eql true
+
+    described_class.execute do |txn|
+      txn.destroy obj
+    end
+
+    expect(klass.exists?(obj.published_on)).to eql false
+  end
+
+  it 'uses dumped value of sort key to destroy item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+
+    expect(klass.exists?([[obj.id, obj.activated_on]])).to eql true
+
+    described_class.execute do |txn|
+      txn.destroy obj
+    end
+
+    expect(klass.exists?([[obj.id, obj.activated_on]])).to eql false
+  end
+
   describe 'callbacks' do
     before do
       ScratchPad.clear
@@ -306,6 +337,9 @@ describe Dynamoid::TransactionWrite, '#destroy' do # rubocop:disable RSpec/Multi
 end
 
 describe Dynamoid::TransactionWrite, '.destroy!' do
+  # The only difference in specs structure between #destroy and #destroy! is missing
+  # a section for callbacks here
+
   let(:klass) do
     new_class do
       field :name
@@ -337,6 +371,25 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
     expect(result).to be_destroyed
   end
 
+  context 'when an issue detected on the DynamoDB side' do
+    it 'does not raise exception and does not roll back the transaction when a model to destroy does not exist' do
+      obj_to_destroy = klass.create!(name: 'one', id: '1')
+      obj_to_destroy.id = 'not-existing'
+      obj_to_save = klass.new(name: 'two', id: '2')
+
+      expect {
+        described_class.execute do |txn|
+          txn.destroy! obj_to_destroy
+          txn.save obj_to_save
+        end
+      }.to change(klass, :count).by(1)
+
+      expect(obj_to_destroy).to be_destroyed
+      expect(obj_to_save).to be_persisted
+      expect(klass.all.to_a.map(&:id)).to contain_exactly('1', obj_to_save.id)
+    end
+  end
+
   it 'aborts destroying and raises RecordNotDestroyed if callback throws :abort' do
     if ActiveSupport.version < Gem::Version.new('5.0')
       skip "Rails 4.x and below don't support aborting with `throw :abort`"
@@ -358,21 +411,75 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
     expect(obj.destroyed?).to eql nil
   end
 
-  it 'does not raise exception and does not roll back the transaction when a model to destroy does not exist' do
-    obj_to_destroy = klass.create!(name: 'one', id: '1')
-    obj_to_destroy.id = 'not-existing'
-    obj_to_save = klass.new(name: 'two', id: '2')
+  it 'rolls back the transaction when a destroying of some model aborted by a before_destroy callback' do
+    if ActiveSupport.version < Gem::Version.new('5.0')
+      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+    end
+
+    klass = new_class do
+      before_destroy { throw :abort }
+    end
+
+    obj_to_destroy = klass.create!
+    obj_to_save = klass.new
+
+    expect {
+      expect {
+        described_class.execute do |txn|
+          txn.save obj_to_save
+          txn.destroy! obj_to_destroy
+        end
+      }.to raise_error(Dynamoid::Errors::RecordNotDestroyed)
+    }.not_to change { klass.count }
+
+    expect(obj_to_save).not_to be_persisted
+    expect(obj_to_destroy).not_to be_destroyed
+
+    expect(klass.exists?(obj_to_destroy.id)).to eql true
+    expect(klass.exists?(obj_to_save.id)).to eql false
+  end
+
+  it 'is not marked as destroyed when the transaction rolled back' do
+    obj = klass.create!
 
     expect {
       described_class.execute do |txn|
-        txn.destroy! obj_to_destroy
-        txn.save obj_to_save
+        txn.destroy! obj
+        raise 'trigger rollback'
       end
-    }.to change(klass, :count).by(1)
+    }.to raise_error('trigger rollback')
 
-    expect(obj_to_destroy).to be_destroyed
-    expect(obj_to_save).to be_persisted
+    expect(obj).not_to be_destroyed
+  end
 
-    expect(klass.all.to_a.map(&:id)).to contain_exactly('1', obj_to_save.id)
+  it 'uses dumped value of partition key to destroy item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+    expect(klass.exists?(obj.published_on)).to eql true
+
+    described_class.execute do |txn|
+      txn.destroy! obj
+    end
+
+    expect(klass.exists?(obj.published_on)).to eql false
+  end
+
+  it 'uses dumped value of sort key to destroy item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+
+    expect(klass.exists?([[obj.id, obj.activated_on]])).to eql true
+
+    described_class.execute do |txn|
+      txn.destroy! obj
+    end
+
+    expect(klass.exists?([[obj.id, obj.activated_on]])).to eql false
   end
 end

@@ -690,7 +690,7 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
     expect(obj_to_create).not_to be_changed
   end
 
-  it 'is marked as not persusted and is marked as changed at creation when the transaction rolled back' do
+  it 'is marked as not persisted and is marked as changed at creation when the transaction rolled back' do
     obj = klass.new(name: 'Alex')
 
     expect {
@@ -716,6 +716,72 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
     }.to raise_error('trigger rollback')
 
     expect(obj).to be_changed
+  end
+
+  context 'primary key is of non-native DynamoDB type' do
+    context 'a new model' do
+      it 'uses dumped value of partition key to update item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date }) do
+          field :name
+        end
+        klass.create_table
+        obj = klass.new(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+        described_class.execute do |txn|
+          txn.save obj
+        end
+
+        obj_loaded = klass.find(obj.published_on)
+        expect(obj_loaded.name).to eql 'Alex'
+      end
+
+      it 'uses dumped value of sort key to update item' do
+        klass = new_class do
+          range :activated_on, :date
+          field :name
+        end
+        klass.create_table
+        obj = klass.new(activated_on: Date.today, name: 'Alex')
+
+        described_class.execute do |txn|
+          txn.save obj
+        end
+
+        obj_loaded = klass.find(obj.id, range_key: obj.activated_on)
+        expect(obj_loaded.name).to eql 'Alex'
+      end
+    end
+
+    context 'already persisted model' do
+      it 'uses dumped value of partition key to update item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date }) do
+          field :name
+        end
+        obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+        obj.name = 'Alex [Updated]'
+
+        described_class.execute do |txn|
+          txn.save obj
+        end
+
+        expect(obj.reload.name).to eql('Alex [Updated]')
+      end
+
+      it 'uses dumped value of sort key to update item' do
+        klass = new_class do
+          range :activated_on, :date
+          field :name
+        end
+        obj = klass.create!(activated_on: Date.today, name: 'Alex')
+        obj.name = 'Alex [Updated]'
+
+        described_class.execute do |txn|
+          txn.save obj
+        end
+
+        expect(obj.reload.name).to eql('Alex [Updated]')
+      end
+    end
   end
 
   describe 'callbacks' do
@@ -1145,6 +1211,9 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
 end
 
 describe Dynamoid::TransactionWrite, '.save!' do
+  # The only difference in specs structure between #save and #save! is missing
+  # a section for callbacks here
+
   let(:klass) do
     new_class do
       field :name
@@ -1401,5 +1470,116 @@ describe Dynamoid::TransactionWrite, '.save!' do
     expect(klass.all.to_a).to eql [existing]
     expect(obj_to_create).not_to be_persisted
     expect(obj_to_create).to be_changed
+  end
+
+  it 'does not roll back the transaction when a model to update does not exist' do
+    obj_deleted = klass.create!(name: 'one')
+    klass.find(obj_deleted.id).delete
+    obj_deleted.name = 'one [updated]'
+    obj_to_create = nil
+
+    expect {
+      described_class.execute do |txn|
+        txn.save! obj_deleted
+        obj_to_create = txn.create klass, name: 'two'
+      end
+    }.to change(klass, :count).by(2)
+
+    expect(obj_to_create).to be_persisted
+    expect(obj_to_create).not_to be_changed
+  end
+
+  it 'is marked as not persisted and is marked as changed at creation when the transaction rolled back' do
+    obj = klass.new(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.save! obj
+        raise 'trigger rollback'
+      end
+    }.to raise_error('trigger rollback')
+
+    expect(obj).not_to be_persisted
+    expect(obj).to be_changed
+  end
+
+  it 'is marked as changed at updating when the transaction rolled back' do
+    obj = klass.create!(name: 'Alex')
+    obj.name = 'Alex [Updated]'
+
+    expect {
+      described_class.execute do |txn|
+        txn.save! obj
+        raise 'trigger rollback'
+      end
+    }.to raise_error('trigger rollback')
+
+    expect(obj).to be_changed
+  end
+
+  context 'primary key is of non-native DynamoDB type' do
+    context 'a new model' do
+      it 'uses dumped value of partition key to update item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date }) do
+          field :name
+        end
+        klass.create_table
+        obj = klass.new(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+        described_class.execute do |txn|
+          txn.save! obj
+        end
+
+        obj_loaded = klass.find(obj.published_on)
+        expect(obj_loaded.name).to eql 'Alex'
+      end
+
+      it 'uses dumped value of sort key to update item' do
+        klass = new_class do
+          range :activated_on, :date
+          field :name
+        end
+        klass.create_table
+        obj = klass.new(activated_on: Date.today, name: 'Alex')
+
+        described_class.execute do |txn|
+          txn.save! obj
+        end
+
+        obj_loaded = klass.find(obj.id, range_key: obj.activated_on)
+        expect(obj_loaded.name).to eql 'Alex'
+      end
+    end
+
+    context 'already persisted model' do
+      it 'uses dumped value of partition key to update item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date }) do
+          field :name
+        end
+        obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+        obj.name = 'Alex [Updated]'
+
+        described_class.execute do |txn|
+          txn.save! obj
+        end
+
+        expect(obj.reload.name).to eql('Alex [Updated]')
+      end
+
+      it 'uses dumped value of sort key to update item' do
+        klass = new_class do
+          range :activated_on, :date
+          field :name
+        end
+        obj = klass.create!(activated_on: Date.today, name: 'Alex')
+        obj.name = 'Alex [Updated]'
+
+        described_class.execute do |txn|
+          txn.save! obj
+        end
+
+        expect(obj.reload.name).to eql('Alex [Updated]')
+      end
+    end
   end
 end

@@ -46,8 +46,8 @@ module Dynamoid
         builder = UpdateRequestBuilder.new(@model_class)
 
         # primary key to look up an item to update
-        builder.hash_key = @hash_key
-        builder.range_key = @range_key if @model_class.range_key?
+        builder.hash_key = dump_attribute(@model_class.hash_key, @hash_key)
+        builder.range_key = dump_attribute(@model_class.range_key, @range_key) if @model_class.range_key?
 
         # changed attributes to persist
         changes = @attributes.dup
@@ -109,6 +109,11 @@ module Dynamoid
         result[:created_at] ||= timestamp unless skip_created_at
         result[:updated_at] ||= timestamp
         result
+      end
+
+      def dump_attribute(name, value)
+        options = @model_class.attributes[name]
+        Dumping.dump_field(value, options)
       end
 
       class UpdateRequestBuilder

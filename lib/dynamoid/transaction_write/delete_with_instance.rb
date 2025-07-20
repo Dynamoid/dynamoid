@@ -35,10 +35,10 @@ module Dynamoid
       end
 
       def action_request
-        key = { @model_class.hash_key => @model.hash_key }
+        key = { @model_class.hash_key => dump_attribute(@model_class.hash_key, @model.hash_key) }
 
         if @model_class.range_key?
-          key[@model_class.range_key] = @model.range_value
+          key[@model_class.range_key] = dump_attribute(@model_class.range_key, @model.range_value)
         end
 
         {
@@ -54,6 +54,11 @@ module Dynamoid
       def validate_model!
         raise Dynamoid::Errors::MissingHashKey if @model.hash_key.nil?
         raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && @model.range_value.nil?
+      end
+
+      def dump_attribute(name, value)
+        options = @model_class.attributes[name]
+        Dumping.dump_field(value, options)
       end
     end
   end

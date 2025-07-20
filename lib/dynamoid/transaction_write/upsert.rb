@@ -44,8 +44,13 @@ module Dynamoid
         changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
         # primary key to look up an item to update
-        key = { @model_class.hash_key => @hash_key }
-        key[@model_class.range_key] = @range_key if @model_class.range_key?
+        partition_key_dumped = dump(@model_class.hash_key, @hash_key)
+        key = { @model_class.hash_key => partition_key_dumped }
+
+        if @model_class.range_key?
+          sort_key_dumped = dump(@model_class.range_key, @range_key)
+          key[@model_class.range_key] = sort_key_dumped
+        end
 
         # Build UpdateExpression and keep names and values placeholders mapping
         # in ExpressionAttributeNames and ExpressionAttributeValues.
@@ -90,6 +95,11 @@ module Dynamoid
         result[:created_at] ||= timestamp unless skip_created_at
         result[:updated_at] ||= timestamp
         result
+      end
+
+      def dump(name, value)
+        options = @model_class.attributes[name]
+        Dumping.dump_field(value, options)
       end
     end
   end

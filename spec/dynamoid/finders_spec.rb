@@ -14,7 +14,7 @@ describe Dynamoid::Finders do
       end
     end
 
-    context 'one primary key provided' do
+    context 'a single primary key provided' do
       context 'simple primary key' do
         it 'finds' do
           obj = klass.create
@@ -103,21 +103,21 @@ describe Dynamoid::Finders do
           end
         end
 
-        context 'when true' do
+        context 'when false' do
           it 'leads to not raising exception if model not found' do
             expect(klass.find('blah-blah', raise_error: false)).to eq nil
           end
         end
       end
 
-      it 'uses dumped value of partition key to update item' do
+      it 'uses dumped value of partition key' do
         klass = new_class(partition_key: { name: :published_on, type: :date })
 
         obj = klass.create!(published_on: '2018-10-07'.to_date)
         expect(klass.find(obj.published_on)).to eql(obj)
       end
 
-      it 'uses dumped value of sort key to update item' do
+      it 'uses dumped value of sort key' do
         klass = new_class do
           range :published_on, :date
         end
@@ -226,19 +226,6 @@ describe Dynamoid::Finders do
           expect(klass_with_composite_key.find([[obj1.id, '1'], [obj2.id, '2']])).to match_array(objects)
         end
 
-        it 'dumps a sort key value' do
-          klass_with_date = new_class do
-            range :published_on, :date
-          end
-
-          obj1 = klass_with_date.create(published_on: '2018/07/26'.to_date)
-          obj2 = klass_with_date.create(published_on: '2018/07/27'.to_date)
-
-          expect(
-            klass_with_date.find([[obj1.id, obj1.published_on], [obj2.id, obj2.published_on]])
-          ).to contain_exactly(obj1, obj2)
-        end
-
         it 'raises MissingRangeKey when range key is not specified' do
           obj1, obj2 = klass_with_composite_key.create([{ age: 1 }, { age: 2 }])
 
@@ -274,17 +261,15 @@ describe Dynamoid::Finders do
           end
         end
 
-        context 'when true' do
+        context 'when false' do
           it 'leads to not raising exception if model not found' do
-            obj = klass.create
-
-            # expect(klass.find([obj.id, 'blah-blah'], raise_error: false)).to eq [obj]
-            expect(klass.find_all([obj.id, 'blah-blah'])).to eq [obj]
+            obj = klass.create!
+            expect(klass.find([obj.id, 'blah-blah'], raise_error: false)).to eq [obj]
           end
         end
       end
 
-      it 'uses dumped value of partition key to update item' do
+      it 'uses dumped value of partition key' do
         klass = new_class(partition_key: { name: :published_on, type: :date })
         objects = (1..2).map { |i| klass.create(published_on: '2018-10-07'.to_date + i) }
         obj1, obj2 = objects
@@ -292,7 +277,7 @@ describe Dynamoid::Finders do
         expect(klass.find([obj1.published_on, obj2.published_on])).to match_array(objects)
       end
 
-      it 'uses dumped value of sort key to update item' do
+      it 'uses dumped value of sort key' do
         klass = new_class do
           range :published_on, :date
         end

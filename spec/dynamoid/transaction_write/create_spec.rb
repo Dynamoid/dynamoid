@@ -356,6 +356,35 @@ describe Dynamoid::TransactionWrite, '.create' do # rubocop:disable RSpec/Multip
     expect(obj).to be_changed
   end
 
+  it 'uses dumped value of partition key to create item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    klass.create_table
+
+    described_class.execute do |txn|
+      txn.create klass, published_on: '2018-10-07'.to_date, name: 'Alex'
+    end
+
+    obj = klass.last
+    expect(obj.name).to eql 'Alex'
+  end
+
+  it 'uses dumped value of sort key to create item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    klass.create_table
+
+    described_class.execute do |txn|
+      txn.create klass, activated_on: Date.today, name: 'Alex'
+    end
+
+    obj = klass.last
+    expect(obj.name).to eql 'Alex'
+  end
+
   describe 'callbacks' do
     before do
       ScratchPad.clear
@@ -534,6 +563,13 @@ describe Dynamoid::TransactionWrite, '.create!' do
     end
   end
 
+  let(:klass_with_composite_key) do
+    new_class do
+      range :age, :integer
+      field :name
+    end
+  end
+
   let(:klass_with_validation) do
     new_class do
       field :name
@@ -609,6 +645,96 @@ describe Dynamoid::TransactionWrite, '.create!' do
       end
 
       expect(objects.map(&:name)).to contain_exactly('Alex [Updated]', 'Michael [Updated]')
+    end
+  end
+
+  describe 'primary key schema' do
+    context 'simple primary key' do
+      it 'persists a model' do
+        klass.create_table
+
+        expect {
+          described_class.execute do |txn|
+            txn.create! klass, name: 'Alex'
+          end
+        }.to change(klass, :count).by(1)
+      end
+    end
+
+    context 'composite key' do
+      it 'persists a model' do
+        klass_with_composite_key.create_table
+
+        expect {
+          described_class.execute do |txn|
+            txn.create! klass_with_composite_key, name: 'Alex', age: 3
+          end
+        }.to change(klass_with_composite_key, :count).by(1)
+      end
+    end
+  end
+
+  describe 'primary key validation' do
+    context 'composite key' do
+      it 'requires sort key to be specified' do
+        klass_with_composite_key.create_table
+
+        expect {
+          described_class.execute do |txn|
+            txn.create! klass_with_composite_key, name: 'Alex', age: nil
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+      end
+    end
+  end
+
+  describe 'timestamps' do
+    before do
+      klass.create_table
+    end
+
+    it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+      travel 1.hour do
+        time_now = Time.now
+
+        obj = nil
+        described_class.execute do |txn|
+          obj = txn.create! klass, name: 'Alex'
+        end
+
+        expect(obj.created_at.to_i).to eql time_now.to_i
+        expect(obj.updated_at.to_i).to eql time_now.to_i
+      end
+    end
+
+    it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+      travel 1.hour do
+        created_at = updated_at = Time.now
+
+        obj = nil
+        described_class.execute do |txn|
+          obj = txn.create! klass, created_at: created_at, updated_at: updated_at
+        end
+
+        expect(obj.created_at.to_i).to eql created_at.to_i
+        expect(obj.updated_at.to_i).to eql updated_at.to_i
+      end
+    end
+
+    it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+      expect {
+        described_class.execute do |txn|
+          txn.create! klass, name: 'Alex'
+        end
+      }.not_to raise_error
+    end
+
+    it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+      expect {
+        described_class.execute do |txn|
+          txn.create! klass, {}
+        end
+      }.not_to raise_error
     end
   end
 
@@ -698,5 +824,62 @@ describe Dynamoid::TransactionWrite, '.create!' do
 
     expect(obj_to_save).not_to be_persisted
     expect(obj_to_save).to be_changed
+  end
+
+  it 'rolls back the transaction when id is not unique' do
+    existing = klass.create!(name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.create! klass, name: 'Alex', id: existing.id
+        txn.create klass, name: 'Michael'
+      end
+    }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+
+    expect(klass.count).to eql 1
+    expect(klass.all.to_a).to eql [existing]
+  end
+
+  it 'is not marked as persisted and is marked as changed when the transaction rolled back' do
+    obj = nil
+
+    expect {
+      described_class.execute do |txn|
+        obj = txn.create! klass, name: 'Alex'
+        raise 'trigger rollback'
+      end
+    }.to raise_error('trigger rollback')
+
+    expect(obj).not_to be_persisted
+    expect(obj).to be_changed
+  end
+
+  it 'uses dumped value of partition key to create item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    klass.create_table
+
+    described_class.execute do |txn|
+      txn.create! klass, published_on: '2018-10-07'.to_date, name: 'Alex'
+    end
+
+    obj = klass.last
+    expect(obj.name).to eql 'Alex'
+  end
+
+  it 'uses dumped value of sort key to create item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    klass.create_table
+
+    described_class.execute do |txn|
+      txn.create! klass, activated_on: Date.today, name: 'Alex'
+    end
+
+    obj = klass.last
+    expect(obj.name).to eql 'Alex'
   end
 end

@@ -137,6 +137,37 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do # rubocop:disable RSpec
     expect(obj).not_to be_destroyed
   end
 
+  it 'uses dumped value of partition key to delete item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.delete obj
+      end
+    }.to change(klass, :count).by(-1)
+
+    expect(klass.exists?(obj.published_on)).to eql false
+  end
+
+  it 'uses dumped value of sort key to delete item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.delete obj
+      end
+    }.to change(klass, :count).by(-1)
+
+    expect(klass.exists?([[obj.id, obj.activated_on]])).to eql false
+  end
+
   describe 'callbacks' do
     it 'does not run any callback' do
       klass_with_callbacks = new_class do
@@ -283,6 +314,37 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
       expect(obj_to_delete).not_to be_destroyed
       expect(obj_to_save).to be_persisted
     end
+  end
+
+  it 'uses dumped value of partition key to delete item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.delete klass, obj.published_on
+      end
+    }.to change(klass, :count).by(-1)
+
+    expect(klass.exists?(obj.published_on)).to eql false
+  end
+
+  it 'uses dumped value of sort key to delete item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+
+    expect {
+      described_class.execute do |txn|
+        txn.delete klass, obj.id, obj.activated_on
+      end
+    }.to change(klass, :count).by(-1)
+
+    expect(klass.exists?([[obj.id, obj.activated_on]])).to eql false
   end
 
   describe 'callbacks' do

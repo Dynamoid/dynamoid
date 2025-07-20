@@ -2651,7 +2651,7 @@ describe Dynamoid::Persistence do
 
     context 'primary key dumping' do
       context 'new model' do
-        it 'uses dumped value of partition key to update item' do
+        it 'uses dumped value of partition key to save item' do
           klass = new_class(partition_key: { name: :published_on, type: :date }) do
             field :title
           end
@@ -2663,7 +2663,7 @@ describe Dynamoid::Persistence do
           expect(obj_loaded.title).to eq 'Some title'
         end
 
-        it 'uses dumped value of sort key to update item' do
+        it 'uses dumped value of sort key to save item' do
           klass = new_class do
             range :published_on, :date
             field :title
@@ -2678,7 +2678,7 @@ describe Dynamoid::Persistence do
       end
 
       context 'persised model' do
-        it 'uses dumped value of partition key to update item' do
+        it 'uses dumped value of partition key to save item' do
           klass = new_class(partition_key: { name: :published_on, type: :date }) do
             field :title
           end
@@ -2691,7 +2691,7 @@ describe Dynamoid::Persistence do
           expect(obj_loaded.title).to eq 'New'
         end
 
-        it 'uses dumped value of sort key to update item' do
+        it 'uses dumped value of sort key to save item' do
           klass = new_class do
             range :published_on, :date
             field :title
