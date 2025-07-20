@@ -319,4 +319,31 @@ describe Dynamoid::TransactionWrite, '.upsert' do
       expect(ScratchPad.recorded).to eql([])
     end
   end
+
+  it 'uses dumped value of partition key to update item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+    described_class.execute do |txn|
+      txn.upsert klass, obj.published_on, name: 'Alex [Updated]'
+    end
+
+    expect(obj.reload.name).to eql('Alex [Updated]')
+  end
+
+  it 'uses dumped value of sort key to update item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+
+    described_class.execute do |txn|
+      txn.upsert klass, obj.id, obj.activated_on, name: 'Alex [Updated]'
+    end
+
+    expect(obj.reload.name).to eql('Alex [Updated]')
+  end
 end

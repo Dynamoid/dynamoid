@@ -121,8 +121,8 @@ module Dynamoid
         changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
         # primary key to look up an item to update
-        key = { @model_class.hash_key => @model.hash_key }
-        key[@model_class.range_key] = @model.range_value if @model_class.range_key?
+        key = { @model_class.hash_key => dump_attribute(@model_class.hash_key, @model.hash_key) }
+        key[@model_class.range_key] = dump_attribute(@model_class.range_key, @model.range_value) if @model_class.range_key?
 
         # Build UpdateExpression and keep names and values placeholders mapping
         # in ExpressionAttributeNames and ExpressionAttributeValues.
@@ -158,6 +158,11 @@ module Dynamoid
         timestamp = DateTime.now.in_time_zone(Time.zone)
         @model.updated_at = timestamp unless @options[:touch] == false && !@was_new_record
         @model.created_at ||= timestamp unless skip_created_at
+      end
+
+      def dump_attribute(name, value)
+        options = @model_class.attributes[name]
+        Dumping.dump_field(value, options)
       end
     end
   end

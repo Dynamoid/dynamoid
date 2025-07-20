@@ -197,6 +197,37 @@ describe Dynamoid::TransactionWrite, '#destroy' do # rubocop:disable RSpec/Multi
     expect(obj).not_to be_destroyed
   end
 
+  it 'uses dumped value of partition key to destroy item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+    expect(klass.exists?(obj.published_on)).to eql true
+
+    described_class.execute do |txn|
+      txn.destroy obj
+    end
+
+    expect(klass.exists?(obj.published_on)).to eql false
+  end
+
+  it 'uses dumped value of sort key to destroy item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+
+    expect(klass.exists?([[obj.id, obj.activated_on]])).to eql true
+
+    described_class.execute do |txn|
+      txn.destroy obj
+    end
+
+    expect(klass.exists?([[obj.id, obj.activated_on]])).to eql false
+  end
+
   describe 'callbacks' do
     before do
       ScratchPad.clear

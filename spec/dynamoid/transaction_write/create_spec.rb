@@ -356,6 +356,35 @@ describe Dynamoid::TransactionWrite, '.create' do # rubocop:disable RSpec/Multip
     expect(obj).to be_changed
   end
 
+  it 'uses dumped value of partition key to create item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    klass.create_table
+
+    described_class.execute do |txn|
+      txn.create klass, published_on: '2018-10-07'.to_date, name: 'Alex'
+    end
+
+    obj = klass.last
+    expect(obj.name).to eql 'Alex'
+  end
+
+  it 'uses dumped value of sort key to create item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    klass.create_table
+
+    described_class.execute do |txn|
+      txn.create klass, activated_on: Date.today, name: 'Alex'
+    end
+
+    obj = klass.last
+    expect(obj.name).to eql 'Alex'
+  end
+
   describe 'callbacks' do
     before do
       ScratchPad.clear
@@ -698,5 +727,34 @@ describe Dynamoid::TransactionWrite, '.create!' do
 
     expect(obj_to_save).not_to be_persisted
     expect(obj_to_save).to be_changed
+  end
+
+  it 'uses dumped value of partition key to create item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    klass.create_table
+
+    described_class.execute do |txn|
+      txn.create! klass, published_on: '2018-10-07'.to_date, name: 'Alex'
+    end
+
+    obj = klass.last
+    expect(obj.name).to eql 'Alex'
+  end
+
+  it 'uses dumped value of sort key to create item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    klass.create_table
+
+    described_class.execute do |txn|
+      txn.create! klass, activated_on: Date.today, name: 'Alex'
+    end
+
+    obj = klass.last
+    expect(obj.name).to eql 'Alex'
   end
 end

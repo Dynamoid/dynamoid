@@ -718,6 +718,72 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
     expect(obj).to be_changed
   end
 
+  context 'primary key is of non-native DynamoDB type' do
+    context 'a new model' do
+      it 'uses dumped value of partition key to update item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date }) do
+          field :name
+        end
+        klass.create_table
+        obj = klass.new(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+        described_class.execute do |txn|
+          txn.save obj
+        end
+
+        obj_loaded = klass.find(obj.published_on)
+        expect(obj_loaded.name).to eql 'Alex'
+      end
+
+      it 'uses dumped value of sort key to update item' do
+        klass = new_class do
+          range :activated_on, :date
+          field :name
+        end
+        klass.create_table
+        obj = klass.new(activated_on: Date.today, name: 'Alex')
+
+        described_class.execute do |txn|
+          txn.save obj
+        end
+
+        obj_loaded = klass.find(obj.id, range_key: obj.activated_on)
+        expect(obj_loaded.name).to eql 'Alex'
+      end
+    end
+
+    context 'already persisted model' do
+      it 'uses dumped value of partition key to update item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date }) do
+          field :name
+        end
+        obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+        obj.name = 'Alex [Updated]'
+
+        described_class.execute do |txn|
+          txn.save obj
+        end
+
+        expect(obj.reload.name).to eql('Alex [Updated]')
+      end
+
+      it 'uses dumped value of sort key to update item' do
+        klass = new_class do
+          range :activated_on, :date
+          field :name
+        end
+        obj = klass.create!(activated_on: Date.today, name: 'Alex')
+        obj.name = 'Alex [Updated]'
+
+        described_class.execute do |txn|
+          txn.save obj
+        end
+
+        expect(obj.reload.name).to eql('Alex [Updated]')
+      end
+    end
+  end
+
   describe 'callbacks' do
     before do
       ScratchPad.clear
@@ -1401,5 +1467,71 @@ describe Dynamoid::TransactionWrite, '.save!' do
     expect(klass.all.to_a).to eql [existing]
     expect(obj_to_create).not_to be_persisted
     expect(obj_to_create).to be_changed
+  end
+
+  context 'primary key is of non-native DynamoDB type' do
+    context 'a new model' do
+      it 'uses dumped value of partition key to update item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date }) do
+          field :name
+        end
+        klass.create_table
+        obj = klass.new(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+        described_class.execute do |txn|
+          txn.save! obj
+        end
+
+        obj_loaded = klass.find(obj.published_on)
+        expect(obj_loaded.name).to eql 'Alex'
+      end
+
+      it 'uses dumped value of sort key to update item' do
+        klass = new_class do
+          range :activated_on, :date
+          field :name
+        end
+        klass.create_table
+        obj = klass.new(activated_on: Date.today, name: 'Alex')
+
+        described_class.execute do |txn|
+          txn.save! obj
+        end
+
+        obj_loaded = klass.find(obj.id, range_key: obj.activated_on)
+        expect(obj_loaded.name).to eql 'Alex'
+      end
+    end
+
+    context 'already persisted model' do
+      it 'uses dumped value of partition key to update item' do
+        klass = new_class(partition_key: { name: :published_on, type: :date }) do
+          field :name
+        end
+        obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+        obj.name = 'Alex [Updated]'
+
+        described_class.execute do |txn|
+          txn.save! obj
+        end
+
+        expect(obj.reload.name).to eql('Alex [Updated]')
+      end
+
+      it 'uses dumped value of sort key to update item' do
+        klass = new_class do
+          range :activated_on, :date
+          field :name
+        end
+        obj = klass.create!(activated_on: Date.today, name: 'Alex')
+        obj.name = 'Alex [Updated]'
+
+        described_class.execute do |txn|
+          txn.save! obj
+        end
+
+        expect(obj.reload.name).to eql('Alex [Updated]')
+      end
+    end
   end
 end

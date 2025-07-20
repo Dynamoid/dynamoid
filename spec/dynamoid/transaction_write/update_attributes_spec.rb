@@ -329,6 +329,33 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable R
     expect(obj).to be_changed
   end
 
+  it 'uses dumped value of partition key to update item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+    described_class.execute do |txn|
+      txn.update_attributes obj, name: 'Alex [Updated]'
+    end
+
+    expect(obj.reload.name).to eql('Alex [Updated]')
+  end
+
+  it 'uses dumped value of sort key to update item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+
+    described_class.execute do |txn|
+      txn.update_attributes obj, name: 'Alex [Updated]'
+    end
+
+    expect(obj.reload.name).to eql('Alex [Updated]')
+  end
+
   describe 'callbacks' do
     before do
       ScratchPad.clear
@@ -681,5 +708,32 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
     expect(obj_deleted).to be_persisted
     expect(obj_deleted).not_to be_destroyed
     expect(klass.find(obj_deleted.id).name).to eql 'Alex [Updated]'
+  end
+
+  it 'uses dumped value of partition key to update item' do
+    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+      field :name
+    end
+    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+
+    described_class.execute do |txn|
+      txn.update_attributes! obj, name: 'Alex [Updated]'
+    end
+
+    expect(obj.reload.name).to eql('Alex [Updated]')
+  end
+
+  it 'uses dumped value of sort key to update item' do
+    klass = new_class do
+      range :activated_on, :date
+      field :name
+    end
+    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+
+    described_class.execute do |txn|
+      txn.update_attributes! obj, name: 'Alex [Updated]'
+    end
+
+    expect(obj.reload.name).to eql('Alex [Updated]')
   end
 end
