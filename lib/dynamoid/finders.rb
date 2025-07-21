@@ -127,7 +127,7 @@ module Dynamoid
         items = if Dynamoid.config.backoff
                   items = []
                   backoff = nil
-                  Dynamoid.adapter.read(table_name, ids, read_options) do |hash, has_unprocessed_items|
+                  adapter.read(table_name, ids, read_options) do |hash, has_unprocessed_items|
                     items += hash[table_name]
 
                     if has_unprocessed_items
@@ -139,7 +139,7 @@ module Dynamoid
                   end
                   items
                 else
-                  items = Dynamoid.adapter.read(table_name, ids, read_options)
+                  items = adapter.read(table_name, ids, read_options)
                   items ? items[table_name] : []
                 end
 
@@ -165,7 +165,7 @@ module Dynamoid
           options[:range_key] = cast_and_dump(range_key, options[:range_key])
         end
 
-        if item = Dynamoid.adapter.read(table_name, partition_key_dumped, options.slice(:range_key, :consistent_read))
+        if item = adapter.read(table_name, partition_key_dumped, options.slice(:range_key, :consistent_read))
           model = from_database(item)
           model.run_callbacks :find
           model
@@ -211,7 +211,7 @@ module Dynamoid
       def find_all_by_composite_key(hash_key, options = {})
         Dynamoid.deprecator.warn('[Dynamoid] .find_all_composite_key is deprecated! Call .where instead of')
 
-        Dynamoid.adapter.query(table_name, options.merge(hash_value: hash_key)).flat_map { |i| i }.collect do |item|
+        adapter.query(table_name, options.merge(hash_value: hash_key)).flat_map { |i| i }.collect do |item|
           from_database(item)
         end
       end
@@ -272,7 +272,7 @@ module Dynamoid
         query_options = options.slice(*Dynamoid::AdapterPlugin::AwsSdkV3::Query::OPTIONS_KEYS)
         query_options[:index_name] = index.name
 
-        Dynamoid.adapter.query(table_name, query_key_conditions, query_non_key_conditions, query_options)
+        adapter.query(table_name, query_key_conditions, query_non_key_conditions, query_options)
           .flat_map { |i| i }
           .map { |item| from_database(item) }
       end

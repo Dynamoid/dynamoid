@@ -106,5 +106,11 @@ module Dynamoid
         super('Scan operations prohibited. Modify Dynamoid::Config.error_on_scan to change this behavior.')
       end
     end
+
+    class UnknownConfiguration < Error
+      def initialize(config_name)
+        super("Unknown configuration: #{config_name}")
+      end
+    end
   end
 end

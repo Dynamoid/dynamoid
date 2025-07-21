@@ -33,13 +33,13 @@ module Dynamoid
 
         if @model.new_record?
           attributes_dumped = Dumping.dump_attributes(@model.attributes, @model.class.attributes)
-          Dynamoid.adapter.write(@model.class.table_name, attributes_dumped, conditions_for_write)
+          @model.class.adapter.write(@model.class.table_name, attributes_dumped, conditions_for_write)
         else
           attributes_to_persist = @model.attributes.slice(*@model.changed.map(&:to_sym))
           partition_key_dumped = dump(@model.class.hash_key, @model.hash_key)
           options = options_to_update_item(partition_key_dumped)
 
-          Dynamoid.adapter.update_item(@model.class.table_name, partition_key_dumped, options) do |t|
+          @model.class.adapter.update_item(@model.class.table_name, partition_key_dumped, options) do |t|
             item_updater = ItemUpdaterWithDumping.new(@model.class, t)
 
             attributes_to_persist.each do |name, value|

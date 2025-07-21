@@ -233,18 +233,18 @@ module Dynamoid
         ranges = []
 
         if @key_fields_detector.key_present?
-          Dynamoid.adapter.query(source.table_name, query_key_conditions, query_non_key_conditions, query_options).flat_map { |i| i }.collect do |hash|
+          source.adapter.query(source.table_name, query_key_conditions, query_non_key_conditions, query_options).flat_map { |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
         else
-          Dynamoid.adapter.scan(source.table_name, scan_conditions, scan_options).flat_map { |i| i }.collect do |hash|
+          source.adapter.scan(source.table_name, scan_conditions, scan_options).flat_map { |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
             ranges << hash[source.range_key.to_sym] if source.range_key
           end
         end
 
-        Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
+        source.adapter.delete(source.table_name, ids, range_key: ranges.presence)
       end
       alias destroy_all delete_all
 
@@ -575,7 +575,7 @@ module Dynamoid
       # @since 3.1.0
       def raw_pages_via_query
         Enumerator.new do |y|
-          Dynamoid.adapter.query(source.table_name, query_key_conditions, query_non_key_conditions, query_options).each do |items, metadata|
+          source.adapter.query(source.table_name, query_key_conditions, query_non_key_conditions, query_options).each do |items, metadata|
             options = metadata.slice(:last_evaluated_key)
 
             y.yield items, options
@@ -590,7 +590,7 @@ module Dynamoid
       # @since 3.1.0
       def raw_pages_via_scan
         Enumerator.new do |y|
-          Dynamoid.adapter.scan(source.table_name, scan_conditions, scan_options).each do |items, metadata|
+          source.adapter.scan(source.table_name, scan_conditions, scan_options).each do |items, metadata|
             options = metadata.slice(:last_evaluated_key)
 
             y.yield items, options
@@ -613,11 +613,11 @@ module Dynamoid
       end
 
       def count_via_query
-        Dynamoid.adapter.query_count(source.table_name, query_key_conditions, query_non_key_conditions, query_options)
+        source.adapter.query_count(source.table_name, query_key_conditions, query_non_key_conditions, query_options)
       end
 
       def count_via_scan
-        Dynamoid.adapter.scan_count(source.table_name, scan_conditions, scan_options)
+        source.adapter.scan_count(source.table_name, scan_conditions, scan_options)
       end
 
       def field_condition(key, value_before_type_casting)

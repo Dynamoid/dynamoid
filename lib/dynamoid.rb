@@ -35,6 +35,7 @@ require 'dynamoid/loadable'
 require 'dynamoid/components'
 require 'dynamoid/document'
 require 'dynamoid/adapter'
+require 'dynamoid/multi_config'
 require 'dynamoid/transaction_write'
 
 require 'dynamoid/tasks/database'
@@ -50,6 +51,10 @@ module Dynamoid
     block_given? ? yield(Dynamoid::Config) : Dynamoid::Config
   end
   alias config configure
+
+  def multi_configure(&block)
+    Dynamoid::MultiConfig.configure(&block)
+  end
 
   def logger
     Dynamoid::Config.logger

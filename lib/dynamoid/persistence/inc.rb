@@ -23,7 +23,7 @@ module Dynamoid
         touch = @counters.delete(:touch)
         hash_key_dumped = cast_and_dump(@model_class.hash_key, @hash_key)
 
-        Dynamoid.adapter.update_item(@model_class.table_name, hash_key_dumped, update_item_options) do |t|
+        @model_class.adapter.update_item(@model_class.table_name, hash_key_dumped, update_item_options) do |t|
           item_updater = ItemUpdaterWithCastingAndDumping.new(@model_class, t)
 
           @counters.each do |name, value|

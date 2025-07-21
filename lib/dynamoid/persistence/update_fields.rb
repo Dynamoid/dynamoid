@@ -35,7 +35,7 @@ module Dynamoid
       private
 
       def update_item
-        Dynamoid.adapter.update_item(@model_class.table_name, @partition_key_dumped, options_to_update_item) do |t|
+        @model_class.adapter.update_item(@model_class.table_name, @partition_key_dumped, options_to_update_item) do |t|
           item_updater = ItemUpdaterWithCastingAndDumping.new(@model_class, t)
 
           @attributes.each do |k, v|
