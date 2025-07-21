@@ -8,10 +8,11 @@ module Dynamoid
     include Dynamoid::Components
 
     included do
-      class_attribute :options, :read_only_attributes, :base_class, instance_accessor: false
+      class_attribute :options, :read_only_attributes, :base_class, :dynamoid_config_name, instance_accessor: false
       self.options = {}
       self.read_only_attributes = []
       self.base_class = self
+      self.dynamoid_config_name = nil
 
       Dynamoid.included_models << self unless Dynamoid.included_models.include? self
     end
@@ -19,6 +20,26 @@ module Dynamoid
     module ClassMethods
       def attr_readonly(*read_only_attributes)
         self.read_only_attributes.concat read_only_attributes.map(&:to_s)
+      end
+
+      # Set the DynamoDB configuration to use for this model
+      #
+      # @param [Symbol] config_name the name of the configuration
+      # @since 4.0.0
+      def dynamoid_config(config_name)
+        self.dynamoid_config_name = config_name.to_sym
+      end
+
+      # Get the adapter for this model's configuration
+      #
+      # @return [Dynamoid::Adapter] the adapter instance
+      # @since 4.0.0
+      def adapter
+        if dynamoid_config_name
+          Dynamoid::MultiConfig.get_adapter(dynamoid_config_name)
+        else
+          Dynamoid.adapter
+        end
       end
 
       # Returns the read capacity for this table.
@@ -80,7 +101,7 @@ module Dynamoid
       # @return [Integer] items count in a table
       # @since 0.6.1
       def count
-        Dynamoid.adapter.count(table_name)
+        adapter.count(table_name)
       end
 
       # Initialize a new object.

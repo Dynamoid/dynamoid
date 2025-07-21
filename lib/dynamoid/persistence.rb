@@ -30,7 +30,14 @@ module Dynamoid
       def table_name
         table_base_name = options[:name] || base_class.name.split('::').last.downcase.pluralize
 
-        @table_name ||= [Dynamoid::Config.namespace.to_s, table_base_name].reject(&:empty?).join('_')
+        namespace = if dynamoid_config_name
+                     config = Dynamoid::MultiConfig.get_config(dynamoid_config_name)
+                     config.namespace.to_s
+                   else
+                     Dynamoid::Config.namespace.to_s
+                   end
+
+        @table_name ||= [namespace, table_base_name].reject(&:empty?).join('_')
       end
 
       # Create a table.
@@ -111,11 +118,11 @@ module Dynamoid
           global_secondary_indexes: global_secondary_indexes.values
         }.merge(options)
 
-        created_successfuly = Dynamoid.adapter.create_table(options[:table_name], options[:id], options)
+        created_successfuly = adapter.create_table(options[:table_name], options[:id], options)
 
         if created_successfuly && self.options[:expires]
           attribute = self.options[:expires][:field]
-          Dynamoid.adapter.update_time_to_live(options[:table_name], attribute)
+          adapter.update_time_to_live(options[:table_name], attribute)
         end
 
         self
@@ -129,7 +136,7 @@ module Dynamoid
       # Subsequent method calls for the same table will be ignored.
       # @return [Model class] self
       def delete_table
-        Dynamoid.adapter.delete_table(table_name)
+        adapter.delete_table(table_name)
         self
       end
 
@@ -688,7 +695,7 @@ module Dynamoid
           partition_key_dumped = Dumping.dump_field(hash_key, self.class.attributes[self.class.hash_key])
           update_item_options = options.merge(conditions: conditions)
 
-          new_attrs = Dynamoid.adapter.update_item(table_name, partition_key_dumped, update_item_options) do |t|
+          new_attrs = self.class.adapter.update_item(table_name, partition_key_dumped, update_item_options) do |t|
             item_updater = ItemUpdaterWithDumping.new(self.class, t)
 
             item_updater.add(lock_version: 1) if self.class.attributes[:lock_version]
@@ -943,7 +950,7 @@ module Dynamoid
 
       @destroyed = true
 
-      Dynamoid.adapter.delete(self.class.table_name, partition_key_dumped, options)
+      self.class.adapter.delete(self.class.table_name, partition_key_dumped, options)
 
       self.class.associations.each_key do |name|
         send(name).disassociate_source
