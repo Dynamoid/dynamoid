@@ -102,8 +102,8 @@ credentials = Aws::AssumeRoleCredentials.new(
 )
 
 Dynamoid.configure do |config|
-  config.region = 'us-west-2',
-                  config.credentials = credentials
+  config.region = 'us-west-2'
+  config.credentials = credentials
 end
 ```
 
