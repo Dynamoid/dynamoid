@@ -641,6 +641,7 @@ with `inheritance_field` table option:
 ```ruby
 class Car
   include Dynamoid::Document
+
   table inheritance_field: :my_new_type
 
   field :my_new_type
@@ -935,6 +936,7 @@ It could be done with `project` method:
 ```ruby
 class User
   include Dynamoid::Document
+
   field :name
 end
 
@@ -1536,6 +1538,7 @@ order to troubleshoot and debug issues just set it:
 ```ruby
 class User
   include Dynamoid::Document
+
   field name
 end
 
