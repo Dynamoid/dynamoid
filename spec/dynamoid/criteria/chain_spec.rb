@@ -1549,6 +1549,7 @@ describe Dynamoid::Criteria::Chain do
       let(:model) do
         Class.new do
           include Dynamoid::Document
+
           table name: :customer, key: :version
           range :age, :integer
           field :name

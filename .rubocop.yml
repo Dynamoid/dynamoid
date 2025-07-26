@@ -87,6 +87,8 @@ Metrics/ClassLength:
   Enabled: false
 
 # Minor annoying issues
+Layout/EmptyLinesAfterModuleInclusion:
+  Enabled: false # ignores multiple `#include` on consequent lines
 Lint/UselessAssignment:
   Enabled: false
 Lint/AmbiguousBlockAssociation:

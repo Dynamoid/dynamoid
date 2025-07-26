@@ -127,6 +127,7 @@ describe Dynamoid::Indexes do
       let(:doc_class_with_lsi) do
         Class.new do
           include Dynamoid::Document
+
           table name: :mytable, key: :some_hash_field
           range :some_range_field # @WHAT
 
@@ -157,6 +158,7 @@ describe Dynamoid::Indexes do
       let(:doc_class_with_table) do
         Class.new do
           include Dynamoid::Document
+
           table name: :mytable, key: :some_hash_field
           range :some_range_field
         end
@@ -209,6 +211,7 @@ describe Dynamoid::Indexes do
     let(:doc_class) do
       Class.new do
         include Dynamoid::Document
+
         table name: :mytable
       end
     end
@@ -226,6 +229,7 @@ describe Dynamoid::Indexes do
       let(:doc_class) do
         Class.new do
           include Dynamoid::Document
+
           table name: :mytable, key: :some_hash_field
 
           field :primary_hash_field
