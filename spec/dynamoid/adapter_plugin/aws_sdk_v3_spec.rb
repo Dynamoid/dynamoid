@@ -665,6 +665,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       let(:doc_class) do
         Class.new do
           include Dynamoid::Document
+
           range :range, :number
           field :range2
           field :hash2

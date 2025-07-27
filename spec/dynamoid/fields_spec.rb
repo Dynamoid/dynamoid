@@ -292,6 +292,7 @@ describe Dynamoid::Fields do
 
         new_class(module: module_with_methods, class_name: 'Foobar') do
           include @helper_options[:module]
+
           field :foo
         end
       end
@@ -302,6 +303,7 @@ describe Dynamoid::Fields do
 
         new_class(module: module_with_methods) do
           include @helper_options[:module]
+
           field :bar
         end
       end
@@ -312,6 +314,7 @@ describe Dynamoid::Fields do
 
         new_class(module: module_with_methods) do
           include @helper_options[:module]
+
           field :baz
         end
       end
@@ -322,6 +325,7 @@ describe Dynamoid::Fields do
 
         new_class(module: module_with_methods) do
           include @helper_options[:module]
+
           field :foobar
         end
       end
