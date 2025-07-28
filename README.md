@@ -1375,6 +1375,224 @@ Listed below are all configuration options.
   corresponding table in DynamoDB at model persisting if the table
   doesn't exist yet. Default is `true`
 
+## Multi-Configuration Support
+
+Dynamoid supports multiple configurations to connect to different DynamoDB instances 
+across multiple AWS accounts or regions. This is useful when you need to:
+
+- Connect to DynamoDB tables in different AWS accounts
+- Use different regions for different models
+- Separate production/staging data across different AWS setups
+- Implement cross-account data access patterns
+
+### Setting up Multiple Configurations
+
+Configure multiple DynamoDB connections in your application initializer:
+
+```ruby
+# config/initializers/dynamoid.rb
+Dynamoid.multi_configure do |config|
+  # Primary configuration (e.g., main application data)
+  config.add_config(:primary) do |c|
+    c.access_key = ENV.fetch('PRIMARY_AWS_ACCESS_KEY', nil)
+    c.secret_key = ENV.fetch('PRIMARY_AWS_SECRET_KEY', nil)
+    c.region = 'us-east-1'
+    c.namespace = 'myapp_primary'
+  end
+
+  # Secondary configuration (e.g., analytics data)
+  config.add_config(:analytics) do |c|
+    c.access_key = ENV.fetch('ANALYTICS_AWS_ACCESS_KEY', nil)
+    c.secret_key = ENV.fetch('ANALYTICS_AWS_SECRET_KEY', nil)
+    c.region = 'us-west-2'
+    c.namespace = 'myapp_analytics'
+  end
+
+  # Cross-account configuration (e.g., partner data)
+  config.add_config(:partner) do |c|
+    c.credentials = Aws::AssumeRoleCredentials.new(
+      role_arn: ENV.fetch('PARTNER_ROLE_ARN', nil),
+      role_session_name: 'dynamoid-cross-account'
+    )
+    c.region = 'eu-west-1'
+    c.namespace = 'partner_shared'
+  end
+end
+```
+
+### Using Multiple Configurations in Models
+
+Specify which configuration a model should use with the `dynamoid_config` method:
+
+```ruby
+# Models using primary configuration
+class User
+  include Dynamoid::Document
+  
+  dynamoid_config :primary
+  
+  field :name, :string
+  field :email, :string
+  
+  has_many :orders
+end
+
+class Order
+  include Dynamoid::Document
+  
+  dynamoid_config :primary
+  
+  field :total, :number
+  field :status, :string
+  
+  belongs_to :user
+end
+
+# Models using analytics configuration
+class PageView
+  include Dynamoid::Document
+  
+  dynamoid_config :analytics
+  
+  field :url, :string
+  field :user_id, :string
+  field :timestamp, :datetime
+  
+  global_secondary_index hash_key: :user_id, range_key: :timestamp
+end
+
+class Report
+  include Dynamoid::Document
+  
+  dynamoid_config :analytics
+  
+  field :name, :string
+  field :data, :serialized
+  field :generated_at, :datetime
+end
+
+# Models using partner configuration
+class SharedData
+  include Dynamoid::Document
+  
+  dynamoid_config :partner
+  
+  field :partner_id, :string
+  field :content, :serialized
+  field :sync_status, :string
+end
+
+# Models using default configuration (fallback to main Dynamoid.configure)
+class SystemLog
+  include Dynamoid::Document
+  
+  # No dynamoid_config specified - uses default configuration
+  
+  field :level, :string
+  field :message, :string
+  field :timestamp, :datetime
+end
+```
+
+### Configuration Inheritance
+
+Models automatically inherit the correct configuration for all operations:
+
+- **Table operations**: `create_table`, `delete_table`
+- **CRUD operations**: `create`, `save`, `update`, `delete`, `find`
+- **Queries**: `where`, `all`, `first`, `last`
+- **Batch operations**: `import`, `batch_write`
+- **Scanning**: `scan`
+
+```ruby
+# Each model uses its own DynamoDB connection
+User.create(name: "John", email: "john@example.com")     # Uses :primary config
+PageView.create(url: "/home", user_id: "123")            # Uses :analytics config
+SharedData.create(partner_id: "partner1", content: {})   # Uses :partner config
+SystemLog.create(level: "info", message: "App started")  # Uses default config
+```
+
+### Table Names and Namespaces
+
+Each configuration can have its own namespace, resulting in different table prefixes:
+
+```ruby
+# With the configurations above:
+User.table_name        # => "myapp_primary_users"
+PageView.table_name    # => "myapp_analytics_page_views"
+SharedData.table_name  # => "partner_shared_shared_data"
+SystemLog.table_name   # => "dynamoid_system_logs" (uses default namespace)
+```
+
+### Configuration Management
+
+```ruby
+# List all configured names
+Dynamoid::MultiConfig.configuration_names
+# => [:primary, :analytics, :partner]
+
+# Check if a configuration exists
+Dynamoid::MultiConfig.configuration_exists?(:primary)
+# => true
+
+# Get a specific configuration
+config = Dynamoid::MultiConfig.get_config(:primary)
+config.region # => "us-east-1"
+
+# Remove a configuration
+Dynamoid::MultiConfig.remove_config(:analytics)
+
+# Clear all configurations
+Dynamoid::MultiConfig.clear_all
+```
+
+### Error Handling
+
+If you specify a non-existent configuration, Dynamoid will raise an error:
+
+```ruby
+class InvalidModel
+  include Dynamoid::Document
+  
+  dynamoid_config :nonexistent  # This configuration doesn't exist
+  
+  field :name, :string
+end
+
+InvalidModel.create(name: "test")
+# => Dynamoid::Errors::UnknownConfiguration: Unknown configuration: nonexistent
+```
+
+### Best Practices
+
+1. **Environment-based configuration**: Use environment variables for sensitive credentials
+2. **Logical separation**: Group related models in the same configuration
+3. **Namespace isolation**: Use distinct namespaces to avoid table name conflicts
+4. **Role-based access**: Use IAM roles for cross-account access when possible
+5. **Connection reuse**: Configurations create connection pools, so reuse them efficiently
+
+```ruby
+# Example: Environment-based setup
+Dynamoid.multi_configure do |config|
+  # Production data
+  config.add_config(:production) do |c|
+    c.credentials = Aws::InstanceProfileCredentials.new
+    c.region = ENV.fetch('PRODUCTION_REGION', 'us-east-1')
+    c.namespace = "#{Rails.application.class.module_parent_name.downcase}_prod"
+  end
+  
+  # Analytics warehouse
+  config.add_config(:warehouse) do |c|
+    c.credentials = Aws::AssumeRoleCredentials.new(
+      role_arn: ENV['WAREHOUSE_ROLE_ARN'],
+      role_session_name: "#{Rails.application.class.module_parent_name.downcase}-warehouse"
+    )
+    c.region = ENV.fetch('WAREHOUSE_REGION', 'us-west-2') 
+    c.namespace = "warehouse_#{Rails.env}"
+  end
+end
+```
+
 
 ## Concurrency
 

@@ -52,7 +52,7 @@ module Dynamoid
         table_name = @model_class.table_name
         items = array_of_dumped_attributes(models)
 
-        Dynamoid.adapter.batch_write_item(table_name, items) do |has_unprocessed_items|
+        @model_class.adapter.batch_write_item(table_name, items) do |has_unprocessed_items|
           if has_unprocessed_items
             backoff ||= Dynamoid.config.build_backoff
             backoff.call
@@ -63,7 +63,7 @@ module Dynamoid
       end
 
       def import(models)
-        Dynamoid.adapter.batch_write_item(@model_class.table_name, array_of_dumped_attributes(models))
+        @model_class.adapter.batch_write_item(@model_class.table_name, array_of_dumped_attributes(models))
       end
 
       def array_of_dumped_attributes(models)
