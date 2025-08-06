@@ -16,8 +16,8 @@ describe Dynamoid::Finders do
 
     context 'a single primary key provided' do
       context 'simple primary key' do
-        it 'finds' do
-          obj = klass.create
+        it 'finds a model' do
+          obj = klass.create!
           expect(klass.find(obj.id)).to eql(obj)
         end
 
@@ -30,8 +30,8 @@ describe Dynamoid::Finders do
       end
 
       context 'composite primary key' do
-        it 'finds' do
-          obj = klass_with_composite_key.create(age: 12)
+        it 'finds a model' do
+          obj = klass_with_composite_key.create!(age: 12)
           expect(klass_with_composite_key.find(obj.id, range_key: 12)).to eql(obj)
         end
 
@@ -42,23 +42,8 @@ describe Dynamoid::Finders do
           }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Cat with primary key (wrong-id,100500)")
         end
 
-        it 'type casts a sort key value' do
-          obj = klass_with_composite_key.create(age: 12)
-          expect(klass_with_composite_key.find(obj.id, range_key: '12.333')).to eql(obj)
-        end
-
-        it 'dumps a sort key value' do
-          klass_with_date = new_class do
-            range :published_on, :date
-          end
-
-          date = '2018/07/26'.to_date
-          obj = klass_with_date.create(published_on: date)
-          expect(klass_with_date.find(obj.id, range_key: date)).to eql(obj)
-        end
-
         it 'raises MissingRangeKey when range key is not specified' do
-          obj = klass_with_composite_key.create(age: 12)
+          obj = klass_with_composite_key.create!(age: 12)
 
           expect {
             klass_with_composite_key.find(obj.id)
@@ -67,7 +52,7 @@ describe Dynamoid::Finders do
       end
 
       it 'returns persisted? object' do
-        obj = klass.create
+        obj = klass.create!
         expect(klass.find(obj.id)).to be_persisted
       end
 
@@ -83,10 +68,11 @@ describe Dynamoid::Finders do
         end
 
         it 'ignores it without exceptions' do
-          Dynamoid.adapter.put_item(class_with_not_declared_field.table_name, id: '1', bod: '1996-12-21')
+          Dynamoid.adapter.put_item(class_with_not_declared_field.table_name, id: '1', name: 'Alex', bod: '1996-12-21')
           obj = class_with_not_declared_field.find('1')
 
           expect(obj.id).to eql('1')
+          expect(obj.name).to eql('Alex')
         end
       end
 
@@ -110,6 +96,22 @@ describe Dynamoid::Finders do
         end
       end
 
+      it 'type casts a partition key value' do
+        klass = new_class(partition_key: { name: :published_on, type: :date })
+
+        obj = klass.create!(published_on: '2018-10-07'.to_date)
+        expect(klass.find('2018-10-07')).to eql(obj)
+      end
+
+      it 'type casts a sort key value' do
+        klass = new_class do
+          range :published_on, :date
+        end
+
+        obj = klass.create!(published_on: '2018-10-07'.to_date)
+        expect(klass.find(obj.id, range_key: '2018-10-07')).to eql(obj)
+      end
+
       it 'uses dumped value of partition key' do
         klass = new_class(partition_key: { name: :published_on, type: :date })
 
@@ -129,15 +131,21 @@ describe Dynamoid::Finders do
 
     context 'multiple primary keys provided' do
       context 'simple primary key' do
-        it 'finds with an array of keys' do
-          objects = (1..2).map { klass.create }
+        it 'finds models with an array of keys' do
+          objects = (1..2).map { klass.create! }
           obj1, obj2 = objects
           expect(klass.find([obj1.id, obj2.id])).to match_array(objects)
         end
 
+        it 'finds with a list of keys' do
+          objects = (1..2).map { klass.create! }
+          obj1, obj2 = objects
+          expect(klass.find(obj1.id, obj2.id)).to match_array(objects)
+        end
+
         it 'finds with one key' do
-          obj = klass_with_composite_key.create(age: 12)
-          expect(klass_with_composite_key.find([[obj.id, obj.age]])).to eq([obj])
+          obj = klass.create!
+          expect(klass.find([obj.id])).to eq([obj])
         end
 
         it 'returns an empty array if an empty array passed' do
@@ -146,44 +154,34 @@ describe Dynamoid::Finders do
         end
 
         it 'raises RecordNotFound error when some objects are not found' do
-          objects = (1..2).map { klass.create }
+          objects = (1..2).map { klass.create! }
           obj1, obj2 = objects
 
           expect {
             klass.find([obj1.id, obj2.id, 'wrong-id'])
-          }.to raise_error(
-            Dynamoid::Errors::RecordNotFound,
-            "Couldn't find all Documents with primary keys [#{obj1.id}, #{obj2.id}, wrong-id] " \
-            '(found 2 results, but was looking for 3)'
-          )
+          }.to raise_error(Dynamoid::Errors::RecordNotFound,
+                           "Couldn't find all Documents with primary keys [#{obj1.id}, #{obj2.id}, wrong-id] (found 2 results, but was looking for 3)")
         end
 
-        it 'raises RecordNotFound if only one primary key provided and no result found' do
+        it 'raises RecordNotFound even if only one primary key provided and no result found' do
           klass.create_table
+
           expect {
             klass.find(['wrong-id'])
-          }.to raise_error(
-            Dynamoid::Errors::RecordNotFound,
-            "Couldn't find all Documents with primary keys [wrong-id] (found 0 results, but was looking for 1)"
-          )
-        end
-
-        it 'finds with a list of keys' do
-          objects = (1..2).map { klass.create }
-          obj1, obj2 = objects
-          expect(klass.find(obj1.id, obj2.id)).to match_array(objects)
+          }.to raise_error(Dynamoid::Errors::RecordNotFound,
+                           "Couldn't find all Documents with primary keys [wrong-id] (found 0 results, but was looking for 1)")
         end
       end
 
       context 'composite primary key' do
         it 'finds with an array of keys' do
-          objects = (1..2).map { |i| klass_with_composite_key.create(age: i) }
+          objects = (1..2).map { |i| klass_with_composite_key.create!(age: i) }
           obj1, obj2 = objects
           expect(klass_with_composite_key.find([[obj1.id, obj1.age], [obj2.id, obj2.age]])).to match_array(objects)
         end
 
         it 'finds with one key' do
-          obj = klass_with_composite_key.create(age: 12)
+          obj = klass_with_composite_key.create!(age: 12)
           expect(klass_with_composite_key.find([[obj.id, obj.age]])).to eq([obj])
         end
 
@@ -193,41 +191,31 @@ describe Dynamoid::Finders do
         end
 
         it 'raises RecordNotFound error when some objects are not found' do
-          obj = klass_with_composite_key.create(age: 12)
+          obj = klass_with_composite_key.create!(age: 12)
           expect {
             klass_with_composite_key.find([[obj.id, obj.age], ['wrong-id', 100_500]])
-          }.to raise_error(
-            Dynamoid::Errors::RecordNotFound,
-            "Couldn't find all Cats with primary keys [(#{obj.id},12), (wrong-id,100500)] (found 1 results, but was looking for 2)"
-          )
+          }.to raise_error(Dynamoid::Errors::RecordNotFound,
+                           "Couldn't find all Cats with primary keys [(#{obj.id},12), (wrong-id,100500)] (found 1 results, but was looking for 2)")
         end
 
         it 'raises RecordNotFound if only one primary key provided and no result found' do
           klass_with_composite_key.create_table
           expect {
             klass_with_composite_key.find([['wrong-id', 100_500]])
-          }.to raise_error(
-            Dynamoid::Errors::RecordNotFound,
-            "Couldn't find all Cats with primary keys [(wrong-id,100500)] (found 0 results, but was looking for 1)"
-          )
+          }.to raise_error(Dynamoid::Errors::RecordNotFound,
+                           "Couldn't find all Cats with primary keys [(wrong-id,100500)] (found 0 results, but was looking for 1)")
         end
 
         it 'finds with a list of keys' do
           pending 'still is not implemented'
 
-          objects = (1..2).map { |i| klass_with_composite_key.create(age: i) }
+          objects = (1..2).map { |i| klass_with_composite_key.create!(age: i) }
           obj1, obj2 = objects
           expect(klass_with_composite_key.find([obj1.id, obj1.age], [obj2.id, obj2.age])).to match_array(objects)
         end
 
-        it 'type casts a sort key value' do
-          objects = (1..2).map { |i| klass_with_composite_key.create(age: i) }
-          obj1, obj2 = objects
-          expect(klass_with_composite_key.find([[obj1.id, '1'], [obj2.id, '2']])).to match_array(objects)
-        end
-
         it 'raises MissingRangeKey when range key is not specified' do
-          obj1, obj2 = klass_with_composite_key.create([{ age: 1 }, { age: 2 }])
+          obj1, obj2 = klass_with_composite_key.create!([{ age: 1 }, { age: 2 }])
 
           expect {
             klass_with_composite_key.find([obj1.id, obj2.id])
@@ -236,7 +224,7 @@ describe Dynamoid::Finders do
       end
 
       it 'returns persisted? objects' do
-        objects = (1..2).map { |i| klass_with_composite_key.create(age: i) }
+        objects = (1..2).map { |i| klass_with_composite_key.create!(age: i) }
         obj1, obj2 = objects
 
         objects = klass_with_composite_key.find([[obj1.id, obj1.age], [obj2.id, obj2.age]])
@@ -247,13 +235,9 @@ describe Dynamoid::Finders do
       end
 
       describe 'raise_error option' do
-        before do
-          klass.create_table
-        end
-
         context 'when true' do
           it 'leads to raising exception if model not found' do
-            obj = klass.create
+            obj = klass.create!
 
             expect do
               klass.find([obj.id, 'blah-blah'], raise_error: true)
@@ -269,24 +253,48 @@ describe Dynamoid::Finders do
         end
       end
 
+      it 'type casts a partition key value' do
+        klass = new_class(partition_key: { name: :published_on, type: :date })
+        obj1 = klass.create!(published_on: '2018-10-07'.to_date)
+        obj2 = klass.create!(published_on: '2018-10-08'.to_date)
+
+        objects = klass.find(%w[2018-10-07 2018-10-08])
+
+        expect(objects).to contain_exactly(obj1, obj2)
+      end
+
+      it 'type casts a sort key value' do
+        klass = new_class do
+          range :published_on, :date
+        end
+        obj1 = klass.create!(published_on: '2018-10-07'.to_date)
+        obj2 = klass.create!(published_on: '2018-10-08'.to_date)
+
+        objects = klass.find([[obj1.id, '2018-10-07'], [obj2.id, '2018-10-08']])
+
+        expect(objects).to contain_exactly(obj1, obj2)
+      end
+
       it 'uses dumped value of partition key' do
         klass = new_class(partition_key: { name: :published_on, type: :date })
-        objects = (1..2).map { |i| klass.create(published_on: '2018-10-07'.to_date + i) }
-        obj1, obj2 = objects
+        obj1 = klass.create!(published_on: '2018-10-07'.to_date)
+        obj2 = klass.create!(published_on: '2018-10-08'.to_date)
 
-        expect(klass.find([obj1.published_on, obj2.published_on])).to match_array(objects)
+        objects = klass.find([obj1.published_on, obj2.published_on])
+
+        expect(objects).to contain_exactly(obj1, obj2)
       end
 
       it 'uses dumped value of sort key' do
         klass = new_class do
           range :published_on, :date
         end
+        obj1 = klass.create!(published_on: '2018-10-07'.to_date)
+        obj2 = klass.create!(published_on: '2018-10-08'.to_date)
 
-        objects = (1..2).map { |i| klass.create(published_on: '2018-10-07'.to_date + i) }
-        obj1, obj2 = objects
-        found_objects = klass.find([[obj1.id, obj1.published_on], [obj2.id, obj2.published_on]])
+        objects = klass.find([[obj1.id, obj1.published_on], [obj2.id, obj2.published_on]])
 
-        expect(found_objects).to match_array(objects)
+        expect(objects).to contain_exactly(obj1, obj2)
       end
 
       context 'field is not declared in document' do
@@ -327,7 +335,7 @@ describe Dynamoid::Finders do
         end
 
         it 'returns items' do
-          users = (1..10).map { User.create }
+          users = (1..10).map { User.create! }
 
           results = User.find(users.map(&:id))
           expect(results).to match_array(users)
@@ -353,7 +361,7 @@ describe Dynamoid::Finders do
           ids = (1..100).map(&:to_s)
           users = ids.map do |id|
             name = ' ' * (400.kilobytes - 120) # 400KB - length(attribute names)
-            User.create(id: id, name: name)
+            User.create!(id: id, name: name)
           end
 
           results = User.find(users.map(&:id))
@@ -369,43 +377,51 @@ describe Dynamoid::Finders do
     end
 
     describe 'callbacks' do
+      before do
+        ScratchPad.record []
+      end
+
       it 'runs after_initialize callback' do
         klass_with_callback = new_class do
-          after_initialize { print 'run after_initialize' }
+          after_initialize { ScratchPad << 'run after_initialize' }
         end
-
         object = klass_with_callback.create!
 
-        expect { klass_with_callback.find(object.id) }.to output('run after_initialize').to_stdout
+        ScratchPad.record []
+        klass_with_callback.find(object.id)
+
+        expect(ScratchPad.recorded).to eql(['run after_initialize'])
       end
 
       it 'runs after_find callback' do
         klass_with_callback = new_class do
-          after_find { print 'run after_find' }
+          after_find { ScratchPad << 'run after_find' }
         end
-
         object = klass_with_callback.create!
 
-        expect { klass_with_callback.find(object.id) }.to output('run after_find').to_stdout
+        ScratchPad.record []
+        klass_with_callback.find(object.id)
+
+        expect(ScratchPad.recorded).to eql(['run after_find'])
       end
 
       it 'runs callbacks in the proper order' do
         klass_with_callback = new_class do
-          after_initialize { print 'run after_initialize' }
-          after_find { print 'run after_find' }
+          after_initialize { ScratchPad << 'run after_initialize' }
+          after_find { ScratchPad << 'run after_find' }
         end
-
         object = klass_with_callback.create!
 
-        expect do
-          klass_with_callback.find(object.id)
-        end.to output('run after_initializerun after_find').to_stdout
+        ScratchPad.record []
+        klass_with_callback.find(object.id)
+
+        expect(ScratchPad.recorded).to eql(['run after_initialize', 'run after_find'])
       end
     end
   end
 
   it 'sends consistent option to the adapter' do
-    address = Address.create(city: 'Chicago')
+    address = Address.create!(city: 'Chicago')
 
     expect(Dynamoid.adapter).to receive(:get_item)
       .with(anything, anything, hash_including(consistent_read: true))
@@ -415,14 +431,14 @@ describe Dynamoid::Finders do
 
   context 'with users' do
     it 'finds using method_missing for attributes' do
-      address = Address.create(city: 'Chicago')
+      address = Address.create!(city: 'Chicago')
       array = Address.find_by_city('Chicago')
 
       expect(array).to eq address
     end
 
     it 'finds using method_missing for multiple attributes' do
-      user = User.create(name: 'Josh', email: 'josh@joshsymonds.com')
+      user = User.create!(name: 'Josh', email: 'josh@joshsymonds.com')
 
       array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com').to_a
 
@@ -430,8 +446,8 @@ describe Dynamoid::Finders do
     end
 
     it 'finds using method_missing for single attributes and multiple results' do
-      user1 = User.create(name: 'Josh', email: 'josh@joshsymonds.com')
-      user2 = User.create(name: 'Josh', email: 'josh@joshsymonds.com')
+      user1 = User.create!(name: 'Josh', email: 'josh@joshsymonds.com')
+      user2 = User.create!(name: 'Josh', email: 'josh@joshsymonds.com')
 
       array = User.find_all_by_name('Josh').to_a
 
@@ -441,8 +457,8 @@ describe Dynamoid::Finders do
     end
 
     it 'finds using method_missing for multiple attributes and multiple results' do
-      user1 = User.create(name: 'Josh', email: 'josh@joshsymonds.com')
-      user2 = User.create(name: 'Josh', email: 'josh@joshsymonds.com')
+      user1 = User.create!(name: 'Josh', email: 'josh@joshsymonds.com')
+      user2 = User.create!(name: 'Josh', email: 'josh@joshsymonds.com')
 
       array = User.find_all_by_name_and_email('Josh', 'josh@joshsymonds.com').to_a
 
@@ -452,8 +468,8 @@ describe Dynamoid::Finders do
     end
 
     it 'finds using method_missing for multiple attributes and no results' do
-      user1 = User.create(name: 'Josh', email: 'josh@joshsymonds.com')
-      user2 = User.create(name: 'Justin', email: 'justin@joshsymonds.com')
+      user1 = User.create!(name: 'Josh', email: 'josh@joshsymonds.com')
+      user2 = User.create!(name: 'Justin', email: 'justin@joshsymonds.com')
 
       array = User.find_all_by_name_and_email('Gaga', 'josh@joshsymonds.com').to_a
 
@@ -461,8 +477,8 @@ describe Dynamoid::Finders do
     end
 
     it 'finds using method_missing for a single attribute and no results' do
-      user1 = User.create(name: 'Josh', email: 'josh@joshsymonds.com')
-      user2 = User.create(name: 'Justin', email: 'justin@joshsymonds.com')
+      user1 = User.create!(name: 'Josh', email: 'josh@joshsymonds.com')
+      user2 = User.create!(name: 'Justin', email: 'justin@joshsymonds.com')
 
       array = User.find_all_by_name('Gaga').to_a
 
@@ -470,7 +486,7 @@ describe Dynamoid::Finders do
     end
 
     it 'finds on a query that is not indexed' do
-      user = User.create(password: 'Test')
+      user = User.create!(password: 'Test')
 
       array = User.find_all_by_password('Test').to_a
 
@@ -478,7 +494,7 @@ describe Dynamoid::Finders do
     end
 
     it 'finds on a query on multiple attributes that are not indexed' do
-      user = User.create(password: 'Test', name: 'Josh')
+      user = User.create!(password: 'Test', name: 'Josh')
 
       array = User.find_all_by_password_and_name('Test', 'Josh').to_a
 
@@ -543,7 +559,7 @@ describe Dynamoid::Finders do
     end
 
     it 'returns exception if index could not be found' do
-      Post.create(post_id: 1, posted_at: Time.now)
+      Post.create!(post_id: 1, posted_at: Time.now)
       expect do
         Post.find_all_by_secondary_index(posted_at: Time.now.to_i)
       end.to raise_exception(Dynamoid::Errors::MissingIndex)
@@ -552,9 +568,9 @@ describe Dynamoid::Finders do
     context 'local secondary index' do
       it 'queries the local secondary index' do
         time = DateTime.now
-        p1 = Post.create(name: 'p1', post_id: 1, posted_at: time)
-        p2 = Post.create(name: 'p2', post_id: 1, posted_at: time + 1.day)
-        p3 = Post.create(name: 'p3', post_id: 2, posted_at: time)
+        p1 = Post.create!(name: 'p1', post_id: 1, posted_at: time)
+        p2 = Post.create!(name: 'p2', post_id: 1, posted_at: time + 1.day)
+        p3 = Post.create!(name: 'p3', post_id: 2, posted_at: time)
 
         posts = Post.find_all_by_secondary_index(
           { post_id: p1.post_id },
@@ -571,9 +587,9 @@ describe Dynamoid::Finders do
     context 'global secondary index' do
       it 'can sort' do
         time = DateTime.now
-        first_visit = Bar.create(name: 'Drank', visited_at: (time - 1.day).to_i)
-        Bar.create(name: 'Drank', visited_at: time.to_i)
-        last_visit = Bar.create(name: 'Drank', visited_at: (time + 1.day).to_i)
+        first_visit = Bar.create!(name: 'Drank', visited_at: (time - 1.day).to_i)
+        Bar.create!(name: 'Drank', visited_at: time.to_i)
+        last_visit = Bar.create!(name: 'Drank', visited_at: (time + 1.day).to_i)
 
         bars = Bar.find_all_by_secondary_index(
           { name: 'Drank' }, range: { 'visited_at.lte': (time + 10.days).to_i }
@@ -589,10 +605,10 @@ describe Dynamoid::Finders do
 
       it 'honors :scan_index_forward => false' do
         time = DateTime.now
-        first_visit = Bar.create(name: 'Drank', visited_at: time - 1.day)
-        Bar.create(name: 'Drank', visited_at: time)
-        last_visit = Bar.create(name: 'Drank', visited_at: time + 1.day)
-        different_bar = Bar.create(name: 'Junk', visited_at: time + 7.days)
+        first_visit = Bar.create!(name: 'Drank', visited_at: time - 1.day)
+        Bar.create!(name: 'Drank', visited_at: time)
+        last_visit = Bar.create!(name: 'Drank', visited_at: time + 1.day)
+        different_bar = Bar.create!(name: 'Junk', visited_at: time + 7.days)
         bars = Bar.find_all_by_secondary_index(
           { name: 'Drank' }, range: { 'visited_at.lte': (time + 10.days).to_i },
                              scan_index_forward: false
@@ -608,9 +624,9 @@ describe Dynamoid::Finders do
 
       it 'queries gsi with hash key' do
         time = DateTime.now
-        p1 = Post.create(post_id: 1, posted_at: time, length: '10')
-        p2 = Post.create(post_id: 2, posted_at: time, length: '30')
-        p3 = Post.create(post_id: 3, posted_at: time, length: '10')
+        p1 = Post.create!(post_id: 1, posted_at: time, length: '10')
+        p2 = Post.create!(post_id: 2, posted_at: time, length: '30')
+        p3 = Post.create!(post_id: 3, posted_at: time, length: '10')
 
         posts = Post.find_all_by_secondary_index(length: '10')
         expect(posts.map(&:post_id).sort).to eql %w[1 3]
@@ -618,9 +634,9 @@ describe Dynamoid::Finders do
 
       it 'queries gsi with hash and range key' do
         time = Time.now
-        p1 = Post.create(post_id: 1, posted_at: time, name: 'post1')
-        p2 = Post.create(post_id: 2, posted_at: time + 1.day, name: 'post1')
-        p3 = Post.create(post_id: 3, posted_at: time, name: 'post3')
+        p1 = Post.create!(post_id: 1, posted_at: time, name: 'post1')
+        p2 = Post.create!(post_id: 2, posted_at: time + 1.day, name: 'post1')
+        p3 = Post.create!(post_id: 3, posted_at: time, name: 'post3')
 
         posts = Post.find_all_by_secondary_index(
           { name: 'post1' },
@@ -634,8 +650,8 @@ describe Dynamoid::Finders do
       describe 'string comparisons' do
         it 'filters based on begins_with operator' do
           time = DateTime.now
-          Post.create(post_id: 1, posted_at: time, name: 'fb_post')
-          Post.create(post_id: 1, posted_at: time + 1.day, name: 'blog_post')
+          Post.create!(post_id: 1, posted_at: time, name: 'fb_post')
+          Post.create!(post_id: 1, posted_at: time + 1.day, name: 'blog_post')
 
           posts = Post.find_all_by_secondary_index(
             { post_id: '1' }, range: { 'name.begins_with': 'blog_' }
@@ -647,9 +663,9 @@ describe Dynamoid::Finders do
       describe 'numeric comparisons' do
         before do
           @time = DateTime.now
-          p1 = Post.create(post_id: 1, posted_at: @time, name: 'post')
-          p2 = Post.create(post_id: 2, posted_at: @time + 1.day, name: 'post')
-          p3 = Post.create(post_id: 3, posted_at: @time + 2.days, name: 'post')
+          p1 = Post.create!(post_id: 1, posted_at: @time, name: 'post')
+          p2 = Post.create!(post_id: 2, posted_at: @time + 1.day, name: 'post')
+          p3 = Post.create!(post_id: 3, posted_at: @time + 2.days, name: 'post')
         end
 
         it 'filters based on gt (greater than)' do

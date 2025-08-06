@@ -13,7 +13,7 @@ describe Dynamoid::TransactionWrite, '.execute' do
     klass.create_table
 
     expect {
-      transaction = described_class.execute do |t|
+      described_class.execute do |t|
         t.create klass
         t.create klass
       end
