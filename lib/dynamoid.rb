@@ -35,6 +35,7 @@ require 'dynamoid/loadable'
 require 'dynamoid/components'
 require 'dynamoid/document'
 require 'dynamoid/adapter'
+require 'dynamoid/transaction_read'
 require 'dynamoid/transaction_write'
 
 require 'dynamoid/tasks/database'

@@ -294,6 +294,14 @@ module Dynamoid
         Transact.new(client).transact_write_items(items)
       end
 
+      def transact_read_items(items)
+        request = {
+          transact_items: items,
+          return_consumed_capacity: 'TOTAL',
+        }
+        client.transact_get_items(request)
+      end
+
       # Create a table on DynamoDB. This usually takes a long time to complete.
       #
       # @param [String] table_name the name of the table to create
