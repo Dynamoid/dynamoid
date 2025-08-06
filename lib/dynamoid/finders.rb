@@ -14,12 +14,12 @@ module Dynamoid
       # specified +raise_error: false+ option then +find+ will not raise the
       # exception.
       #
-      # When a document schema includes range key it always should be specified
+      # When a document schema includes range key it should always be specified
       # in +find+ method call. In case it's missing +MissingRangeKey+ exception
       # will be raised.
       #
       # Please note that +find+ doesn't preserve order of models in result when
-      # passes multiple ids.
+      # given multiple ids.
       #
       # Supported following options:
       # * +consistent_read+
