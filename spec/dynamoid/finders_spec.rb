@@ -25,7 +25,7 @@ describe Dynamoid::Finders do
           klass.create_table
           expect {
             klass.find('wrong-id')
-          }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Document with primary key wrong-id")
+          }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Document with primary key \"wrong-id\"")
         end
       end
 
@@ -39,7 +39,7 @@ describe Dynamoid::Finders do
           klass_with_composite_key.create_table
           expect {
             klass_with_composite_key.find('wrong-id', range_key: 100_500)
-          }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Cat with primary key (wrong-id,100500)")
+          }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Cat with primary key (\"wrong-id\",100500)")
         end
 
         it 'raises MissingRangeKey when range key is not specified' do
@@ -160,7 +160,7 @@ describe Dynamoid::Finders do
           expect {
             klass.find([obj1.id, obj2.id, 'wrong-id'])
           }.to raise_error(Dynamoid::Errors::RecordNotFound,
-                           "Couldn't find all Documents with primary keys [#{obj1.id}, #{obj2.id}, wrong-id] (found 2 results, but was looking for 3)")
+                           "Couldn't find all Documents with primary keys [\"#{obj1.id}\", \"#{obj2.id}\", \"wrong-id\"] (found 2 results, but was looking for 3)")
         end
 
         it 'raises RecordNotFound even if only one primary key provided and no result found' do
@@ -169,7 +169,7 @@ describe Dynamoid::Finders do
           expect {
             klass.find(['wrong-id'])
           }.to raise_error(Dynamoid::Errors::RecordNotFound,
-                           "Couldn't find all Documents with primary keys [wrong-id] (found 0 results, but was looking for 1)")
+                           "Couldn't find all Documents with primary keys [\"wrong-id\"] (found 0 results, but was looking for 1)")
         end
       end
 
@@ -195,7 +195,7 @@ describe Dynamoid::Finders do
           expect {
             klass_with_composite_key.find([[obj.id, obj.age], ['wrong-id', 100_500]])
           }.to raise_error(Dynamoid::Errors::RecordNotFound,
-                           "Couldn't find all Cats with primary keys [(#{obj.id},12), (wrong-id,100500)] (found 1 results, but was looking for 2)")
+                           "Couldn't find all Cats with primary keys [(\"#{obj.id}\",12), (\"wrong-id\",100500)] (found 1 results, but was looking for 2)")
         end
 
         it 'raises RecordNotFound if only one primary key provided and no result found' do
@@ -203,7 +203,7 @@ describe Dynamoid::Finders do
           expect {
             klass_with_composite_key.find([['wrong-id', 100_500]])
           }.to raise_error(Dynamoid::Errors::RecordNotFound,
-                           "Couldn't find all Cats with primary keys [(wrong-id,100500)] (found 0 results, but was looking for 1)")
+                           "Couldn't find all Cats with primary keys [(\"wrong-id\",100500)] (found 0 results, but was looking for 1)")
         end
 
         it 'finds with a list of keys' do

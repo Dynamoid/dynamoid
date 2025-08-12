@@ -148,7 +148,7 @@ module Dynamoid
           models.each { |m| m.run_callbacks :find }
           models
         else
-          ids_list = range_key ? ids.map { |pk, sk| "(#{pk},#{sk})" } : ids.map(&:to_s)
+          ids_list = range_key ? ids.map { |pk, sk| "(#{pk.inspect},#{sk.inspect})" } : ids.map(&:inspect)
           message = "Couldn't find all #{name.pluralize} with primary keys [#{ids_list.join(', ')}] "
           message += "(found #{items.size} results, but was looking for #{ids.size})"
           raise Errors::RecordNotFound, message
@@ -170,7 +170,7 @@ module Dynamoid
           model.run_callbacks :find
           model
         elsif options[:raise_error]
-          primary_key = range_key ? "(#{id},#{options[:range_key]})" : id
+          primary_key = range_key ? "(#{id.inspect},#{options[:range_key].inspect})" : id.inspect
           message = "Couldn't find #{name} with primary key #{primary_key}"
           raise Errors::RecordNotFound, message
         end
