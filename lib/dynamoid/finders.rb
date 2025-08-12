@@ -107,17 +107,27 @@ module Dynamoid
 
       # @private
       def _find_all(ids, options = {})
-        raise Errors::MissingRangeKey if range_key && ids.any? { |_pk, sk| sk.nil? }
-
         ids = ids.map do |id|
           if range_key
             # expect [hash key, range key] pair
             pk, sk = id
+
+            if pk.nil?
+              raise Errors::MissingHashKey
+            end
+            if sk.nil?
+              raise Errors::MissingRangeKey
+            end
+
             pk_dumped = cast_and_dump(hash_key, pk)
             sk_dumped = cast_and_dump(range_key, sk)
 
             [pk_dumped, sk_dumped]
           else
+            if id.nil?
+              raise Errors::MissingHashKey
+            end
+
             cast_and_dump(hash_key, id)
           end
         end
@@ -157,6 +167,7 @@ module Dynamoid
 
       # @private
       def _find_by_id(id, options = {})
+        raise Errors::MissingHashKey if id.nil?
         raise Errors::MissingRangeKey if range_key && options[:range_key].nil?
 
         partition_key_dumped = cast_and_dump(hash_key, id)

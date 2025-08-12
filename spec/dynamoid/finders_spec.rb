@@ -27,6 +27,13 @@ describe Dynamoid::Finders do
             klass.find('wrong-id')
           }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Document with primary key \"wrong-id\"")
         end
+
+        it 'raises MissingHashKey when partition key is nil' do
+          klass.create_table
+          expect {
+            klass.find(nil)
+          }.to raise_error(Dynamoid::Errors::MissingHashKey)
+        end
       end
 
       context 'composite primary key' do
@@ -40,6 +47,14 @@ describe Dynamoid::Finders do
           expect {
             klass_with_composite_key.find('wrong-id', range_key: 100_500)
           }.to raise_error(Dynamoid::Errors::RecordNotFound, "Couldn't find Cat with primary key (\"wrong-id\",100500)")
+        end
+
+        it 'raises MissingHashKey when partition key is nil' do
+          obj = klass_with_composite_key.create!(age: 12)
+
+          expect {
+            klass_with_composite_key.find(nil, range_key: obj.age)
+          }.to raise_error(Dynamoid::Errors::MissingHashKey)
         end
 
         it 'raises MissingRangeKey when range key is not specified' do
@@ -171,6 +186,14 @@ describe Dynamoid::Finders do
           }.to raise_error(Dynamoid::Errors::RecordNotFound,
                            "Couldn't find all Documents with primary keys [\"wrong-id\"] (found 0 results, but was looking for 1)")
         end
+
+        it 'raises MissingHashKey when any partition key is nil' do
+          obj1, = (1..2).map { klass.create! }
+
+          expect {
+            klass.find([obj1.id, nil])
+          }.to raise_error(Dynamoid::Errors::MissingHashKey)
+        end
       end
 
       context 'composite primary key' do
@@ -214,8 +237,21 @@ describe Dynamoid::Finders do
           expect(klass_with_composite_key.find([obj1.id, obj1.age], [obj2.id, obj2.age])).to match_array(objects)
         end
 
+        it 'raises MissingHashKey when any partition key is nil' do
+          objects = (1..2).map { |i| klass_with_composite_key.create!(age: i) }
+          obj1, obj2 = objects
+
+          expect {
+            klass_with_composite_key.find([[obj1.id, obj1.age], [nil, obj2.age]])
+          }.to raise_error(Dynamoid::Errors::MissingHashKey)
+        end
+
         it 'raises MissingRangeKey when range key is not specified' do
           obj1, obj2 = klass_with_composite_key.create!([{ age: 1 }, { age: 2 }])
+
+          expect {
+            klass_with_composite_key.find([[obj1.id, obj1.age], [obj2.id, nil]])
+          }.to raise_error(Dynamoid::Errors::MissingRangeKey)
 
           expect {
             klass_with_composite_key.find([obj1.id, obj2.id])
