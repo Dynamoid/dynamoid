@@ -31,11 +31,12 @@ module Dynamoid
     #
     # @private
     # @since 0.2.0
-    def save!
-      raise Dynamoid::Errors::DocumentNotValid, self unless valid?
+    def save!(options = {})
+      unless valid?
+        raise Dynamoid::Errors::DocumentNotValid, self
+      end
 
-      save(validate: false)
-      self
+      super
     end
 
     def update_attribute(attribute, value)

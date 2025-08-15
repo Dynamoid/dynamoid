@@ -553,6 +553,80 @@ module Dynamoid
       end
     end
 
+    # Create new model or persist changes.
+    #
+    # Run the validation and callbacks. Raises
+    # +Dynamoid::Errors::DocumentNotValid+ is validation fails.
+    #
+    #   user = User.create
+    #
+    #   user.age = 26
+    #   user.save! # => user
+    #
+    # Validation can be skipped with +validate: false+ option:
+    #
+    #   user = User.new(age: -1)
+    #   user.save!(validate: false) # => user
+    #
+    # +save!+ by default sets timestamps attributes - +created_at+ and
+    # +updated_at+ when creates new model and updates +updated_at+ attribute
+    # when updates already existing one.
+    #
+    # Changing +updated_at+ attribute at updating a model can be skipped with
+    # +touch: false+ option:
+    #
+    #   user.save!(touch: false)
+    #
+    # If a model is new and hash key (+id+ by default) is not assigned yet
+    # it was assigned implicitly with random UUID value.
+    #
+    # If +lock_version+ attribute is declared it will be incremented. If it's
+    # blank then it will be initialized with 1.
+    #
+    # +save!+ method call raises +Dynamoid::Errors::RecordNotUnique+ exception
+    # if primary key (hash key + optional range key) already exists in a
+    # table.
+    #
+    # +save!+ method call raises +Dynamoid::Errors::StaleObjectError+ exception
+    # if there is +lock_version+ attribute and the document in a table was
+    # already changed concurrently and +lock_version+ was consequently
+    # increased.
+    #
+    # +save!+ method call raises +Dynamoid::Errors::RecordNotSaved+ exception
+    # if some callback aborted execution.
+    #
+    # When a table is not created yet the first +save!+ method call will create
+    # a table. It's useful in test environment to avoid explicit table
+    # creation.
+    #
+    # @param options [Hash] (optional)
+    # @option options [true|false] :validate validate a model or not - +true+ by default (optional)
+    # @option options [true|false] :touch update tiemstamps fields or not - +true+ by default (optional)
+    # @return [true|false] Whether saving successful or not
+    def save!(options = {})
+      # validation is handled in the Validation module
+
+      if Dynamoid.config.create_table_on_save
+        self.class.create_table(sync: true)
+      end
+
+      create_or_update = new_record? ? :create : :update
+      aborted = true
+
+      run_callbacks(:save) do
+        run_callbacks(create_or_update) do
+          aborted = false
+          Save.call(self, touch: options[:touch])
+        end
+      end
+
+      if aborted
+        raise Dynamoid::Errors::RecordNotSaved, self
+      end
+
+      self
+    end
+
     # Update multiple attributes at once, saving the object once the updates
     # are complete.
     #

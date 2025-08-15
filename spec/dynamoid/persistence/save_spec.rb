@@ -619,6 +619,53 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    context "when a callback aborts saving" do
+      it 'aborts creation if callback throws :abort' do
+        if ActiveSupport.version < Gem::Version.new('5.0')
+          skip "Rails 4.x and below don't support aborting with `throw :abort`"
+        end
+
+        klass = new_class do
+          field :name
+          before_create { throw :abort }
+        end
+        klass.create_table
+        obj = klass.new(name: 'Alex')
+
+        result = nil
+        expect {
+          result = obj.save
+        }.not_to change { klass.count }
+
+        expect(result).to eql false
+        expect(obj).not_to be_persisted
+        expect(obj).to be_changed
+      end
+
+      it 'aborts updating if callback throws :abort' do
+        if ActiveSupport.version < Gem::Version.new('5.0')
+          skip "Rails 4.x and below don't support aborting with `throw :abort`"
+        end
+
+        klass = new_class do
+          field :name
+          before_update { throw :abort }
+        end
+
+        obj = klass.create!(name: 'Alex')
+        obj.name = 'Alex [Updated]'
+
+        result = nil
+        expect {
+          result = obj.save
+        }.not_to change { klass.find(obj.id).name }
+
+        expect(result).to eql false
+        expect(obj).to be_persisted
+        expect(obj).to be_changed
+      end
+    end
+
     context 'not unique primary key' do
       context 'composite key' do
         let(:klass_with_composite_key) do
@@ -845,6 +892,55 @@ RSpec.describe Dynamoid::Persistence do
         obj.save(touch: false)
 
         expect(klass.find(obj.id).updated_at).to be_present
+      end
+    end
+  end
+
+  describe "#save!" do
+    context "when a callback aborts saving" do
+      it 'aborts creation and raises RecordNotSaved if callback throws :abort' do
+        if ActiveSupport.version < Gem::Version.new('5.0')
+          skip "Rails 4.x and below don't support aborting with `throw :abort`"
+        end
+
+        klass = new_class do
+          field :name
+          before_create { throw :abort }
+        end
+        klass.create_table
+        obj = klass.new(name: 'Alex')
+
+        expect {
+          expect {
+            obj.save!
+          }.to raise_error(Dynamoid::Errors::RecordNotSaved)
+        }.not_to change { klass.count }
+
+        expect(obj).not_to be_persisted
+        expect(obj).to be_changed
+      end
+
+      it 'aborts updating and raises RecordNotSaved if callback throws :abort' do
+        if ActiveSupport.version < Gem::Version.new('5.0')
+          skip "Rails 4.x and below don't support aborting with `throw :abort`"
+        end
+
+        klass = new_class do
+          field :name
+          before_update { throw :abort }
+        end
+
+        obj = klass.create!(name: 'Alex')
+        obj.name = 'Alex [Updated]'
+
+        expect {
+          expect {
+            obj.save!
+          }.to raise_error(Dynamoid::Errors::RecordNotSaved)
+        }.not_to change { klass.count }
+
+        expect(obj).to be_persisted
+        expect(obj).to be_changed
       end
     end
   end
