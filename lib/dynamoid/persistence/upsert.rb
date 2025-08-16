@@ -19,6 +19,7 @@ module Dynamoid
       end
 
       def call
+        validate_primary_key!
         UpdateValidations.validate_attributes_exist(@model_class, @attributes)
 
         if @model_class.timestamps_enabled?
@@ -31,6 +32,11 @@ module Dynamoid
       end
 
       private
+
+      def validate_primary_key!
+        raise Dynamoid::Errors::MissingHashKey if @partition_key.nil?
+        raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && @sort_key.nil?
+      end
 
       def update_item
         partition_key_dumped = cast_and_dump(@model_class.hash_key, @partition_key)

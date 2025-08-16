@@ -185,6 +185,9 @@ module Dynamoid
       #
       # Validates model and runs callbacks.
       #
+      # Raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is required
+      # but not specified or has value +nil+.
+      #
       # @param attrs [Hash|Array<Hash>] Attributes of a model
       # @param block [Proc] Block to process a document after initialization
       # @return [Dynamoid::Document] The created document
@@ -219,6 +222,9 @@ module Dynamoid
       #   end
       #
       # Validates model and runs callbacks.
+      #
+      # Raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is required
+      # but not specified or has value +nil+.
       #
       # @param attrs [Hash|Array<Hash>] Attributes with which to create the object.
       # @param block [Proc] Block to process a document after initialization
@@ -311,10 +317,16 @@ module Dynamoid
       # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
       # attributes is not on the model
       #
+      # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+      # +nil+ and +Dynamoid::Errors::MissingRangeKey+ if a sort key is required
+      # but has value +nil+.
+      #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
       # @param attrs [Hash]
       # @param conditions [Hash] (optional)
+      # @option conditions [Hash] :if conditions on attribute values
+      # @option conditions [Hash] :unless_exists conditions on attributes presence
       # @return [Dynamoid::Document|nil] Updated document
       def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
@@ -369,10 +381,16 @@ module Dynamoid
       # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
       # attributes is not declared in the model class.
       #
+      # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+      # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+      # required but has value +nil+.
+      #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
       # @param attrs [Hash]
       # @param conditions [Hash] (optional)
+      # @option conditions [Hash] :if conditions on attribute values
+      # @option conditions [Hash] :unless_exists conditions on attributes presence
       # @return [Dynamoid::Document|nil] Updated document
       def upsert(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
@@ -519,7 +537,8 @@ module Dynamoid
     # If a model is new and hash key (+id+ by default) is not assigned yet
     # it was assigned implicitly with random UUID value.
     #
-    # If +lock_version+ attribute is declared it will be incremented. If it's blank then it will be initialized with 1.
+    # If +lock_version+ attribute is declared it will be incremented. If it's
+    # blank then it will be initialized with 1.
     #
     # +save+ method call raises +Dynamoid::Errors::RecordNotUnique+ exception
     # if primary key (hash key + optional range key) already exists in a
@@ -529,6 +548,11 @@ module Dynamoid
     # if there is +lock_version+ attribute and the document in a table was
     # already changed concurrently and +lock_version+ was consequently
     # increased.
+    #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a model is already persisted
+    # and a partition key has value +nil+ and raises
+    # +Dynamoid::Errors::MissingRangeKey+ if a sort key is required but has
+    # value +nil+.
     #
     # When a table is not created yet the first +save+ method call will create
     # a table. It's useful in test environment to avoid explicit table
@@ -553,6 +577,85 @@ module Dynamoid
       end
     end
 
+    # Create new model or persist changes.
+    #
+    # Run the validation and callbacks. Raises
+    # +Dynamoid::Errors::DocumentNotValid+ is validation fails.
+    #
+    #   user = User.create
+    #
+    #   user.age = 26
+    #   user.save! # => user
+    #
+    # Validation can be skipped with +validate: false+ option:
+    #
+    #   user = User.new(age: -1)
+    #   user.save!(validate: false) # => user
+    #
+    # +save!+ by default sets timestamps attributes - +created_at+ and
+    # +updated_at+ when creates new model and updates +updated_at+ attribute
+    # when updates already existing one.
+    #
+    # Changing +updated_at+ attribute at updating a model can be skipped with
+    # +touch: false+ option:
+    #
+    #   user.save!(touch: false)
+    #
+    # If a model is new and hash key (+id+ by default) is not assigned yet
+    # it was assigned implicitly with random UUID value.
+    #
+    # If +lock_version+ attribute is declared it will be incremented. If it's
+    # blank then it will be initialized with 1.
+    #
+    # +save!+ method call raises +Dynamoid::Errors::RecordNotUnique+ exception
+    # if primary key (hash key + optional range key) already exists in a
+    # table.
+    #
+    # +save!+ method call raises +Dynamoid::Errors::StaleObjectError+ exception
+    # if there is +lock_version+ attribute and the document in a table was
+    # already changed concurrently and +lock_version+ was consequently
+    # increased.
+    #
+    # +save!+ method call raises +Dynamoid::Errors::RecordNotSaved+ exception
+    # if some callback aborted execution.
+    #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a model is already persisted
+    # and a partition key has value +nil+ and raises
+    # +Dynamoid::Errors::MissingRangeKey+ if a sort key is required but has
+    # value +nil+.
+    #
+    # When a table is not created yet the first +save!+ method call will create
+    # a table. It's useful in test environment to avoid explicit table
+    # creation.
+    #
+    # @param options [Hash] (optional)
+    # @option options [true|false] :validate validate a model or not - +true+ by default (optional)
+    # @option options [true|false] :touch update tiemstamps fields or not - +true+ by default (optional)
+    # @return [true|false] Whether saving successful or not
+    def save!(options = {})
+      # validation is handled in the Validation module
+
+      if Dynamoid.config.create_table_on_save
+        self.class.create_table(sync: true)
+      end
+
+      create_or_update = new_record? ? :create : :update
+      aborted = true
+
+      run_callbacks(:save) do
+        run_callbacks(create_or_update) do
+          aborted = false
+          Save.call(self, touch: options[:touch])
+        end
+      end
+
+      if aborted
+        raise Dynamoid::Errors::RecordNotSaved, self
+      end
+
+      self
+    end
+
     # Update multiple attributes at once, saving the object once the updates
     # are complete.
     #
@@ -563,6 +666,10 @@ module Dynamoid
     #
     # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
     # attributes is not on the model
+    #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+    # required but has value +nil+.
     #
     # @param attributes [Hash] a hash of attributes to update
     # @return [true|false] Whether updating successful or not
@@ -582,6 +689,10 @@ module Dynamoid
     #
     # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
     # attributes is not on the model
+    #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+    # required but has value +nil+.
     #
     # @param attributes [Hash] a hash of attributes to update
     def update_attributes!(attributes)
@@ -890,6 +1001,10 @@ module Dynamoid
     #
     # Returns +self+ if deleted successfully and +false+ otherwise.
     #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+    # required but has value +nil+.
+    #
     # @return [Dynamoid::Document|false] whether deleted successfully
     # @since 0.2.0
     def destroy
@@ -911,6 +1026,10 @@ module Dynamoid
     #
     # Raises +Dynamoid::Errors::RecordNotDestroyed+ exception if model deleting
     # failed.
+    #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+    # required but has value +nil+.
     def destroy!
       destroy || (raise Dynamoid::Errors::RecordNotDestroyed, self)
     end
@@ -923,9 +1042,16 @@ module Dynamoid
     # Raises +Dynamoid::Errors::StaleObjectError+ exception if cannot delete a
     # model.
     #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+    # required but has value +nil+.
+    #
     # @return [Dynamoid::Document] self
     # @since 0.2.0
     def delete
+      raise Dynamoid::Errors::MissingHashKey if hash_key.nil?
+      raise Dynamoid::Errors::MissingRangeKey if self.class.range_key? && range_value.nil?
+
       options = range_key ? { range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
       partition_key_dumped = Dumping.dump_field(hash_key, self.class.attributes[self.class.hash_key])
 

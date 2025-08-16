@@ -1114,6 +1114,14 @@ on the base table*
 > Please note that this API is experimental and can be changed in
 > future releases.
 
+DynamoDB supports modifying and reading operations but there are some
+limitations:
+- read and write operation cannot be combined in the same transaction
+- operations are executed in batch, so operations should be given before
+  actual execution and cannot be changed on the fly
+
+#### Modifying transactions
+
 Multiple modifying actions can be grouped together and submitted as an
 all-or-nothing operation. Atomic modifying operations are supported in
 Dynamoid using transactions. If any action in the transaction fails they
@@ -1133,8 +1141,7 @@ model
 These methods are supposed to behave exactly like their
 non-transactional counterparts.
 
-
-#### Create models
+##### Create models
 
 Models can be created inside of a transaction. The partition and sort
 keys, if applicable, are used to determine uniqueness. Creating will
@@ -1158,7 +1165,7 @@ Dynamoid::TransactionWrite.execute do |txn|
 end
 ```
 
-#### Save models
+##### Save models
 
 Models can be saved in a transaction. New records are created otherwise
 the model is updated. Save, create, update, validate and destroy
@@ -1177,7 +1184,7 @@ Dynamoid::TransactionWrite.execute do |txn|
 end
 ```
 
-#### Update models
+##### Update models
 
 A model can be updated by providing a model or primary key, and the fields to update.
 
@@ -1205,7 +1212,7 @@ Dynamoid::TransactionWrite.execute do |txn|
 end
 ```
 
-#### Destroy or delete models
+##### Destroy or delete models
 
 Models can be used or the model class and key can be specified.
 `#destroy` uses callbacks and validations. Use `#delete` to skip
@@ -1224,7 +1231,7 @@ Dynamoid::TransactionWrite.execute do |txn|
 end
 ```
 
-#### Validation failures that don't raise
+##### Validation failures that don't raise
 
 All of the transaction methods can be called without the `!` which
 results in `false` instead of a raised exception when validation fails.
@@ -1244,7 +1251,7 @@ Dynamoid::TransactionWrite.execute do |txn|
 end
 ```
 
-#### Incrementally building a transaction
+##### Incrementally building a transaction
 
 Transactions can also be built without a block.
 
@@ -1256,6 +1263,41 @@ transaction.create(UserEmail, id: "UserEmail##{email}", user_id: user_id)
 transaction.upsert(Address, 'A#1', street: '123')
 
 transaction.commit # changes are persisted in this moment
+```
+
+#### Reading transactions
+
+Multiple reading actions can be grouped together and submitted as an
+all-or-nothing operation. Atomic  operations are supported in Dynamoid
+using transactions. If any action in the transaction fails they all
+fail.
+
+The following actions are supported:
+
+* `#find` - load a single model or multiple models by its primary key
+
+These methods are supposed to behave exactly like their
+non-transactional counterparts.
+
+##### Find a model
+
+The `#find` action can load single model or multiple ones. Different
+model classes can be mixed in the same transactions. Result is returned
+as a plain list of all the found models. The order is preserved.
+
+```ruby
+user, address = Dynamoid::TransactionRead.execute do |t|
+  t.find(User, user_id)
+  t.find(Address, address_id)
+end
+```
+
+Multiple primary keys can be specified at once:
+
+```ruby
+users = Dynamoid::TransactionRead.execute do |t|
+  t.find(User, [id1, id2, id3])
+end
 ```
 
 ### PartiQL
