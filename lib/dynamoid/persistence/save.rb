@@ -12,7 +12,7 @@ module Dynamoid
 
       def initialize(model, touch: nil)
         @model = model
-        @touch = touch # touch=false means explicit disabling of updating the `updated_at` attribute
+        @touch = touch # `touch: false` means explicit disabling of updating the `updated_at` attribute
       end
 
       def call

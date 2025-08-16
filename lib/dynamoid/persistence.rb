@@ -325,6 +325,8 @@ module Dynamoid
       # @param range_key_value [Scalar value] range key (optional)
       # @param attrs [Hash]
       # @param conditions [Hash] (optional)
+      # @option conditions [Hash] :if conditions on attribute values
+      # @option conditions [Hash] :unless_exists conditions on attributes presence
       # @return [Dynamoid::Document|nil] Updated document
       def update_fields(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
@@ -387,6 +389,8 @@ module Dynamoid
       # @param range_key_value [Scalar value] range key (optional)
       # @param attrs [Hash]
       # @param conditions [Hash] (optional)
+      # @option conditions [Hash] :if conditions on attribute values
+      # @option conditions [Hash] :unless_exists conditions on attributes presence
       # @return [Dynamoid::Document|nil] Updated document
       def upsert(hash_key_value, range_key_value = nil, attrs = {}, conditions = {})
         optional_params = [range_key_value, attrs, conditions].compact
@@ -533,7 +537,8 @@ module Dynamoid
     # If a model is new and hash key (+id+ by default) is not assigned yet
     # it was assigned implicitly with random UUID value.
     #
-    # If +lock_version+ attribute is declared it will be incremented. If it's blank then it will be initialized with 1.
+    # If +lock_version+ attribute is declared it will be incremented. If it's
+    # blank then it will be initialized with 1.
     #
     # +save+ method call raises +Dynamoid::Errors::RecordNotUnique+ exception
     # if primary key (hash key + optional range key) already exists in a
