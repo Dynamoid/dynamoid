@@ -96,8 +96,9 @@ module Dynamoid
     #
     # Please note that there are the following differences between
     # transactional and non-transactional +find+:
-    # - transactional +find+ preserves order of models in result when multiple ids are given
-    # - transactional +find+ doesn't return results immediately, a single collection with results of all the +find+ calls is returned instead
+    # - transactional +find+ preserves order of models in result when given multiple ids
+    # - transactional +find+ doesn't return results immediately, a single
+    #   collection with results of all the +find+ calls is returned instead
     # - +:consistent_read+ option isn't supported
     # - transactional +find+ is subject to limitations of the
     #   [TransactGetItems](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactGetItems.html)
@@ -106,7 +107,7 @@ module Dynamoid
     # @param [Object|Array] ids a single primary key or an array of primary keys
     # @param [Hash] options optional parameters of the operation
     # @option options [Object] :range_key sort key of a model; required when a single partition key is given and a sort key is declared for a model
-    # @option options [true|false] :raise_key whether to raise a RecordNotFound exception; specify explicitly +raise: false+ to suppress the exception; default is true
+    # @option options [true|false] :raise_error whether to raise a +RecordNotFound+ exception; specify explicitly +raise_error: false+ to suppress the exception; default is +true+
     # @return [nil]
     #
     # @example Find by partition key
