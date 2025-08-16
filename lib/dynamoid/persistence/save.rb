@@ -16,6 +16,8 @@ module Dynamoid
       end
 
       def call
+        validate_primary_key!
+
         @model.hash_key = SecureRandom.uuid if @model.hash_key.blank?
 
         return true unless @model.changed?
@@ -59,6 +61,11 @@ module Dynamoid
       end
 
       private
+
+      def validate_primary_key!
+        raise Dynamoid::Errors::MissingHashKey if !@model.new_record? && @model.hash_key.nil?
+        raise Dynamoid::Errors::MissingRangeKey if @model.class.range_key? && @model.range_value.nil?
+      end
 
       # Should be called after incrementing `lock_version` attribute
       def conditions_for_write

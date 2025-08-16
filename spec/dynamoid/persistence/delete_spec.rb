@@ -5,6 +5,13 @@ require 'fixtures/persistence'
 
 RSpec.describe Dynamoid::Persistence do
   describe 'delete' do
+    let(:klass_with_composite_key) do
+      new_class do
+        range :age, :integer
+        field :name
+      end
+    end
+
     it 'deletes an item' do
       klass = new_class
       obj = klass.create
@@ -50,6 +57,34 @@ RSpec.describe Dynamoid::Persistence do
 
       obj2.delete
       expect(obj2.destroyed?).to eql true
+    end
+
+    describe 'primary key validation' do
+      context 'simple primary key' do
+        it 'requires partition key to be specified' do
+          klass = new_class
+          obj = klass.create!
+          obj.id = nil
+
+          expect { obj.delete }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+      end
+
+      context 'composite key' do
+        it 'requires partition key to be specified' do
+          obj = klass_with_composite_key.create!(age: 1)
+          obj.id = nil
+
+          expect { obj.delete }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+
+        it 'requires sort key to be specified' do
+          obj = klass_with_composite_key.create!(age: 1)
+          obj.age = nil
+
+          expect { obj.delete }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        end
+      end
     end
 
     context 'with lock version' do

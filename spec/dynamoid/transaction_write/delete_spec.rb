@@ -278,7 +278,21 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
           end
         }.to change(klass_with_composite_key, :count).by(-1)
       end
+    end
+  end
 
+  describe 'primary key validation' do
+    context 'simple primary key' do
+      it 'raises MissingHashKey if partition key is not specified' do
+        expect {
+          described_class.execute do |txn|
+            txn.delete klass, nil
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+    end
+
+    context 'composite key' do
       it 'raises MissingHashKey if partition key is not specified' do
         expect {
           described_class.execute do |txn|

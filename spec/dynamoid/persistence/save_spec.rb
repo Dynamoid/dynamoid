@@ -11,10 +11,10 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    let(:klass_with_range_key) do
+    let(:klass_with_composite_key) do
       new_class do
-        field :name
         range :age, :integer
+        field :name
       end
     end
 
@@ -44,12 +44,12 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     it 'saves changes of already persisted model if range key is declared' do
-      obj = klass_with_range_key.create!(name: 'Alex', age: 21)
+      obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
 
       obj.name = 'Michael'
       obj.save
 
-      obj_loaded = klass_with_range_key.find(obj.id, range_key: obj.age)
+      obj_loaded = klass_with_composite_key.find(obj.id, range_key: obj.age)
       expect(obj_loaded.name).to eql 'Michael'
     end
 
@@ -194,14 +194,14 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     it 'does not persist changes if a model was deleted and range key is declared' do
-      obj = klass_with_range_key.create!(name: 'Alex', age: 21)
-      Dynamoid.adapter.delete_item(klass_with_range_key.table_name, obj.id, range_key: obj.age)
+      obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
+      Dynamoid.adapter.delete_item(klass_with_composite_key.table_name, obj.id, range_key: obj.age)
 
       obj.name = 'Michael'
 
       expect do
         expect { obj.save }.to raise_error(Dynamoid::Errors::StaleObjectError)
-      end.not_to change(klass_with_range_key, :count)
+      end.not_to change(klass_with_composite_key, :count)
     end
 
     it 'does not persist changes if a model was deleted, range key is declared and its type is not supported by DynamoDB natively' do
@@ -357,7 +357,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'persised model' do
+      context 'persisted model' do
         it 'uses dumped value of partition key to save item' do
           klass = new_class(partition_key: { name: :published_on, type: :date }) do
             field :title
@@ -619,7 +619,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context "when a callback aborts saving" do
+    context 'when a callback aborts saving' do
       it 'aborts creation if callback throws :abort' do
         if ActiveSupport.version < Gem::Version.new('5.0')
           skip "Rails 4.x and below don't support aborting with `throw :abort`"
@@ -668,28 +668,18 @@ RSpec.describe Dynamoid::Persistence do
 
     context 'not unique primary key' do
       context 'composite key' do
-        let(:klass_with_composite_key) do
-          new_class do
-            range :name
-          end
-        end
-
         it 'raises RecordNotUnique error' do
-          klass_with_composite_key.create(id: '10', name: 'aaa')
-          obj = klass_with_composite_key.new(id: '10', name: 'aaa')
+          klass_with_composite_key.create(id: '10', age: 42)
+          obj = klass_with_composite_key.new(id: '10', age: 42)
 
           expect { obj.save }.to raise_error(Dynamoid::Errors::RecordNotUnique)
         end
       end
 
       context 'simple key' do
-        let(:klass_with_simple_key) do
-          new_class
-        end
-
         it 'raises RecordNotUnique error' do
-          klass_with_simple_key.create(id: '10')
-          obj = klass_with_simple_key.new(id: '10')
+          klass.create(id: '10')
+          obj = klass.new(id: '10')
 
           expect { obj.save }.to raise_error(Dynamoid::Errors::RecordNotUnique)
         end
@@ -711,6 +701,48 @@ RSpec.describe Dynamoid::Persistence do
         }.not_to raise_error
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')
+      end
+    end
+
+    describe 'primary key validation' do
+      context 'simple primary key' do
+        context 'persisted model' do
+          it 'requires partition key to be specified' do
+            obj = klass.create!(name: 'Alex')
+            obj.id = nil
+            obj.name = 'Alex [Updated]'
+
+            expect { obj.save }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+          end
+        end
+      end
+
+      context 'composite key' do
+        context 'new model' do
+          it 'requires sort key to be specified' do
+            obj = klass_with_composite_key.new name: 'Alex', age: nil
+
+            expect { obj.save }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+          end
+        end
+
+        context 'persisted model' do
+          it 'requires partition key to be specified' do
+            obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+            obj.id = nil
+            obj.name = 'Alex [Updated]'
+
+            expect { obj.save }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+          end
+
+          it 'requires sort key to be specified' do
+            obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+            obj.age = nil
+            obj.name = 'Alex [Updated]'
+
+            expect { obj.save }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+          end
+        end
       end
     end
 
@@ -896,8 +928,8 @@ RSpec.describe Dynamoid::Persistence do
     end
   end
 
-  describe "#save!" do
-    context "when a callback aborts saving" do
+  describe '#save!' do
+    context 'when a callback aborts saving' do
       it 'aborts creation and raises RecordNotSaved if callback throws :abort' do
         if ActiveSupport.version < Gem::Version.new('5.0')
           skip "Rails 4.x and below don't support aborting with `throw :abort`"

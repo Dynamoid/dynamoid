@@ -7,8 +7,20 @@ RSpec.describe Dynamoid::Persistence do
   describe 'destroy' do
     # TODO: adopt test cases for the `delete` method
 
+    let(:klass) do
+      new_class do
+        field :name
+      end
+    end
+
+    let(:klass_with_composite_key) do
+      new_class do
+        range :age, :integer
+        field :name
+      end
+    end
+
     it 'does not raise exception when model does not exist' do
-      klass = new_class
       obj = klass.create
       obj2 = klass.find(obj.id)
       obj.delete
@@ -16,6 +28,33 @@ RSpec.describe Dynamoid::Persistence do
 
       obj2.destroy
       expect(obj2.destroyed?).to eql true
+    end
+
+    describe 'primary key validation' do
+      context 'simple primary key' do
+        it 'requires partition key to be specified' do
+          obj = klass.create!(name: 'one')
+          obj.id = nil
+
+          expect { obj.destroy }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+      end
+
+      context 'composite key' do
+        it 'requires partition key to be specified' do
+          obj = klass_with_composite_key.create!(name: 'one', age: 1)
+          obj.id = nil
+
+          expect { obj.destroy }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+
+        it 'requires sort key to be specified' do
+          obj = klass_with_composite_key.create!(name: 'one', age: 1)
+          obj.age = nil
+
+          expect { obj.destroy }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        end
+      end
     end
 
     describe 'callbacks' do

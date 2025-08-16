@@ -12,6 +12,13 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    let(:klass_with_composite_key) do
+      new_class do
+        range :age, :integer
+        field :name
+      end
+    end
+
     it 'saves changed attributes' do
       obj = klass.create!(name: 'Mike', age: 26)
       obj.update_attributes(age: 27)
@@ -53,6 +60,39 @@ RSpec.describe Dynamoid::Persistence do
 
         expect(obj.attributes[:count]).to eql(101)
         expect(raw_attributes(obj)[:count]).to eql(101)
+      end
+    end
+
+    describe 'primary key validation' do
+      context 'simple primary key' do
+        it 'requires partition key to be specified' do
+          obj = klass.create!(name: 'Alex')
+          obj.id = nil
+
+          expect {
+            obj.update_attributes name: 'Alex [Updated]'
+          }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+      end
+
+      context 'composite key' do
+        it 'requires partition key to be specified' do
+          obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+          obj.id = nil
+
+          expect {
+            obj.update_attributes name: 'Alex [Updated]'
+          }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+
+        it 'requires sort key to be specified' do
+          obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+          obj.age = nil
+
+          expect {
+            obj.update_attributes name: 'Alex [Updated]'
+          }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        end
       end
     end
 
@@ -169,6 +209,13 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    let(:klass_with_composite_key) do
+      new_class do
+        range :age, :integer
+        field :name
+      end
+    end
+
     it 'saves changed attributes' do
       obj = klass.create!(name: 'Mike', age: 26)
       obj.update_attributes!(age: 27)
@@ -269,6 +316,39 @@ RSpec.describe Dynamoid::Persistence do
 
         expect(obj.attributes[:count]).to eql(101)
         expect(raw_attributes(obj)[:count]).to eql(101)
+      end
+    end
+
+    describe 'primary key validation' do
+      context 'simple primary key' do
+        it 'requires partition key to be specified' do
+          obj = klass.create!(name: 'Alex')
+          obj.id = nil
+
+          expect {
+            obj.update_attributes! name: 'Alex [Updated]'
+          }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+      end
+
+      context 'composite key' do
+        it 'requires partition key to be specified' do
+          obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+          obj.id = nil
+
+          expect {
+            obj.update_attributes! name: 'Alex [Updated]'
+          }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+
+        it 'requires sort key to be specified' do
+          obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+          obj.age = nil
+
+          expect {
+            obj.update_attributes! name: 'Alex [Updated]'
+          }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        end
       end
     end
 
