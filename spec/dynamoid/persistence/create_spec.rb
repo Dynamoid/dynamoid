@@ -11,6 +11,13 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    let(:klass_with_composite_key) do
+      new_class do
+        range :age, :integer
+        field :name
+      end
+    end
+
     it 'creates a new document' do
       address = klass.create(city: 'Chicago')
 
@@ -255,32 +262,48 @@ RSpec.describe Dynamoid::Persistence do
 
     context 'not unique primary key' do
       context 'composite key' do
-        let(:klass_with_composite_key) do
-          new_class do
-            range :name
-          end
-        end
-
         it 'raises RecordNotUnique error' do
-          klass_with_composite_key.create(id: '10', name: 'aaa')
+          klass_with_composite_key.create(id: '10', age: 42)
 
           expect {
-            klass_with_composite_key.create(id: '10', name: 'aaa')
+            klass_with_composite_key.create(id: '10', age: 42)
           }.to raise_error(Dynamoid::Errors::RecordNotUnique)
         end
       end
 
       context 'simple key' do
-        let(:klass_with_simple_key) do
-          new_class
-        end
-
         it 'raises RecordNotUnique error' do
-          klass_with_simple_key.create(id: '10')
+          klass.create(id: '10')
 
           expect {
-            klass_with_simple_key.create(id: '10')
+            klass.create(id: '10')
           }.to raise_error(Dynamoid::Errors::RecordNotUnique)
+        end
+      end
+    end
+
+    describe 'primary key validation' do
+      context 'simple primary key' do
+        context 'persisted model' do
+          it 'allows partition key to be nil so it will be generated' do
+            obj = klass.create(id: nil)
+            expect(obj.id).to be_present
+          end
+        end
+      end
+
+      context 'composite key' do
+        context 'new model' do
+          it 'allows partition key to be nil so it will be generated' do
+            obj = klass_with_composite_key.create id: nil, age: 42
+            expect(obj.id).to be_present
+          end
+
+          it 'requires sort key to be specified' do
+            expect {
+              klass_with_composite_key.create age: nil
+            }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+          end
         end
       end
     end

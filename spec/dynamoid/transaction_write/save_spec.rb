@@ -1339,7 +1339,7 @@ describe Dynamoid::TransactionWrite, '.save!' do
     end
   end
 
-  context "when a callback aborts saving" do
+  context 'when a callback aborts saving' do
     it 'aborts creation and raises RecordNotSaved if callback throws :abort' do
       if ActiveSupport.version < Gem::Version.new('5.0')
         skip "Rails 4.x and below don't support aborting with `throw :abort`"
