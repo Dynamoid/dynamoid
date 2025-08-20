@@ -162,5 +162,51 @@ RSpec.describe Dynamoid::Persistence do
         }.to change { document_class.find(obj.id).links_count }.from(2).to(7)
       end
     end
+
+    context 'when a model was concurrently deleted' do
+      let(:klass) do
+        new_class do
+          field :age, :integer
+        end
+      end
+
+      let(:klass_with_composite_key) do
+        new_class do
+          range :name
+          field :age, :integer
+        end
+      end
+
+      let(:klass_with_composite_key_and_custom_type) do
+        new_class do
+          range :tags, :serialized
+          field :age, :integer
+        end
+      end
+
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!(age: 21)
+        klass.find(obj.id).delete
+
+        klass.inc obj.id, age: 1
+        expect(klass.exists?(obj.id)).to eql(false)
+      end
+
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
+        klass_with_composite_key.find(obj.id, range_key: obj.name).delete
+
+        klass_with_composite_key.inc obj.id, obj.name, age: 1
+        expect(klass_with_composite_key.exists?(id: obj.id, name: obj.name)).to eql(false)
+      end
+
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b], age: 21)
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
+
+        klass_with_composite_key_and_custom_type.inc obj.id, obj.tags, age: 1
+        expect(klass_with_composite_key_and_custom_type.exists?(id: obj.id, tags: obj.tags)).to eql(false)
+      end
+    end
   end
 end

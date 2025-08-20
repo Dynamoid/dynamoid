@@ -444,6 +444,7 @@ module Dynamoid
       # @option counters [true | Symbol | Array<Symbol>] :touch to update update_at attribute and optionally the specified ones
       # @return [Model class] self
       def inc(hash_key_value, range_key_value = nil, counters)
+        # It's similar to Rails' #update_counters.
         Inc.call(self, hash_key_value, range_key_value, counters)
         self
       end

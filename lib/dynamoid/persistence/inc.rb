@@ -6,24 +6,25 @@ module Dynamoid
   module Persistence
     # @private
     class Inc
-      def self.call(model_class, hash_key, range_key = nil, counters)
-        new(model_class, hash_key, range_key, counters).call
+      def self.call(model_class, partition_key, sort_key = nil, counters)
+        new(model_class, partition_key, sort_key, counters).call
       end
 
       # rubocop:disable Style/OptionalArguments
-      def initialize(model_class, hash_key, range_key = nil, counters)
+      def initialize(model_class, partition_key, sort_key = nil, counters)
         @model_class = model_class
-        @hash_key = hash_key
-        @range_key = range_key
+        @partition_key = partition_key
+        @sort_key = sort_key
         @counters = counters
       end
       # rubocop:enable Style/OptionalArguments
 
       def call
         touch = @counters.delete(:touch)
-        hash_key_dumped = cast_and_dump(@model_class.hash_key, @hash_key)
+        partition_key_dumped = cast_and_dump(@model_class.hash_key, @partition_key)
+        options = update_item_options(partition_key_dumped)
 
-        Dynamoid.adapter.update_item(@model_class.table_name, hash_key_dumped, update_item_options) do |t|
+        Dynamoid.adapter.update_item(@model_class.table_name, partition_key_dumped, options) do |t|
           item_updater = ItemUpdaterWithCastingAndDumping.new(@model_class, t)
 
           @counters.each do |name, value|
@@ -38,17 +39,28 @@ module Dynamoid
             end
           end
         end
+      rescue Dynamoid::Errors::ConditionalCheckFailedException # rubocop:disable Lint/SuppressedException
       end
 
       private
 
-      def update_item_options
+      def update_item_options(partition_key_dumped)
+        options = {}
+
+        conditions = {
+          if: {
+            @model_class.hash_key => partition_key_dumped
+          }
+        }
+        options[:conditions] = conditions
+
         if @model_class.range_key
-          range_key_dumped = cast_and_dump(@model_class.range_key, @range_key)
-          { range_key: range_key_dumped }
-        else
-          {}
+          sort_key_dumped = cast_and_dump(@model_class.range_key, @sort_key)
+          options[:range_key] = sort_key_dumped
+          options[:conditions][@model_class.range_key] = sort_key_dumped
         end
+
+        options
       end
 
       def timestamp_attributes_to_touch(touch)
