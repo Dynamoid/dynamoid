@@ -48,7 +48,7 @@ RSpec.describe Dynamoid::Persistence do
       }.to(nil)
     end
 
-    it 'does not raise exception when model does not exist' do
+    it 'does not raise exception when model was concurrently deleted' do
       klass = new_class
       obj = klass.create
       obj2 = klass.find(obj.id)

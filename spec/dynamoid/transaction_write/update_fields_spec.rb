@@ -198,7 +198,7 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
   end
 
   context 'when an issue detected on the DynamoDB side' do
-    it 'rolls back the changes when model does not exist' do
+    it 'rolls back the changes when model was concurrently deleted' do
       obj1 = klass.create!(name: 'one')
       klass.find(obj1.id).delete
       obj2 = nil

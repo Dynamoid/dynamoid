@@ -673,7 +673,7 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
     expect(obj_to_create).to be_changed
   end
 
-  it 'does not roll back the transaction when a model to update does not exist' do
+  it 'does not roll back the transaction when a model to update was concurrently deleted' do
     obj_deleted = klass.create!(name: 'one')
     klass.find(obj_deleted.id).delete
     obj_deleted.name = 'one [updated]'
@@ -1474,7 +1474,7 @@ describe Dynamoid::TransactionWrite, '.save!' do
     expect(obj_to_create).to be_changed
   end
 
-  it 'does not roll back the transaction when a model to update does not exist' do
+  it 'does not roll back the transaction when a model to update was concurrently deleted' do
     obj_deleted = klass.create!(name: 'one')
     klass.find(obj_deleted.id).delete
     obj_deleted.name = 'one [updated]'

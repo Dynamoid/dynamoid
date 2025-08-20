@@ -297,7 +297,7 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable R
     expect(obj_to_update).not_to be_changed
   end
 
-  it 'does not raise exception and does not roll back the transaction when a model to update does not exist anymore' do
+  it 'does not raise exception and does not roll back the transaction when a model to update was concurrently deleted' do
     obj_deleted = klass.create!(name: 'Alex')
     klass.find(obj_deleted.id).delete
     obj_deleted.name = 'Alex [updated]'
@@ -787,7 +787,7 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
     expect(obj_to_update.changed?).to eql true
   end
 
-  it 'does not raise exception and does not roll back the transaction when a model to update does not exist anymore' do
+  it 'does not raise exception and does not roll back the transaction when a model to update was concurrently deleted' do
     obj_deleted = klass.create!(name: 'Alex')
     klass.find(obj_deleted.id).delete
     obj_deleted.name = 'Alex [updated]'

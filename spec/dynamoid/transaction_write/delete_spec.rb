@@ -106,7 +106,7 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do # rubocop:disable RSpec
   end
 
   context 'when an issue detected on the DynamoDB side' do
-    it 'does not roll back the changes when a model to delete does not exist' do
+    it 'does not roll back the changes when a model to delete was concurrently deleted' do
       obj1 = klass.create!(name: 'one', id: '1')
       obj1.id = 'not-existing'
       obj2 = klass.new(name: 'two', id: '2')
@@ -312,7 +312,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
   end
 
   context 'when an issue detected on the DynamoDB side' do
-    it 'does not roll back the changes when a model to delete does not exist' do
+    it 'does not roll back the changes when a model to delete was concurrently deleted' do
       obj_to_delete = klass.create!(name: 'one', id: '1')
       obj_to_delete.id = 'not-existing'
       obj_to_save = klass.new(name: 'two', id: '2')
