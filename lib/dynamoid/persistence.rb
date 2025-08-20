@@ -719,9 +719,6 @@ module Dynamoid
     # @since 0.2.0
     def update_attribute(attribute, value)
       # final implementation is in the Dynamoid::Validation module
-      write_attribute(attribute, value)
-      save
-      self
     end
 
     # Update a model.

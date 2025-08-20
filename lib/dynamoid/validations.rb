@@ -43,6 +43,8 @@ module Dynamoid
       write_attribute(attribute, value)
       save(validate: false)
       self
+    rescue Dynamoid::Errors::StaleObjectError
+      self
     end
 
     module ClassMethods

@@ -5,22 +5,34 @@ require 'fixtures/persistence'
 
 RSpec.describe Dynamoid::Persistence do
   describe '#update_attribute' do
-    it 'changes the attribute value' do
-      klass = new_class do
+    let(:klass) do
+      new_class do
         field :age, :integer
       end
+    end
 
-      obj = klass.create(age: 18)
+    let(:klass_with_composite_key) do
+      new_class do
+        range :name
+        field :age, :integer
+      end
+    end
+
+    let(:klass_with_composite_key_and_custom_type) do
+      new_class do
+        range :tags, :serialized
+        field :name
+      end
+    end
+
+    it 'changes the attribute value' do
+      obj = klass.create!(age: 18)
 
       expect { obj.update_attribute(:age, 20) }.to change { obj.age }.from(18).to(20)
     end
 
     it 'persists the model' do
-      klass = new_class do
-        field :age, :integer
-      end
-
-      obj = klass.create(age: 18)
+      obj = klass.create!(age: 18)
       obj.update_attribute(:age, 20)
 
       expect(klass.find(obj.id).age).to eq(20)
@@ -32,18 +44,14 @@ RSpec.describe Dynamoid::Persistence do
         validates :age, numericality: { greater_than: 0 }
       end
 
-      obj = klass.create(age: 18)
+      obj = klass.create!(age: 18)
       obj.update_attribute(:age, -1)
 
       expect(klass.find(obj.id).age).to eq(-1)
     end
 
     it 'returns self' do
-      klass = new_class do
-        field :age, :integer
-      end
-
-      obj = klass.create(age: 18)
+      obj = klass.create!(age: 18)
       result = obj.update_attribute(:age, 20)
 
       expect(result).to eq(obj)
@@ -350,6 +358,32 @@ RSpec.describe Dynamoid::Persistence do
             obj.update_attribute(:name, 'Alexey')
           }.to output(expected_output).to_stdout
         }.to output.to_stdout
+      end
+    end
+
+    context 'when a model was concurrently deleted' do
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!(age: 21)
+        klass.find(obj.id).delete
+
+        obj.update_attribute(:age, 42)
+        expect(klass.exists?(obj.id)).to eql(false)
+      end
+
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
+        klass_with_composite_key.find(obj.id, range_key: obj.name).delete
+
+        obj.update_attribute(:age, 42)
+        expect(klass_with_composite_key.exists?(id: obj.id, name: obj.name)).to eql(false)
+      end
+
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b], name: 'Alex')
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
+
+        obj.update_attribute(:name, 'Michael')
+        expect(klass_with_composite_key_and_custom_type.exists?(id: obj.id, tags: obj.tags)).to eql(false)
       end
     end
   end
