@@ -795,6 +795,14 @@ module Dynamoid
         begin
           table_name = self.class.table_name
           partition_key_dumped = Dumping.dump_field(hash_key, self.class.attributes[self.class.hash_key])
+          conditions = conditions.dup
+          conditions[:if] ||= {}
+          conditions[:if][self.class.hash_key] = partition_key_dumped
+          if self.class.range_key
+            sort_key_dumped = Dumping.dump_field(range_value, self.class.attributes[self.class.range_key])
+            conditions[:if][self.class.range_key] = sort_key_dumped
+          end
+
           update_item_options = options.merge(conditions: conditions)
 
           new_attrs = Dynamoid.adapter.update_item(table_name, partition_key_dumped, update_item_options) do |t|
@@ -810,6 +818,9 @@ module Dynamoid
           end
           load(Undumping.undump_attributes(new_attrs, self.class.attributes))
         rescue Dynamoid::Errors::ConditionalCheckFailedException
+          # exception may be raised either because of failed user provided conditions
+          # or because of conditions on partition and sort keys. We cannot
+          # distinguish these two cases.
           raise Dynamoid::Errors::StaleObjectError.new(self, 'update')
         end
       end

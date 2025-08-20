@@ -643,6 +643,56 @@ RSpec.describe Dynamoid::Persistence do
       expect(obj_loaded.name).to eql ''
       expect(raw_attributes(obj)[:name]).to eql ''
     end
+
+    context 'when a model was concurrently deleted' do
+      let(:klass) do
+        new_class do
+          field :name
+          field :age, :integer
+        end
+      end
+
+      let(:klass_with_composite_key) do
+        new_class do
+          range :age, :integer
+          field :name
+        end
+      end
+
+      let(:klass_with_composite_key_and_custom_type) do
+        new_class do
+          range :tags, :serialized
+          field :name
+        end
+      end
+
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!(age: 21)
+        klass.find(obj.id).delete
+
+        expect {
+          obj.update! { |t| t.set(age: 42) }
+        }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
+        klass_with_composite_key.find(obj.id, range_key: obj.age).delete
+
+        expect {
+          obj.update! { |t| t.set(name: 'Michael') }
+        }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b], name: 'Alex')
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
+
+        expect {
+          obj.update! { |t| t.set(name: 'Michael') }
+        }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+    end
   end
 
   describe '#update' do
@@ -1007,6 +1057,53 @@ RSpec.describe Dynamoid::Persistence do
             end
           }.to output(expected_output).to_stdout
         }.to output.to_stdout
+      end
+    end
+
+    context 'when a model was concurrently deleted' do
+      let(:klass) do
+        new_class do
+          field :name
+          field :age, :integer
+        end
+      end
+
+      let(:klass_with_composite_key) do
+        new_class do
+          range :age, :integer
+          field :name
+        end
+      end
+
+      let(:klass_with_composite_key_and_custom_type) do
+        new_class do
+          range :tags, :serialized
+          field :name
+        end
+      end
+
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!(age: 21)
+        klass.find(obj.id).delete
+
+        obj.update { |t| t.set(age: 42) }
+        expect(klass.exists?(obj.id)).to eql(false)
+      end
+
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
+        klass_with_composite_key.find(obj.id, range_key: obj.age).delete
+
+        obj.update { |t| t.set(name: 'Michael') }
+        expect(klass_with_composite_key.exists?(id: obj.id, age: obj.age)).to eql(false)
+      end
+
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b], name: 'Alex')
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
+
+        obj.update { |t| t.set(name: 'Michael') }
+        expect(klass_with_composite_key_and_custom_type.exists?(id: obj.id, tags: obj.tags)).to eql(false)
       end
     end
   end
