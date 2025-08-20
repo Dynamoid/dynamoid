@@ -20,6 +20,13 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    let(:klass_with_composite_key_and_custom_type) do
+      new_class do
+        range :tags, :serialized
+        field :name
+      end
+    end
+
     it 'changes field value' do
       obj = klass.create(title: 'Old title')
       expect do
@@ -346,6 +353,32 @@ RSpec.describe Dynamoid::Persistence do
       expect {
         klass.update_fields(obj.id, { title: 'New title', publisher: 'New publisher' })
       }.to raise_error Dynamoid::Errors::UnknownAttribute
+    end
+
+    context 'when a model was concurrently deleted' do
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!(title: 'Title')
+        klass.find(obj.id).delete
+
+        klass.update_fields(obj.id, title: 'New title')
+        expect(klass.exists?(obj.id)).to eql(false)
+      end
+
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+        klass_with_composite_key.find(obj.id, range_key: obj.age).delete
+
+        klass_with_composite_key.update_fields obj.id, obj.age, name: 'Alex [Updated]'
+        expect(klass_with_composite_key.exists?(id: obj.id, age: obj.age)).to eql(false)
+      end
+
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b], name: 'Alex')
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
+
+        klass_with_composite_key_and_custom_type.update_fields obj.id, obj.tags, name: 'Alex [Updated]'
+        expect(klass_with_composite_key_and_custom_type.exists?(id: obj.id, tags: obj.tags)).to eql(false)
+      end
     end
   end
 end

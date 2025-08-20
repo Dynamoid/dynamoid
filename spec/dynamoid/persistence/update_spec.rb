@@ -376,6 +376,54 @@ RSpec.describe Dynamoid::Persistence do
         }.to output.to_stdout
       end
     end
+
+    context 'when a model was concurrently deleted' do
+      let(:klass) do
+        new_class do
+          field :name
+          field :age, :integer
+        end
+      end
+
+      let(:klass_with_composite_key) do
+        new_class do
+          range :age, :integer
+          field :name
+        end
+      end
+
+      let(:klass_with_composite_key_and_custom_type) do
+        new_class do
+          range :tags, :serialized
+          field :name
+        end
+      end
+
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!(age: 21)
+        klass.find(obj.id).delete
+
+        expect { klass.update!(obj.id, age: 42) }.to raise_error(Dynamoid::Errors::RecordNotFound)
+      end
+
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
+        klass_with_composite_key.find(obj.id, range_key: obj.age).delete
+
+        expect {
+          klass_with_composite_key.update!(obj.id, obj.age, name: 'Michael')
+        }.to raise_error(Dynamoid::Errors::RecordNotFound)
+      end
+
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b], name: 'Alex')
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
+
+        expect {
+          klass_with_composite_key_and_custom_type.update!(obj.id, obj.tags, name: 'Michael')
+        }.to raise_error(Dynamoid::Errors::RecordNotFound)
+      end
+    end
   end
 
   describe '.update' do
@@ -562,6 +610,54 @@ RSpec.describe Dynamoid::Persistence do
         obj2 = klass.update(obj.id, count: '101')
         expect(obj2.attributes[:count]).to eql(101)
         expect(raw_attributes(obj2)[:count]).to eql(101)
+      end
+    end
+
+    context 'when a model was concurrently deleted' do
+      let(:klass) do
+        new_class do
+          field :name
+          field :age, :integer
+        end
+      end
+
+      let(:klass_with_composite_key) do
+        new_class do
+          range :age, :integer
+          field :name
+        end
+      end
+
+      let(:klass_with_composite_key_and_custom_type) do
+        new_class do
+          range :tags, :serialized
+          field :name
+        end
+      end
+
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!(age: 21)
+        klass.find(obj.id).delete
+
+        expect { klass.update(obj.id, age: 42) }.to raise_error(Dynamoid::Errors::RecordNotFound)
+      end
+
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
+        klass_with_composite_key.find(obj.id, range_key: obj.age).delete
+
+        expect {
+          klass_with_composite_key.update(obj.id, obj.age, name: 'Michael')
+        }.to raise_error(Dynamoid::Errors::RecordNotFound)
+      end
+
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b], name: 'Alex')
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
+
+        expect {
+          klass_with_composite_key_and_custom_type.update(obj.id, obj.tags, name: 'Michael')
+        }.to raise_error(Dynamoid::Errors::RecordNotFound)
       end
     end
   end

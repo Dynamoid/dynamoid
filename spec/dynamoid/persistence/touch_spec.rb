@@ -5,9 +5,24 @@ require 'fixtures/persistence'
 
 RSpec.describe Dynamoid::Persistence do
   describe '#touch' do
+    let(:klass) do
+      new_class
+    end
+
+    let(:klass_with_composite_key) do
+      new_class do
+        range :name
+      end
+    end
+
+    let(:klass_with_composite_key_and_custom_type) do
+      new_class do
+        range :tags, :serialized
+      end
+    end
+
     it 'assigns updated_at attribute to current time' do
-      klass = new_class
-      obj = klass.create
+      obj = klass.create!
 
       travel 1.hour do
         obj.touch
@@ -16,8 +31,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     it 'saves updated_at attribute value' do
-      klass = new_class
-      obj = klass.create
+      obj = klass.create!
 
       travel 1.hour do
         obj.touch
@@ -28,14 +42,12 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     it 'returns self' do
-      klass = new_class
-      obj = klass.create
+      obj = klass.create!
       expect(obj.touch).to eq obj
     end
 
     it 'assigns and saves specified time' do
-      klass = new_class
-      obj = klass.create
+      obj = klass.create!
 
       time = Time.now + 1.day
       obj.touch(time: time)
@@ -102,7 +114,6 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     it 'raise Dynamoid::Error when not persisted model' do
-      klass = new_class
       obj = klass.new
 
       expect {
@@ -143,6 +154,32 @@ RSpec.describe Dynamoid::Persistence do
           obj = klass_with_callbacks.create
           expect { obj.touch }.to output("run after_touch\n").to_stdout
         }.to output.to_stdout
+      end
+    end
+
+    context 'when a model was concurrently deleted' do
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!
+        klass.find(obj.id).delete
+
+        obj.touch
+        expect(klass.exists?(obj.id)).to eql(false)
+      end
+
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex')
+        klass_with_composite_key.find(obj.id, range_key: obj.name).delete
+
+        obj.touch
+        expect(klass_with_composite_key.exists?(id: obj.id, name: obj.name)).to eql(false)
+      end
+
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b])
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
+
+        obj.touch
+        expect(klass_with_composite_key_and_custom_type.exists?(id: obj.id, tags: obj.tags)).to eql(false)
       end
     end
   end

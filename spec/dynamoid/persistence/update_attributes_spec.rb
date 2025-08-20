@@ -19,6 +19,13 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    let(:klass_with_composite_key_and_custom_type) do
+      new_class do
+        range :tags, :serialized
+        field :name
+      end
+    end
+
     it 'saves changed attributes' do
       obj = klass.create!(name: 'Mike', age: 26)
       obj.update_attributes(age: 27)
@@ -199,6 +206,29 @@ RSpec.describe Dynamoid::Persistence do
         expect { model.update_attributes(name: 'Mike') }.to output(expected_output).to_stdout
       end
     end
+
+    context 'when a model was concurrently deleted' do
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!(age: 21)
+        klass.find(obj.id).delete
+
+        expect { obj.update_attributes(age: 42) }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
+        klass_with_composite_key.find(obj.id, range_key: obj.age).delete
+
+        expect { obj.update_attributes(name: 'Michael') }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b], name: 'Alex')
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
+
+        expect { obj.update_attributes(name: 'Michael') }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+    end
   end
 
   describe '#update_attributes!' do
@@ -212,6 +242,13 @@ RSpec.describe Dynamoid::Persistence do
     let(:klass_with_composite_key) do
       new_class do
         range :age, :integer
+        field :name
+      end
+    end
+
+    let(:klass_with_composite_key_and_custom_type) do
+      new_class do
+        range :tags, :serialized
         field :name
       end
     end
@@ -583,6 +620,29 @@ RSpec.describe Dynamoid::Persistence do
             obj.update_attributes!(name: 'Alexey')
           }.to output(expected_output).to_stdout
         }.to output.to_stdout
+      end
+    end
+
+    context 'when a model was concurrently deleted' do
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!(age: 21)
+        klass.find(obj.id).delete
+
+        expect { obj.update_attributes!(age: 42) }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
+        klass_with_composite_key.find(obj.id, range_key: obj.age).delete
+
+        expect { obj.update_attributes!(name: 'Michael') }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b], name: 'Alex')
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
+
+        expect { obj.update_attributes!(name: 'Michael') }.to raise_error(Dynamoid::Errors::StaleObjectError)
       end
     end
   end

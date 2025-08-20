@@ -18,10 +18,10 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    let(:klass_with_range_key_and_custom_type) do
+    let(:klass_with_composite_key_and_custom_type) do
       new_class do
-        field :name
         range :tags, :serialized
+        field :name
       end
     end
 
@@ -54,12 +54,12 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     it 'saves changes of already persisted model if range key is declared and its type is not supported by DynamoDB natively' do
-      obj = klass_with_range_key_and_custom_type.create!(name: 'Alex', tags: %w[a b])
+      obj = klass_with_composite_key_and_custom_type.create!(name: 'Alex', tags: %w[a b])
 
       obj.name = 'Michael'
       obj.save
 
-      obj_loaded = klass_with_range_key_and_custom_type.find(obj.id, range_key: obj.tags)
+      obj_loaded = klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags)
       expect(obj_loaded.name).to eql 'Michael'
     end
 
@@ -182,41 +182,39 @@ RSpec.describe Dynamoid::Persistence do
       obj.save
     end
 
-    it 'does not persist changes if a model was deleted' do
-      obj = klass.create!(name: 'Alex')
-      Dynamoid.adapter.delete_item(klass.table_name, obj.id)
+    context 'when a model was concurrently deleted' do
+      it 'does not persist changes when simple primary key' do
+        obj = klass.create!(name: 'Alex')
+        klass.find(obj.id).delete
 
-      obj.name = 'Michael'
+        obj.name = 'Michael'
 
-      expect do
-        expect { obj.save }.to raise_error(Dynamoid::Errors::StaleObjectError)
-      end.not_to change(klass, :count)
-    end
+        expect do
+          expect { obj.save }.to raise_error(Dynamoid::Errors::StaleObjectError)
+        end.not_to change(klass, :count)
+      end
 
-    it 'does not persist changes if a model was deleted and range key is declared' do
-      obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
-      Dynamoid.adapter.delete_item(klass_with_composite_key.table_name, obj.id, range_key: obj.age)
+      it 'does not persist changes when composite primary key' do
+        obj = klass_with_composite_key.create!(name: 'Alex', age: 21)
+        klass_with_composite_key.find(obj.id, range_key: obj.age).delete
 
-      obj.name = 'Michael'
+        obj.name = 'Michael'
 
-      expect do
-        expect { obj.save }.to raise_error(Dynamoid::Errors::StaleObjectError)
-      end.not_to change(klass_with_composite_key, :count)
-    end
+        expect do
+          expect { obj.save }.to raise_error(Dynamoid::Errors::StaleObjectError)
+        end.not_to change(klass_with_composite_key, :count)
+      end
 
-    it 'does not persist changes if a model was deleted, range key is declared and its type is not supported by DynamoDB natively' do
-      obj = klass_with_range_key_and_custom_type.create!(name: 'Alex', tags: %w[a b])
-      Dynamoid.adapter.delete_item(
-        obj.class.table_name,
-        obj.id,
-        range_key: Dynamoid::Dumping.dump_field(obj.tags, klass_with_range_key_and_custom_type.attributes[:tags])
-      )
+      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+        obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b], name: 'Alex')
+        klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
 
-      obj.name = 'Michael'
+        obj.name = 'Michael'
 
-      expect do
-        expect { obj.save }.to raise_error(Dynamoid::Errors::StaleObjectError)
-      end.not_to change { obj.class.count }
+        expect do
+          expect { obj.save }.to raise_error(Dynamoid::Errors::StaleObjectError)
+        end.not_to change { obj.class.count }
+      end
     end
 
     context 'when disable_create_table_on_save is false' do
