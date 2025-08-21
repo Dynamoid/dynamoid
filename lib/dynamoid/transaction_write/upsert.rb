@@ -42,6 +42,7 @@ module Dynamoid
         changes = @attributes.dup
         changes = add_timestamps(changes, skip_created_at: true)
         changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
+        changes_dumped = sanitize_item(changes_dumped)
 
         # primary key to look up an item to update
         partition_key_dumped = dump(@model_class.hash_key, @hash_key)

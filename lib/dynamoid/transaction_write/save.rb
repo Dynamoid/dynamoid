@@ -97,6 +97,7 @@ module Dynamoid
         touch_model_timestamps(skip_created_at: false)
 
         attributes_dumped = Dynamoid::Dumping.dump_attributes(@model.attributes, @model_class.attributes)
+        attributes_dumped = sanitize_item(attributes_dumped)
 
         # require primary key not to exist yet
         condition = "attribute_not_exists(#{@model_class.hash_key})"
@@ -119,6 +120,7 @@ module Dynamoid
         # changed attributes to persist
         changes = @model.attributes.slice(*@model.changed.map(&:to_sym))
         changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
+        changes_dumped = sanitize_item(changes_dumped)
 
         # primary key to look up an item to update
         key = { @model_class.hash_key => dump_attribute(@model_class.hash_key, @model.hash_key) }
