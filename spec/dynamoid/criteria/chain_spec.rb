@@ -139,6 +139,33 @@ describe Dynamoid::Criteria::Chain do
       expect(chain.key_fields_detector.index_name).to be_nil
     end
 
+    it 'supports eq for serialized' do
+      klass = new_class do
+        range :config, :serialized
+      end
+
+      document1 = klass.create(id: '1', config: [1, 2])
+      document2 = klass.create(id: '2', config: { a: 1 })
+      document3 = klass.create(id: '3', config: 'foobar')
+      document4 = klass.create(id: '4', config: 42)
+
+      chain = described_class.new(klass)
+      expect(chain).to receive(:raw_pages_via_query).and_call_original
+      expect(chain.where(id: '1', config: [1, 2]).all).to contain_exactly(document1)
+
+      chain = described_class.new(klass)
+      expect(chain).to receive(:raw_pages_via_query).and_call_original
+      expect(chain.where(id: '2', config: { a: 1 }).all).to contain_exactly(document2)
+
+      chain = described_class.new(klass)
+      expect(chain).to receive(:raw_pages_via_query).and_call_original
+      expect(chain.where(id: '3', config: 'foobar').all).to contain_exactly(document3)
+
+      chain = described_class.new(klass)
+      expect(chain).to receive(:raw_pages_via_query).and_call_original
+      expect(chain.where(id: '4', config: 42).all).to contain_exactly(document4)
+    end
+
     it 'supports lt' do
       customer1 = model.create(name: 'Bob', age: 5)
       customer2 = model.create(name: 'Bob', age: 9)
@@ -336,6 +363,34 @@ describe Dynamoid::Criteria::Chain do
       chain = described_class.new(klass)
       expect(chain).to receive(:raw_pages_via_query).and_call_original
       expect(chain.where(id: '1', array: [1, 2]).all).to contain_exactly(document1)
+    end
+
+    it 'supports eq for serialized' do
+      klass = new_class do
+        range :last_name
+        field :config, :serialized
+      end
+
+      document1 = klass.create(id: '1', last_name: 'a', config: [1, 2])
+      document2 = klass.create(id: '2', last_name: 'b', config: { a: 1 })
+      document3 = klass.create(id: '3', last_name: 'b', config: 'foobar')
+      document4 = klass.create(id: '4', last_name: 'b', config: 42)
+
+      chain = described_class.new(klass)
+      expect(chain).to receive(:raw_pages_via_query).and_call_original
+      expect(chain.where(id: '1', config: [1, 2]).all).to contain_exactly(document1)
+
+      chain = described_class.new(klass)
+      expect(chain).to receive(:raw_pages_via_query).and_call_original
+      expect(chain.where(id: '2', config: { a: 1 }).all).to contain_exactly(document2)
+
+      chain = described_class.new(klass)
+      expect(chain).to receive(:raw_pages_via_query).and_call_original
+      expect(chain.where(id: '3', config: 'foobar').all).to contain_exactly(document3)
+
+      chain = described_class.new(klass)
+      expect(chain).to receive(:raw_pages_via_query).and_call_original
+      expect(chain.where(id: '4', config: 42).all).to contain_exactly(document4)
     end
 
     it 'supports ne' do

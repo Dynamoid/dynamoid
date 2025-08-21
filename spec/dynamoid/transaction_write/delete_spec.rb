@@ -106,7 +106,7 @@ describe Dynamoid::TransactionWrite, '#delete(model)' do # rubocop:disable RSpec
   end
 
   context 'when an issue detected on the DynamoDB side' do
-    it 'does not roll back the changes when a model to delete does not exist' do
+    it 'does not roll back the changes when a model to delete was concurrently deleted' do
       obj1 = klass.create!(name: 'one', id: '1')
       obj1.id = 'not-existing'
       obj2 = klass.new(name: 'two', id: '2')
@@ -278,7 +278,21 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
           end
         }.to change(klass_with_composite_key, :count).by(-1)
       end
+    end
+  end
 
+  describe 'primary key validation' do
+    context 'simple primary key' do
+      it 'raises MissingHashKey if partition key is not specified' do
+        expect {
+          described_class.execute do |txn|
+            txn.delete klass, nil
+          end
+        }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+      end
+    end
+
+    context 'composite key' do
       it 'raises MissingHashKey if partition key is not specified' do
         expect {
           described_class.execute do |txn|
@@ -298,7 +312,7 @@ describe Dynamoid::TransactionWrite, '#delete(class, primary key)' do
   end
 
   context 'when an issue detected on the DynamoDB side' do
-    it 'does not roll back the changes when a model to delete does not exist' do
+    it 'does not roll back the changes when a model to delete was concurrently deleted' do
       obj_to_delete = klass.create!(name: 'one', id: '1')
       obj_to_delete.id = 'not-existing'
       obj_to_save = klass.new(name: 'two', id: '2')

@@ -703,11 +703,13 @@ module Dynamoid
       # e.g. for NULL operator value should be boolean
       # and isn't related to an attribute own type
       def type_cast_condition_parameter(key, value)
-        return value if %i[array set].include?(source.attributes[key.to_sym][:type])
+        field_type = source.attributes[key.to_sym][:type]
+
+        return value if %i[array set].include?(field_type)
 
         if [true, false].include?(value) # Support argument for null/not_null operators
           value
-        elsif !value.respond_to?(:to_ary)
+        elsif !value.respond_to?(:to_ary) || field_type == :serialized
           options = source.attributes[key.to_sym]
           value_casted = TypeCasting.cast_field(value, options)
           Dumping.dump_field(value_casted, options)

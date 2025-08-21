@@ -107,17 +107,27 @@ module Dynamoid
 
       # @private
       def _find_all(ids, options = {})
-        raise Errors::MissingRangeKey if range_key && ids.any? { |_pk, sk| sk.nil? }
-
         ids = ids.map do |id|
           if range_key
             # expect [hash key, range key] pair
             pk, sk = id
+
+            if pk.nil?
+              raise Errors::MissingHashKey
+            end
+            if sk.nil?
+              raise Errors::MissingRangeKey
+            end
+
             pk_dumped = cast_and_dump(hash_key, pk)
             sk_dumped = cast_and_dump(range_key, sk)
 
             [pk_dumped, sk_dumped]
           else
+            if id.nil?
+              raise Errors::MissingHashKey
+            end
+
             cast_and_dump(hash_key, id)
           end
         end
@@ -148,7 +158,7 @@ module Dynamoid
           models.each { |m| m.run_callbacks :find }
           models
         else
-          ids_list = range_key ? ids.map { |pk, sk| "(#{pk},#{sk})" } : ids.map(&:to_s)
+          ids_list = range_key ? ids.map { |pk, sk| "(#{pk.inspect},#{sk.inspect})" } : ids.map(&:inspect)
           message = "Couldn't find all #{name.pluralize} with primary keys [#{ids_list.join(', ')}] "
           message += "(found #{items.size} results, but was looking for #{ids.size})"
           raise Errors::RecordNotFound, message
@@ -157,6 +167,7 @@ module Dynamoid
 
       # @private
       def _find_by_id(id, options = {})
+        raise Errors::MissingHashKey if id.nil?
         raise Errors::MissingRangeKey if range_key && options[:range_key].nil?
 
         partition_key_dumped = cast_and_dump(hash_key, id)
@@ -170,7 +181,7 @@ module Dynamoid
           model.run_callbacks :find
           model
         elsif options[:raise_error]
-          primary_key = range_key ? "(#{id},#{options[:range_key]})" : id
+          primary_key = range_key ? "(#{id.inspect},#{options[:range_key].inspect})" : id.inspect
           message = "Couldn't find #{name} with primary key #{primary_key}"
           raise Errors::RecordNotFound, message
         end

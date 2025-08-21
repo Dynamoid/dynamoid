@@ -120,7 +120,7 @@ describe Dynamoid::TransactionWrite, '#destroy' do # rubocop:disable RSpec/Multi
   end
 
   context 'when an issue detected on the DynamoDB side' do
-    it 'does not raise exception and does not roll back the transaction when a model to destroy does not exist' do
+    it 'does not raise exception and does not roll back the transaction when a model to destroy was concurrently deleted' do
       obj_to_destroy = klass.create!(name: 'one', id: '1')
       obj_to_destroy.id = 'not-existing'
       obj_to_save = klass.new(name: 'two', id: '2')
@@ -372,7 +372,7 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
   end
 
   context 'when an issue detected on the DynamoDB side' do
-    it 'does not raise exception and does not roll back the transaction when a model to destroy does not exist' do
+    it 'does not raise exception and does not roll back the transaction when a model to destroy was concurrently deleted' do
       obj_to_destroy = klass.create!(name: 'one', id: '1')
       obj_to_destroy.id = 'not-existing'
       obj_to_save = klass.new(name: 'two', id: '2')

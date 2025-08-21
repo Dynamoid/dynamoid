@@ -178,6 +178,26 @@ module Dynamoid
     # When a model is not persisted - its id should have unique value.
     # Otherwise a transaction will be rolled back.
     #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a model is already persisted
+    # and a partition key has value +nil+ and raises
+    # +Dynamoid::Errors::MissingRangeKey+ if a sort key is required but has
+    # value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#save!+:
+    # - transactional +#save!+ doesn't support the +:touch+ option
+    # - transactional +#save!+ doesn't support +lock_version+ attribute so it
+    #   will not be incremented and will not be checked to detect concurrent
+    #   modification of a model and +Dynamoid::Errors::StaleObjectError+
+    #   exception will not be raised
+    # - transactional +#save!+ doesn't raise +Dynamoid::Errors::RecordNotUnique+
+    #   at saving new model when primary key is already used. A generic
+    #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
+    # - transactional +save!+ doesn't raise
+    #   +Dynamoid::Errors::StaleObjectError+ when a model that is being updated
+    #   was concurrently deleted
+    # - a table isn't created lazily if it doesn't exist yet
+    #
     # @param model [Dynamoid::Document] a model
     # @param options [Hash] (optional)
     # @option options [true|false] :validate validate a model or not - +true+ by default (optional)
@@ -216,6 +236,25 @@ module Dynamoid
     # When a model is not persisted - its id should have unique value.
     # Otherwise a transaction will be rolled back.
     #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a model is already persisted
+    # and a partition key has value +nil+ and raises
+    # +Dynamoid::Errors::MissingRangeKey+ if a sort key is required but has
+    # value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#save+:
+    # - transactional +#save+ doesn't support the +:touch+ option
+    # - transactional +#save+ doesn't support +lock_version+ attribute so it
+    #   will not be incremented and will not be checked to detect concurrent
+    #   modification of a model and +Dynamoid::Errors::StaleObjectError+
+    #   exception will not be raised
+    # - transactional +#save+ doesn't raise +Dynamoid::Errors::RecordNotUnique+
+    #   at saving new model when primary key is already used. A generic
+    #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
+    # - transactional +save+ doesn't raise +Dynamoid::Errors::StaleObjectError+
+    #   when a model that is being updated was concurrently deleted
+    # - a table isn't created lazily if it doesn't exist yet
+    #
     # @param model [Dynamoid::Document] a model
     # @param options [Hash] (optional)
     # @option options [true|false] :validate validate a model or not - +true+ by default (optional)
@@ -247,6 +286,20 @@ module Dynamoid
     #   end
     #
     # Validates model and runs callbacks.
+    #
+    # Raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is required but
+    # not specified or has value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#create+:
+    # - transactional +#create!+ doesn't support +lock_version+ attribute so it
+    #   will not be incremented and will not be checked to detect concurrent
+    #   modification of a model and +Dynamoid::Errors::StaleObjectError+
+    #   exception will not be raised
+    # - transactional +#create!+ doesn't raise +Dynamoid::Errors::RecordNotUnique+
+    #   at saving new model when primary key is already used. A generic
+    #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
+    # - a table isn't created lazily if it doesn't exist yet
     #
     # @param model_class [Class] a model class which should be instantiated
     # @param attributes [Hash|Array<Hash>] attributes of a model
@@ -287,6 +340,20 @@ module Dynamoid
     #
     # Validates model and runs callbacks.
     #
+    # Raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is required but
+    # not specified or has value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#create+:
+    # - transactional +#create+ doesn't support +lock_version+ attribute so it
+    #   will not be incremented and will not be checked to detect concurrent
+    #   modification of a model and +Dynamoid::Errors::StaleObjectError+
+    #   exception will not be raised
+    # - transactional +#create+ doesn't raise +Dynamoid::Errors::RecordNotUnique+
+    #   at saving new model when primary key is already used. A generic
+    #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
+    # - a table isn't created lazily if it doesn't exist yet
+    #
     # @param model_class [Class] a model class which should be instantiated
     # @param attributes [Hash|Array<Hash>] attributes of a model
     # @param block [Proc] a block to process a model after initialization
@@ -321,6 +388,17 @@ module Dynamoid
     #
     # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
     # attributes is not declared in the model class.
+    #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and +Dynamoid::Errors::MissingRangeKey+ if a sort key is required
+    # but has value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#upsert+:
+    # - transactional +#upsert+ doesn't support conditions (that's +if+ and
+    #   +unless_exists+ options)
+    # - transactional +#upsert+ doesn't return a document that was updated or
+    #   created
     #
     # @param model_class [Class] a model class
     # @param hash_key [Scalar value] hash key value
@@ -395,6 +473,17 @@ module Dynamoid
     # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
     # attributes is not declared in the model class.
     #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and +Dynamoid::Errors::MissingRangeKey+ if a sort key is required
+    # but has value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#update_fields+:
+    # - transactional +#update_fields+ doesn't support conditions (that's +if+
+    #   and +unless_exists+ options)
+    # - transactional +#update_fields+ doesn't return a document that was
+    #   updated or created
+    #
     # @param model_class [Class] a model class
     # @param hash_key [Scalar value] hash key value
     # @param range_key [Scalar value] range key value (optional)
@@ -420,6 +509,21 @@ module Dynamoid
     # Returns +true+ if saving is successful and +false+
     # otherwise.
     #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+    # required but has value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#update_attributes+:
+    # - transactional +#update_attributes+ doesn't support +lock_version+ attribute so it
+    #   will not be incremented and will not be checked to detect concurrent
+    #   modification of a model and +Dynamoid::Errors::StaleObjectError+
+    #   exception will not be raised
+    # - transactional +update_attributes+ doesn't raise
+    #   +Dynamoid::Errors::StaleObjectError+ when a model that is being updated
+    #   was concurrently deleted
+    # - a table isn't created lazily if it doesn't exist yet
+    #
     # @param model [Dynamoid::Document] a model
     # @param attributes [Hash] a hash of attributes to update
     # @return [true|false] Whether updating successful or not
@@ -439,6 +543,21 @@ module Dynamoid
     #
     # Raises a +Dynamoid::Errors::DocumentNotValid+ exception if some vaidation
     # fails.
+    #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+    # required but has value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#update_attributes!+:
+    # - transactional +#update_attributes!+ doesn't support +lock_version+
+    #   attribute so it will not be incremented and will not be checked to detect
+    #   concurrent modification of a model and
+    #   +Dynamoid::Errors::StaleObjectError+ exception will not be raised
+    # - transactional +update_attributes!+ doesn't raise
+    #   +Dynamoid::Errors::StaleObjectError+ when a model that is being updated
+    #   was concurrently deleted
+    # - a table isn't created lazily if it doesn't exist yet
     #
     # @param model [Dynamoid::Document] a model
     # @param attributes [Hash] a hash of attributes to update
@@ -461,7 +580,18 @@ module Dynamoid
     #     t.delete(User, user_id)
     #   end
     #
-    # Raise +MissingRangeKey+ if a range key is declared but not passed as argument.
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+    # required but has value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#delete+: TBD
+    # - transactional +#delete+ doesn't support +lock_version+ attribute so it
+    #   will not be incremented and will not be checked to detect concurrent
+    #   modification of a model and +Dynamoid::Errors::StaleObjectError+
+    #   exception will not be raised
+    # - transactional +#delete+ doesn't disassociate a model from associated ones
+    #   if there is any
     #
     # @param model_or_model_class [Class|Dynamoid::Document] either model or model class
     # @param hash_key [Scalar value] hash key value
@@ -483,6 +613,19 @@ module Dynamoid
     # Raises +Dynamoid::Errors::RecordNotDestroyed+ exception if model deleting
     # failed (e.g. aborted by a callback).
     #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+    # required but has value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#destroy!+:
+    # - transactional +#destroy!+ doesn't support +lock_version+ attribute so it
+    #   will not be incremented and will not be checked to detect concurrent
+    #   modification of a model and +Dynamoid::Errors::StaleObjectError+
+    #   exception will not be raised
+    # - transactional +#destroy!+ doesn't disassociate a model from associated ones
+    #   if there are association declared in the model class
+    #
     # @param model [Dynamoid::Document] a model
     # @return [Dynamoid::Document|false] returns self if destoying is succefull, +false+ otherwise
     def destroy!(model)
@@ -493,6 +636,19 @@ module Dynamoid
     # Delete a model.
     #
     # Runs callbacks.
+    #
+    # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+    # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+    # required but has value +nil+.
+    #
+    # There are the following differences between transactional and
+    # non-transactional +#destroy+:
+    # - transactional +#destroy+ doesn't support +lock_version+ attribute so it
+    #   will not be incremented and will not be checked to detect concurrent
+    #   modification of a model and +Dynamoid::Errors::StaleObjectError+
+    #   exception will not be raised
+    # - transactional +#destroy+ doesn't disassociate a model from associated ones
+    #   if there are association declared in the model class
     #
     # @param model [Dynamoid::Document] a model
     # @return [Dynamoid::Document] self
