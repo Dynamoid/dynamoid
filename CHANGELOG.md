@@ -11,21 +11,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
-## 3.11.0
+## 3.12.0
 
+### Fixed
+* [#849](https://github.com/Dynamoid/dynamoid/pull/849) Fixed saving a field of custom type when it implements both `.dynamoid_dump()` and `#dynamoid_dump` method and use the former one.
+A proper behaviour is to use adapter's .dynamoid_dump method instead of a value's #dynamoid_dump method.
+* [#851](https://github.com/Dynamoid/dynamoid/pull/851) Fixed Dirty API and don't require custom types to implement `#==` method. Add field option `:comparable`.
+* [#913](https://github.com/Dynamoid/dynamoid/pull/913) Fixed saving partition keys of Dynamoid-specific types (e.g. `date` or `datetime`) and always convert them into a proper DynamoDB type
+* [#917](https://github.com/Dynamoid/dynamoid/pull/917) Fixed transactional write operations when primary key is of non-native DynamoDB type
+* [#927](https://github.com/Dynamoid/dynamoid/pull/927) Multiple fixes in transactional and non-transactional write methods and finders:
+  * Changed non-transactional method `#find` and raise `MissingHashKey` when a given partition key is `nil`
+  * Fixed non-transactional method `#save!` and raise `RecordNotSaved` when a callback throws `:abort` and terminates the process
+  * Check whether partition and sort key are specified in the non-transactional persistence methods and raise a proper exception (`MissingHashKey` or `MissingRangeKey`)
+  * Fixed methods `#inc`, `#increment!` and `#decrement!`, `#update` and `#update!` to not create a new item when an item with specified primary key is already deleted
+  * Fixed method `#update_attribute` to not raise `StaleObjectError` when an item with specified primary key is already deleted
+  * Fixed method `#where` with condition on a `:serialized` field to not raise an exception
+### Added
+* [#910](https://github.com/Dynamoid/dynamoid/pull/910) Added `key_type` option to the `table` method to change type of a partition key field (@ogidow)
+* [#916](https://github.com/Dynamoid/dynamoid/pull/916) Added new `error_on_scan` config option to raises an error and prevent table scans (DynamoDB's `Scan` operation) (@aaronalberg)
+* [#926](https://github.com/Dynamoid/dynamoid/pull/926) Implemented read transactions (using DynamoDB's `TransactGetItems` operation)
+### Changed
+* [#846](https://github.com/Dynamoid/dynamoid/pull/846) Changed transactional `update_fields()` method to accept a block and support low-level operations `set`, `add`, `delete`, `remove` (similar to the non-transactional `#update()` method) (@ckhsponge)
+### Removed
+
+## 3.11.0 / 2025-01-12
 ### Fixed
 * [#829](https://github.com/Dynamoid/dynamoid/pull/829) Fixed saving of in-place field changes
 * [#812](https://github.com/Dynamoid/dynamoid/pull/812) Restored sanitizing of attribute names in `#where` conditions
 * [#721](https://github.com/Dynamoid/dynamoid/pull/721) Fixed code examples in README.md (@ndjndj)
 ### Added
-* [#688](https://github.com/Dynamoid/dynamoid/pull/688) Transactional modifying was added utilizing `TransactWriteItems` operation (@ckhsponge)
+* [#688](https://github.com/Dynamoid/dynamoid/pull/688) Implemented write transactions (using DynamoDB's `TransactWriteItems` operation) (@ckhsponge)
 * [#794](https://github.com/Dynamoid/dynamoid/pull/794) Added new config option `store_empty_string_as_nil`
 * [#828](https://github.com/Dynamoid/dynamoid/pull/828) Added Ruby 3.4, Rails 8.0 and Rails 7.2 in CI
 ### Changed
 * [#832](https://github.com/Dynamoid/dynamoid/pull/832) Support String condition expressions with `#where`
 * [#822](https://github.com/Dynamoid/dynamoid/pull/822) Support binary type natively. Also added new config option `store_binary_as_native` (@dalibor)
 
-## 3.10.0
+## 3.10.0 / 2024-02-10
 ### Fixed
 * [#681](https://github.com/Dynamoid/dynamoid/pull/681) Fixed saving persisted model and deleting attributes with `nil` value if `config.store_attribute_with_nil_value` is `false`
 * [#716](https://github.com/Dynamoid/dynamoid/pull/716), [#691](https://github.com/Dynamoid/dynamoid/pull/691), [#687](https://github.com/Dynamoid/dynamoid/pull/687), [#660](https://github.com/Dynamoid/dynamoid/pull/660) Numerous fixes in README.md and RDoc documentation (@ndjndj, @kiharito, @dunkOnIT)
