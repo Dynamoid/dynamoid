@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dynamoid (3.11.0)
+    dynamoid (3.12.1)
       activemodel (>= 4)
       aws-sdk-dynamodb (~> 1.0)
       concurrent-ruby (>= 1.0)
@@ -78,7 +78,7 @@ GEM
     rainbow (3.1.1)
     rake (13.1.0)
     regexp_parser (2.10.0)
-    rexml (3.4.0)
+    rexml (3.4.2)
     rspec (3.12.0)
       rspec-core (~> 3.12.0)
       rspec-expectations (~> 3.12.0)
