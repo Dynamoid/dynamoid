@@ -27,11 +27,23 @@ describe Dynamoid::Indexes do
     it 'can create in transaction' do
       doc = klass_with_gsi.new
       doc.name = 'abc'
+      doc.age = 1
+      Dynamoid::TransactionWrite.execute do |txn|
+        txn.save! doc
+      end
+      expect(doc).to be_persisted
+      expect(doc.reload.age).to eq 1
+    end
+
+    it 'can create with nil in transaction' do
+      doc = klass_with_gsi.new
+      doc.name = 'abc'
       doc.age = nil
       Dynamoid::TransactionWrite.execute do |txn|
         txn.save! doc
       end
       expect(doc).to be_persisted
+      expect(doc.reload.age).to be_nil
     end
 
     it 'can update in transaction' do
@@ -44,6 +56,7 @@ describe Dynamoid::Indexes do
         txn.save! doc
       end
       expect(doc).to be_persisted
+      expect(doc.reload.age).to be_nil
     end
 
     it 'can update_field in transaction' do
@@ -55,6 +68,7 @@ describe Dynamoid::Indexes do
         txn.update_fields klass_with_gsi, doc.id, age: nil
       end
       expect(doc).to be_persisted
+      expect(doc.reload.age).to be_nil
     end
 
     it 'can upsert in transaction' do
@@ -69,15 +83,15 @@ describe Dynamoid::Indexes do
       expect(doc.reload.age).to be_nil
     end
 
-    # context 'store_attribute_with_nil_value = true', config: { store_attribute_with_nil_value: true } do
-    #   it 'can set gsi field to nil' do
-    #     doc = klass_with_gsi.new
-    #     doc.name = 'abc'
-    #     doc.age = 1
-    #     doc.save!
-    #     doc.age = nil
-    #     doc.save!
-    #   end
-    # end
+    context 'store_attribute_with_nil_value = true', config: { store_attribute_with_nil_value: true } do
+      it 'setting gsi field to nil fails when store_attribute_with_nil_value is true' do
+        doc = klass_with_gsi.new
+        doc.name = 'abc'
+        doc.age = 1
+        doc.save!
+        doc.age = nil
+        expect { doc.save! }.to raise_error(Aws::DynamoDB::Errors::ValidationException)
+      end
+    end
   end
 end

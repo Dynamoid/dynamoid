@@ -42,7 +42,7 @@ module Dynamoid
         changes = @attributes.dup
         changes = add_timestamps(changes, skip_created_at: true)
         changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
-        changes_dumped = sanitize_item(changes_dumped)
+        changes_dumped = sanitize_attributes(changes_dumped)
 
         # primary key to look up an item to update
         partition_key_dumped = dump(@model_class.hash_key, @hash_key)
@@ -55,7 +55,8 @@ module Dynamoid
 
         # Build UpdateExpression and keep names and values placeholders mapping
         # in ExpressionAttributeNames and ExpressionAttributeValues.
-        update_expression_statements = []
+        set_expression_statements = []
+        remove_expression_statements = []
         expression_attribute_names = {}
         expression_attribute_values = {}
 
@@ -63,12 +64,18 @@ module Dynamoid
           name_placeholder = "#_n#{i}"
           value_placeholder = ":_s#{i}"
 
-          update_expression_statements << "#{name_placeholder} = #{value_placeholder}"
+          if value || Dynamoid.config.store_attribute_with_nil_value
+            set_expression_statements << "#{name_placeholder} = #{value_placeholder}"
+            expression_attribute_values[value_placeholder] = value
+          else
+            remove_expression_statements << "#{name_placeholder}"
+          end
           expression_attribute_names[name_placeholder] = name
-          expression_attribute_values[value_placeholder] = value
         end
 
-        update_expression = "SET #{update_expression_statements.join(', ')}"
+        update_expression = ""
+        update_expression += "SET #{set_expression_statements.join(', ')}" if set_expression_statements.any?
+        update_expression += " REMOVE #{remove_expression_statements.join(', ')}" if remove_expression_statements.any?
 
         {
           update: {

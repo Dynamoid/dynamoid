@@ -54,6 +54,23 @@ module Dynamoid
           v.is_a?(Hash) ? v.stringify_keys : v
         end
       end
+
+      # copied from aws_sdk_v3/item_updater
+      def sanitize_attributes(attributes)
+        # rubocop:disable Lint/DuplicateBranch
+        attributes.transform_values do |v|
+          if v.is_a?(Hash)
+            v.stringify_keys
+          elsif v.is_a?(Set) && v.empty?
+            nil
+          elsif v.is_a?(String) && v.empty? && Config.store_empty_string_as_nil
+            nil
+          else
+            v
+          end
+        end
+        # rubocop:enable Lint/DuplicateBranch
+      end
     end
   end
 end
