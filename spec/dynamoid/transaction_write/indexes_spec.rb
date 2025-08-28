@@ -66,6 +66,18 @@ describe Dynamoid::Indexes do
         txn.upsert klass_with_gsi, doc.id, age: nil
       end
       expect(doc).to be_persisted
+      expect(doc.reload.age).to be_nil
     end
+
+    # context 'store_attribute_with_nil_value = true', config: { store_attribute_with_nil_value: true } do
+    #   it 'can set gsi field to nil' do
+    #     doc = klass_with_gsi.new
+    #     doc.name = 'abc'
+    #     doc.age = 1
+    #     doc.save!
+    #     doc.age = nil
+    #     doc.save!
+    #   end
+    # end
   end
 end
