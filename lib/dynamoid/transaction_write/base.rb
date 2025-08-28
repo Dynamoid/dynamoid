@@ -42,6 +42,35 @@ module Dynamoid
       def action_request
         raise 'Not implemented'
       end
+
+      # copied from aws_sdk_v3
+      def sanitize_item(attributes)
+        config_value = Dynamoid.config.store_attribute_with_nil_value
+        store_attribute_with_nil_value = config_value.nil? ? false : !!config_value
+
+        attributes.reject do |_, v|
+          !store_attribute_with_nil_value && v.nil?
+        end.transform_values do |v|
+          v.is_a?(Hash) ? v.stringify_keys : v
+        end
+      end
+
+      # copied from aws_sdk_v3/item_updater
+      def sanitize_attributes(attributes)
+        # rubocop:disable Lint/DuplicateBranch
+        attributes.transform_values do |v|
+          if v.is_a?(Hash)
+            v.stringify_keys
+          elsif v.is_a?(Set) && v.empty?
+            nil
+          elsif v.is_a?(String) && v.empty? && Config.store_empty_string_as_nil
+            nil
+          else
+            v
+          end
+        end
+        # rubocop:enable Lint/DuplicateBranch
+      end
     end
   end
 end
