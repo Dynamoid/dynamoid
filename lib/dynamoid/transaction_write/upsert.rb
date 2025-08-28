@@ -68,12 +68,12 @@ module Dynamoid
             set_expression_statements << "#{name_placeholder} = #{value_placeholder}"
             expression_attribute_values[value_placeholder] = value
           else
-            remove_expression_statements << "#{name_placeholder}"
+            remove_expression_statements << name_placeholder
           end
           expression_attribute_names[name_placeholder] = name
         end
 
-        update_expression = ""
+        update_expression = ''
         update_expression += "SET #{set_expression_statements.join(', ')}" if set_expression_statements.any?
         update_expression += " REMOVE #{remove_expression_statements.join(', ')}" if remove_expression_statements.any?
 
