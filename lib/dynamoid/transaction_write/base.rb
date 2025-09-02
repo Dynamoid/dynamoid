@@ -54,7 +54,6 @@ module Dynamoid
           v.is_a?(Hash) ? v.stringify_keys : v
         end
       end
-
     end
   end
 end
