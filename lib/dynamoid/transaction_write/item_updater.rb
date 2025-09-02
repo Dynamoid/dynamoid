@@ -23,7 +23,7 @@ module Dynamoid
         if Dynamoid.config.store_attribute_with_nil_value
           @attributes_to_set.merge!(attributes)
         else
-          @attributes_to_set.merge!(attributes.select { |_, v| !v.nil? })
+          @attributes_to_set.merge!(attributes.reject { |_, v| v.nil? })
           @attributes_to_remove += attributes.select { |_, v| v.nil? }.keys
         end
       end
