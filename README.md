@@ -1131,7 +1131,7 @@ The following actions are supported:
 
 * `#create`/`#create!` - add a new model if it does not already exist
 * `#save`/`#save!` - create or update model
-* `#update_attributes`/`#update_attributes!` - modifies one or more attributes from an existig
+* `#update_attributes`/`#update_attributes!` - modifies one or more attributes from an existing
 model
 * `#delete` - remove an model without callbacks nor validations
 * `#destroy`/`#destroy!` - remove an model

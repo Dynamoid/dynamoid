@@ -22,6 +22,7 @@ describe Dynamoid::Indexes do
         txn.save! doc
       end
       expect(doc).to be_persisted
+      expect(doc.reload.age).to eq 1
     end
 
     it 'can create in transaction' do
@@ -46,7 +47,7 @@ describe Dynamoid::Indexes do
       expect(doc.reload.age).to be_nil
     end
 
-    it 'can update in transaction' do
+    it 'can save update in transaction' do
       doc = klass_with_gsi.new
       doc.name = 'abc'
       doc.age = 1
@@ -59,13 +60,51 @@ describe Dynamoid::Indexes do
       expect(doc.reload.age).to be_nil
     end
 
-    it 'can update_field in transaction' do
+    it 'can update_attributes in transaction' do
+      doc = klass_with_gsi.new
+      doc.name = 'abc'
+      doc.age = 1
+      doc.save!
+      Dynamoid::TransactionWrite.execute do |txn|
+        txn.update_attributes doc, age: nil
+      end
+      expect(doc).to be_persisted
+      expect(doc.reload.age).to be_nil
+    end
+
+    it 'can update_fields in transaction' do
       doc = klass_with_gsi.new
       doc.name = 'abc'
       doc.age = 1
       doc.save!
       Dynamoid::TransactionWrite.execute do |txn|
         txn.update_fields klass_with_gsi, doc.id, age: nil
+      end
+      expect(doc).to be_persisted
+      expect(doc.reload.age).to be_nil
+    end
+
+    it 'can update_fields in transaction' do
+      doc = klass_with_gsi.new
+      doc.name = 'abc'
+      doc.age = 1
+      doc.save!
+      Dynamoid::TransactionWrite.execute do |txn|
+        txn.update_fields klass_with_gsi, doc.id, age: nil
+      end
+      expect(doc).to be_persisted
+      expect(doc.reload.age).to be_nil
+    end
+
+    it 'can update_fields with set() in transaction' do
+      doc = klass_with_gsi.new
+      doc.name = 'abc'
+      doc.age = 1
+      doc.save!
+      Dynamoid::TransactionWrite.execute do |txn|
+        txn.update_fields klass_with_gsi, doc.id do |d|
+          d.set age: nil
+        end
       end
       expect(doc).to be_persisted
       expect(doc.reload.age).to be_nil

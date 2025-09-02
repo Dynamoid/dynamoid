@@ -120,7 +120,6 @@ module Dynamoid
         # changed attributes to persist
         changes = @model.attributes.slice(*@model.changed.map(&:to_sym))
         changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
-        changes_dumped = sanitize_attributes(changes_dumped)
 
         # primary key to look up an item to update
         key = { @model_class.hash_key => dump_attribute(@model_class.hash_key, @model.hash_key) }
