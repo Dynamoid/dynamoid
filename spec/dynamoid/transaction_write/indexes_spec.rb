@@ -84,18 +84,6 @@ describe Dynamoid::Indexes do
       expect(doc.reload.age).to be_nil
     end
 
-    it 'can update_fields in transaction' do
-      doc = klass_with_gsi.new
-      doc.name = 'abc'
-      doc.age = 1
-      doc.save!
-      Dynamoid::TransactionWrite.execute do |txn|
-        txn.update_fields klass_with_gsi, doc.id, age: nil
-      end
-      expect(doc).to be_persisted
-      expect(doc.reload.age).to be_nil
-    end
-
     it 'can update_fields with set() in transaction' do
       doc = klass_with_gsi.new
       doc.name = 'abc'
