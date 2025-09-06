@@ -97,6 +97,7 @@ module Dynamoid
         touch_model_timestamps(skip_created_at: false)
 
         attributes_dumped = Dynamoid::Dumping.dump_attributes(@model.attributes, @model_class.attributes)
+        attributes_dumped = sanitize_item(attributes_dumped)
 
         # require primary key not to exist yet
         condition = "attribute_not_exists(#{@model_class.hash_key})"
@@ -126,7 +127,8 @@ module Dynamoid
 
         # Build UpdateExpression and keep names and values placeholders mapping
         # in ExpressionAttributeNames and ExpressionAttributeValues.
-        update_expression_statements = []
+        set_expression_statements = []
+        remove_expression_statements = []
         expression_attribute_names = {}
         expression_attribute_values = {}
 
@@ -134,12 +136,18 @@ module Dynamoid
           name_placeholder = "#_n#{i}"
           value_placeholder = ":_s#{i}"
 
-          update_expression_statements << "#{name_placeholder} = #{value_placeholder}"
+          if value || Dynamoid.config.store_attribute_with_nil_value
+            set_expression_statements << "#{name_placeholder} = #{value_placeholder}"
+            expression_attribute_values[value_placeholder] = value
+          else
+            remove_expression_statements << name_placeholder
+          end
           expression_attribute_names[name_placeholder] = name
-          expression_attribute_values[value_placeholder] = value
         end
 
-        update_expression = "SET #{update_expression_statements.join(', ')}"
+        update_expression = ''
+        update_expression += "SET #{set_expression_statements.join(', ')}" if set_expression_statements.any?
+        update_expression += " REMOVE #{remove_expression_statements.join(', ')}" if remove_expression_statements.any?
 
         {
           update: {

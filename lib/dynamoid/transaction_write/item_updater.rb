@@ -20,7 +20,12 @@ module Dynamoid
 
       def set(attributes)
         validate_attribute_names!(attributes.keys)
-        @attributes_to_set.merge!(attributes)
+        if Dynamoid.config.store_attribute_with_nil_value
+          @attributes_to_set.merge!(attributes)
+        else
+          @attributes_to_set.merge!(attributes.reject { |_, v| v.nil? })
+          @attributes_to_remove += attributes.select { |_, v| v.nil? }.keys
+        end
       end
 
       # adds to array of fields for use in REMOVE update expression
