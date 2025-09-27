@@ -134,6 +134,11 @@ module Dynamoid
       # @param name [Symbol] name of the field
       # @param type [Symbol] type of the field (optional)
       # @param options [Hash] any additional options for the field type (optional)
+      # @option options [Symbol] :of <description>
+      # @option options [Symbol] :store_as_string <description>
+      # @option options [Symbol] :store_as_native_boolean <description>
+      # @option options [Symbol] :default <description>
+      # @option options [Symbol] :alias <description>
       #
       # @since 0.2.0
       def field(name, type = :string, options = {})
