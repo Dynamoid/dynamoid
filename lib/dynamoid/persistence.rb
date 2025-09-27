@@ -28,9 +28,16 @@ module Dynamoid
 
     module ClassMethods
       def table_name
-        table_base_name = options[:name] || base_class.name.split('::').last.downcase.pluralize
+        return @table_name if @table_name
 
-        @table_name ||= [Dynamoid::Config.namespace.to_s, table_base_name].reject(&:empty?).join('_')
+        if options[:arn]
+          @table_name = options[:arn]
+          return @table_name
+        end
+
+        base_name = options[:name] || base_class.name.split('::').last.downcase.pluralize
+        namespace = Dynamoid::Config.namespace.to_s
+        @table_name = [namespace, base_name].reject(&:empty?).join('_')
       end
 
       # Create a table.

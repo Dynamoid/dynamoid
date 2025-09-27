@@ -112,6 +112,30 @@ RSpec.describe Dynamoid::Persistence do
         # expect(obj.destroyed?).to eql false # FIXME
       end
     end
+
+    context 'when table arn is specified', remove_constants: [:Payment] do
+      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+        # Create table manually because CreateTable doesn't accept ARN as a
+        # table name. Add namespace to have this table removed automativally.
+        table_name = :"#{Dynamoid::Config.namespace}_purchases"
+        Dynamoid.adapter.create_table(table_name, :id)
+
+        table = Dynamoid.adapter.describe_table(table_name)
+        expect(table.arn).to be_present
+
+        Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock, RSpec/LeakyConstantDeclaration
+          include Dynamoid::Document
+
+          table arn: table.arn
+        end
+
+        payment = Payment.create!
+
+        expect {
+          payment.destroy
+        }.to send_request_matching(:DeleteItem, { TableName: table.arn })
+      end
+    end
   end
 
   describe 'destroy!' do

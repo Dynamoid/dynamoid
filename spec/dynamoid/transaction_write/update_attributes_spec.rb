@@ -542,6 +542,12 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable R
       expect(ScratchPad.recorded).to eql []
     end
   end
+
+  context 'when table arn is specified', remove_constants: [:Payment] do
+    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+      skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
+    end
+  end
 end
 
 describe Dynamoid::TransactionWrite, '#update_attributes!' do
@@ -844,5 +850,11 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
     end
 
     expect(obj.reload.name).to eql('Alex [Updated]')
+  end
+
+  context 'when table arn is specified', remove_constants: [:Payment] do
+    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+      skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
+    end
   end
 end

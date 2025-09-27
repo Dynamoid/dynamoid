@@ -321,6 +321,22 @@ module Dynamoid
         false
       end
 
+      #
+      # New, semi-arbitrary API to get data on the table
+      #
+      def describe_table(table_name, reload: false)
+        (!reload && table_cache[table_name]) || begin
+          response = client.describe_table(table_name: table_name)
+          table = Table.new(response.data)
+
+          if table.name == table_name.to_s
+            table.local!
+          end
+
+          table_cache[table_name] = table
+        end
+      end
+
       def update_time_to_live(table_name, attribute)
         request = {
           table_name: table_name,
@@ -652,15 +668,6 @@ module Dynamoid
         end
 
         expected
-      end
-
-      #
-      # New, semi-arbitrary API to get data on the table
-      #
-      def describe_table(table_name, reload: false)
-        (!reload && table_cache[table_name]) || begin
-          table_cache[table_name] = Table.new(client.describe_table(table_name: table_name).data)
-        end
       end
 
       #

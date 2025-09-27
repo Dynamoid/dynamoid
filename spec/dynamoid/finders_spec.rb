@@ -142,6 +142,31 @@ describe Dynamoid::Finders do
         obj = klass.create!(published_on: '2018-10-07'.to_date)
         expect(klass.find(obj.id, range_key: obj.published_on)).to eql(obj)
       end
+
+      context 'when table arn is specified', remove_constants: [:Payment] do
+        it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+          # Create table manually because CreateTable doesn't accept ARN as a
+          # table name. Add namespace to have this table removed automativally.
+          table_name = :"#{Dynamoid::Config.namespace}_purchases"
+          Dynamoid.adapter.create_table(table_name, :id)
+
+          table = Dynamoid.adapter.describe_table(table_name)
+          expect(table.arn).to be_present
+
+          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock, RSpec/LeakyConstantDeclaration
+            include Dynamoid::Document
+
+            table arn: table.arn
+            field :comment
+          end
+
+          obj = Payment.create!(comment: 'foobar')
+
+          expect {
+            Payment.find(obj.id)
+          }.to send_request_matching(:GetItem, { TableName: table.arn })
+        end
+      end
     end
 
     context 'multiple primary keys provided' do
@@ -408,6 +433,33 @@ describe Dynamoid::Finders do
 
         it 'uses new backoff after successful call without unprocessed items' do
           skip 'it is difficult to test'
+        end
+      end
+
+      context 'when table arn is specified', remove_constants: [:Payment] do
+        it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+          # Create table manually because CreateTable doesn't accept ARN as a
+          # table name. Add namespace to have this table removed automativally.
+          table_name = :"#{Dynamoid::Config.namespace}_purchases"
+          Dynamoid.adapter.create_table(table_name, :id)
+
+          # get table ARN
+          table = Dynamoid.adapter.describe_table(table_name)
+          expect(table.arn).to be_present
+
+          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock, RSpec/LeakyConstantDeclaration
+            include Dynamoid::Document
+
+            table arn: table.arn
+            field :comment
+          end
+
+          obj1 = Payment.create!(comment: 'foo')
+          obj2 = Payment.create!(comment: 'bar')
+
+          expect {
+            Payment.find([obj1.id, obj2.id])
+          }.to send_request_matching(:BatchGetItem, { RequestItems: { table.arn => anything } })
         end
       end
     end

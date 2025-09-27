@@ -236,6 +236,12 @@ describe Dynamoid::TransactionRead, '#find' do
 
       expect(result).to eql([obj])
     end
+
+    context 'when table arn is specified', remove_constants: [:Payment] do
+      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+        skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
+      end
+    end
   end
 
   context 'multiple primary keys provided' do
@@ -552,6 +558,12 @@ describe Dynamoid::TransactionRead, '#find' do
 
         expect(result.size).to eql 2
         expect(result.map(&:id)).to eql(%w[1 2])
+      end
+    end
+
+    context 'when table arn is specified', remove_constants: [:Payment] do
+      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+        skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
       end
     end
   end

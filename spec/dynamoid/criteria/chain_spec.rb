@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe Dynamoid::Criteria::Chain do
   let(:time) { DateTime.now }
-  let!(:user) { User.create(name: 'Josh', email: 'josh@joshsymonds.com', password: 'Test123') }
+  let(:user) { User.create(name: 'Josh', email: 'josh@joshsymonds.com', password: 'Test123') }
   let(:chain) { described_class.new(User) }
 
   describe 'Query vs Scan' do
@@ -1421,6 +1421,64 @@ describe Dynamoid::Criteria::Chain do
         end.to output('run after_initializerun after_find').to_stdout
       end
     end
+
+    context 'when table arn is specified', remove_constants: [:Payment] do
+      context 'Query' do
+        it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+          # Create table manually because CreateTable doesn't accept ARN as a
+          # table name. Add namespace to have this table removed automativally.
+          table_name = :"#{Dynamoid::Config.namespace}_purchases"
+          Dynamoid.adapter.create_table(table_name, :id)
+
+          table = Dynamoid.adapter.describe_table(table_name)
+          expect(table.arn).to be_present
+
+          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+            include Dynamoid::Document
+
+            table arn: table.arn
+            field :comment
+          end
+
+          obj = Payment.create!(comment: 'foobar')
+
+          result = nil
+          expect {
+            result = Payment.where(id: obj.id).all.to_a
+          }.to send_request_matching(:Query, { TableName: table.arn })
+
+          expect(result).to eq([obj])
+        end
+      end
+
+      context 'Scan' do
+        it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+          # Create table manually because CreateTable doesn't accept ARN as a
+          # table name. Add namespace to have this table removed automativally.
+          table_name = :"#{Dynamoid::Config.namespace}_purchases"
+          Dynamoid.adapter.create_table(table_name, :id)
+
+          table = Dynamoid.adapter.describe_table(table_name)
+          expect(table.arn).to be_present
+
+          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+            include Dynamoid::Document
+
+            table arn: table.arn
+            field :comment
+          end
+
+          obj = Payment.create!(comment: 'foobar')
+
+          result = nil
+          expect {
+            result = Payment.where(comment: obj.comment).all.to_a
+          }.to send_request_matching(:Scan, { TableName: table.arn })
+
+          expect(result).to eq([obj])
+        end
+      end
+    end
   end
 
   describe '#where with String query' do
@@ -1840,6 +1898,71 @@ describe Dynamoid::Criteria::Chain do
         end
       end
     end
+
+    context 'when table arn is specified', remove_constants: [:Payment] do
+      context 'Query' do
+        it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+          # Create table manually because CreateTable doesn't accept ARN as a
+          # table name. Add namespace to have this table removed automativally.
+          table_name = :"#{Dynamoid::Config.namespace}_purchases"
+          Dynamoid.adapter.create_table(table_name, :id)
+
+          table = Dynamoid.adapter.describe_table(table_name)
+          expect(table.arn).to be_present
+
+          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+            include Dynamoid::Document
+
+            table arn: table.arn
+            field :comment
+          end
+
+          obj = Payment.create!(comment: 'foobar')
+
+          expect {
+            expect {
+              expect {
+                Payment.where(id: obj.id).delete_all
+              }.to change(Payment, :count).by(-1)
+            }.to send_request_matching(:Query, { TableName: table.arn })
+          }.to send_request_matching(:BatchWriteItem, { RequestItems: { table.arn => anything } })
+        end
+      end
+
+      context 'Scan' do
+        it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+          # Create table manually because CreateTable doesn't accept ARN as a
+          # table name. Add namespace to have this table removed automativally.
+          table_name = :"#{Dynamoid::Config.namespace}_purchases"
+          Dynamoid.adapter.create_table(table_name, :id)
+
+          table = Dynamoid.adapter.describe_table(table_name)
+          expect(table.arn).to be_present
+
+          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+            include Dynamoid::Document
+
+            table arn: table.arn
+            field :comment
+          end
+
+          obj = Payment.create!(comment: 'foobar')
+
+          result = nil
+          expect {
+            result = Payment.where(comment: obj.comment).count
+          }.to send_request_matching(:Scan, { TableName: table.arn })
+
+          expect {
+            expect {
+              expect {
+                Payment.where(comment: obj.comment).delete_all
+              }.to change(Payment, :count).by(-1)
+            }.to send_request_matching(:Scan, { TableName: table.arn })
+          }.to send_request_matching(:BatchWriteItem, { RequestItems: { table.arn => anything } })
+        end
+      end
+    end
   end
 
   describe '#first' do
@@ -2104,6 +2227,64 @@ describe Dynamoid::Criteria::Chain do
         customer3 = model.create(age: 12)
 
         expect(model.where('age < :age', age: 10).count).to eql(2)
+      end
+    end
+
+    context 'when table arn is specified', remove_constants: [:Payment] do
+      context 'Query' do
+        it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+          # Create table manually because CreateTable doesn't accept ARN as a
+          # table name. Add namespace to have this table removed automativally.
+          table_name = :"#{Dynamoid::Config.namespace}_purchases"
+          Dynamoid.adapter.create_table(table_name, :id)
+
+          table = Dynamoid.adapter.describe_table(table_name)
+          expect(table.arn).to be_present
+
+          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+            include Dynamoid::Document
+
+            table arn: table.arn
+            field :comment
+          end
+
+          obj = Payment.create!(comment: 'foobar')
+
+          result = nil
+          expect {
+            result = Payment.where(id: obj.id).count
+          }.to send_request_matching(:Query, { TableName: table.arn })
+
+          expect(result).to eq(1)
+        end
+      end
+
+      context 'Scan' do
+        it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+          # Create table manually because CreateTable doesn't accept ARN as a
+          # table name. Add namespace to have this table removed automativally.
+          table_name = :"#{Dynamoid::Config.namespace}_purchases"
+          Dynamoid.adapter.create_table(table_name, :id)
+
+          table = Dynamoid.adapter.describe_table(table_name)
+          expect(table.arn).to be_present
+
+          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+            include Dynamoid::Document
+
+            table arn: table.arn
+            field :comment
+          end
+
+          obj = Payment.create!(comment: 'foobar')
+
+          result = nil
+          expect {
+            result = Payment.where(comment: obj.comment).count
+          }.to send_request_matching(:Scan, { TableName: table.arn })
+
+          expect(result).to eq(1)
+        end
       end
     end
   end
@@ -2379,9 +2560,10 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe 'User' do
-    let(:chain) { described_class.new(User) }
-
     it 'defines each' do
+      user = User.create!(name: 'Josh')
+
+      chain = described_class.new(User)
       chain = self.chain.where(name: 'Josh')
       chain.each { |u| u.update_attribute(:name, 'Justin') }
 
@@ -2389,6 +2571,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     it 'includes Enumerable' do
+      user = User.create!(name: 'Josh')
       chain = self.chain.where(name: 'Josh')
 
       expect(chain.collect(&:name)).to eq ['Josh']

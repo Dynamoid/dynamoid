@@ -790,4 +790,10 @@ describe Dynamoid::TransactionWrite, '#update_fields' do
       end
     end
   end
+
+  context 'when table arn is specified', remove_constants: [:Payment] do
+    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+      skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
+    end
+  end
 end
