@@ -334,6 +334,12 @@ describe Dynamoid::TransactionWrite, '#destroy' do # rubocop:disable RSpec/Multi
       expect(result).to eql false
     end
   end
+
+  context 'when table arn is specified', remove_constants: [:Payment] do
+    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+      skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
+    end
+  end
 end
 
 describe Dynamoid::TransactionWrite, '.destroy!' do
@@ -481,5 +487,11 @@ describe Dynamoid::TransactionWrite, '.destroy!' do
     end
 
     expect(klass.exists?([[obj.id, obj.activated_on]])).to eql false
+  end
+
+  context 'when table arn is specified', remove_constants: [:Payment] do
+    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+      skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
+    end
   end
 end

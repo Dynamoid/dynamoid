@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Set given config options and roll them back after a test complision
 RSpec.configure do |config|
   config.around :each, :config do |example|
     config = example.metadata[:config]

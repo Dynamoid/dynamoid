@@ -369,5 +369,30 @@ RSpec.describe Dynamoid::Persistence do
         klass.upsert(obj.id, { title: 'New title', publisher: 'New publisher' })
       }.to raise_error Dynamoid::Errors::UnknownAttribute
     end
+
+    context 'when table arn is specified', remove_constants: [:Payment] do
+      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+        # Create table manually because CreateTable doesn't accept ARN as a
+        # table name. Add namespace to have this table removed automativally.
+        table_name = :"#{Dynamoid::Config.namespace}_purchases"
+        Dynamoid.adapter.create_table(table_name, :id)
+
+        table = Dynamoid.adapter.describe_table(table_name)
+        expect(table.arn).to be_present
+
+        Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock, RSpec/LeakyConstantDeclaration
+          include Dynamoid::Document
+
+          table arn: table.arn
+          field :comment
+        end
+
+        payment = Payment.create!
+
+        expect {
+          Payment.upsert(payment.id, comment: 'A')
+        }.to send_request_matching(:UpdateItem, { TableName: table.arn })
+      end
+    end
   end
 end

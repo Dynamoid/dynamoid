@@ -14,6 +14,7 @@ module Dynamoid
         #
         def initialize(schema)
           @schema = schema[:table]
+          @local = false
         end
 
         def range_key
@@ -46,6 +47,18 @@ module Dynamoid
 
         def name
           schema[:table_name]
+        end
+
+        def arn
+          schema[:table_arn]
+        end
+
+        def local!
+          @local = true
+        end
+
+        def local?
+          @local
         end
       end
     end

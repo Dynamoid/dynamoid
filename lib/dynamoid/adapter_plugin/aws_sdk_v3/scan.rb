@@ -57,6 +57,9 @@ module Dynamoid
           name_placeholders = {}
           value_placeholders = {}
 
+          # use table arn if it's configured for a model
+          table_name = table.local? ? table.name : table.arn
+
           # Deal with various limits and batching
           batch_size = options[:batch_size]
           limit = [record_limit, scan_limit, batch_size].compact.min
@@ -79,7 +82,7 @@ module Dynamoid
             :index_name
           ).compact
 
-          request[:table_name]                  = table.name
+          request[:table_name]                  = table_name
           request[:limit]                       = limit                 if limit
           request[:filter_expression]           = filter_expression     if filter_expression.present?
           request[:expression_attribute_values] = value_placeholders    if value_placeholders.present?

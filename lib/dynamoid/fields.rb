@@ -134,6 +134,11 @@ module Dynamoid
       # @param name [Symbol] name of the field
       # @param type [Symbol] type of the field (optional)
       # @param options [Hash] any additional options for the field type (optional)
+      # @option options [Symbol] :of <description>
+      # @option options [Symbol] :store_as_string <description>
+      # @option options [Symbol] :store_as_native_boolean <description>
+      # @option options [Symbol] :default <description>
+      # @option options [Symbol] :alias <description>
       #
       # @since 0.2.0
       def field(name, type = :string, options = {})
@@ -208,6 +213,7 @@ module Dynamoid
       #
       # @param options [Hash] options to override default table settings
       # @option options [Symbol] :name name of a table
+      # @option options [Symbol] :arn table ARN; it allows referring tables in another AWS accounts; has higher priority than the +name+ option
       # @option options [Symbol] :key name of a hash key attribute
       # @option options [Symbol] :key_type type of a hash key attribute
       # @option options [Symbol] :inheritance_field name of an attribute used for STI

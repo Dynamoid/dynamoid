@@ -63,9 +63,11 @@ module Dynamoid
                    ids.map { |hk, rk| { table.hash_key => hk, table.range_key => rk } }
                  end
 
+          table_name = table.local? ? table.name : table.arn
+
           {
             request_items: {
-              table.name => {
+              table_name => {
                 keys: keys,
                 consistent_read: options[:consistent_read]
               }

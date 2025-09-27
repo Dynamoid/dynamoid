@@ -133,12 +133,14 @@ module Dynamoid
         end
 
         read_options = options.slice(:consistent_read)
+        table = Dynamoid.adapter.describe_table(table_name)
 
         items = if Dynamoid.config.backoff
                   items = []
                   backoff = nil
                   Dynamoid.adapter.read(table_name, ids, read_options) do |hash, has_unprocessed_items|
-                    items += hash[table_name]
+                    # Cannot use #table_name because it may contain a table ARN, but response contains always a table name
+                    items += hash[table.name]
 
                     if has_unprocessed_items
                       backoff ||= Dynamoid.config.build_backoff
@@ -150,7 +152,9 @@ module Dynamoid
                   items
                 else
                   items = Dynamoid.adapter.read(table_name, ids, read_options)
-                  items ? items[table_name] : []
+
+                  # Cannot use #table_name because it may contain a table ARN, but response contains always a table name
+                  items ? items[table.name] : []
                 end
 
         if items.size == ids.size || !options[:raise_error]
