@@ -455,6 +455,88 @@ module Dynamoid
         Inc.call(self, hash_key_value, range_key_value, counters)
         self
       end
+
+      # Delete a model by a given primary key.
+      #
+      # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+      # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+      # required but has value +nil+ or is missing.
+      #
+      # @param ids [String|Array] primary key or an array of primary keys
+      # @return nil
+      #
+      # @example Delete a model by given partition key:
+      #   User.delete(user_id)
+      #
+      # @example Delete a model by given partition and sort keys:
+      #   User.delete(user_id, sort_key)
+      #
+      # @example Delete multiple models by given partition keys:
+      #   User.delete([id1, id2, id3])
+      #
+      # @example Delete multiple models by given partition and sort keys:
+      #   User.delete([[id1, sk1], [id2, sk2], [id3, sk3]])
+      def delete(*ids)
+        if ids.empty?
+          raise Dynamoid::Errors::MissingHashKey
+        end
+
+        if ids[0].is_a?(Array)
+          # given multiple keys
+          #   Model.delete([id1, id2, id3])
+          keys = ids[0] # ignore other arguments
+
+          ids = []
+          if self.range_key
+            # compound primary key
+            # expect [hash key, range key] pairs
+
+            range_key = []
+
+            # assume all elements are pairs, that's arrays
+            keys.each do |pk, sk|
+              raise Dynamoid::Errors::MissingHashKey if pk.nil?
+              raise Dynamoid::Errors::MissingRangeKey if self.range_key && sk.nil?
+
+              partition_key_dumped = cast_and_dump(hash_key, pk)
+              sort_key_dumped = cast_and_dump(self.range_key, sk)
+
+              ids << partition_key_dumped
+              range_key << sort_key_dumped
+            end
+          else
+            # simple primary key
+
+            range_key = nil
+
+            keys.each do |pk|
+              raise Dynamoid::Errors::MissingHashKey if pk.nil?
+
+              partition_key_dumped = cast_and_dump(hash_key, pk)
+              ids << partition_key_dumped
+            end
+          end
+
+          options = range_key ? { range_key: range_key } : {}
+          Dynamoid.adapter.delete(table_name, ids, options)
+        else
+          # given single primary key:
+          #   Model.delete(partition_key)
+          #   Model.delete(partition_key, sort_key)
+
+          partition_key, sort_key = ids
+
+          raise Dynamoid::Errors::MissingHashKey if partition_key.nil?
+          raise Dynamoid::Errors::MissingRangeKey if range_key? && sort_key.nil?
+
+          options = sort_key ? { range_key: cast_and_dump(self.range_key, sort_key) } : {}
+          partition_key_dumped = cast_and_dump(hash_key, partition_key)
+
+          Dynamoid.adapter.delete(table_name, partition_key_dumped, options)
+        end
+
+        nil
+      end
     end
 
     # Update document timestamps.
