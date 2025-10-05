@@ -176,6 +176,13 @@ RSpec.describe Dynamoid::Persistence do
       expect(obj.delete).to eq obj
     end
 
+    it 'forces #destroyed? predicate to return true' do
+      klass = new_class
+      obj = klass.create!
+
+      expect { obj.delete }.to change(obj, :destroyed?).from(nil).to(true)
+    end
+
     it 'uses dumped value of partition key to delete item' do
       klass = new_class(partition_key: { name: :published_on, type: :date })
 
@@ -242,7 +249,8 @@ RSpec.describe Dynamoid::Persistence do
 
       it 'deletes a record if lock version matches' do
         address.save!
-        expect { address.delete }.not_to raise_error
+
+        expect { address.delete }.to change { Address.exists? address.id }.from(true).to(false)
       end
 
       it 'does not delete a record if lock version does not match' do
@@ -253,7 +261,8 @@ RSpec.describe Dynamoid::Persistence do
         a1.city = 'Seattle'
         a1.save!
 
-        expect { a2.delete }.to raise_exception(Dynamoid::Errors::StaleObjectError)
+        expect { a2.delete }.to raise_error(Dynamoid::Errors::StaleObjectError)
+        expect(a2.destroyed?).to eql false
       end
 
       it 'uses the correct lock_version even if it is modified' do
