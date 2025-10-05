@@ -32,6 +32,13 @@ RSpec.describe Dynamoid::Persistence do
       expect(obj.destroy).to eq obj
     end
 
+    it 'forces #destroyed? predicate to return true' do
+      klass = new_class
+      obj = klass.create!
+
+      expect { obj.destroy }.to change(obj, :destroyed?).from(nil).to(true)
+    end
+
     it 'uses dumped value of partition key to delete item' do
       klass = new_class(partition_key: { name: :published_on, type: :date })
 
@@ -111,7 +118,7 @@ RSpec.describe Dynamoid::Persistence do
         a1.save!
 
         expect { a2.destroy }.to raise_exception(Dynamoid::Errors::StaleObjectError)
-        #expect(a2.destroyed?).to eql(false) # FIXME
+        expect(a2.destroyed?).to eql(false) # FIXME
       end
 
       it 'uses the correct lock_version even if it is modified' do
@@ -317,7 +324,7 @@ RSpec.describe Dynamoid::Persistence do
         }.not_to change { klass.count }
 
         expect(result).to eql false
-        # expect(obj.destroyed?).to eql false # FIXME
+        expect(obj.destroyed?).to eql nil
       end
     end
 
@@ -363,7 +370,7 @@ RSpec.describe Dynamoid::Persistence do
         }.to raise_error(Dynamoid::Errors::RecordNotDestroyed)
       }.not_to change { klass.count }
 
-       #expect(obj.destroyed?).to eql false # FIXME
+      expect(obj.destroyed?).to eql nil
     end
   end
 end

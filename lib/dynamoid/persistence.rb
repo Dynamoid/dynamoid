@@ -1106,13 +1106,12 @@ module Dynamoid
     # @return [Dynamoid::Document|false] whether deleted successfully
     # @since 0.2.0
     def destroy
-      ret = run_callbacks(:destroy) do
+      run_callbacks(:destroy) do
         delete
+        @destroyed = true
       end
 
-      @destroyed = true
-
-      ret == false ? false : self
+      @destroyed ? self : false
     end
 
     # Delete a model.
@@ -1175,6 +1174,7 @@ module Dynamoid
 
       self
     rescue Dynamoid::Errors::ConditionalCheckFailedException
+      @destroyed = false
       raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
     end
   end
