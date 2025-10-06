@@ -47,6 +47,14 @@ module Dynamoid
       self
     end
 
+    def update_attribute!(attribute, value)
+      write_attribute(attribute, value)
+      save!(validate: false)
+      self
+    rescue Dynamoid::Errors::StaleObjectError
+      self
+    end
+
     module ClassMethods
       # Override validates_presence_of to handle false values as present.
       #

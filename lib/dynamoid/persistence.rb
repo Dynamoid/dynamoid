@@ -810,6 +810,28 @@ module Dynamoid
       # final implementation is in the Dynamoid::Validation module
     end
 
+    # Update a single attribute, saving the object afterwards.
+    #
+    #   user.update_attribute!(:last_name, 'Tylor')
+    #
+    # Validation is skipped.
+    #
+    # If any of the +before_*+ callbacks throws +:abort+ the updating is
+    # cancelled and +update_attribute!+ raises
+    # +Dynamoid::Errors::RecordNotSaved+.
+    #
+    # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+    # attributes is not on the model
+    #
+    # @param attribute [Symbol] attribute name to update
+    # @param value [Object] the value to assign it
+    # @return [Dynamoid::Document] self
+    #
+    # @since 0.2.0
+    def update_attribute!(attribute, value)
+      # final implementation is in the Dynamoid::Validation module
+    end
+
     # Update a model.
     #
     # Doesn't run validation. Runs only +update+ callbacks. Reloads all attribute values.
