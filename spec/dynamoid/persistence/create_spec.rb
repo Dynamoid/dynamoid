@@ -260,6 +260,28 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    context 'when a callback aborts saving' do
+      it 'aborts creation if callback throws :abort' do
+        if ActiveSupport.version < Gem::Version.new('5.0')
+          skip "Rails 4.x and below don't support aborting with `throw :abort`"
+        end
+
+        klass = new_class do
+          field :name
+          before_create { throw :abort }
+        end
+        klass.create_table
+
+        obj = nil
+        expect {
+          obj = klass.create(name: 'Alex')
+        }.not_to change { klass.count }
+
+        expect(obj).not_to be_persisted
+        expect(obj).to be_changed
+      end
+    end
+
     context 'not unique primary key' do
       context 'composite key' do
         it 'raises RecordNotUnique error' do
@@ -366,6 +388,26 @@ RSpec.describe Dynamoid::Persistence do
     let(:klass) do
       new_class do
         field :city
+      end
+    end
+
+    context 'when a callback aborts saving' do
+      it 'aborts creation if callback throws :abort' do
+        if ActiveSupport.version < Gem::Version.new('5.0')
+          skip "Rails 4.x and below don't support aborting with `throw :abort`"
+        end
+
+        klass = new_class do
+          field :name
+          before_create { throw :abort }
+        end
+        klass.create_table
+
+        expect {
+          expect {
+            klass.create!(name: 'Alex')
+          }.to raise_error(Dynamoid::Errors::RecordNotSaved)
+        }.not_to change { klass.count }
       end
     end
 

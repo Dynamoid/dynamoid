@@ -216,6 +216,9 @@ module Dynamoid
       # Raises an exception +Dynamoid::Errors::DocumentNotValid+ if validation
       # failed.
       #
+      # If any of the +before_*+ callbacks throws +:abort+ the creation is
+      # cancelled and +create!+ raises +Dynamoid::Errors::RecordNotSaved+.
+      #
       # Accepts both Hash and Array of Hashes and can create several
       # models.
       #
@@ -682,6 +685,9 @@ module Dynamoid
     #   user = User.new(age: -1)
     #   user.save!(validate: false) # => user
     #
+    # If any of the +before_*+ callbacks throws +:abort+ the saving is
+    # cancelled and +save!+ raises +Dynamoid::Errors::RecordNotSaved+.
+    #
     # +save!+ by default sets timestamps attributes - +created_at+ and
     # +updated_at+ when creates new model and updates +updated_at+ attribute
     # when updates already existing one.
@@ -777,6 +783,10 @@ module Dynamoid
     # Raises a +Dynamoid::Errors::DocumentNotValid+ exception if some vaidation
     # fails.
     #
+    # If any of the +before_*+ callbacks throws +:abort+ the updating is
+    # cancelled and +update_attributes!+ raises
+    # +Dynamoid::Errors::RecordNotSaved+.
+    #
     # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
     # attributes is not on the model
     #
@@ -792,8 +802,6 @@ module Dynamoid
 
     # Update a single attribute, saving the object afterwards.
     #
-    # Returns +true+ if saving is successful and +false+ otherwise.
-    #
     #   user.update_attribute(:last_name, 'Tylor')
     #
     # Validation is skipped.
@@ -807,6 +815,28 @@ module Dynamoid
     #
     # @since 0.2.0
     def update_attribute(attribute, value)
+      # final implementation is in the Dynamoid::Validation module
+    end
+
+    # Update a single attribute, saving the object afterwards.
+    #
+    #   user.update_attribute!(:last_name, 'Tylor')
+    #
+    # Validation is skipped.
+    #
+    # If any of the +before_*+ callbacks throws +:abort+ the updating is
+    # cancelled and +update_attribute!+ raises
+    # +Dynamoid::Errors::RecordNotSaved+.
+    #
+    # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+    # attributes is not on the model
+    #
+    # @param attribute [Symbol] attribute name to update
+    # @param value [Object] the value to assign it
+    # @return [Dynamoid::Document] self
+    #
+    # @since 0.2.0
+    def update_attribute!(attribute, value)
       # final implementation is in the Dynamoid::Validation module
     end
 

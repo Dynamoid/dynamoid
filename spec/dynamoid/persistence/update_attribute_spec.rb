@@ -361,6 +361,28 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    context 'when a callback aborts saving' do
+      it 'aborts updating if callback throws :abort' do
+        if ActiveSupport.version < Gem::Version.new('5.0')
+          skip "Rails 4.x and below don't support aborting with `throw :abort`"
+        end
+
+        klass = new_class do
+          field :name
+          before_update { throw :abort }
+        end
+
+        obj = klass.create!(name: 'Alex')
+
+        expect {
+          obj.update_attribute(:name, 'Alex [Updated]')
+        }.not_to change { klass.find(obj.id).name }
+
+        expect(obj).to be_persisted
+        expect(obj).to be_changed
+      end
+    end
+
     context 'when a model was concurrently deleted' do
       it 'does not persist changes when simple primary key' do
         obj = klass.create!(age: 21)
@@ -409,6 +431,32 @@ RSpec.describe Dynamoid::Persistence do
         expect {
           payment.update_attribute(:comment, 'A')
         }.to send_request_matching(:UpdateItem, { TableName: table.arn })
+      end
+    end
+  end
+
+  describe '#update_attribute!' do
+    context 'when a callback aborts saving' do
+      it 'aborts updating if callback throws :abort' do
+        if ActiveSupport.version < Gem::Version.new('5.0')
+          skip "Rails 4.x and below don't support aborting with `throw :abort`"
+        end
+
+        klass = new_class do
+          field :name
+          before_update { throw :abort }
+        end
+
+        obj = klass.create!(name: 'Alex')
+
+        expect {
+          expect {
+            obj.update_attribute!(:name, 'Alex [Updated]')
+          }.to raise_error(Dynamoid::Errors::RecordNotSaved)
+        }.not_to change { klass.find(obj.id).name }
+
+        expect(obj).to be_persisted
+        expect(obj).to be_changed
       end
     end
   end
