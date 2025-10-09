@@ -98,6 +98,103 @@ describe Dynamoid::Fields do
         expect(obj.name).to eq 'Alex'
       end
     end
+
+    describe 'when :skip_generating_fields option specified' do
+      it 'does not create #id and #id= methods when :id field is skipped' do
+        klass = new_class do
+          table skip_generating_fields: [:id]
+        end
+
+        obj = klass.new
+        expect(obj.methods).not_to include(:id)
+        expect(obj.methods).not_to include(:'id=')
+      end
+
+      it 'does not create #created_at and #created_at= methods when :created_at field is skipped' do
+        klass = new_class do
+          table skip_generating_fields: [:created_at]
+        end
+
+        obj = klass.new
+        expect(obj.methods).not_to include(:created_at)
+        expect(obj.methods).not_to include(:'created_at=')
+      end
+
+      it 'does not create #updated_at and #updated_at= methods when :updated_at field is skipped' do
+        klass = new_class do
+          table skip_generating_fields: [:updated_at]
+        end
+
+        obj = klass.new
+        expect(obj.methods).not_to include(:updated_at)
+        expect(obj.methods).not_to include(:'updated_at=')
+      end
+
+      it 'allows explicit declarationg of a field that was skipped' do
+        expect(Dynamoid.logger).not_to receive(:warn)
+
+        klass = new_class do
+          table skip_generating_fields: [:created_at]
+          field :created_at, :datetime, store_as_string: true
+        end
+      end
+
+      context 'when :key option is specified' do
+        it 'does not create #id and #id= methods when :id field is skipped' do
+          klass = new_class do
+            table skip_generating_fields: [:id], key: :uuid
+          end
+
+          obj = klass.new
+          expect(obj.methods).not_to include(:id)
+          expect(obj.methods).not_to include(:'id=')
+        end
+      end
+
+      context 'when timestamps are disabled for a model' do
+        it 'does not create #created_at and #created_at= methods when :created_at field is skipped' do
+          klass = new_class do
+            table skip_generating_fields: [:created_at], timestamps: false
+          end
+
+          obj = klass.new
+          expect(obj.methods).not_to include(:created_at)
+          expect(obj.methods).not_to include(:'created_at=')
+        end
+
+        it 'does not create #updated_at and #updated_at= methods when :updated_at field is skipped' do
+          klass = new_class do
+            table skip_generating_fields: [:updated_at], timestamps: false
+          end
+
+          obj = klass.new
+          expect(obj.methods).not_to include(:updated_at)
+          expect(obj.methods).not_to include(:'updated_at=')
+        end
+      end
+
+      context 'when timestamps are disabled globally', config: { timestamps: false } do
+        it 'does not create #created_at and #created_at= methods when :created_at field is skipped' do
+          klass = new_class do
+            table skip_generating_fields: [:created_at]
+          end
+
+          obj = klass.new
+          expect(obj.methods).not_to include(:created_at)
+          expect(obj.methods).not_to include(:'created_at=')
+        end
+
+        it 'does not create #updated_at and #updated_at= methods when :updated_at field is skipped' do
+          klass = new_class do
+            table skip_generating_fields: [:updated_at]
+          end
+
+          obj = klass.new
+          expect(obj.methods).not_to include(:updated_at)
+          expect(obj.methods).not_to include(:'updated_at=')
+        end
+      end
+    end
   end
 
   describe '.field' do
