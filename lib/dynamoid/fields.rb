@@ -217,6 +217,7 @@ module Dynamoid
       # @option options [Symbol] :key name of a hash key attribute
       # @option options [Symbol] :key_type type of a hash key attribute
       # @option options [Symbol] :inheritance_field name of an attribute used for STI
+      # @option options [Array<Symbol>] :skip_generating_fields don't generate implicitly methods with given names, e.g. +:id+, +:created_at+, +:updated_at+
       # @option options [Symbol] :capacity_mode table billing mode - either +provisioned+ or +on_demand+
       # @option options [Integer] :write_capacity table write capacity units
       # @option options [Integer] :read_capacity table read capacity units
@@ -226,11 +227,18 @@ module Dynamoid
       # @since 0.4.0
       def table(options)
         self.options = options
+
+        id_already_declared = true
+        timestamps_already_declared = Dynamoid::Config.timestamps
+
         # a default 'id' column is created when Dynamoid::Document is included
         unless attributes.key? hash_key
           remove_field :id
+          id_already_declared = false
+
           key_type = options[:key_type] || :string
           field(hash_key, key_type)
+          id_already_declared = hash_key == :id
         end
 
         # The created_at/updated_at fields are declared in the `included` callback first.
@@ -239,13 +247,29 @@ module Dynamoid
         # So we need to make decision again and declare the fields or rollback thier declaration.
         #
         # Do not replace with `#timestamps_enabled?`.
-        if options[:timestamps] && !Dynamoid::Config.timestamps
+        if options[:timestamps] && !timestamps_already_declared
           # The fields weren't declared in `included` callback because they are disabled globaly
           field :created_at, :datetime
           field :updated_at, :datetime
-        elsif options[:timestamps] == false && Dynamoid::Config.timestamps
+
+          timestamps_already_declared = true
+        elsif options[:timestamps] == false && timestamps_already_declared
           # The fields were declared in `included` callback but they are disabled for a table
           remove_field :created_at
+          remove_field :updated_at
+
+          timestamps_already_declared = false
+        end
+
+        # handle :skip_generating_fields option
+        skip_generating_fields = options[:skip_generating_fields] || []
+        if id_already_declared && skip_generating_fields.include?(:id)
+          remove_field :id
+        end
+        if timestamps_already_declared && skip_generating_fields.include?(:created_at)
+          remove_field :created_at
+        end
+        if timestamps_already_declared && skip_generating_fields.include?(:updated_at)
           remove_field :updated_at
         end
       end
