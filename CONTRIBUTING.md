@@ -3,12 +3,16 @@
 
 ## Setup
 
-Run `bin/setup` in a just clonned Dynamoid's Git repository to install
-dependencies - gems and _dynamodb-local_'s JAR.
+1. Clone Dynamoid's Git repository (swap for your fork, if you took that route):
+    ```
+    $ git clone https://github.com/Dynamoid/dynamoid.git
+    $ cd dynamoid
+    ```
+2. Run `bin/setup` to install dependencies - including gems and _dynamodb-local_'s JAR.
 
 Local development is mostly based on _dynamodb-local_ so it should be
 installed and launched when you need either to run specs or to work in
-a REPL.
+a REPL. See the [dynamodb-local](#dynamodb-local) section below for more details.
 
 
 ## Specs
@@ -19,26 +23,26 @@ _dynamodb-local_ only.
 Use the following command to run specs:
 
 ```
-$ bundle exec rspec
+$ bin/rspec
 ```
 
 _dynamodb-local_ should be installed and run beforehand.
 
 > [!NOTE]
 > It's common to have a separate table per a test case but it's very slow
-> to create a new table in a real AWS account so this is inpractically slow
-> to run the whole specs suite agains a real AWS account.
+> to create a new table in a real AWS account so this is impractically slow
+> to run the whole specs suite against a real AWS account.
 >
 > The other option would be to use a small number of preexisting tables.
 > This way they should be created just once and cleared before running
-> each test case. This approach was actially used but made it difficult
+> each test case. This approach was actually used but made it difficult
 > evolve specs and add test cases that require different primary key
 > schemas, global/local secondary indices and fields types and options.
 
 
 ### Model per test case
 
-It's usefull to be able easily define a model class for a
+It's useful to be able easily define a model class for a
 context/describe section or even for a particular test case without
 defining a new constant etc.
 
@@ -107,12 +111,10 @@ $ bin/console
 ```
 
 
-# _dynamodb-local_
+# dynamodb-local
 
 _dynamodb-local_ is software provided by Amazon to emulate DynamoDB and
-run it locally. See [official
-documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html)
-to install it.
+run it locally. See [official documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) to install it.
 
 To run _dynamodb-local_ using a Docker image use the following command
 (installs the Docker image automatically):
