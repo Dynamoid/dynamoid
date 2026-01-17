@@ -4,14 +4,14 @@
 
 | Version | Supported |
 |---------|-----------|
-| 3.7.x   | ✅         |
-| <= 3.6  | ❌         |
+| 3.12.x   | ✅         |
+| < 3.12  | ❌         |
 | 2.x     | ❌         |
 | 1.x     | ❌         |
 | 0.x     | ❌         |
 
-## Reporting a Vulnerability
+## Security contact information
 
-Peter Boling is responsible for the security maintenance of this gem. Please find a way
-to [contact him directly](https://railsbling.com/contact) to report the issue. Include as much relevant information as
-possible.
+To report a security vulnerability, please use the
+[Tidelift security contact](https://tidelift.com/security).
+Tidelift will coordinate the fix and disclosure.
