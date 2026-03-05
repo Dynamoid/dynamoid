@@ -57,6 +57,7 @@ jobs:
           - "3.2"
           - "3.3"
           - "3.4"
+          - "4.0"
         exclude:
 
           # Rails 8.0 requires Ruby 3.2 and above
@@ -161,6 +162,14 @@ jobs:
           - ruby: "3.4"
             gemfile: rails_5_1
           - ruby: "3.4"
+            gemfile: rails_5_2
+          - ruby: "4.0"
+            gemfile: rails_4_2
+          - ruby: "4.0"
+            gemfile: rails_5_0
+          - ruby: "4.0"
+            gemfile: rails_5_1
+          - ruby: "4.0"
             gemfile: rails_5_2
 
           - ruby: "jruby"
