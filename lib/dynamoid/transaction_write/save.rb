@@ -18,8 +18,6 @@ module Dynamoid
       end
 
       def on_registration
-        validate_model!
-
         if @options[:validate] != false && !(@valid = @model.valid?)
           if @options[:raise_error]
             raise Dynamoid::Errors::DocumentNotValid, @model
@@ -35,6 +33,8 @@ module Dynamoid
         @model.run_callbacks(:save) do
           @model.run_callbacks(callback_name) do
             @model.run_callbacks(:validate) do
+              validate_primary_key!
+
               @aborted = false
               true
             end
@@ -88,7 +88,7 @@ module Dynamoid
 
       private
 
-      def validate_model!
+      def validate_primary_key!
         raise Dynamoid::Errors::MissingHashKey if !@was_new_record && @model.hash_key.nil?
         raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && @model.range_value.nil?
       end

@@ -974,6 +974,62 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
         expect(ScratchPad.recorded).to eql []
       end
 
+      it 'runs only validation callbacks and skips all the other when validation fails' do
+        klass_with_all_callbacks_and_validation = new_class do
+          field :name
+
+          validates :name, presence: true
+
+          before_validation { ScratchPad << 'run before_validation' }
+          after_validation { ScratchPad << 'run after_validation' }
+
+          before_create { ScratchPad << 'run before_create' }
+          after_create { ScratchPad << 'run after_create' }
+          around_create :around_create_callback
+
+          before_update { ScratchPad << 'run before_update' }
+          after_update { ScratchPad << 'run after_update' }
+          around_update :around_update_callback
+
+          before_save { ScratchPad << 'run before_save' }
+          after_save { ScratchPad << 'run after_save' }
+          around_save :around_save_callback
+
+          def around_create_callback
+            ScratchPad << 'start around_create'
+            yield
+            ScratchPad << 'finish around_create'
+          end
+
+          def around_update_callback
+            ScratchPad << 'start around_update'
+            yield
+            ScratchPad << 'finish around_update'
+          end
+
+          def around_save_callback
+            ScratchPad << 'start around_save'
+            yield
+            ScratchPad << 'finish around_save'
+          end
+        end
+
+        klass_with_all_callbacks_and_validation.create_table
+        obj = klass_with_all_callbacks_and_validation.new(name: '')
+        ScratchPad.record []
+
+        expect {
+          described_class.execute do |txn|
+            txn.save obj
+          end
+        }.not_to change { klass_with_all_callbacks_and_validation.count }
+
+        expect(ScratchPad.recorded).to eql [
+          'run before_validation',
+          'run after_validation',
+        ]
+      end
+
       it 'skips *_validation callbacks when validate: false option specified and valid model' do
         klass_with_callbacks = new_class do
           before_validation { ScratchPad << 'run before_validation' }
@@ -1011,6 +1067,66 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
         end
 
         expect(ScratchPad.recorded).to eql []
+      end
+
+      it 'runs before and around callbacks before validating primary key' do
+        klass_with_all_callbacks_and_composite_key = new_class do
+          range :name
+
+          before_validation { ScratchPad << 'run before_validation' }
+          after_validation { ScratchPad << 'run after_validation' }
+
+          before_create { ScratchPad << 'run before_create' }
+          after_create { ScratchPad << 'run after_create' }
+          around_create :around_create_callback
+
+          before_update { ScratchPad << 'run before_update' }
+          after_update { ScratchPad << 'run after_update' }
+          around_update :around_update_callback
+
+          before_save { ScratchPad << 'run before_save' }
+          after_save { ScratchPad << 'run after_save' }
+          around_save :around_save_callback
+
+          def around_create_callback
+            ScratchPad << 'start around_create'
+            yield
+            ScratchPad << 'finish around_create'
+          end
+
+          def around_update_callback
+            ScratchPad << 'start around_update'
+            yield
+            ScratchPad << 'finish around_update'
+          end
+
+          def around_save_callback
+            ScratchPad << 'start around_save'
+            yield
+            ScratchPad << 'finish around_save'
+          end
+        end
+
+        klass_with_all_callbacks_and_composite_key.create_table
+        obj = klass_with_all_callbacks_and_composite_key.new(name: nil)
+        ScratchPad.record []
+
+        expect {
+          expect {
+            described_class.execute do |txn|
+              txn.save obj
+            end
+          }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        }.not_to change { klass_with_all_callbacks_and_composite_key.count }
+
+        expect(ScratchPad.recorded).to eql [
+          'run before_validation',
+          'run after_validation',
+          'run before_save',
+          'start around_save',
+          'run before_create',
+          'start around_create',
+        ]
       end
     end
 
@@ -1179,6 +1295,62 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
         ]
       end
 
+      it 'runs only validation callbacks and skips all the other when validation fails' do
+        klass_with_all_callbacks_and_validation = new_class do
+          field :name
+
+          validates :name, presence: true
+
+          before_validation { ScratchPad << 'run before_validation' }
+          after_validation { ScratchPad << 'run after_validation' }
+
+          before_create { ScratchPad << 'run before_create' }
+          after_create { ScratchPad << 'run after_create' }
+          around_create :around_create_callback
+
+          before_update { ScratchPad << 'run before_update' }
+          after_update { ScratchPad << 'run after_update' }
+          around_update :around_update_callback
+
+          before_save { ScratchPad << 'run before_save' }
+          after_save { ScratchPad << 'run after_save' }
+          around_save :around_save_callback
+
+          def around_create_callback
+            ScratchPad << 'start around_create'
+            yield
+            ScratchPad << 'finish around_create'
+          end
+
+          def around_update_callback
+            ScratchPad << 'start around_update'
+            yield
+            ScratchPad << 'finish around_update'
+          end
+
+          def around_save_callback
+            ScratchPad << 'start around_save'
+            yield
+            ScratchPad << 'finish around_save'
+          end
+        end
+
+        obj = klass_with_all_callbacks_and_validation.create!(name: 'John')
+        obj.name = nil
+        ScratchPad.record []
+
+        expect {
+          described_class.execute do |txn|
+            txn.save obj
+          end
+        }.not_to change { klass_with_all_callbacks_and_validation.count }
+
+        expect(ScratchPad.recorded).to eql [
+          'run before_validation',
+          'run after_validation',
+        ]
+      end
+
       it 'runs callbacks immediately' do
         obj = klass_with_all_callbacks.create!(name: 'John')
         obj.name = 'Bob'
@@ -1205,6 +1377,66 @@ describe Dynamoid::TransactionWrite, '.save' do # rubocop:disable RSpec/Multiple
           'run after_save'
         )
         expect(ScratchPad.recorded).to eql []
+      end
+
+      it 'runs before and around callbacks before validating primary key' do
+        klass_with_all_callbacks_and_composite_key = new_class do
+          range :name
+
+          before_validation { ScratchPad << 'run before_validation' }
+          after_validation { ScratchPad << 'run after_validation' }
+
+          before_create { ScratchPad << 'run before_create' }
+          after_create { ScratchPad << 'run after_create' }
+          around_create :around_create_callback
+
+          before_update { ScratchPad << 'run before_update' }
+          after_update { ScratchPad << 'run after_update' }
+          around_update :around_update_callback
+
+          before_save { ScratchPad << 'run before_save' }
+          after_save { ScratchPad << 'run after_save' }
+          around_save :around_save_callback
+
+          def around_create_callback
+            ScratchPad << 'start around_create'
+            yield
+            ScratchPad << 'finish around_create'
+          end
+
+          def around_update_callback
+            ScratchPad << 'start around_update'
+            yield
+            ScratchPad << 'finish around_update'
+          end
+
+          def around_save_callback
+            ScratchPad << 'start around_save'
+            yield
+            ScratchPad << 'finish around_save'
+          end
+        end
+
+        obj = klass_with_all_callbacks_and_composite_key.create!(name: 'John')
+        obj.name = nil
+        ScratchPad.record []
+
+        expect {
+          expect {
+            described_class.execute do |txn|
+              txn.save obj
+            end
+          }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        }.not_to change { klass_with_all_callbacks_and_composite_key.count }
+
+        expect(ScratchPad.recorded).to eql [
+          'run before_validation',
+          'run after_validation',
+          'run before_save',
+          'start around_save',
+          'run before_update',
+          'start around_update',
+        ]
       end
     end
   end
