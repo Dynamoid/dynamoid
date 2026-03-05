@@ -333,6 +333,35 @@ describe Dynamoid::TransactionWrite, '#destroy' do # rubocop:disable RSpec/Multi
 
       expect(result).to eql false
     end
+
+    it 'runs before and around callbacks before validating primary key' do
+      klass_with_callbacks_and_composite_key = new_class do
+        range :name
+
+        before_destroy { ScratchPad << 'run before_destroy' }
+        around_destroy :around_destroy_callback
+
+        def around_destroy_callback
+          ScratchPad << 'start around_destroy'
+          yield
+          ScratchPad << 'finish around_destroy'
+        end
+      end
+
+      obj = klass_with_callbacks_and_composite_key.create!(name: 'John')
+      obj.name = nil
+
+      expect {
+        described_class.execute do |txn|
+          txn.destroy obj
+        end
+      }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+
+      expect(ScratchPad.recorded).to eql [
+        'run before_destroy',
+        'start around_destroy',
+      ]
+    end
   end
 
   context 'when table arn is specified', remove_constants: [:Payment] do
