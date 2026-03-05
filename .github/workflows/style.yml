@@ -37,5 +37,6 @@ jobs:
           rubygems: ${{ matrix.rubygems }}
           bundler: ${{ matrix.bundler }}
           bundler-cache: true
+          cache-version: v2
       - name: Run Rubocop
         run: bundle exec rubocop -DESP

@@ -53,7 +53,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     it 'supports empty containers in `serialized` fields' do
-      users = User.import([name: 'Philip', favorite_colors: Set.new])
+      users = User.import([{ name: 'Philip', favorite_colors: Set.new }])
 
       user = User.find(users[0].id)
       expect(user.favorite_colors).to eq Set.new
@@ -268,7 +268,7 @@ RSpec.describe Dynamoid::Persistence do
       it 'works well with hash keys of any type' do
         a = nil
         expect {
-          a, = klass.import([hash: { 1 => :b }])
+          a, = klass.import([{ hash: { 1 => :b } }])
         }.not_to raise_error
 
         expect(klass.find(a.id)[:hash]).to eql('1': 'b')

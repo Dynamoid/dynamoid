@@ -58,7 +58,7 @@ module Dynamoid
             # delete explicitly attributes if assigned nil value and configured
             # to not store nil values
             values_to_update = values_sanitized.reject { |_, v| v.nil? }
-            values_to_delete = values_sanitized.select { |_, v| v.nil? }
+            values_to_delete = values_sanitized.select { |_, v| v.nil? } # rubocop:disable Style/PartitionInsteadOfDoubleSelect
 
             @updates.merge!(values_to_update)
             @deletions.merge!(values_to_delete)

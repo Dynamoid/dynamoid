@@ -17,7 +17,7 @@ describe Dynamoid::Adapter do
     3 => [:id, { range_key: { range: :number } }],
     4 => [:id, { range_key: { range: :number } }]
   }.each do |n, args|
-    name = "dynamoid_tests_TestTable#{n}"
+    name = "dynamoid_tests_TestTable#{n}" # rubocop:disable RSpec/LeakyLocalVariable
     let(:"test_table#{n}") do
       Dynamoid.adapter.create_table(name, *args)
       name

@@ -77,7 +77,7 @@ module Dynamoid
       end
 
       def warn_if_method_exists(method)
-        if @source.instance_methods.include?(method.to_sym)
+        if @source.method_defined?(method.to_sym)
           Dynamoid.logger.warn("Method #{method} generated for the field #{@name} overrides already existing method")
         end
       end
