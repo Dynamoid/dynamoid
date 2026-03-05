@@ -425,12 +425,18 @@ RSpec.describe Dynamoid::Persistence do
 
         it 'runs callbacks in the proper order' do
           klass_with_callbacks = new_class do
+            field :name
+
             before_validation { puts 'run before_validation' }
             after_validation { puts 'run after_validation' }
 
             before_create { puts 'run before_create' }
             after_create { puts 'run after_create' }
             around_create :around_create_callback
+
+            before_update { puts 'run before_update' }
+            after_update { puts 'run after_update' }
+            around_update :around_update_callback
 
             before_save { puts 'run before_save' }
             after_save { puts 'run after_save' }
@@ -440,6 +446,12 @@ RSpec.describe Dynamoid::Persistence do
               puts 'start around_create'
               yield
               puts 'finish around_create'
+            end
+
+            def around_update_callback
+              puts 'start around_update'
+              yield
+              puts 'finish around_update'
             end
 
             def around_save_callback
@@ -465,6 +477,50 @@ RSpec.describe Dynamoid::Persistence do
           ].join("\n") + "\n"
 
           expect { obj.save }.to output(expected_output).to_stdout
+        end
+
+        it 'runs before and around callbacks before validating primary key' do
+          klass_with_callbacks_and_composite_key = new_class do
+            range :name
+
+            before_validation { puts 'run before_validation' }
+            after_validation { puts 'run after_validation' }
+
+            before_create { puts 'run before_create' }
+            after_create { puts 'run after_create' }
+            around_create :around_create_callback
+
+            before_save { puts 'run before_save' }
+            after_save { puts 'run after_save' }
+            around_save :around_save_callback
+
+            def around_create_callback
+              puts 'start around_create'
+              yield
+              puts 'finish around_create'
+            end
+
+            def around_save_callback
+              puts 'start around_save'
+              yield
+              puts 'finish around_save'
+            end
+          end
+          obj = klass_with_callbacks_and_composite_key.new(name: nil)
+
+          # print each message on new line to force RSpec to show meaningful diff
+          expected_output = [ # rubocop:disable Style/StringConcatenation
+            'run before_validation',
+            'run after_validation',
+            'run before_save',
+            'start around_save',
+            'run before_create',
+            'start around_create',
+          ].join("\n") + "\n"
+
+          expect {
+            expect { obj.save }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+          }.to output(expected_output).to_stdout
         end
       end
 
@@ -516,6 +572,10 @@ RSpec.describe Dynamoid::Persistence do
             before_validation { puts 'run before_validation' }
             after_validation { puts 'run after_validation' }
 
+            before_create { puts 'run before_create' }
+            after_create { puts 'run after_create' }
+            around_create :around_create_callback
+
             before_update { puts 'run before_update' }
             after_update { puts 'run after_update' }
             around_update :around_update_callback
@@ -523,6 +583,12 @@ RSpec.describe Dynamoid::Persistence do
             before_save { puts 'run before_save' }
             after_save { puts 'run after_save' }
             around_save :around_save_callback
+
+            def around_create_callback
+              puts 'start around_create'
+              yield
+              puts 'finish around_create'
+            end
 
             def around_update_callback
               puts 'start around_update'
@@ -556,6 +622,54 @@ RSpec.describe Dynamoid::Persistence do
             obj.name = 'Bob'
 
             expect { obj.save }.to output(expected_output).to_stdout
+          }.to output.to_stdout
+        end
+
+        it 'runs before and around callbacks before validating primary key' do
+          klass_with_callbacks_and_composite_key = new_class do
+            range :name
+
+            before_validation { puts 'run before_validation' }
+            after_validation { puts 'run after_validation' }
+
+            before_update { puts 'run before_update' }
+            after_update { puts 'run after_update' }
+            around_update :around_update_callback
+
+            before_save { puts 'run before_save' }
+            after_save { puts 'run after_save' }
+            around_save :around_save_callback
+
+            def around_update_callback
+              puts 'start around_update'
+              yield
+              puts 'finish around_update'
+            end
+
+            def around_save_callback
+              puts 'start around_save'
+              yield
+              puts 'finish around_save'
+            end
+          end
+
+          expect { # to suppress printing at model creation
+            obj = klass_with_callbacks_and_composite_key.create!(name: 'John')
+            obj.name = nil
+
+            # print each message on new line to force RSpec to show meaningful diff
+            expected_output = [ # rubocop:disable Style/StringConcatenation
+              'run before_validation',
+              'run after_validation',
+              'run before_save',
+              'start around_save',
+              'run before_update',
+              'start around_update',
+            ].join("\n") + "\n"
+
+            expect {
+              expect { obj.save }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+            }.to output(expected_output).to_stdout
           }.to output.to_stdout
         end
       end
@@ -614,6 +728,49 @@ RSpec.describe Dynamoid::Persistence do
 
         obj = klass_with_callback.new(name: 'Alex')
         expect { obj.save }.to output('run after_validation').to_stdout
+      end
+
+      it 'runs only validation callbacks and skips all the other when validation fails' do
+        klass_with_callbacks = new_class do
+          field :name
+
+          validates :name, presence: true
+
+          before_validation { puts 'run before_validation' }
+          after_validation { puts 'run after_validation' }
+
+          before_create { puts 'run before_create' }
+          after_create { puts 'run after_create' }
+          around_create :around_create_callback
+
+          before_save { puts 'run before_save' }
+          after_save { puts 'run after_save' }
+          around_save :around_save_callback
+
+          def around_create_callback
+            puts 'start around_create'
+            yield
+            puts 'finish around_create'
+          end
+
+          def around_save_callback
+            puts 'start around_save'
+            yield
+            puts 'finish around_save'
+          end
+        end
+        klass_with_callbacks.create_table
+        obj = klass_with_callbacks.new(name: '')
+
+        # print each message on new line to force RSpec to show meaningful diff
+        expected_output = [ # rubocop:disable Style/StringConcatenation
+          'run before_validation',
+          'run after_validation',
+        ].join("\n") + "\n"
+
+        expect {
+          expect { obj.save }.to output(expected_output).to_stdout
+        }.not_to change { klass_with_callbacks.count }
       end
     end
 

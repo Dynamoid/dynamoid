@@ -58,7 +58,7 @@ module Dynamoid
           builder.set_attributes(changes_dumped)
         else
           nil_attributes = changes_dumped.select { |_, v| v.nil? }
-          non_nil_attributes = changes_dumped.reject { |_, v| v.nil? }
+          non_nil_attributes = changes_dumped.reject { |_, v| v.nil? } # rubocop:disable Style/PartitionInsteadOfDoubleSelect
 
           builder.remove_attributes(nil_attributes.keys)
           builder.set_attributes(non_nil_attributes)

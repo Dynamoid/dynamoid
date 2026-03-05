@@ -65,6 +65,9 @@ Style/TrailingCommaInArguments:
   Enabled: false
 Style/UnlessElse:
   Enabled: false
+Style/OneClassPerFile:
+  Exclude:
+    - 'README.md'
 
 # We aren't so brave to tackle all these issues right now
 Layout/LineLength:

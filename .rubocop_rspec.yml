@@ -48,3 +48,7 @@ RSpec/StubbedMock:
 
 RSpec/IndexedLet:
   Enabled: false
+
+# Disable while callbacks specs use printing into output
+RSpec/Output:
+  Enabled: false

@@ -308,6 +308,32 @@ RSpec.describe Dynamoid::Persistence do
         expect { obj.destroy }.to output('start around_destroyfinish around_destroy').to_stdout
       end
 
+      it 'runs callbacks in the proper order' do
+        klass_with_all_callbacks = new_class do
+          before_destroy { puts 'run before_destroy' }
+          after_destroy { puts 'run after_destroy' }
+          around_destroy :around_destroy_callback
+
+          def around_destroy_callback
+            puts 'start around_destroy'
+            yield
+            puts 'finish around_destroy'
+          end
+        end
+
+        # print each message on new line to force RSpec to show meaningful diff
+        expected_output = [ # rubocop:disable Style/StringConcatenation
+          'run before_destroy',
+          'start around_destroy',
+          'finish around_destroy',
+          'run after_destroy',
+        ].join("\n") + "\n"
+
+        obj = klass_with_all_callbacks.create!
+
+        expect { obj.destroy }.to output(expected_output).to_stdout
+      end
+
       it 'aborts destroying and returns false if a before_destroy callback throws :abort' do
         if ActiveSupport.version < Gem::Version.new('5.0')
           skip "Rails 4.x and below don't support aborting with `throw :abort`"
@@ -325,6 +351,37 @@ RSpec.describe Dynamoid::Persistence do
 
         expect(result).to eql false
         expect(obj.destroyed?).to eql nil
+      end
+
+      it 'runs before and around callbacks before validating primary key' do
+        klass_with_callbacks_and_composite_key = new_class do
+          range :name
+
+          before_destroy { puts 'run before_destroy' }
+          after_destroy { puts 'run after_destroy' }
+          around_destroy :around_destroy_callback
+
+          def around_destroy_callback
+            puts 'start around_destroy'
+            yield
+            puts 'finish around_destroy'
+          end
+        end
+
+        obj = klass_with_callbacks_and_composite_key.create!(name: 'John')
+        obj.name = nil
+
+        # print each message on new line to force RSpec to show meaningful diff
+        expected_output = [ # rubocop:disable Style/StringConcatenation
+          'run before_destroy',
+          'start around_destroy',
+        ].join("\n") + "\n"
+
+        expect {
+          expect {
+            obj.destroy
+          }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        }.to output(expected_output).to_stdout
       end
     end
 

@@ -16,7 +16,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     4 => [:id, { range_key: { range: :number } }],
     5 => [:id, { read_capacity: 10_000, write_capacity: 1000 }]
   }.each do |n, args|
-    name = "dynamoid_tests_TestTable#{n}"
+    name = "dynamoid_tests_TestTable#{n}" # rubocop:disable RSpec/LeakyLocalVariable
     let(:"test_table#{n}") do
       Dynamoid.adapter.create_table(name, *args)
       name
@@ -987,14 +987,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     it 'performs query on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
-      expect(Dynamoid.adapter.query(test_table1, { id: [[:eq, '1']] }).first).to eq([[id: '1', name: 'Josh'], { last_evaluated_key: nil }])
+      expect(Dynamoid.adapter.query(test_table1, { id: [[:eq, '1']] }).first).to eq([[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }])
     end
 
     it 'performs query on a table and returns items if there are multiple items' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
 
-      expect(Dynamoid.adapter.query(test_table1, { id: [[:eq, '1']] }).first).to eq([[id: '1', name: 'Josh'], { last_evaluated_key: nil }])
+      expect(Dynamoid.adapter.query(test_table1, { id: [[:eq, '1']] }).first).to eq([[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }])
     end
 
     context 'backoff is specified' do
@@ -1031,14 +1031,14 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     it 'performs scan on a table and returns items' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
-      expect(Dynamoid.adapter.scan(test_table1, [name: { eq: 'Josh' }]).to_a).to eq [[[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }]]
+      expect(Dynamoid.adapter.scan(test_table1, [{ name: { eq: 'Josh' } }]).to_a).to eq [[[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }]]
     end
 
     it 'performs scan on a table and returns items if there are multiple items but only one match' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
       Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
 
-      expect(Dynamoid.adapter.scan(test_table1, [name: { eq: 'Josh' }]).to_a).to eq [[[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }]]
+      expect(Dynamoid.adapter.scan(test_table1, [{ name: { eq: 'Josh' } }]).to_a).to eq [[[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }]]
     end
 
     it 'performs scan on a table and returns multiple items if there are multiple matches' do
@@ -1046,7 +1046,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
 
       expect(
-        Dynamoid.adapter.scan(test_table1, [name: { eq: 'Josh' }]).to_a
+        Dynamoid.adapter.scan(test_table1, [{ name: { eq: 'Josh' } }]).to_a
       ).to match(
         [
           [
