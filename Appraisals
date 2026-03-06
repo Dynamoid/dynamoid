@@ -32,6 +32,9 @@ appraise 'rails-6-0' do
   gem 'mutex_m'
   gem 'base64'
   gem 'bigdecimal'
+
+  # Since Ruby 4.0 benchmark becomes a bundled gem and should be added into gemspec/Gemfile files
+  gem 'benchmark'
 end
 
 appraise 'rails-6-1' do
@@ -41,6 +44,9 @@ appraise 'rails-6-1' do
   gem 'mutex_m'
   gem 'base64'
   gem 'bigdecimal'
+
+  # Since Ruby 4.0 benchmark becomes a bundled gem and should be added into gemspec/Gemfile files
+  gem 'benchmark'
 end
 
 appraise 'rails-7-0' do
@@ -72,6 +78,15 @@ end
 
 appraise 'rails-8-0' do
   gem 'activemodel', '~> 8.0.0'
+
+  # Since Ruby 3.4 these dependencies are bundled gems so should be specified explicitly.
+  gem 'mutex_m'
+  gem 'base64'
+  gem 'bigdecimal'
+end
+
+appraise 'rails-8-1' do
+  gem 'activemodel', '~> 8.1.0'
 
   # Since Ruby 3.4 these dependencies are bundled gems so should be specified explicitly.
   gem 'mutex_m'
