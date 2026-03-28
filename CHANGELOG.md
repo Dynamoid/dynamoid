@@ -11,7 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
-## 3.12.0
+## 3.13.0
+
+### Fixed
+* [#944](https://github.com/Dynamoid/dynamoid/pull/944) Fix `#delete` and `#destroy` methods and set `#destroyed?` properly when operations fail
+* [#987](https://github.com/Dynamoid/dynamoid/pull/987) Fix checking that a primary key is given in transactional methods `#save` and `#destroy`
+### Added
+* [#941](https://github.com/Dynamoid/dynamoid/pull/941) Support table ARN and add option `:arn` for the `table` method to specify a table belonged to specific AWS account
+* [#943](https://github.com/Dynamoid/dynamoid/pull/943) Implement `delete` class method
+* [#945](https://github.com/Dynamoid/dynamoid/pull/945) Implement `#update_attribute!` method
+* [#947](https://github.com/Dynamoid/dynamoid/pull/947) Allow skipping default model fields generation and add option `:skip_generating_fields` for the `table` method to specify field names
+* [#988](https://github.com/Dynamoid/dynamoid/pull/988) Add Ruby 4.0 and Rails 8.1 in CI
+### Changed
+### Removed
+
+## 3.12.0 / 2025-08-23
 
 ### Fixed
 * [#849](https://github.com/Dynamoid/dynamoid/pull/849) Fixed saving a field of custom type when it implements both `.dynamoid_dump()` and `#dynamoid_dump` method and use the former one.
