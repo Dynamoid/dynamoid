@@ -236,18 +236,13 @@ module Dynamoid
     end
 
     class SerializedUndumper < Base
-      # We must use YAML.safe_load in Ruby 3.1 to handle serialized Set class
-      minimum_ruby_version = ->(version) { Gem::Version.new(RUBY_VERSION) >= Gem::Version.new(version) }
-
-      # Once we drop support for Rubies older than 2.6 we can remove this condition (with major version bump)!
-      # YAML_SAFE_LOAD = minimum_ruby_version.call("2.6")
-      # But we don't want to change behavior for Ruby <= 3.0 that has been using the gem, without a major version bump
-      YAML_SAFE_LOAD = minimum_ruby_version.call('3.1')
+      # .safe_load is the default behavior after this version
+      YAML_SAFE_LOAD = ::YAML::VERSION >= Gem::Version.new('4.0')
 
       def process(value)
         if @options[:serializer]
           @options[:serializer].load(value)
-        elsif YAML_SAFE_LOAD
+        elsif YAML_SAFE_LOAD && !Dynamoid::Config.use_yaml_unsafe_load
           # The classes listed in permitted classes are added to the default set of "safe loadable" classes.
           # TrueClass
           # FalseClass
@@ -257,9 +252,22 @@ module Dynamoid
           # String
           # Array
           # Hash
-          YAML.safe_load(value, permitted_classes: [Symbol, Set, Date, Time, DateTime])
+          ::YAML.safe_load(value, permitted_classes: Dynamoid::Config.yaml_column_permitted_classes)
         else
-          YAML.load(value)
+          unsafe_load(value)
+        end
+      end
+
+      private
+
+      # Should behave the same in both cases
+      if ::YAML.respond_to?(:unsafe_load)
+        def unsafe_load(value)
+          ::YAML.unsafe_load(value)
+        end
+      else
+        def unsafe_load(value)
+          ::YAML.load(value)
         end
       end
     end
