@@ -856,4 +856,62 @@ describe Dynamoid::Dirty do
       end
     end
   end
+
+  # Regression test
+  # See https://github.com/Dynamoid/dynamoid/issues/1000
+  context 'field of type :map' do
+    let(:klass_with_map) do
+      new_class do
+        field :config, :map
+      end
+    end
+
+    it 'is not dirty after loading a model' do
+      obj = klass_with_map.create!(config: { 'a' => 1 })
+      obj = klass_with_map.find(obj.id)
+      expect(obj.changes).to eql({})
+    end
+  end
+
+  context 'field of type :raw' do
+    let(:klass_with_raw) do
+      new_class do
+        field :config, :raw
+      end
+    end
+
+    it 'is not dirty after loading a model' do
+      obj = klass_with_raw.create!(config: [{ 'a' => 1 }])
+      obj = klass_with_raw.find(obj.id)
+      expect(obj.changes).to eql({})
+    end
+  end
+
+  context 'field of type :array' do
+    let(:klass_with_array) do
+      new_class do
+        field :config, :array
+      end
+    end
+
+    it 'is not dirty after loading a model' do
+      obj = klass_with_array.create!(config: [{ 'a' => 1 }])
+      obj = klass_with_array.find(obj.id)
+      expect(obj.changes).to eql({})
+    end
+  end
+
+  context 'field of type :serialized' do
+    let(:klass_with_serialized) do
+      new_class do
+        field :config, :serialized
+      end
+    end
+
+    it 'is not dirty after loading a model' do
+      obj = klass_with_serialized.create!(config: [{ 'a' => 1 }])
+      obj = klass_with_serialized.find(obj.id)
+      expect(obj.changes).to eql({})
+    end
+  end
 end

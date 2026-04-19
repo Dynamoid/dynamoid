@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dynamoid (3.12.1)
+    dynamoid (3.13.0)
       activemodel (>= 4)
       aws-sdk-dynamodb (~> 1.0)
       concurrent-ruby (>= 1.0)

@@ -303,7 +303,16 @@ module Dynamoid
       value = read_attribute(name)
       type_options = self.class.attributes[name.to_sym]
 
-      unless type_options[:type].is_a?(Class) && !type_options[:comparable]
+      if self.class.attributes.dig(name.to_sym, :type) == :map && value.is_a?(Hash)
+        # A special case for the :map field type. attributes_from_database is a
+        # HashWithIndifferentAccess which has a side effect - it converts any
+        # nested Hash to HashWithIndifferentAccess as well.
+        # HashWithIndifferentAccess#== does not tolarate containing symbolized
+        # keys in an argument Hash. So if a value is a Hash and may have
+        # symbolized keys - wrap it into HashWithIndifferentAccess.
+        value_wrapped = value.with_indifferent_access
+        value_wrapped != value_from_database
+      elsif !type_options[:type].is_a?(Class) || type_options[:comparable]
         # common case
         value != value_from_database
       else
