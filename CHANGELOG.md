@@ -11,7 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
-## 3.13.0
+## 3.13.1
+
+### Fixed
+* [#1003](https://github.com/Dynamoid/dynamoid/pull/1003) Fix detecting dirty changes for `:map` fields
+### Added
+### Changed
+### Removed
+
+## 3.13.0 / 2026-03-29
 
 ### Fixed
 * [#944](https://github.com/Dynamoid/dynamoid/pull/944) Fix `#delete` and `#destroy` methods and set `#destroyed?` properly when operations fail
