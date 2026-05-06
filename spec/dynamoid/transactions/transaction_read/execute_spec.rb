@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionRead, '.execute' do
+describe Dynamoid::Transactions::TransactionRead, '.execute' do
   let(:klass) do
     new_class do
       field :name

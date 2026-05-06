@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable RSpec/MultipleDescribes
+describe Dynamoid::Transactions::TransactionWrite, '#update_attributes' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -550,7 +550,7 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable R
   end
 end
 
-describe Dynamoid::TransactionWrite, '#update_attributes!' do
+describe Dynamoid::Transactions::TransactionWrite, '#update_attributes!' do
   # The only difference in specs structure between
   # #update_attributes and #update_attributes! is missing a section
   # for callbacks here

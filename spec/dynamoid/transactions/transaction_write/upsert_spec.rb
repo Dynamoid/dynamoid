@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionWrite, '.upsert' do
+describe Dynamoid::Transactions::TransactionWrite, '.upsert' do
   let(:klass) do
     new_class do
       field :name

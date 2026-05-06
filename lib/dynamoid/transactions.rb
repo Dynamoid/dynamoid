@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'dynamoid/transaction_read'
-require 'dynamoid/transaction_write'
+require 'dynamoid/transactions/transaction_read'
+require 'dynamoid/transactions/transaction_write'
 
 module Dynamoid
   # The Transactions module provides a way to run blocks of code within a
