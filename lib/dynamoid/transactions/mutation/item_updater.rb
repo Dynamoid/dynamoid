@@ -2,7 +2,7 @@
 
 module Dynamoid
   module Transactions
-    class TransactionWrite
+    class Mutation
       class ItemUpdater
         attr_reader :attributes_to_set, :attributes_to_add, :attributes_to_delete, :attributes_to_remove
 

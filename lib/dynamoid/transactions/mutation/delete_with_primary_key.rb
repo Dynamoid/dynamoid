@@ -4,7 +4,7 @@ require_relative 'base'
 
 module Dynamoid
   module Transactions
-    class TransactionWrite
+    class Mutation
       class DeleteWithPrimaryKey < Base
         def initialize(model_class, hash_key, range_key)
           super()

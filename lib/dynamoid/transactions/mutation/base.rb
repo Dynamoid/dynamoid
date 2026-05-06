@@ -2,7 +2,7 @@
 
 module Dynamoid
   module Transactions
-    class TransactionWrite
+    class Mutation
       class Base
         # Callback called at "initialization" or "registration" an action
         # before changes are persisted. It's a proper place to validate

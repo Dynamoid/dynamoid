@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
-require_relative 'transaction_write/create'
-require_relative 'transaction_write/delete_with_primary_key'
-require_relative 'transaction_write/delete_with_instance'
-require_relative 'transaction_write/destroy'
-require_relative 'transaction_write/save'
-require_relative 'transaction_write/update_fields'
-require_relative 'transaction_write/update_attributes'
-require_relative 'transaction_write/upsert'
-require_relative 'transaction_write/item_updater'
+require_relative 'mutation/create'
+require_relative 'mutation/delete_with_primary_key'
+require_relative 'mutation/delete_with_instance'
+require_relative 'mutation/destroy'
+require_relative 'mutation/save'
+require_relative 'mutation/update_fields'
+require_relative 'mutation/update_attributes'
+require_relative 'mutation/upsert'
+require_relative 'mutation/item_updater'
 
 module Dynamoid
   module Transactions
-    # The class +TransactionWrite+ provides means to perform multiple modifying
+    # The class +Mutation+ provides means to perform multiple modifying
     # operations in transaction, that is atomically, so that either all of them
     # succeed, or all of them fail.
     #
@@ -22,7 +22,7 @@ module Dynamoid
     #   user = User.new()
     #   payment = Payment.find(1)
     #
-    #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+    #   Dynamoid::Transactions::Mutation.execute do |t|
     #     t.save! user
     #     t.create! Account, name: 'A'
     #     t.delete payment
@@ -38,7 +38,7 @@ module Dynamoid
     # A transaction can be used without a block. This way a transaction instance
     # should be instantiated and committed manually with +#commit+ method:
     #
-    #   t = Dynamoid::Transactions::TransactionWrite.new
+    #   t = Dynamoid::Transactions::Mutation.new
     #
     #   t.save! user
     #   t.create! Account, name: 'A'
@@ -94,7 +94,7 @@ module Dynamoid
     # Raising +Dynamoid::Errors::Rollback+ exception leads to interrupting a
     # transation and it isn't propogated:
     #
-    #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+    #   Dynamoid::Transactions::Mutation.execute do |t|
     #     t.save! user
     #     t.create! Account, name: 'A'
     #
@@ -106,7 +106,7 @@ module Dynamoid
     # When a transaction is successfully committed or rolled backed -
     # corresponding +#after_commit+ or +#after_rollback+ callbacks are run for
     # each involved model.
-    class TransactionWrite
+    class Mutation
       def self.execute
         transaction = new
 
@@ -129,7 +129,7 @@ module Dynamoid
 
       # Persist all the changes.
       #
-      #   transaction = Dynamoid::Transactions::TransactionWrite.new
+      #   transaction = Dynamoid::Transactions::Mutation.new
       #   # ...
       #   transaction.commit
       def commit
@@ -157,7 +157,7 @@ module Dynamoid
       #
       #   user = User.new
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.save!(user)
       #   end
       #
@@ -165,7 +165,7 @@ module Dynamoid
       #
       #   user = User.new(age: -1)
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.save!(user, validate: false)
       #   end
       #
@@ -215,7 +215,7 @@ module Dynamoid
       #
       #   user = User.new
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.save(user)
       #   end
       #
@@ -223,7 +223,7 @@ module Dynamoid
       #
       #   user = User.new(age: -1)
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.save(user, validate: false)
       #   end
       #
@@ -267,20 +267,20 @@ module Dynamoid
 
       # Create a model.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.create!(User, name: 'A')
       #   end
       #
       # Accepts both Hash and Array of Hashes and can create several models.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.create!(User, [{name: 'A'}, {name: 'B'}, {name: 'C'}])
       #   end
       #
       # Instantiates a model and pass it into an optional block to set other
       # attributes.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.create!(User, name: 'A') do |user|
       #       user.initialize_roles
       #     end
@@ -320,20 +320,20 @@ module Dynamoid
 
       # Create a model.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.create(User, name: 'A')
       #   end
       #
       # Accepts both Hash and Array of Hashes and can create several models.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.create(User, [{name: 'A'}, {name: 'B'}, {name: 'C'}])
       #   end
       #
       # Instantiates a model and pass it into an optional block to set other
       # attributes.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.create(User, name: 'A') do |user|
       #       user.initialize_roles
       #     end
@@ -377,13 +377,13 @@ module Dynamoid
       # creates a new document with specified attributes. Doesn't run
       # validations and callbacks.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.upsert(User, '1', age: 26)
       #   end
       #
       # If range key is declared for a model it should be passed as well:
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.upsert(User, '1', 'Tylor', age: 26)
       #   end
       #
@@ -415,19 +415,19 @@ module Dynamoid
       #
       # Doesn't run validations and callbacks.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.update_fields(User, '1', age: 26)
       #   end
       #
       # If range key is declared for a model it should be passed as well:
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.update_fields(User, '1', 'Tylor', age: 26)
       #   end
       #
       # Updates can also be performed in a block.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.update_fields(User, 1) do |u|
       #       u.add(article_count: 1)
       #       u.delete(favorite_colors: 'green')
@@ -503,7 +503,7 @@ module Dynamoid
 
       # Update multiple attributes at once.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.update_attributes(user, age: 27, last_name: 'Tylor')
       #   end
       #
@@ -538,7 +538,7 @@ module Dynamoid
       # Returns +true+ if saving is successful and +false+
       # otherwise.
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.update_attributes(user, age: 27, last_name: 'Tylor')
       #   end
       #
@@ -571,13 +571,13 @@ module Dynamoid
       #
       # Can be called either with a model:
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.delete(user)
       #   end
       #
       # or with a primary key:
       #
-      #   Dynamoid::Transactions::TransactionWrite.execute do |t|
+      #   Dynamoid::Transactions::Mutation.execute do |t|
       #     t.delete(User, user_id)
       #   end
       #

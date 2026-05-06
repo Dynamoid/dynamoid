@@ -5,7 +5,7 @@ require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
   module Transactions
-    class TransactionWrite
+    class Mutation
       class UpdateAttributes < Base
         def initialize(model, attributes, **options)
           super()

@@ -4,7 +4,7 @@ require_relative 'base'
 
 module Dynamoid
   module Transactions
-    class TransactionWrite
+    class Mutation
       class Save < Base
         def initialize(model, **options)
           super()

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Transactions::TransactionWrite, 'indexes' do
+describe Dynamoid::Transactions::Mutation, 'indexes' do
   let(:klass_with_gsi) do
     new_class(class_name: 'Ferret') do
       field :name
@@ -18,7 +18,7 @@ describe Dynamoid::Transactions::TransactionWrite, 'indexes' do
   describe '.global_secondary_index' do
     it 'cann save in transaction' do
       doc = klass_with_gsi.new(name: 'abc', age: 1)
-      Dynamoid::Transactions::TransactionWrite.execute do |txn|
+      Dynamoid::Transactions::Mutation.execute do |txn|
         txn.save! doc
       end
       expect(doc).to be_persisted
@@ -29,7 +29,7 @@ describe Dynamoid::Transactions::TransactionWrite, 'indexes' do
       doc = klass_with_gsi.new
       doc.name = 'abc'
       doc.age = 1
-      Dynamoid::Transactions::TransactionWrite.execute do |txn|
+      Dynamoid::Transactions::Mutation.execute do |txn|
         txn.save! doc
       end
       expect(doc).to be_persisted
@@ -40,7 +40,7 @@ describe Dynamoid::Transactions::TransactionWrite, 'indexes' do
       doc = klass_with_gsi.new
       doc.name = 'abc'
       doc.age = nil
-      Dynamoid::Transactions::TransactionWrite.execute do |txn|
+      Dynamoid::Transactions::Mutation.execute do |txn|
         txn.save! doc
       end
       expect(doc).to be_persisted
@@ -53,7 +53,7 @@ describe Dynamoid::Transactions::TransactionWrite, 'indexes' do
       doc.age = 1
       doc.save!
       doc.age = nil
-      Dynamoid::Transactions::TransactionWrite.execute do |txn|
+      Dynamoid::Transactions::Mutation.execute do |txn|
         txn.save! doc
       end
       expect(doc).to be_persisted
@@ -65,7 +65,7 @@ describe Dynamoid::Transactions::TransactionWrite, 'indexes' do
       doc.name = 'abc'
       doc.age = 1
       doc.save!
-      Dynamoid::Transactions::TransactionWrite.execute do |txn|
+      Dynamoid::Transactions::Mutation.execute do |txn|
         txn.update_attributes doc, age: nil
       end
       expect(doc).to be_persisted
@@ -77,7 +77,7 @@ describe Dynamoid::Transactions::TransactionWrite, 'indexes' do
       doc.name = 'abc'
       doc.age = 1
       doc.save!
-      Dynamoid::Transactions::TransactionWrite.execute do |txn|
+      Dynamoid::Transactions::Mutation.execute do |txn|
         txn.update_fields klass_with_gsi, doc.id, age: nil
       end
       expect(doc).to be_persisted
@@ -89,7 +89,7 @@ describe Dynamoid::Transactions::TransactionWrite, 'indexes' do
       doc.name = 'abc'
       doc.age = 1
       doc.save!
-      Dynamoid::Transactions::TransactionWrite.execute do |txn|
+      Dynamoid::Transactions::Mutation.execute do |txn|
         txn.update_fields klass_with_gsi, doc.id do |d|
           d.set age: nil
         end
@@ -103,7 +103,7 @@ describe Dynamoid::Transactions::TransactionWrite, 'indexes' do
       doc.name = 'abc'
       doc.age = 1
       doc.save!
-      Dynamoid::Transactions::TransactionWrite.execute do |txn|
+      Dynamoid::Transactions::Mutation.execute do |txn|
         txn.upsert klass_with_gsi, doc.id, age: nil
       end
       expect(doc).to be_persisted

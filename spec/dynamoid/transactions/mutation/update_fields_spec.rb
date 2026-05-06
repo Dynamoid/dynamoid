@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Transactions::TransactionWrite, '#update_fields' do
+describe Dynamoid::Transactions::Mutation, '#update_fields' do
   let(:klass) do
     new_class do
       field :name

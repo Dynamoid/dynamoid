@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Transactions::TransactionRead, '#commit' do
+describe Dynamoid::Transactions::Retrieval, '#commit' do
   let(:klass) do
     new_class do
       field :name

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative 'transaction_read/find'
+require_relative 'retrieval/find'
 
 module Dynamoid
   module Transactions
-    # The class +TransactionRead+ provides means to perform multiple reading
+    # The class +Retrieval+ provides means to perform multiple reading
     # operations in transaction, that is atomically, so that either all of them
     # succeed, or all of them fail.
     #
@@ -14,7 +14,7 @@ module Dynamoid
     #   user_id = params[:user_id]
     #   payment = params[:payment_id]
     #
-    #   models = Dynamoid::Transactions::TransactionRead.execute do |t|
+    #   models = Dynamoid::Transactions::Retrieval.execute do |t|
     #     t.find User, user_id
     #     t.find Payment, payment_id
     #   end
@@ -27,7 +27,7 @@ module Dynamoid
     # A transaction can be used without a block. This way a transaction instance
     # should be instantiated and committed manually with +#commit+ method:
     #
-    #   t = Dynamoid::Transactions::TransactionRead.new
+    #   t = Dynamoid::Transactions::Retrieval.new
     #
     #   t.find user_id
     #   t.find payment_id
@@ -45,7 +45,7 @@ module Dynamoid
     # A +TransactGetItems+ DynamoDB operation is used (see
     # [documentation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactGetItems.html)
     # for details).
-    class TransactionRead
+    class Retrieval
       def self.execute
         transaction = new
 
@@ -61,7 +61,7 @@ module Dynamoid
 
       # Load all the models.
       #
-      #   transaction = Dynamoid::Transactions::TransactionRead.new
+      #   transaction = Dynamoid::Transactions::Retrieval.new
       #   # ...
       #   transaction.commit
       def commit
@@ -112,23 +112,23 @@ module Dynamoid
       # @return [nil]
       #
       # @example Find by partition key
-      #   Dynamoid::Transactions::TransactionRead.execute do |t|
+      #   Dynamoid::Transactions::Retrieval.execute do |t|
       #     t.find Document, 101
       #   end
       #
       # @example Find by partition key and sort key
-      #   Dynamoid::Transactions::TransactionRead.execute do |t|
+      #   Dynamoid::Transactions::Retrieval.execute do |t|
       #     t.find Document, 101, range_key: 'archived'
       #   end
       #
       # @example Find several documents by partition key
-      #   Dynamoid::Transactions::TransactionRead.execute do |t|
+      #   Dynamoid::Transactions::Retrieval.execute do |t|
       #     t.find Document, 101, 102, 103
       #     t.find Document, [101, 102, 103]
       #   end
       #
       # @example Find several documents by partition key and sort key
-      #   Dynamoid::Transactions::TransactionRead.execute do |t|
+      #   Dynamoid::Transactions::Retrieval.execute do |t|
       #     t.find Document, [[101, 'archived'], [102, 'new'], [103, 'deleted']]
       #   end
       def find(model_class, *ids, **options)

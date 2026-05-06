@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'dynamoid/transactions/transaction_read'
-require 'dynamoid/transactions/transaction_write'
+require 'dynamoid/transactions/retrieval'
+require 'dynamoid/transactions/mutation'
 
 module Dynamoid
   # The Transactions module provides a way to run blocks of code within a
@@ -33,11 +33,11 @@ module Dynamoid
     # Proxy object to provide .writing and .reading methods on .transaction
     class Proxy
       def writing(&block)
-        TransactionWrite.execute(&block)
+        Mutation.execute(&block)
       end
 
       def reading(&block)
-        TransactionRead.execute(&block)
+        Retrieval.execute(&block)
       end
     end
 
@@ -53,7 +53,7 @@ module Dynamoid
       # @return [Proxy|nil|Array<Dynamoid::Document>]
       def transaction(&block)
         if block_given?
-          TransactionWrite.execute(&block)
+          Mutation.execute(&block)
         else
           Proxy.new
         end

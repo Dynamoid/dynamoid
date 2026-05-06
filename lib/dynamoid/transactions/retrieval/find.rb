@@ -2,7 +2,7 @@
 
 module Dynamoid
   module Transactions
-    class TransactionRead
+    class Retrieval
       class Find
         attr_reader :model_class
 

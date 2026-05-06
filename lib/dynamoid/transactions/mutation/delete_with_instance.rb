@@ -4,44 +4,27 @@ require_relative 'base'
 
 module Dynamoid
   module Transactions
-    class TransactionWrite
-      class Destroy < Base
-        def initialize(model, **options)
+    class Mutation
+      class DeleteWithInstance < Base
+        def initialize(model)
           super()
 
           @model = model
-          @options = options
           @model_class = model.class
-          @aborted = false
         end
 
         def on_registration
-          @aborted = true
-          @model.run_callbacks(:destroy) do
-            validate_primary_key!
-
-            @aborted = false
-            true
-          end
-
-          if @aborted && @options[:raise_error]
-            raise Dynamoid::Errors::RecordNotDestroyed, @model
-          end
+          validate_model!
         end
 
         def on_commit
-          return if @aborted
-
           @model.destroyed = true
-          @model.run_callbacks(:commit)
         end
 
-        def on_rollback
-          @model.run_callbacks(:rollback)
-        end
+        def on_rollback; end
 
         def aborted?
-          @aborted
+          false
         end
 
         def skipped?
@@ -49,8 +32,6 @@ module Dynamoid
         end
 
         def observable_by_user_result
-          return false if @aborted
-
           @model
         end
 
@@ -71,7 +52,7 @@ module Dynamoid
 
         private
 
-        def validate_primary_key!
+        def validate_model!
           raise Dynamoid::Errors::MissingHashKey if @model.hash_key.nil?
           raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && @model.range_value.nil?
         end
