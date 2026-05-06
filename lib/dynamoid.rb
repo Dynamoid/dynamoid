@@ -32,11 +32,10 @@ require 'dynamoid/finders'
 require 'dynamoid/identity_map'
 require 'dynamoid/config'
 require 'dynamoid/loadable'
+require 'dynamoid/transactions'
 require 'dynamoid/components'
 require 'dynamoid/document'
 require 'dynamoid/adapter'
-require 'dynamoid/transaction_read'
-require 'dynamoid/transaction_write'
 
 require 'dynamoid/tasks/database'
 

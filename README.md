@@ -1141,6 +1141,15 @@ model
 These methods are supposed to behave exactly like their
 non-transactional counterparts.
 
+Alternatively to `Dynamoid::Document.transaction` (which defaults to a
+write transaction) you can use explicit `.writing` method:
+
+```ruby
+Dynamoid::Document.transaction.writing do |txn|
+  # ...
+end
+```
+
 ##### Create models
 
 Models can be created inside of a transaction. The partition and sort
@@ -1157,7 +1166,7 @@ transaction. Upsert will update `updated_at` but will not create
 user_id = SecureRandom.uuid
 email = 'bob@bob.bob'
 
-Dynamoid::TransactionWrite.execute do |txn|
+User.transaction do |txn|
   txn.create(User, id: user_id)
   txn.create(UserEmail, id: "UserEmail##{email}", user_id: user_id)
   txn.create(Address, id: 'A#2', street: '456')
@@ -1176,7 +1185,7 @@ failures will throw `Dynamoid::Errors::DocumentNotValid`.
 user = User.find(1)
 article = Article.new(body: 'New article text', user_id: user.id)
 
-Dynamoid::TransactionWrite.execute do |txn|
+User.transaction do |txn|
   txn.save(article)
 
   user.last_article_id = article.id
@@ -1189,7 +1198,7 @@ end
 A model can be updated by providing a model or primary key, and the fields to update.
 
 ```ruby
-Dynamoid::TransactionWrite.execute do |txn|
+User.transaction do |txn|
   # change name and title for a user
   txn.update_attributes(user, name: 'bob', title: 'mister')
 
@@ -1222,7 +1231,7 @@ callbacks and validations.
 article = Article.find('1')
 tag = article.tag
 
-Dynamoid::TransactionWrite.execute do |txn|
+Article.transaction do |txn|
   txn.destroy(article)
   txn.delete(tag)
 
@@ -1242,7 +1251,7 @@ check return status when not using a method with `!`.
 user = User.find('1')
 user.red = true
 
-Dynamoid::TransactionWrite.execute do |txn|
+User.transaction do |txn|
   if txn.save(user) # won't raise validation exception
     txn.update_fields(UserCount, user.id, count: 5)
   else
@@ -1256,7 +1265,7 @@ end
 Transactions can also be built without a block.
 
 ```ruby
-transaction = Dynamoid::TransactionWrite.new
+transaction = Dynamoid::Document.transaction
 
 transaction.create(User, id: user_id)
 transaction.create(UserEmail, id: "UserEmail##{email}", user_id: user_id)
@@ -1279,6 +1288,15 @@ The following actions are supported:
 These methods are supposed to behave exactly like their
 non-transactional counterparts.
 
+Alternatively to `Dynamoid::Document.transaction` (which defaults to a
+write transaction) you can use explicit `.reading` method:
+
+```ruby
+Dynamoid::Document.transaction.reading do |t|
+  # ...
+end
+```
+
 ##### Find a model
 
 The `#find` action can load single model or multiple ones. Different
@@ -1286,7 +1304,7 @@ model classes can be mixed in the same transactions. Result is returned
 as a plain list of all the found models. The order is preserved.
 
 ```ruby
-user, address = Dynamoid::TransactionRead.execute do |t|
+user, address = User.transaction.reading do |t|
   t.find(User, user_id)
   t.find(Address, address_id)
 end
@@ -1295,7 +1313,7 @@ end
 Multiple primary keys can be specified at once:
 
 ```ruby
-users = Dynamoid::TransactionRead.execute do |t|
+users = User.transaction.reading do |t|
   t.find(User, [id1, id2, id3])
 end
 ```

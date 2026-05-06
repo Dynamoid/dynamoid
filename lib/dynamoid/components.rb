@@ -38,5 +38,6 @@ module Dynamoid
     include Dynamoid::Criteria
     include Dynamoid::Validations
     include Dynamoid::IdentityMap
+    include Dynamoid::Transactions
   end
 end
