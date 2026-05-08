@@ -352,4 +352,70 @@ describe Dynamoid::Transactions::Mutation, '.upsert' do
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end
+
+  # See https://github.com/Dynamoid/dynamoid/issues/885 for details
+  context 'Global Secondary Index' do
+    let(:klass_with_gsi) do
+      new_class do
+        field :name
+        field :age, :number
+
+        global_secondary_index hash_key: :name, range_key: :age
+      end
+    end
+
+    before do
+      klass_with_gsi.create_table
+    end
+
+    context 'new model' do
+      it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+        id_new = SecureRandom.uuid
+        expect {
+          described_class.execute do |t|
+            t.upsert klass_with_gsi, id_new, name: nil, age: 42
+          end
+        }.to change(klass_with_gsi, :count).by(1)
+
+        obj = klass_with_gsi.find(id_new)
+        expect(obj.name).to eql nil
+        expect(obj.age).to eql 42
+      end
+
+      it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+        id_new = SecureRandom.uuid
+        expect {
+          described_class.execute do |t|
+            t.upsert klass_with_gsi, id_new, name: 'Alex', age: nil
+          end
+        }.to change(klass_with_gsi, :count).by(1)
+
+        obj = klass_with_gsi.find(id_new)
+        expect(obj.name).to eql 'Alex'
+        expect(obj.age).to eql nil
+      end
+    end
+
+    context 'existing model' do
+      it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+        obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+        described_class.execute do |t|
+          t.upsert klass_with_gsi, obj.id, name: nil
+        end
+
+        expect(obj.reload.name).to eql nil
+      end
+
+      it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+        obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+        described_class.execute do |t|
+          t.upsert klass_with_gsi, obj.id, age: nil
+        end
+
+        expect(obj.reload.age).to eql nil
+      end
+    end
+  end
 end

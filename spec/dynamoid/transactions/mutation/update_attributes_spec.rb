@@ -548,6 +548,42 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:dis
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end
+
+  # See https://github.com/Dynamoid/dynamoid/issues/885 for details
+  context 'Global Secondary Index' do
+    let(:klass_with_gsi) do
+      new_class do
+        field :name
+        field :age, :number
+
+        global_secondary_index hash_key: :name, range_key: :age
+      end
+    end
+
+    before do
+      klass_with_gsi.create_table
+    end
+
+    it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+      obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+      described_class.execute do |t|
+        t.update_attributes obj, name: nil
+      end
+
+      expect(obj.reload.name).to eql nil
+    end
+
+    it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+      obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+      described_class.execute do |t|
+        t.update_attributes obj, age: nil
+      end
+
+      expect(obj.reload.age).to eql nil
+    end
+  end
 end
 
 describe Dynamoid::Transactions::Mutation, '#update_attributes!' do
@@ -855,6 +891,42 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes!' do
   context 'when table arn is specified', remove_constants: [:Payment] do
     it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
+    end
+  end
+
+  # See https://github.com/Dynamoid/dynamoid/issues/885 for details
+  context 'Global Secondary Index' do
+    let(:klass_with_gsi) do
+      new_class do
+        field :name
+        field :age, :number
+
+        global_secondary_index hash_key: :name, range_key: :age
+      end
+    end
+
+    before do
+      klass_with_gsi.create_table
+    end
+
+    it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+      obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+      described_class.execute do |t|
+        t.update_attributes! obj, name: nil
+      end
+
+      expect(obj.reload.name).to eql nil
+    end
+
+    it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+      obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+      described_class.execute do |t|
+        t.update_attributes! obj, age: nil
+      end
+
+      expect(obj.reload.age).to eql nil
     end
   end
 end
