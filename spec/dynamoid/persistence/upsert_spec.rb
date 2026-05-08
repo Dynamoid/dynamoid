@@ -395,4 +395,129 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
   end
+
+  # See https://github.com/Dynamoid/dynamoid/issues/885 for details
+  context 'Global Secondary Index' do
+    let(:klass_with_gsi) do
+      new_class do
+        field :name
+        field :age, :number
+
+        global_secondary_index hash_key: :name, range_key: :age
+      end
+    end
+
+    before do
+      klass_with_gsi.create_table
+    end
+
+    context 'new model' do
+      it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+        id_new = SecureRandom.uuid
+        expect do
+          klass_with_gsi.upsert(id_new, name: nil, age: 42)
+        end.to change(klass_with_gsi, :count).by(1)
+
+        obj = klass_with_gsi.find(id_new)
+        expect(obj.name).to eql nil
+        expect(obj.age).to eql 42
+      end
+
+      it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+        id_new = SecureRandom.uuid
+        expect do
+          klass_with_gsi.upsert(id_new, name: 'Alex', age: nil)
+        end.to change(klass_with_gsi, :count).by(1)
+
+        obj = klass_with_gsi.find(id_new)
+        expect(obj.name).to eql 'Alex'
+        expect(obj.age).to eql nil
+      end
+    end
+
+    context 'existing model' do
+      it 'updates successfuly even if a field declared as a GSI primary key is set to nil' do
+        obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+        expect do
+          klass_with_gsi.upsert(obj.id, name: nil)
+        end.to change { obj.reload.name }.to(nil)
+      end
+
+      it 'updates successfuly even if a field declared as a GSI sort key is set to nil' do
+        obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+        expect do
+          klass_with_gsi.upsert(obj.id, age: nil)
+        end.to change { obj.reload.age }.to(nil)
+      end
+    end
+  end
+
+  describe '`store_attribute_with_nil_value` config option' do
+    let(:klass) do
+      new_class do
+        field :age, :integer
+      end
+    end
+
+    before do
+      klass.create_table
+    end
+
+    context 'true', config: { store_attribute_with_nil_value: true } do
+      it 'keeps document attribute with nil when model is not persisted' do
+        id = SecureRandom.uuid
+        klass.upsert(id, age: nil)
+        obj = klass.find(id)
+
+        expect(raw_attributes(obj)).to include(age: nil)
+      end
+
+      it 'keeps document attribute with nil when model is persisted' do
+        obj = klass.create!(age: 42)
+        klass.upsert(obj.id, age: nil)
+
+        expect(raw_attributes(obj)).to include(age: nil)
+      end
+    end
+
+    context 'false', config: { store_attribute_with_nil_value: false } do
+      it 'does not keep document attribute with nil when model is not persisted' do
+        id = SecureRandom.uuid
+        klass.upsert(id, age: nil)
+        obj = klass.find(id)
+
+        # doesn't contain :age key
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :updated_at)
+      end
+
+      it 'does not keep document attribute with nil when model is persisted' do
+        obj = klass.create!(age: 42)
+        klass.upsert(obj.id, age: nil)
+
+        # doesn't contain :age key
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+
+    context 'by default', config: { store_attribute_with_nil_value: nil } do
+      it 'does not keep document attribute with nil when model is not persisted' do
+        id = SecureRandom.uuid
+        klass.upsert(id, age: nil)
+        obj = klass.find(id)
+
+        # doesn't contain :age key
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :updated_at)
+      end
+
+      it 'does not keep document attribute with nil when model is persisted' do
+        obj = klass.create!(age: 42)
+        klass.upsert(obj.id, age: nil)
+
+        # doesn't contain :age key
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+  end
 end

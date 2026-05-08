@@ -1516,6 +1516,63 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
       end
     end
   end
+
+  describe '`store_attribute_with_nil_value` config option' do
+    let(:klass) do
+      new_class do
+        field :age, :integer
+      end
+    end
+
+    before do
+      klass.create_table
+    end
+
+    context 'true', config: { store_attribute_with_nil_value: true } do
+      it 'keeps document attribute with nil when new model' do
+        obj = klass.new(name: 'Alex', age: nil)
+        described_class.execute { |t| t.save obj }
+        expect(raw_attributes(obj)).to include(age: nil)
+      end
+
+      it 'keeps document attribute with nil when persisted model' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        obj.age = nil
+        described_class.execute { |t| t.save obj }
+        expect(raw_attributes(obj)).to include(age: nil)
+      end
+    end
+
+    context 'false', config: { store_attribute_with_nil_value: false } do
+      it 'does not keep document attribute with nil when new model' do
+        obj = klass.new(name: 'Alex', age: nil)
+        described_class.execute { |t| t.save obj }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+
+      it 'does not keep document attribute with nil when persisted model' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        obj.age = nil
+        described_class.execute { |t| t.save obj }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+
+    context 'by default', config: { store_attribute_with_nil_value: nil } do
+      it 'does not keep document attribute with nil when new model' do
+        obj = klass.new(name: 'Alex', age: nil)
+        described_class.execute { |t| t.save obj }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+
+      it 'does not keep document attribute with nil when persisted model' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        obj.age = nil
+        described_class.execute { |t| t.save obj }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+  end
 end
 
 describe Dynamoid::Transactions::Mutation, '.save!' do
@@ -1965,6 +2022,63 @@ describe Dynamoid::Transactions::Mutation, '.save!' do
         end
 
         expect(obj.reload.age).to eql nil
+      end
+    end
+  end
+
+  describe '`store_attribute_with_nil_value` config option' do
+    let(:klass) do
+      new_class do
+        field :age, :integer
+      end
+    end
+
+    before do
+      klass.create_table
+    end
+
+    context 'true', config: { store_attribute_with_nil_value: true } do
+      it 'keeps document attribute with nil when new model' do
+        obj = klass.new(name: 'Alex', age: nil)
+        described_class.execute { |t| t.save! obj }
+        expect(raw_attributes(obj)).to include(age: nil)
+      end
+
+      it 'keeps document attribute with nil when persisted model' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        obj.age = nil
+        described_class.execute { |t| t.save! obj }
+        expect(raw_attributes(obj)).to include(age: nil)
+      end
+    end
+
+    context 'false', config: { store_attribute_with_nil_value: false } do
+      it 'does not keep document attribute with nil when new model' do
+        obj = klass.new(name: 'Alex', age: nil)
+        described_class.execute { |t| t.save! obj }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+
+      it 'does not keep document attribute with nil when persisted model' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        obj.age = nil
+        described_class.execute { |t| t.save! obj }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+
+    context 'by default', config: { store_attribute_with_nil_value: nil } do
+      it 'does not keep document attribute with nil when new model' do
+        obj = klass.new(name: 'Alex', age: nil)
+        described_class.execute { |t| t.save! obj }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+
+      it 'does not keep document attribute with nil when persisted model' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        obj.age = nil
+        described_class.execute { |t| t.save! obj }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
       end
     end
   end

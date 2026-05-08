@@ -584,6 +584,38 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:dis
       expect(obj.reload.age).to eql nil
     end
   end
+
+  describe '`store_attribute_with_nil_value` config option' do
+    let(:klass) do
+      new_class do
+        field :age, :integer
+      end
+    end
+
+    context 'true', config: { store_attribute_with_nil_value: true } do
+      it 'keeps document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes obj, age: nil }
+        expect(raw_attributes(obj)).to include(age: nil)
+      end
+    end
+
+    context 'false', config: { store_attribute_with_nil_value: false } do
+      it 'does not keep document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes obj, age: nil }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+
+    context 'by default', config: { store_attribute_with_nil_value: nil } do
+      it 'does not keep document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes obj, age: nil }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+  end
 end
 
 describe Dynamoid::Transactions::Mutation, '#update_attributes!' do
@@ -927,6 +959,38 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes!' do
       end
 
       expect(obj.reload.age).to eql nil
+    end
+  end
+
+  describe '`store_attribute_with_nil_value` config option' do
+    let(:klass) do
+      new_class do
+        field :age, :integer
+      end
+    end
+
+    context 'true', config: { store_attribute_with_nil_value: true } do
+      it 'keeps document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes! obj, age: nil }
+        expect(raw_attributes(obj)).to include(age: nil)
+      end
+    end
+
+    context 'false', config: { store_attribute_with_nil_value: false } do
+      it 'does not keep document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes! obj, age: nil }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+
+    context 'by default', config: { store_attribute_with_nil_value: nil } do
+      it 'does not keep document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes! obj, age: nil }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
     end
   end
 end

@@ -297,5 +297,82 @@ RSpec.describe Dynamoid::Persistence do
         }.to send_request_matching(:BatchWriteItem, { RequestItems: { table.arn => anything } })
       end
     end
+
+    # See https://github.com/Dynamoid/dynamoid/issues/885 for details
+    context 'Global Secondary Index' do
+      let(:klass_with_gsi) do
+        new_class do
+          field :name
+          field :age, :number
+
+          global_secondary_index hash_key: :name, range_key: :age
+        end
+      end
+
+      before do
+        klass_with_gsi.create_table
+      end
+
+      it 'imports successfuly even if a field declared as a GSI primary key is set to nil' do
+        expect do
+          klass_with_gsi.import([{ name: nil, age: 42 }])
+        end.to change(klass_with_gsi, :count).by(1)
+
+        obj = klass_with_gsi.find(klass_with_gsi.first.id)
+        expect(obj.name).to eql nil
+        expect(obj.age).to eql 42
+      end
+
+      it 'imports successfuly even if a field declared as a GSI sort key is set to nil' do
+        expect do
+          klass_with_gsi.import([{ name: 'Alex', age: nil }])
+        end.to change(klass_with_gsi, :count).by(1)
+
+        obj = klass_with_gsi.find(klass_with_gsi.first.id)
+        expect(obj.name).to eql 'Alex'
+        expect(obj.age).to eql nil
+      end
+    end
+
+    describe '`store_attribute_with_nil_value` config option' do
+      let(:klass) do
+        new_class do
+          field :age, :integer
+        end
+      end
+
+      before do
+        klass.create_table
+      end
+
+      context 'true', config: { store_attribute_with_nil_value: true } do
+        it 'keeps document attribute with nil' do
+          objects = klass.import([{ age: nil }])
+          obj = objects[0]
+
+          expect(raw_attributes(obj)).to include(age: nil)
+        end
+      end
+
+      context 'false', config: { store_attribute_with_nil_value: false } do
+        it 'does not keep document attribute with nil' do
+          objects = klass.import([{ age: nil }])
+          obj = objects[0]
+
+          # doesn't contain :age key
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+        end
+      end
+
+      context 'by default', config: { store_attribute_with_nil_value: nil } do
+        it 'does not keep document attribute with nil' do
+          objects = klass.import([{ age: nil }])
+          obj = objects[0]
+
+          # doesn't contain :age key
+          expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+        end
+      end
+    end
   end
 end
