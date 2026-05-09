@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionRead, '#find' do
+describe Dynamoid::Transactions::Retrieval, '#find' do
   let(:klass) do
     new_class(class_name: 'Document')
   end

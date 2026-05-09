@@ -73,8 +73,8 @@ Aws.config.update(
 )
 ```
 
-Alternatively, if you don't want Aws connection settings to be
-overwritten for you entire project, you can specify connection settings
+Alternatively, if you don't want AWS connection settings to be
+overwritten for your entire project, you can specify connection settings
 for Dynamoid only, by setting those in the `Dynamoid.configure` clause:
 
 ```ruby
@@ -122,7 +122,7 @@ Dynamoid.configure do |config|
   config.namespace = 'dynamoid_app_development'
 
   # [Optional]. If provided, it communicates with the DB listening at the endpoint.
-  # This is useful for testing with [DynamoDB Local] (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
+  # This is useful for testing with [DynamoDB Local](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
   config.endpoint = 'http://localhost:3000'
 end
 ```
@@ -170,10 +170,10 @@ won't change its hash key, which it expects will be `user_id`. If this
 table doesn't exist yet, however, Dynamoid will create it with these
 options.
 
-There is a basic support of DynamoDB's [Time To Live (TTL)
+There is basic support for DynamoDB's [Time To Live (TTL)
 mechanism](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html).
-If you declare a field as TTL field - it will be initialised if doesn't
-have value yet. Default value is current time + specified seconds.
+If you declare a field as a TTL field - it will be initialized if it doesn't
+have a value yet. Default value is current time + specified seconds.
 
 ```ruby
 class User
@@ -512,7 +512,7 @@ Second argument, type, is optional. Default type is `string`.
 Just like in ActiveRecord (or your other favorite ORM), Dynamoid uses
 associations to create links between models.
 
-**WARNING:** Associations are not supported for models with compound
+**WARNING:** Associations are not supported for models with a compound
 primary key. If a model declares a range key it should not declare any
 association itself and be referenced by an association in another model.
 
@@ -554,7 +554,7 @@ DynamoDB's structure: it's very difficult to find foreign keys without
 an index. Usually you won't find this to be a problem, but it does mean
 that association methods that build new models will not work correctly -
 for example, `user.addresses.new` returns an address that is not
-associated to the user. We'll be correcting this ~soon~ maybe someday,
+associated with the user. We'll be correcting this ~soon~ maybe someday,
 if we get a pull request.
 
 ### Validations
@@ -633,10 +633,10 @@ animal.class
 #=> Cat
 ```
 
-If you already have DynamoDB tables and `type` field already exists and
-has its own semantic it leads to conflict. It's possible to tell
-Dynamoid to use another field (even not existing) instead of `type` one
-with `inheritance_field` table option:
+If you already have DynamoDB tables and the `type` field already exists and
+has its own semantic it leads to a conflict. It's possible to tell
+Dynamoid to use another field (even a non-existent one) instead of the `type`
+one with the `inheritance_field` table option:
 
 ```ruby
 class Car
@@ -777,11 +777,11 @@ And you can also query on associations:
 u.addresses.where(city: 'Chicago').all
 ```
 
-But keep in mind Dynamoid - and document-based storage systems in
-general - are not drop-in replacements for existing relational
+But keep in mind that DynamoDB — and document-based storage systems in
+general — are not drop-in replacements for existing relational
 databases. The above query does not efficiently perform a conditional
 join, but instead finds all the user's addresses and naively filters
-them in Ruby. For large associations this is a performance hit compared
+them in Ruby. For large associations, this is a performance hit compared
 to relational database engines.
 
 **Warning:** There is a caveat with filtering documents by `nil` value
@@ -1130,16 +1130,24 @@ all fail.
 The following actions are supported:
 
 * `#create`/`#create!` - add a new model if it does not already exist
-* `#save`/`#save!` - create or update model
-* `#update_attributes`/`#update_attributes!` - modifies one or more attributes from an existing
-model
-* `#delete` - remove an model without callbacks nor validations
-* `#destroy`/`#destroy!` - remove an model
+* `#save`/`#save!` - create or update a model
+* `#update_attributes`/`#update_attributes!` - modify one or more attributes of an existing model
+* `#delete` - remove a model without running callbacks or validation
+* `#destroy`/`#destroy!` - remove a model
 * `#upsert` - add a new model or update an existing one, no callbacks
 * `#update_fields` - update a model without its instantiation
 
 These methods are supposed to behave exactly like their
 non-transactional counterparts.
+
+Alternatively to `Dynamoid::Document.transaction` (which defaults to a
+write transaction) you can use explicit `.writing` method:
+
+```ruby
+Dynamoid::Document.transaction.writing do |txn|
+  # ...
+end
+```
 
 ##### Create models
 
@@ -1157,11 +1165,11 @@ transaction. Upsert will update `updated_at` but will not create
 user_id = SecureRandom.uuid
 email = 'bob@bob.bob'
 
-Dynamoid::TransactionWrite.execute do |txn|
-  txn.create(User, id: user_id)
-  txn.create(UserEmail, id: "UserEmail##{email}", user_id: user_id)
-  txn.create(Address, id: 'A#2', street: '456')
-  txn.upsert(Address, 'A#1', street: '123')
+User.transaction do |t|
+  t.create(User, id: user_id)
+  t.create(UserEmail, id: "UserEmail##{email}", user_id: user_id)
+  t.create(Address, id: 'A#2', street: '456')
+  t.upsert(Address, 'A#1', street: '123')
 end
 ```
 
@@ -1176,11 +1184,11 @@ failures will throw `Dynamoid::Errors::DocumentNotValid`.
 user = User.find(1)
 article = Article.new(body: 'New article text', user_id: user.id)
 
-Dynamoid::TransactionWrite.execute do |txn|
-  txn.save(article)
+User.transaction do |t|
+  t.save(article)
 
   user.last_article_id = article.id
-  txn.save(user)
+  t.save(user)
 end
 ```
 
@@ -1189,25 +1197,25 @@ end
 A model can be updated by providing a model or primary key, and the fields to update.
 
 ```ruby
-Dynamoid::TransactionWrite.execute do |txn|
+User.transaction do |t|
   # change name and title for a user
-  txn.update_attributes(user, name: 'bob', title: 'mister')
+  t.update_attributes(user, name: 'bob', title: 'mister')
 
   # sets the name and title for a user
   # The user is found by id (that equals 1)
-  txn.update_fields(User, '1', name: 'bob', title: 'mister')
+  t.update_fields(User, '1', name: 'bob', title: 'mister')
 
   # sets the name, increments a count and deletes a field
-  txn.update_fields(User, 1) do |t|
-    t.set(name: 'bob')
-    t.add(article_count: 1)
-    t.delete(:title)
+  t.update_fields(User, '1') do |u|
+    u.set(name: 'bob')
+    u.add(article_count: 1)
+    u.delete(:title)
   end
 
   # adds to a set of integers and deletes from a set of strings
-  txn.update_fields(User, 2) do |t|
-    t.add(friend_ids: [1, 2])
-    t.delete(child_names: ['bebe'])
+  t.update_fields(User, '2') do |u|
+    u.add(friend_ids: [1, 2])
+    u.delete(child_names: ['bebe'])
   end
 end
 ```
@@ -1222,12 +1230,12 @@ callbacks and validations.
 article = Article.find('1')
 tag = article.tag
 
-Dynamoid::TransactionWrite.execute do |txn|
-  txn.destroy(article)
-  txn.delete(tag)
+Article.transaction do |t|
+  t.destroy(article)
+  t.delete(tag)
 
-  txn.delete(Tag, '2') # delete record with hash key '2' if it exists
-  txn.delete(Tag, 'key#abcd', 'range#1') # when sort key is required
+  t.delete(Tag, '2') # delete record with hash key '2' if it exists
+  t.delete(Tag, 'key#abcd', 'range#1') # when sort key is required
 end
 ```
 
@@ -1242,9 +1250,9 @@ check return status when not using a method with `!`.
 user = User.find('1')
 user.red = true
 
-Dynamoid::TransactionWrite.execute do |txn|
-  if txn.save(user) # won't raise validation exception
-    txn.update_fields(UserCount, user.id, count: 5)
+User.transaction do |t|
+  if t.save(user) # won't raise validation exception
+    t.update_fields(UserCount, user.id, count: 5)
   else
     puts 'ALERT: user not valid, skipping'
   end
@@ -1256,7 +1264,7 @@ end
 Transactions can also be built without a block.
 
 ```ruby
-transaction = Dynamoid::TransactionWrite.new
+transaction = Dynamoid::Document.transaction
 
 transaction.create(User, id: user_id)
 transaction.create(UserEmail, id: "UserEmail##{email}", user_id: user_id)
@@ -1279,6 +1287,15 @@ The following actions are supported:
 These methods are supposed to behave exactly like their
 non-transactional counterparts.
 
+Alternatively to `Dynamoid::Document.transaction` (which defaults to a
+write transaction) you can use explicit `.reading` method:
+
+```ruby
+Dynamoid::Document.transaction.reading do |t|
+  # ...
+end
+```
+
 ##### Find a model
 
 The `#find` action can load single model or multiple ones. Different
@@ -1286,7 +1303,7 @@ model classes can be mixed in the same transactions. Result is returned
 as a plain list of all the found models. The order is preserved.
 
 ```ruby
-user, address = Dynamoid::TransactionRead.execute do |t|
+user, address = User.transaction.reading do |t|
   t.find(User, user_id)
   t.find(Address, address_id)
 end
@@ -1295,7 +1312,7 @@ end
 Multiple primary keys can be specified at once:
 
 ```ruby
-users = Dynamoid::TransactionRead.execute do |t|
+users = User.transaction.reading do |t|
   t.find(User, [id1, id2, id3])
 end
 ```
@@ -1327,13 +1344,13 @@ Listed below are all configuration options.
 * `logger` - by default it's a `Rails.logger` in Rails application and
   `stdout` otherwise. You can disable logging by setting `nil` or
   `false` values. Set `true` value to use defaults
-* `access_key` - DynamoDb custom access key for AWS credentials, override global
+* `access_key` - DynamoDB custom access key for AWS credentials, override global
   AWS credentials if they're present
-* `secret_key` - DynamoDb custom secret key for AWS credentials, override global
+* `secret_key` - DynamoDB custom secret key for AWS credentials, override global
   AWS credentials if they're present
-* `credentials` - DynamoDb custom pre-configured credentials, override global
+* `credentials` - DynamoDB custom pre-configured credentials, override global
   AWS credentials if they're present
-* `region` - DynamoDb custom credentials for AWS, override global AWS
+* `region` - DynamoDB custom credentials for AWS, override global AWS
   credentials if they're present
 * `batch_size` - when you try to load multiple items at once with
 * `batch_get_item` call Dynamoid loads them not with one api call but
@@ -1369,7 +1386,7 @@ Listed below are all configuration options.
   with `nil` value in a document. Otherwise Dynamoid removes it while
   saving a document. Default is `nil` which equals behaviour with `false`
   value.
-* `models_dir` - `dynamoid:create_tables` rake task loads DynamoDb
+* `models_dir` - `dynamoid:create_tables` rake task loads DynamoDB
   models from this directory. Default is `./app/models`.
 * `application_timezone` - Dynamoid converts all `datetime` fields to
   specified time zone when loads data from the storage.

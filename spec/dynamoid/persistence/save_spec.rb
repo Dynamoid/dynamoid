@@ -998,6 +998,103 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    context 'when `touch: false` option passed' do
+      it 'does not update updated_at attribute' do
+        obj = klass.create!
+        updated_at = obj.updated_at
+
+        travel 1.minute do
+          obj.name = 'foo'
+          obj.save(touch: false)
+        end
+
+        expect(obj.updated_at).to eq updated_at
+      end
+
+      it 'sets updated_at attribute for a new record' do
+        obj = klass.new(name: 'foo')
+        obj.save(touch: false)
+
+        expect(klass.find(obj.id).updated_at).to be_present
+      end
+    end
+
+    context 'when table arn is specified', remove_constants: [:Payment] do
+      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+        # Create table manually because CreateTable doesn't accept ARN as a
+        # table name. Add namespace to have this table removed automativally.
+        table_name = :"#{Dynamoid::Config.namespace}_purchases"
+        Dynamoid.adapter.create_table(table_name, :id)
+
+        table = Dynamoid.adapter.describe_table(table_name)
+        expect(table.arn).to be_present
+
+        Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock, RSpec/LeakyConstantDeclaration
+          include Dynamoid::Document
+
+          table arn: table.arn
+        end
+
+        payment = Payment.new
+
+        expect {
+          payment.save
+        }.to send_request_matching(:PutItem, { TableName: table.arn })
+      end
+    end
+
+    # See https://github.com/Dynamoid/dynamoid/issues/885 for details
+    context 'Global Secondary Index' do
+      let(:klass_with_gsi) do
+        new_class do
+          field :name
+          field :age, :number
+
+          global_secondary_index hash_key: :name, range_key: :age
+        end
+      end
+
+      context 'new model' do
+        it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+          obj = klass_with_gsi.new(name: nil, age: 42)
+          obj.save
+
+          expect(klass_with_gsi.exists?(obj.id)).to eq true
+
+          obj_loaded = klass_with_gsi.find(obj.id)
+          expect(obj_loaded.name).to eq nil
+          expect(obj_loaded.age).to eq 42
+        end
+
+        it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+          obj = klass_with_gsi.new(name: 'Alex', age: nil)
+          obj.save
+
+          expect(klass_with_gsi.exists?(obj.id)).to eq true
+
+          obj_loaded = klass_with_gsi.find(obj.id)
+          expect(obj_loaded.name).to eq 'Alex'
+          expect(obj_loaded.age).to eq nil
+        end
+      end
+
+      context 'persisted model' do
+        it 'saves successfuly even if a field declared as a GSI primary key is set to nil' do
+          obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+          obj.name = nil
+          obj.save
+          expect(obj.reload.name).to eql nil
+        end
+
+        it 'saves successfuly even if a field declared as a GSI sort key is set to nil' do
+          obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+          obj.age = nil
+          obj.save
+          expect(obj.reload.age).to eql nil
+        end
+      end
+    end
+
     describe '`store_attribute_with_nil_value` config option' do
       let(:klass) do
         new_class do
@@ -1058,51 +1155,6 @@ RSpec.describe Dynamoid::Persistence do
           # doesn't contain :age key
           expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
         end
-      end
-    end
-
-    context 'when `touch: false` option passed' do
-      it 'does not update updated_at attribute' do
-        obj = klass.create!
-        updated_at = obj.updated_at
-
-        travel 1.minute do
-          obj.name = 'foo'
-          obj.save(touch: false)
-        end
-
-        expect(obj.updated_at).to eq updated_at
-      end
-
-      it 'sets updated_at attribute for a new record' do
-        obj = klass.new(name: 'foo')
-        obj.save(touch: false)
-
-        expect(klass.find(obj.id).updated_at).to be_present
-      end
-    end
-
-    context 'when table arn is specified', remove_constants: [:Payment] do
-      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
-        # Create table manually because CreateTable doesn't accept ARN as a
-        # table name. Add namespace to have this table removed automativally.
-        table_name = :"#{Dynamoid::Config.namespace}_purchases"
-        Dynamoid.adapter.create_table(table_name, :id)
-
-        table = Dynamoid.adapter.describe_table(table_name)
-        expect(table.arn).to be_present
-
-        Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock, RSpec/LeakyConstantDeclaration
-          include Dynamoid::Document
-
-          table arn: table.arn
-        end
-
-        payment = Payment.new
-
-        expect {
-          payment.save
-        }.to send_request_matching(:PutItem, { TableName: table.arn })
       end
     end
   end

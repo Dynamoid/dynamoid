@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable RSpec/MultipleDescribes
+describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -548,9 +548,77 @@ describe Dynamoid::TransactionWrite, '#update_attributes' do # rubocop:disable R
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end
+
+  # See https://github.com/Dynamoid/dynamoid/issues/885 for details
+  context 'Global Secondary Index' do
+    let(:klass_with_gsi) do
+      new_class do
+        field :name
+        field :age, :number
+
+        global_secondary_index hash_key: :name, range_key: :age
+      end
+    end
+
+    before do
+      klass_with_gsi.create_table
+    end
+
+    it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+      obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+      described_class.execute do |t|
+        t.update_attributes obj, name: nil
+      end
+
+      expect(obj.reload.name).to eql nil
+    end
+
+    it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+      obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+      described_class.execute do |t|
+        t.update_attributes obj, age: nil
+      end
+
+      expect(obj.reload.age).to eql nil
+    end
+  end
+
+  describe '`store_attribute_with_nil_value` config option' do
+    let(:klass) do
+      new_class do
+        field :age, :integer
+      end
+    end
+
+    context 'true', config: { store_attribute_with_nil_value: true } do
+      it 'keeps document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes obj, age: nil }
+        expect(raw_attributes(obj)).to include(age: nil)
+      end
+    end
+
+    context 'false', config: { store_attribute_with_nil_value: false } do
+      it 'does not keep document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes obj, age: nil }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+
+    context 'by default', config: { store_attribute_with_nil_value: nil } do
+      it 'does not keep document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes obj, age: nil }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+  end
 end
 
-describe Dynamoid::TransactionWrite, '#update_attributes!' do
+describe Dynamoid::Transactions::Mutation, '#update_attributes!' do
   # The only difference in specs structure between
   # #update_attributes and #update_attributes! is missing a section
   # for callbacks here
@@ -855,6 +923,74 @@ describe Dynamoid::TransactionWrite, '#update_attributes!' do
   context 'when table arn is specified', remove_constants: [:Payment] do
     it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
+    end
+  end
+
+  # See https://github.com/Dynamoid/dynamoid/issues/885 for details
+  context 'Global Secondary Index' do
+    let(:klass_with_gsi) do
+      new_class do
+        field :name
+        field :age, :number
+
+        global_secondary_index hash_key: :name, range_key: :age
+      end
+    end
+
+    before do
+      klass_with_gsi.create_table
+    end
+
+    it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+      obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+      described_class.execute do |t|
+        t.update_attributes! obj, name: nil
+      end
+
+      expect(obj.reload.name).to eql nil
+    end
+
+    it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+      obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+
+      described_class.execute do |t|
+        t.update_attributes! obj, age: nil
+      end
+
+      expect(obj.reload.age).to eql nil
+    end
+  end
+
+  describe '`store_attribute_with_nil_value` config option' do
+    let(:klass) do
+      new_class do
+        field :age, :integer
+      end
+    end
+
+    context 'true', config: { store_attribute_with_nil_value: true } do
+      it 'keeps document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes! obj, age: nil }
+        expect(raw_attributes(obj)).to include(age: nil)
+      end
+    end
+
+    context 'false', config: { store_attribute_with_nil_value: false } do
+      it 'does not keep document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes! obj, age: nil }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
+    end
+
+    context 'by default', config: { store_attribute_with_nil_value: nil } do
+      it 'does not keep document attribute with nil' do
+        obj = klass.create!(name: 'Alex', age: 42)
+        described_class.execute { |t| t.update_attributes! obj, age: nil }
+        expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
+      end
     end
   end
 end

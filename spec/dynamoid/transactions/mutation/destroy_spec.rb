@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::TransactionWrite, '#destroy' do # rubocop:disable RSpec/MultipleDescribes
+describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -371,7 +371,7 @@ describe Dynamoid::TransactionWrite, '#destroy' do # rubocop:disable RSpec/Multi
   end
 end
 
-describe Dynamoid::TransactionWrite, '.destroy!' do
+describe Dynamoid::Transactions::Mutation, '.destroy!' do
   # The only difference in specs structure between #destroy and #destroy! is missing
   # a section for callbacks here
 
