@@ -226,7 +226,7 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
     end
 
     it 'rolls back a transaction when concurrent update happens' do
-      obj = klass.create(name: 'Original') # lock_version: 1
+      obj = klass.create!(name: 'Original') # lock_version: 1
 
       obj2 = klass.find(obj.id)
       obj2.update_attributes!(name: 'Concurrent Update') # lock_version: 1 -> 2
@@ -250,7 +250,7 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
     end
 
     it 'increments lock_version when updating an existing model' do
-      obj = klass.create(name: 'Original')
+      obj = klass.create!(name: 'Original')
       expect(obj.lock_version).to eq(1)
 
       klass.transaction do |t|
@@ -260,6 +260,66 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
 
       expect(obj.lock_version).to eq(2)
       expect(obj.reload.lock_version).to eq(2)
+    end
+
+    it 'preserves given value of lock_version' do
+      obj = klass.create!(name: 'Original')
+      expect(obj.lock_version).to eq(1)
+
+      klass.transaction do |t|
+        obj.lock_version = 500
+        t.save(obj)
+      end
+
+      expect(obj.lock_version).to eq(500)
+      expect(obj.reload.lock_version).to eq(500)
+    end
+
+    it 'preserves given nil value of lock_version' do
+      obj = klass.create!(name: 'Original')
+      expect(obj.lock_version).to eq(1)
+
+      klass.transaction do |t|
+        obj.lock_version = nil
+        t.save(obj)
+      end
+
+      expect(obj.lock_version).to be_nil
+      expect(obj.reload.lock_version).to be_nil
+    end
+
+    it 'preserves persisted nil value of lock_version' do
+      obj = klass.create!(name: 'Original')
+      obj.update_attributes!(lock_version: nil)
+
+      klass.transaction do |t|
+        obj.name = 'Updated'
+        t.save(obj)
+      end
+
+      expect(obj.lock_version).to be_nil
+      expect(obj.reload.lock_version).to be_nil
+    end
+
+    it 'skips optimistic locking when lock_version is nil' do
+      obj = klass.create!(name: 'Original') # lock_version: 1
+      obj.update_attributes!(lock_version: nil) # lock_version: 1 -> nil
+      expect(obj.reload.lock_version).to be_nil
+
+      obj = klass.find(obj.id)
+      obj2 = klass.find(obj.id)
+
+      obj.update_attributes!(name: 'Concurrent Update')
+      expect(obj.lock_version).to be_nil
+
+      klass.transaction do |t|
+        obj2.name = 'My Update'
+        t.save(obj2)
+      end
+
+      expect(obj2.lock_version).to be_nil
+      expect(obj2.reload.lock_version).to be_nil
+      expect(obj2.reload.name).to eq('My Update')
     end
   end
 

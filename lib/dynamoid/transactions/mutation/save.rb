@@ -50,8 +50,14 @@ module Dynamoid
             @model.hash_key = SecureRandom.uuid
           end
 
-          if @model_class.attributes[:lock_version]
-            @model.lock_version = (@model.lock_version || 0) + 1
+          if @model.class.attributes[:lock_version]
+            if @model.lock_version.nil? && @model.new_record?
+              @model.lock_version = 1
+            end
+
+            if @model.lock_version && !@model.changes[:lock_version]
+              @model.lock_version += 1
+            end
           end
         end
 
@@ -158,9 +164,12 @@ module Dynamoid
                              @model.changes[:lock_version][0]
                            end
 
-            lock_version_value_placeholder = ':lock_version_value'
-            expression_attribute_values[lock_version_value_placeholder] = lock_version
-            condition_expression_statements << "lock_version = #{lock_version_value_placeholder}"
+            # skip concurrency control when lock_version is nil
+            if lock_version
+              lock_version_value_placeholder = ':lock_version_value'
+              expression_attribute_values[lock_version_value_placeholder] = lock_version
+              condition_expression_statements << "lock_version = #{lock_version_value_placeholder}"
+            end
           end
 
           update_expression = ''

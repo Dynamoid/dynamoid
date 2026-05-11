@@ -322,6 +322,58 @@ RSpec.describe Dynamoid::Persistence do
         expect { obj.save }.to change { obj.lock_version }.from(1).to(2)
         expect(obj.reload.lock_version).to eq 2
       end
+
+      it 'preserves given value of lock_version' do
+        obj = klass.create!(name: 'Original')
+        expect(obj.lock_version).to eq(1)
+
+        obj.lock_version = 500
+        obj.save
+
+        expect(obj.lock_version).to eq(500)
+        expect(obj.reload.lock_version).to eq(500)
+      end
+
+      it 'preserves given nil value of lock_version' do
+        obj = klass.create!(name: 'Original')
+        expect(obj.lock_version).to eq(1)
+
+        obj.lock_version = nil
+        obj.save
+
+        expect(obj.lock_version).to be_nil
+        expect(obj.reload.lock_version).to be_nil
+      end
+
+      it 'preserves persisted nil value of lock_version' do
+        obj = klass.create!(name: 'Original')
+        obj.update_attributes!(lock_version: nil)
+
+        obj.name = 'Updated'
+        obj.save
+
+        expect(obj.lock_version).to be_nil
+        expect(obj.reload.lock_version).to be_nil
+      end
+
+      it 'skips optimistic locking when lock_version is nil' do
+        obj = klass.create!(name: 'Original') # lock_version: 1
+        obj.update_attributes!(lock_version: nil) # lock_version: 1 -> nil
+        expect(obj.reload.lock_version).to be_nil
+
+        obj = klass.find(obj.id)
+        obj2 = klass.find(obj.id)
+
+        obj.update_attributes!(name: 'Concurrent Update')
+        expect(obj.lock_version).to be_nil
+
+        obj2.name = 'My Update'
+        obj2.save
+
+        expect(obj2.lock_version).to be_nil
+        expect(obj2.reload.lock_version).to be_nil
+        expect(obj2.reload.name).to eq('My Update')
+      end
     end
 
     context 'primary key dumping' do

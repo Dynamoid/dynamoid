@@ -160,6 +160,23 @@ describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable RSpec
         end
       }.to change { klass.exists? obj.id }.from(true).to(false)
     end
+
+    it 'skips optimistic locking when lock_version is nil' do
+      obj = klass.create(name: 'Original') # lock_version: 1
+      obj.update_attributes!(lock_version: nil) # lock_version: 1 -> nil
+      expect(obj.reload.lock_version).to be_nil
+
+      obj = klass.find(obj.id)
+      obj2 = klass.find(obj.id)
+
+      obj.update_attributes!(name: 'Concurrent Update')
+
+      expect {
+        klass.transaction do |t|
+          t.destroy(obj2)
+        end
+      }.to change { klass.exists? obj2.id }.from(true).to(false)
+    end
   end
 
   context 'when an issue detected on the DynamoDB side' do

@@ -73,8 +73,11 @@ module Dynamoid
                              @model.changes[:lock_version][0]
                            end
 
-            options[:condition_expression] = 'lock_version = :lock_version_value'
-            options[:expression_attribute_values] = { ':lock_version_value' => lock_version }
+            # skip concurrency control when lock_version is nil
+            if lock_version
+              options[:condition_expression] = 'lock_version = :lock_version_value'
+              options[:expression_attribute_values] = { ':lock_version_value' => lock_version }
+            end
           end
 
           { delete: options }
