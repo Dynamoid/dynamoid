@@ -119,6 +119,49 @@ describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable RSpec
     end
   end
 
+  describe 'optimistic locking' do
+    let(:klass) do
+      new_class do
+        field :name
+        field :lock_version, :integer
+      end
+    end
+
+    it 'rolls back a transaction when concurrent update happens before delete' do
+      obj = klass.create(name: 'Original') # lock_version: 1
+
+      obj2 = klass.find(obj.id)
+      obj2.update_attributes!(name: 'Concurrent Update') # lock_version: 1 -> 2
+
+      expect {
+        klass.transaction do |t|
+          t.destroy(obj)
+        end
+      }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+    end
+
+    it 'deletes a model if there is no concurrent update' do
+      obj = klass.create!(name: 'Original')
+
+      expect {
+        klass.transaction do |t|
+          t.destroy(obj)
+        end
+      }.to change { klass.exists? obj.id }.from(true).to(false)
+    end
+
+    it 'uses the persisted lock_version value and ignores dirty changes' do
+      obj = klass.create!(name: 'Original')
+      obj.lock_version = obj.lock_version + 100
+
+      expect {
+        klass.transaction do |t|
+          t.destroy(obj)
+        end
+      }.to change { klass.exists? obj.id }.from(true).to(false)
+    end
+  end
+
   context 'when an issue detected on the DynamoDB side' do
     it 'does not raise exception and does not roll back the transaction when a model to destroy was concurrently deleted' do
       obj_to_destroy = klass.create!(name: 'one', id: '1')

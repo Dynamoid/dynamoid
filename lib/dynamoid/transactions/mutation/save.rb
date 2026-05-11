@@ -49,6 +49,10 @@ module Dynamoid
           if @was_new_record && @model.hash_key.nil?
             @model.hash_key = SecureRandom.uuid
           end
+
+          if @model_class.attributes[:lock_version]
+            @model.lock_version = (@model.lock_version || 0) + 1
+          end
         end
 
         def on_commit
@@ -130,6 +134,7 @@ module Dynamoid
           # in ExpressionAttributeNames and ExpressionAttributeValues.
           set_expression_statements = []
           remove_expression_statements = []
+          condition_expression_statements = []
           expression_attribute_names = {}
           expression_attribute_values = {}
 
@@ -146,9 +151,23 @@ module Dynamoid
             expression_attribute_names[name_placeholder] = name
           end
 
+          if @model_class.attributes[:lock_version]
+            lock_version = if @model.changes[:lock_version].nil?
+                             @model.lock_version
+                           else
+                             @model.changes[:lock_version][0]
+                           end
+
+            lock_version_value_placeholder = ':lock_version_value'
+            expression_attribute_values[lock_version_value_placeholder] = lock_version
+            condition_expression_statements << "lock_version = #{lock_version_value_placeholder}"
+          end
+
           update_expression = ''
           update_expression += "SET #{set_expression_statements.join(', ')}" if set_expression_statements.any?
           update_expression += " REMOVE #{remove_expression_statements.join(', ')}" if remove_expression_statements.any?
+
+          condition_expression = condition_expression_statements.join(' AND ') if condition_expression_statements.any?
 
           {
             update: {
@@ -156,7 +175,8 @@ module Dynamoid
               table_name: @model_class.table_name,
               update_expression: update_expression,
               expression_attribute_names: expression_attribute_names,
-              expression_attribute_values: expression_attribute_values
+              expression_attribute_values: expression_attribute_values,
+              condition_expression: condition_expression,
             }
           }
         end

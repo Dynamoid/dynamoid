@@ -244,33 +244,42 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'with lock version' do
-      let(:address) { Address.new }
-
-      it 'deletes a record if lock version matches' do
-        address.save!
-
-        expect { address.delete }.to change { Address.exists? address.id }.from(true).to(false)
+    context 'optimistic locking' do
+      let(:klass) do
+        new_class do
+          field :name
+          field :lock_version, :integer
+        end
       end
 
-      it 'does not delete a record if lock version does not match' do
-        address.save!
-        a1 = address
-        a2 = Address.find(address.id)
+      it 'raises Dynamoid::Errors::StaleObjectError when concurrent update happens before delete' do
+        obj = klass.create!(name: 'Original') # lock_version: 1
+        obj2 = klass.find(obj.id)
 
-        a1.city = 'Seattle'
-        a1.save!
+        obj.update_attributes!(name: 'Concurrent Update') # lock_version: 1 -> 2
 
-        expect { a2.delete }.to raise_error(Dynamoid::Errors::StaleObjectError)
-        expect(a2.destroyed?).to eql false
+        expect {
+          obj2.delete
+        }.to raise_error(Dynamoid::Errors::StaleObjectError)
+
+        expect(obj2.destroyed?).to eql false
       end
 
-      it 'uses the correct lock_version even if it is modified' do
-        address.save!
-        a1 = address
-        a1.lock_version = 100
+      it 'deletes a model if there is no concurrent update' do
+        obj = klass.create!(name: 'Original')
 
-        expect { a1.delete }.not_to raise_error
+        expect {
+          obj.delete
+        }.to change { klass.exists? obj.id }.from(true).to(false)
+      end
+
+      it 'uses the persisted lock_version value and ignores dirty changes' do
+        obj = klass.create!(name: 'Original')
+        obj.lock_version = obj.lock_version + 100
+
+        expect {
+          obj.delete
+        }.to change { klass.exists? obj.id }.from(true).to(false)
       end
     end
 

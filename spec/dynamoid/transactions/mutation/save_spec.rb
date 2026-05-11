@@ -213,6 +213,56 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
     end
   end
 
+  describe 'optimistic locking' do
+    let(:klass) do
+      new_class do
+        field :name
+        field :lock_version, :integer
+      end
+    end
+
+    before do
+      klass.create_table
+    end
+
+    it 'rolls back a transaction when concurrent update happens' do
+      obj = klass.create(name: 'Original') # lock_version: 1
+
+      obj2 = klass.find(obj.id)
+      obj2.update_attributes!(name: 'Concurrent Update') # lock_version: 1 -> 2
+
+      expect {
+        klass.transaction do |t|
+          obj.name = 'My Update'
+          t.save(obj)
+        end
+      }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
+    end
+
+    it 'initializes lock_version with value 1 when saving a new model' do
+      obj = klass.new(name: 'Original')
+      klass.transaction do |t|
+        t.save(obj)
+      end
+
+      expect(obj.lock_version).to eq(1)
+      expect(klass.find(obj.id).lock_version).to eq(1)
+    end
+
+    it 'increments lock_version when updating an existing model' do
+      obj = klass.create(name: 'Original')
+      expect(obj.lock_version).to eq(1)
+
+      klass.transaction do |t|
+        obj.name = 'Updated'
+        t.save(obj)
+      end
+
+      expect(obj.lock_version).to eq(2)
+      expect(obj.reload.lock_version).to eq(2)
+    end
+  end
+
   describe 'timestamps' do
     context 'new model' do
       before do
