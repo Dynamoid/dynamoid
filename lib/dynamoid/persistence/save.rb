@@ -30,12 +30,18 @@ module Dynamoid
 
         # Add an optimistic locking check if the lock_version column exists
         if @model.class.attributes[:lock_version]
-          @model.lock_version = (@model.lock_version || 0) + 1
+          if @model.lock_version.nil? && @model.new_record?
+            @model.lock_version = 1
+          end
+
+          if @model.lock_version && !@model.changes[:lock_version]
+            @model.lock_version += 1
+          end
         end
 
         if @model.new_record?
           attributes_dumped = Dumping.dump_attributes(@model.attributes, @model.class.attributes)
-          Dynamoid.adapter.write(@model.class.table_name, attributes_dumped, conditions_for_write)
+          Dynamoid.adapter.write(@model.class.table_name, attributes_dumped, conditions_to_create_item)
         else
           attributes_to_persist = @model.attributes.slice(*@model.changed.map(&:to_sym))
           partition_key_dumped = dump(@model.class.hash_key, @model.hash_key)
@@ -68,21 +74,13 @@ module Dynamoid
       end
 
       # Should be called after incrementing `lock_version` attribute
-      def conditions_for_write
+      def conditions_to_create_item
         conditions = {}
 
         # Add an 'exists' check to prevent overwriting existing records with new ones
         conditions[:unless_exists] = [@model.class.hash_key]
         if @model.range_key
           conditions[:unless_exists] << @model.range_key
-        end
-
-        # Add an optimistic locking check if the lock_version column exists
-        # Uses the original lock_version value from Dirty API
-        # in case user changed 'lock_version' manually
-        if @model.class.attributes[:lock_version] && @model.changes[:lock_version][0]
-          conditions[:if] ||= {}
-          conditions[:if][:lock_version] = @model.changes[:lock_version][0]
         end
 
         conditions
@@ -103,9 +101,18 @@ module Dynamoid
         # Add an optimistic locking check if the lock_version column exists
         # Uses the original lock_version value from Dirty API
         # in case user changed 'lock_version' manually
-        if @model.class.attributes[:lock_version] && @model.changes[:lock_version][0]
-          conditions[:if] ||= {}
-          conditions[:if][:lock_version] = @model.changes[:lock_version][0]
+        if @model.class.attributes[:lock_version]
+          lock_version = if @model.changes[:lock_version]
+                           @model.changes[:lock_version][0]
+                         else
+                           @model.lock_version
+                         end
+
+          # skip concurrency control when lock_version is nil
+          if lock_version
+            conditions[:if] ||= {}
+            conditions[:if][:lock_version] = lock_version
+          end
         end
 
         options[:conditions] = conditions

@@ -42,12 +42,26 @@ module Dynamoid
             key[@model_class.range_key] = dump_attribute(@model_class.range_key, @model.range_value)
           end
 
-          {
-            delete: {
-              key: key,
-              table_name: @model_class.table_name
-            }
+          options = {
+            key: key,
+            table_name: @model_class.table_name
           }
+
+          if @model_class.attributes[:lock_version]
+            lock_version = if @model.changes[:lock_version].nil?
+                             @model.lock_version
+                           else
+                             @model.changes[:lock_version][0]
+                           end
+
+            # skip concurrency control when lock_version is nil
+            if lock_version
+              options[:condition_expression] = 'lock_version = :lock_version_value'
+              options[:expression_attribute_values] = { ':lock_version_value' => lock_version }
+            end
+          end
+
+          { delete: options }
         end
 
         private

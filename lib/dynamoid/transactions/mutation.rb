@@ -187,10 +187,9 @@ module Dynamoid
       # There are the following differences between transactional and
       # non-transactional +#save!+:
       # - transactional +#save!+ doesn't support the +:touch+ option
-      # - transactional +#save!+ doesn't support +lock_version+ attribute so it
-      #   will not be incremented and will not be checked to detect concurrent
-      #   modification of a model and +Dynamoid::Errors::StaleObjectError+
-      #   exception will not be raised
+      # - transactional +#save!+ doesn't raise +Dynamoid::Errors::StaleObjectError+
+      #   when optimistic concurrency control detects a conflict. A generic
+      #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
       # - transactional +#save!+ doesn't raise +Dynamoid::Errors::RecordNotUnique+
       #   at saving new model when primary key is already used. A generic
       #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
@@ -245,10 +244,9 @@ module Dynamoid
       # There are the following differences between transactional and
       # non-transactional +#save+:
       # - transactional +#save+ doesn't support the +:touch+ option
-      # - transactional +#save+ doesn't support +lock_version+ attribute so it
-      #   will not be incremented and will not be checked to detect concurrent
-      #   modification of a model and +Dynamoid::Errors::StaleObjectError+
-      #   exception will not be raised
+      # - transactional +#save+ doesn't raise +Dynamoid::Errors::StaleObjectError+
+      #   when optimistic concurrency control detects a conflict. A generic
+      #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
       # - transactional +#save+ doesn't raise +Dynamoid::Errors::RecordNotUnique+
       #   at saving new model when primary key is already used. A generic
       #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
@@ -293,10 +291,6 @@ module Dynamoid
       #
       # There are the following differences between transactional and
       # non-transactional +#create+:
-      # - transactional +#create!+ doesn't support +lock_version+ attribute so it
-      #   will not be incremented and will not be checked to detect concurrent
-      #   modification of a model and +Dynamoid::Errors::StaleObjectError+
-      #   exception will not be raised
       # - transactional +#create!+ doesn't raise +Dynamoid::Errors::RecordNotUnique+
       #   at saving new model when primary key is already used. A generic
       #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
@@ -346,10 +340,6 @@ module Dynamoid
       #
       # There are the following differences between transactional and
       # non-transactional +#create+:
-      # - transactional +#create+ doesn't support +lock_version+ attribute so it
-      #   will not be incremented and will not be checked to detect concurrent
-      #   modification of a model and +Dynamoid::Errors::StaleObjectError+
-      #   exception will not be raised
       # - transactional +#create+ doesn't raise +Dynamoid::Errors::RecordNotUnique+
       #   at saving new model when primary key is already used. A generic
       #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
@@ -516,10 +506,11 @@ module Dynamoid
       #
       # There are the following differences between transactional and
       # non-transactional +#update_attributes+:
-      # - transactional +#update_attributes+ doesn't support +lock_version+ attribute so it
-      #   will not be incremented and will not be checked to detect concurrent
-      #   modification of a model and +Dynamoid::Errors::StaleObjectError+
-      #   exception will not be raised
+      # - transactional +#update_attributes+ doesn't raise
+      #   +Dynamoid::Errors::StaleObjectError+ when optimistic concurrency
+      #   control detects a conflict. A generic
+      #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised
+      #   instead.
       # - transactional +update_attributes+ doesn't raise
       #   +Dynamoid::Errors::StaleObjectError+ when a model that is being updated
       #   was concurrently deleted
@@ -551,10 +542,11 @@ module Dynamoid
       #
       # There are the following differences between transactional and
       # non-transactional +#update_attributes!+:
-      # - transactional +#update_attributes!+ doesn't support +lock_version+
-      #   attribute so it will not be incremented and will not be checked to detect
-      #   concurrent modification of a model and
-      #   +Dynamoid::Errors::StaleObjectError+ exception will not be raised
+      # - transactional +#update_attributes!+ doesn't raise
+      #   +Dynamoid::Errors::StaleObjectError+ when optimistic concurrency
+      #   control detects a conflict. A generic
+      #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised
+      #   instead.
       # - transactional +update_attributes!+ doesn't raise
       #   +Dynamoid::Errors::StaleObjectError+ when a model that is being updated
       #   was concurrently deleted
@@ -587,10 +579,11 @@ module Dynamoid
       #
       # There are the following differences between transactional and
       # non-transactional +#delete+: TBD
-      # - transactional +#delete+ doesn't support +lock_version+ attribute so it
-      #   will not be incremented and will not be checked to detect concurrent
-      #   modification of a model and +Dynamoid::Errors::StaleObjectError+
-      #   exception will not be raised
+      # - transactional +#delete+ doesn't raise
+      #   +Dynamoid::Errors::StaleObjectError+ when optimistic concurrency
+      #   control detects a conflict. A generic
+      #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised
+      #   instead.
       # - transactional +#delete+ doesn't disassociate a model from associated ones
       #   if there is any
       #
@@ -620,10 +613,11 @@ module Dynamoid
       #
       # There are the following differences between transactional and
       # non-transactional +#destroy!+:
-      # - transactional +#destroy!+ doesn't support +lock_version+ attribute so it
-      #   will not be incremented and will not be checked to detect concurrent
-      #   modification of a model and +Dynamoid::Errors::StaleObjectError+
-      #   exception will not be raised
+      # - transactional +#destroy!+ doesn't raise
+      #   +Dynamoid::Errors::StaleObjectError+ when optimistic concurrency
+      #   control detects a conflict. A generic
+      #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised
+      #   instead.
       # - transactional +#destroy!+ doesn't disassociate a model from associated ones
       #   if there are association declared in the model class
       #
@@ -644,10 +638,11 @@ module Dynamoid
       #
       # There are the following differences between transactional and
       # non-transactional +#destroy+:
-      # - transactional +#destroy+ doesn't support +lock_version+ attribute so it
-      #   will not be incremented and will not be checked to detect concurrent
-      #   modification of a model and +Dynamoid::Errors::StaleObjectError+
-      #   exception will not be raised
+      # - transactional +#destroy+ doesn't raise
+      #   +Dynamoid::Errors::StaleObjectError+ when optimistic concurrency
+      #   control detects a conflict. A generic
+      #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised
+      #   instead.
       # - transactional +#destroy+ doesn't disassociate a model from associated ones
       #   if there are association declared in the model class
       #

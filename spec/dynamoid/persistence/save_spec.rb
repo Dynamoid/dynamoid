@@ -287,7 +287,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    describe 'pessimistic locking' do
+    describe 'optimistic locking' do
       let(:klass) do
         new_class do
           field :name
@@ -295,35 +295,84 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      it 'generates "lock_version" if field declared' do
+      it 'raises Dynamoid::Errors::StaleObjectError when concurrent update happens' do
+        obj = klass.create(name: 'Original') # lock_version = 1
+
+        obj2 = klass.find(obj.id)
+        obj2.update_attributes!(name: 'Concurrent update') # lock_version 1 -> 2
+
+        expect {
+          obj.name = 'Updated'
+          obj.save
+        }.to raise_error(Dynamoid::Errors::StaleObjectError)
+      end
+
+      it 'initializes lock_version with value 1 when saving a new model' do
         obj = klass.new
         obj.save
 
         expect(obj.lock_version).to eq 1
-        expect(raw_attributes(obj)[:lock_version]).to eq 1
+        expect(obj.reload.lock_version).to eq 1
       end
 
-      it 'increments "lock_version" if it is declared' do
+      it 'increments lock_version when updating an existing model' do
         obj = klass.create
         obj.name = 'Alex'
 
         expect { obj.save }.to change { obj.lock_version }.from(1).to(2)
+        expect(obj.reload.lock_version).to eq 2
       end
 
-      it 'prevents concurrent writes to tables with a lock_version' do
-        # version #1
-        obj = klass.create          # lock_version nil -> 1
-        obj2 = klass.find(obj.id)   # lock_version = 1
+      it 'preserves given value of lock_version' do
+        obj = klass.create!(name: 'Original')
+        expect(obj.lock_version).to eq(1)
 
-        # version #2
-        obj.name = 'Alex'
-        obj.save # lock_version 1 -> 2
-        obj2.name = 'Bob'
+        obj.lock_version = 500
+        obj.save
 
-        # tries to create version #2 again
-        expect {
-          obj2.save # lock_version 1 -> 2
-        }.to raise_error(Dynamoid::Errors::StaleObjectError)
+        expect(obj.lock_version).to eq(500)
+        expect(obj.reload.lock_version).to eq(500)
+      end
+
+      it 'preserves given nil value of lock_version' do
+        obj = klass.create!(name: 'Original')
+        expect(obj.lock_version).to eq(1)
+
+        obj.lock_version = nil
+        obj.save
+
+        expect(obj.lock_version).to be_nil
+        expect(obj.reload.lock_version).to be_nil
+      end
+
+      it 'preserves persisted nil value of lock_version' do
+        obj = klass.create!(name: 'Original')
+        obj.update_attributes!(lock_version: nil)
+
+        obj.name = 'Updated'
+        obj.save
+
+        expect(obj.lock_version).to be_nil
+        expect(obj.reload.lock_version).to be_nil
+      end
+
+      it 'skips optimistic locking when lock_version is nil' do
+        obj = klass.create!(name: 'Original') # lock_version: 1
+        obj.update_attributes!(lock_version: nil) # lock_version: 1 -> nil
+        expect(obj.reload.lock_version).to be_nil
+
+        obj = klass.find(obj.id)
+        obj2 = klass.find(obj.id)
+
+        obj.update_attributes!(name: 'Concurrent Update')
+        expect(obj.lock_version).to be_nil
+
+        obj2.name = 'My Update'
+        obj2.save
+
+        expect(obj2.lock_version).to be_nil
+        expect(obj2.reload.lock_version).to be_nil
+        expect(obj2.reload.name).to eq('My Update')
       end
     end
 
