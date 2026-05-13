@@ -150,7 +150,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+    it "raises UnknownAttribute when an attribute name isn't declared as a field" do
       obj = klass.create!(name: 'Alex', age: 26)
 
       expect {
@@ -371,7 +371,7 @@ RSpec.describe Dynamoid::Persistence do
       expect(klass.find(obj.id).age).to eql 26
     end
 
-    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+    it "raises UnknownAttribute when an attribute name isn't declared as a field" do
       obj = klass.create!(name: 'Alex', age: 26)
 
       expect {

@@ -64,7 +64,7 @@ RSpec.describe Dynamoid::Persistence do
       end.to change { d.reload.name }.to('[Updated]')
     end
 
-    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+    it "raises UnknownAttribute when an attribute name isn't declared as a field" do
       klass = new_class do
         field :name
       end
@@ -511,7 +511,7 @@ RSpec.describe Dynamoid::Persistence do
       end.to change { d.reload.name }.to('[Updated]')
     end
 
-    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+    it "raises UnknownAttribute when an attribute name isn't declared as a field" do
       klass = new_class do
         field :name
       end

@@ -45,7 +45,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
     expect(result).to eql nil
   end
 
-  it 'raises an UnknownAttribute error when adding an attribute that is not declared in the model' do
+  it "raises UnknownAttribute when an attribute name isn't declared as a field" do
     obj = klass.create!(name: 'Alex')
 
     expect {

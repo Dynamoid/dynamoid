@@ -64,7 +64,7 @@ describe Dynamoid::Transactions::Mutation, '.upsert' do
     }.to raise_error(ArgumentError)
   end
 
-  it 'raises an UnknownAttribute error when adding an attribute that is not declared in the model' do
+  it "raises UnknownAttribute when an attribute name isn't declared as a field" do
     obj = klass.create!(name: 'Alex')
 
     expect {
