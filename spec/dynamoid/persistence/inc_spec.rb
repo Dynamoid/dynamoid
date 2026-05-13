@@ -163,6 +163,14 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    it "raises UnknownAttribute when an attribute name isn't declared as a field" do
+      obj = document_class.create!
+
+      expect {
+        document_class.inc(obj.id, unknown: 1)
+      }.to raise_error(Dynamoid::Errors::UnknownAttribute)
+    end
+
     context 'when a model was concurrently deleted' do
       let(:klass) do
         new_class do
