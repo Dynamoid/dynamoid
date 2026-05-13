@@ -21,6 +21,8 @@ module Dynamoid
 
       def call
         touch = @counters.delete(:touch)
+        Dynamoid::Persistence::UpdateValidations.validate_attributes_exist(@model_class, @counters)
+
         partition_key_dumped = cast_and_dump(@model_class.hash_key, @partition_key)
         options = update_item_options(partition_key_dumped)
 
