@@ -51,9 +51,18 @@ module Dynamoid
           builder.hash_key = dump_attribute(@model_class.hash_key, @hash_key)
           builder.range_key = dump_attribute(@model_class.range_key, @range_key) if @model_class.range_key?
 
+          # require primary key to exist
+          builder.add_expression_attribute_name('#_h', @model_class.hash_key)
+          condition_expression = 'attribute_exists(#_h)'
+
+          if @model_class.range_key?
+            builder.add_expression_attribute_name('#_r', @model_class.range_key)
+            condition_expression += ' AND attribute_exists(#_r)'
+          end
+          builder.condition_expression = condition_expression
+
           # changed attributes to persist
-          changes = @attributes.dup
-          changes = add_timestamps(changes, skip_created_at: true)
+          changes = add_timestamps(@attributes, skip_created_at: true)
           changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
           if Dynamoid.config.store_attribute_with_nil_value
@@ -93,13 +102,6 @@ module Dynamoid
               builder.delete_value(name, value)
             end
           end
-
-          # require primary key to exist
-          condition_expression = "attribute_exists(#{@model_class.hash_key})"
-          if @model_class.range_key?
-            condition_expression += " AND attribute_exists(#{@model_class.range_key})"
-          end
-          builder.condition_expression = condition_expression
 
           builder.request
         end
