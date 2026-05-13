@@ -144,6 +144,21 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
     expect(obj.reload.name).to eql('Alex [Updated]')
   end
 
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as partition key and sort key' do
+    klass = new_class(partition_key: { name: :name, type: :string }) do
+      range :status, :string
+      field :age, :integer
+    end
+    obj = klass.create!(name: 'Alex', status: 'active', age: 3)
+
+    described_class.execute do |t|
+      t.update_fields klass, obj.name, obj.status, age: 4
+    end
+
+    expect(obj.reload.age).to eql(4)
+  end
+
   describe 'timestamps' do
     it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
       obj = klass.create!
