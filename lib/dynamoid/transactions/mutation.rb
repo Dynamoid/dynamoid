@@ -8,6 +8,7 @@ require_relative 'mutation/save'
 require_relative 'mutation/update_fields'
 require_relative 'mutation/update_attributes'
 require_relative 'mutation/upsert'
+require_relative 'mutation/inc'
 require_relative 'mutation/item_updater'
 
 module Dynamoid
@@ -488,6 +489,58 @@ module Dynamoid
         end
 
         action = UpdateFields.new(model_class, hash_key, range_key, attributes, &block)
+        register_action action
+      end
+
+      # Increment numeric attributes.
+      #
+      # Doesn't run validations and callbacks.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.inc(User, '1', age: 1)
+      #   end
+      #
+      # If range key is declared for a model it should be passed as well:
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.inc(User, '1', 'Tylor', age: 1)
+      #   end
+      #
+      # It also supports +touch+ option to update +updated_at+ attribute and
+      # optionally other specified attributes.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.inc(User, '1', age: 1, touch: true)
+      #   end
+      #
+      # If attribute names are passed, they are updated along with updated_at
+      # attribute:
+      #
+      #   t.inc(User, '1', age: 2, touch: :viewed_at)
+      #   t.inc(User, '1', age: 2, touch: [:viewed_at, :accessed_at])
+      #
+      # It's an atomic operation. So incrementing or decrementing a numeric
+      # field is atomic and does not interfere with other write requests.
+      #
+      # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+      # attributes is not declared in the model class.
+      #
+      # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+      # +nil+ and +Dynamoid::Errors::MissingRangeKey+ if a sort key is required
+      # but has value +nil+.
+      #
+      # @param model_class [Class] a model class
+      # @param hash_key [Scalar value] hash key value
+      # @param range_key [Scalar value] range key value (optional)
+      # @param counters [Hash]
+      # @return [nil]
+      def inc(model_class, hash_key, range_key = nil, counters = nil)
+        if range_key.is_a?(Hash) && !counters
+          counters = range_key
+          range_key = nil
+        end
+
+        action = Inc.new(model_class, hash_key, range_key, counters)
         register_action action
       end
 
