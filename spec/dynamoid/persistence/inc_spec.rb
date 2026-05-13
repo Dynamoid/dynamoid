@@ -144,12 +144,12 @@ RSpec.describe Dynamoid::Persistence do
     describe 'type casting' do
       it 'uses casted value of sort key to call UpdateItem' do
         class_with_sort_key = new_class do
-          range :published_on, :date
+          range :count, :integer
           field :links_count, :integer
         end
 
-        obj = class_with_sort_key.create!(published_on: '2018-10-07'.to_date, links_count: 2)
-        class_with_sort_key.inc(obj.id, '2018-10-07', links_count: 5)
+        obj = class_with_sort_key.create!(count: 101, links_count: 2)
+        class_with_sort_key.inc(obj.id, '101', links_count: 5)
 
         expect(obj.reload.links_count).to eql(7)
       end
