@@ -315,6 +315,27 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
     end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as attribute names' do
+      klass = new_class do
+        field :name
+      end
+      obj = klass.create!(name: 'Original')
+      obj.update_attributes(name: 'Updated')
+      expect(obj.reload.name).to eq 'Updated'
+    end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as partition key and sort key' do
+      klass = new_class(partition_key: { name: :order }) do
+        range :count, :integer
+        field :name
+      end
+      obj = klass.create!(order: 'order-1', count: 1, name: 'Alex')
+      obj.update_attributes(name: 'Michael')
+      expect(obj.reload.name).to eq 'Michael'
+    end
   end
 
   describe '#update_attributes!' do

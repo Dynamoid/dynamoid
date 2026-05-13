@@ -43,6 +43,35 @@ describe Dynamoid::Transactions::Mutation, '.upsert' do
     expect(obj_loaded.name).to eql 'Alex [Updated]'
   end
 
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as attribute names' do
+    klass = new_class do
+      field :order, :integer
+    end
+    obj = klass.create!(order: 10)
+
+    described_class.execute do |t|
+      t.upsert klass, obj.id, order: 11
+    end
+
+    expect(obj.reload.order).to eql(11)
+  end
+
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as partition key and sort key' do
+    klass = new_class(partition_key: { name: :name, type: :string }) do
+      range :status, :string
+      field :age, :integer
+    end
+    obj = klass.create!(name: 'Alex', status: 'active', age: 3)
+
+    described_class.execute do |t|
+      t.upsert klass, obj.name, obj.status, age: 4
+    end
+
+    expect(obj.reload.age).to eql(4)
+  end
+
   it 'returns nil' do
     obj = klass.create!(name: 'Alex')
 

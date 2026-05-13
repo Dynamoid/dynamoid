@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'fixtures/persistence'
 
 RSpec.describe Dynamoid::Persistence do
   describe '.inc' do
@@ -98,7 +97,7 @@ RSpec.describe Dynamoid::Persistence do
         field :viewed_at, :datetime
       end
 
-      obj = klass.create!(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+      obj = klass.create!(viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
 
       expect do
         expect do
@@ -115,7 +114,6 @@ RSpec.describe Dynamoid::Persistence do
       end
 
       obj = klass.create!(
-        age: 21,
         viewed_at: Time.now - 1.day,
         tagged_at: Time.now - 3.days,
         updated_at: Time.now - 2.days
@@ -169,6 +167,17 @@ RSpec.describe Dynamoid::Persistence do
       expect {
         document_class.inc(obj.id, unknown: 1)
       }.to raise_error(Dynamoid::Errors::UnknownAttribute)
+    end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as attribute names' do
+      klass = new_class do
+        field :counter, :integer
+      end
+      obj = klass.create!(counter: 10)
+
+      klass.inc(obj.id, counter: 1)
+      expect(obj.reload.counter).to eq(11)
     end
 
     context 'when a model was concurrently deleted' do

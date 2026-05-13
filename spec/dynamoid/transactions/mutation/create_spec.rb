@@ -636,6 +636,37 @@ describe Dynamoid::Transactions::Mutation, '.create' do # rubocop:disable RSpec/
       end
     end
   end
+
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as attribute names' do
+    klass = new_class do
+      field :name
+    end
+    klass.create_table
+
+    obj = nil
+    described_class.execute do |txn|
+      obj = txn.create klass, name: 'Alex'
+    end
+
+    expect(obj.reload.name).to eql 'Alex'
+  end
+
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as partition key and sort key' do
+    klass = new_class(partition_key: { name: :order, type: :string }) do
+      range :connection, :string
+      field :name
+    end
+    klass.create_table
+
+    obj = nil
+    described_class.execute do |txn|
+      obj = txn.create klass, order: 'order-1', connection: 'conn-1', name: 'Alex'
+    end
+
+    expect(obj.reload.name).to eql 'Alex'
+  end
 end
 
 describe Dynamoid::Transactions::Mutation, '.create!' do

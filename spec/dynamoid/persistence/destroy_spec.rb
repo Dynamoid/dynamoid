@@ -413,6 +413,15 @@ RSpec.describe Dynamoid::Persistence do
         }.to send_request_matching(:DeleteItem, { TableName: table.arn })
       end
     end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as partition key and sort key' do
+      klass = new_class(partition_key: { name: :order }) do
+        range :count, :integer
+      end
+      obj = klass.create!(order: 'order-1', count: 1)
+      expect { obj.destroy }.to change { klass.exists?(order: 'order-1', count: 1) }.from(true).to(false)
+    end
   end
 
   describe '#destroy!' do
