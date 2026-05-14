@@ -64,7 +64,7 @@ module Dynamoid
             timestamp = DateTime.now.in_time_zone(Time.zone)
 
             timestamp_attributes_to_touch.each do |name|
-              builder.set_attributes(name => dump_attribute(name, timestamp))
+              builder.set_attributes(name => dump(name, timestamp))
             end
           end
 
@@ -91,7 +91,7 @@ module Dynamoid
           Dumping.dump_field(value_casted, options)
         end
 
-        def dump_attribute(name, value)
+        def dump(name, value)
           options = @model_class.attributes[name]
           Dumping.dump_field(value, options)
         end

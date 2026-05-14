@@ -410,6 +410,20 @@ describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' do
     end
   end
 
+  it 'uses casted value of partition key and sort key' do
+    klass = new_class(partition_key: { name: :id, type: :integer }) do
+      range :count, :integer
+    end
+
+    obj = klass.create!(id: 1, count: 42)
+
+    expect {
+      described_class.execute do |t|
+        t.delete(klass, '1', '42')
+      end
+    }.to change(klass, :count).by(-1)
+  end
+
   it 'uses dumped value of partition key to delete item' do
     klass = new_class(partition_key: { name: :published_on, type: :date }) do
       field :name

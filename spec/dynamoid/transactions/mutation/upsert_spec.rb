@@ -349,6 +349,21 @@ describe Dynamoid::Transactions::Mutation, '.upsert' do
     end
   end
 
+  it 'uses casted value of partition key and sort key' do
+    klass = new_class(partition_key: { name: :id, type: :integer }) do
+      range :count, :integer
+      field :name
+    end
+
+    obj = klass.create!(id: 1, count: 42, name: 'Original')
+
+    described_class.execute do |t|
+      t.upsert(klass, '1', '42', name: 'Updated')
+    end
+
+    expect(obj.reload.name).to eql('Updated')
+  end
+
   it 'uses dumped value of partition key to update item' do
     klass = new_class(partition_key: { name: :published_on, type: :date }) do
       field :name

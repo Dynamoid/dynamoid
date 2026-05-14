@@ -46,8 +46,8 @@ module Dynamoid
           changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
           builder = UpdateRequestBuilder.new(@model_class)
-          builder.hash_key = dump(@model_class.hash_key, @hash_key)
-          builder.range_key = dump(@model_class.range_key, @range_key) if @model_class.range_key?
+          builder.hash_key = cast_and_dump(@model_class.hash_key, @hash_key)
+          builder.range_key = cast_and_dump(@model_class.range_key, @range_key) if @model_class.range_key?
 
           attributes_to_set = {}
           attributes_to_remove = []
@@ -83,9 +83,10 @@ module Dynamoid
           result
         end
 
-        def dump(name, value)
+        def cast_and_dump(name, value)
           options = @model_class.attributes[name]
-          Dumping.dump_field(value, options)
+          value_casted = TypeCasting.cast_field(value, options)
+          Dumping.dump_field(value_casted, options)
         end
       end
     end

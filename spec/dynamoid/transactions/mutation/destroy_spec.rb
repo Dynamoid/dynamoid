@@ -445,7 +445,7 @@ describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable RSpec
   end
 end
 
-describe Dynamoid::Transactions::Mutation, '.destroy!' do
+describe Dynamoid::Transactions::Mutation, '#destroy!' do
   # The only difference in specs structure between #destroy and #destroy! is missing
   # a section for callbacks here
 

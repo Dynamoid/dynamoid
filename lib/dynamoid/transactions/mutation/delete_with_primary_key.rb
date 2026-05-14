@@ -35,10 +35,10 @@ module Dynamoid
         end
 
         def action_request
-          key = { @model_class.hash_key => dump_attribute(@model_class.hash_key, @hash_key) }
+          key = { @model_class.hash_key => cast_and_dump(@model_class.hash_key, @hash_key) }
 
           if @model_class.range_key?
-            key[@model_class.range_key] = dump_attribute(@model_class.range_key, @range_key)
+            key[@model_class.range_key] = cast_and_dump(@model_class.range_key, @range_key)
           end
 
           {
@@ -56,9 +56,10 @@ module Dynamoid
           raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && @range_key.nil?
         end
 
-        def dump_attribute(name, value)
+        def cast_and_dump(name, value)
           options = @model_class.attributes[name]
-          Dumping.dump_field(value, options)
+          value_casted = TypeCasting.cast_field(value, options)
+          Dumping.dump_field(value_casted, options)
         end
       end
     end

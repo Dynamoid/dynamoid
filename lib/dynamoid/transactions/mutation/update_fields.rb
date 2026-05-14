@@ -48,8 +48,8 @@ module Dynamoid
           builder = UpdateRequestBuilder.new(@model_class)
 
           # primary key to look up an item to update
-          builder.hash_key = dump_attribute(@model_class.hash_key, @hash_key)
-          builder.range_key = dump_attribute(@model_class.range_key, @range_key) if @model_class.range_key?
+          builder.hash_key = cast_and_dump(@model_class.hash_key, @hash_key)
+          builder.range_key = cast_and_dump(@model_class.range_key, @range_key) if @model_class.range_key?
 
           # require primary key to exist
           builder.add_expression_attribute_name('#_h', @model_class.hash_key)
@@ -123,9 +123,10 @@ module Dynamoid
           result
         end
 
-        def dump_attribute(name, value)
+        def cast_and_dump(name, value)
           options = @model_class.attributes[name]
-          Dumping.dump_field(value, options)
+          value_casted = TypeCasting.cast_field(value, options)
+          Dumping.dump_field(value_casted, options)
         end
       end
     end
