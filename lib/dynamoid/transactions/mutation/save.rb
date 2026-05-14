@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative 'update_request_builder'
 
 module Dynamoid
   module Transactions
@@ -136,30 +137,23 @@ module Dynamoid
           changes = @model.attributes.slice(*@model.changed.map(&:to_sym))
           changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
-          # primary key to look up an item to update
-          key = { @model_class.hash_key => dump_attribute(@model_class.hash_key, @model.hash_key) }
-          key[@model_class.range_key] = dump_attribute(@model_class.range_key, @model.range_value) if @model_class.range_key?
+          builder = UpdateRequestBuilder.new(@model_class)
+          builder.hash_key = dump_attribute(@model_class.hash_key, @model.hash_key)
+          builder.range_key = dump_attribute(@model_class.range_key, @model.range_value) if @model_class.range_key?
 
-          # Build UpdateExpression and keep names and values placeholders mapping
-          # in ExpressionAttributeNames and ExpressionAttributeValues.
-          set_expression_statements = []
-          remove_expression_statements = []
-          condition_expression_statements = []
-          expression_attribute_names = {}
-          expression_attribute_values = {}
+          attributes_to_set = {}
+          attributes_to_remove = []
 
-          changes_dumped.each_with_index do |(name, value), i|
-            name_placeholder = "#_n#{i}"
-            value_placeholder = ":_s#{i}"
-
+          changes_dumped.each do |name, value|
             if value || Dynamoid.config.store_attribute_with_nil_value
-              set_expression_statements << "#{name_placeholder} = #{value_placeholder}"
-              expression_attribute_values[value_placeholder] = value
+              attributes_to_set[name] = value
             else
-              remove_expression_statements << name_placeholder
+              attributes_to_remove << name
             end
-            expression_attribute_names[name_placeholder] = name
           end
+
+          builder.set_attributes(attributes_to_set)
+          builder.remove_attributes(attributes_to_remove)
 
           if @model_class.attributes[:lock_version]
             lock_version = if @model.changes[:lock_version].nil?
@@ -170,28 +164,13 @@ module Dynamoid
 
             # skip concurrency control when lock_version is nil
             if lock_version
-              lock_version_value_placeholder = ':lock_version_value'
-              expression_attribute_values[lock_version_value_placeholder] = lock_version
-              condition_expression_statements << "lock_version = #{lock_version_value_placeholder}"
+              builder.add_expression_attribute_name('#_lock_version', 'lock_version')
+              builder.add_expression_attribute_value(':lock_version_value', lock_version)
+              builder.condition_expression = '#_lock_version = :lock_version_value'
             end
           end
 
-          update_expression = ''
-          update_expression += "SET #{set_expression_statements.join(', ')}" if set_expression_statements.any?
-          update_expression += " REMOVE #{remove_expression_statements.join(', ')}" if remove_expression_statements.any?
-
-          condition_expression = condition_expression_statements.join(' AND ') if condition_expression_statements.any?
-
-          {
-            update: {
-              key: key,
-              table_name: @model_class.table_name,
-              update_expression: update_expression,
-              expression_attribute_names: expression_attribute_names,
-              expression_attribute_values: expression_attribute_values,
-              condition_expression: condition_expression,
-            }
-          }
+          builder.request
         end
 
         def touch_model_timestamps(skip_created_at:)

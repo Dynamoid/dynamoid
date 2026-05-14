@@ -16,10 +16,15 @@ module Dynamoid
           @attributes_to_remove = []
           @condition_expression = nil
           @extra_attribute_names = {}
+          @extra_attribute_values = {}
         end
 
         def add_expression_attribute_name(placeholder, name)
           @extra_attribute_names[placeholder] = name
+        end
+
+        def add_expression_attribute_value(placeholder, value)
+          @extra_attribute_values[placeholder] = value
         end
 
         def set_attributes(attributes) # rubocop:disable Naming/AccessorMethodName
@@ -46,7 +51,7 @@ module Dynamoid
           # in ExpressionAttributeNames and ExpressionAttributeValues.
           update_expression_statements = []
           expression_attribute_names = @extra_attribute_names.dup
-          expression_attribute_values = {}
+          expression_attribute_values = @extra_attribute_values.dup
           name_placeholder = '#_n0'
           value_placeholder = ':_v0'
 
