@@ -64,6 +64,36 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:dis
     expect(obj.changed?).to eql false
   end
 
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as attribute names' do
+    klass = new_class do
+      field :order, :integer
+    end
+    obj = klass.create!(order: 10)
+
+    described_class.execute do |t|
+      t.update_attributes obj, order: 11
+    end
+
+    expect(obj.reload.order).to eql(11)
+  end
+
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as partition key and sort key' do
+    klass = new_class(partition_key: { name: :name, type: :string }) do
+      range :status, :string
+      field :age, :integer
+    end
+    klass.create_table
+    obj = klass.create!(name: 'Alex', status: 'active', age: 3)
+
+    described_class.execute do |t|
+      t.update_attributes obj, age: 4
+    end
+
+    expect(obj.reload.age).to eql(4)
+  end
+
   # TODO: implement the test later
   it 'raises exception if a model is not persisted'
 

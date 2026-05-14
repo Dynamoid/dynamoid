@@ -16,11 +16,14 @@ module Dynamoid
         @partition_key = partition_key
         @sort_key = sort_key
         @counters = counters
+        @touch = @counters.delete(:touch)
       end
       # rubocop:enable Style/OptionalArguments
 
       def call
-        touch = @counters.delete(:touch)
+        validate_primary_key!
+        Dynamoid::Persistence::UpdateValidations.validate_attributes_exist(@model_class, @counters)
+
         partition_key_dumped = cast_and_dump(@model_class.hash_key, @partition_key)
         options = update_item_options(partition_key_dumped)
 
@@ -31,10 +34,10 @@ module Dynamoid
             item_updater.add(name => value)
           end
 
-          if touch
+          if @touch
             value = DateTime.now.in_time_zone(Time.zone)
 
-            timestamp_attributes_to_touch(touch).each do |name|
+            timestamp_attributes_to_touch.each do |name|
               item_updater.set(name => value)
             end
           end
@@ -43,6 +46,11 @@ module Dynamoid
       end
 
       private
+
+      def validate_primary_key!
+        raise Dynamoid::Errors::MissingHashKey if @partition_key.nil?
+        raise Dynamoid::Errors::MissingRangeKey if @model_class.range_key? && @sort_key.nil?
+      end
 
       def update_item_options(partition_key_dumped)
         options = {}
@@ -63,12 +71,12 @@ module Dynamoid
         options
       end
 
-      def timestamp_attributes_to_touch(touch)
-        return [] unless touch
+      def timestamp_attributes_to_touch
+        return [] unless @touch
 
         names = []
         names << :updated_at if @model_class.timestamps_enabled?
-        names += Array.wrap(touch) if touch != true
+        names += Array.wrap(@touch) if @touch != true
         names
       end
 

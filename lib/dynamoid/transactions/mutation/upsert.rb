@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative 'update_request_builder'
 require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
@@ -44,48 +45,25 @@ module Dynamoid
           changes = add_timestamps(changes, skip_created_at: true)
           changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
-          # primary key to look up an item to update
-          partition_key_dumped = dump(@model_class.hash_key, @hash_key)
-          key = { @model_class.hash_key => partition_key_dumped }
+          builder = UpdateRequestBuilder.new(@model_class)
+          builder.hash_key = cast_and_dump(@model_class.hash_key, @hash_key)
+          builder.range_key = cast_and_dump(@model_class.range_key, @range_key) if @model_class.range_key?
 
-          if @model_class.range_key?
-            sort_key_dumped = dump(@model_class.range_key, @range_key)
-            key[@model_class.range_key] = sort_key_dumped
-          end
+          attributes_to_set = {}
+          attributes_to_remove = []
 
-          # Build UpdateExpression and keep names and values placeholders mapping
-          # in ExpressionAttributeNames and ExpressionAttributeValues.
-          set_expression_statements = []
-          remove_expression_statements = []
-          expression_attribute_names = {}
-          expression_attribute_values = {}
-
-          changes_dumped.each_with_index do |(name, value), i|
-            name_placeholder = "#_n#{i}"
-            value_placeholder = ":_s#{i}"
-
+          changes_dumped.each do |name, value|
             if value || Dynamoid.config.store_attribute_with_nil_value
-              set_expression_statements << "#{name_placeholder} = #{value_placeholder}"
-              expression_attribute_values[value_placeholder] = value
+              attributes_to_set[name] = value
             else
-              remove_expression_statements << name_placeholder
+              attributes_to_remove << name
             end
-            expression_attribute_names[name_placeholder] = name
           end
 
-          update_expression = ''
-          update_expression += "SET #{set_expression_statements.join(', ')}" if set_expression_statements.any?
-          update_expression += " REMOVE #{remove_expression_statements.join(', ')}" if remove_expression_statements.any?
+          builder.set_attributes(attributes_to_set)
+          builder.remove_attributes(attributes_to_remove)
 
-          {
-            update: {
-              key: key,
-              table_name: @model_class.table_name,
-              update_expression: update_expression,
-              expression_attribute_names: expression_attribute_names,
-              expression_attribute_values: expression_attribute_values
-            }
-          }
+          builder.request
         end
 
         private
@@ -105,9 +83,10 @@ module Dynamoid
           result
         end
 
-        def dump(name, value)
+        def cast_and_dump(name, value)
           options = @model_class.attributes[name]
-          Dumping.dump_field(value, options)
+          value_casted = TypeCasting.cast_field(value, options)
+          Dumping.dump_field(value_casted, options)
         end
       end
     end

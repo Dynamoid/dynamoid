@@ -580,7 +580,7 @@ describe Dynamoid::Fields do
       end
     end
 
-    it 'raises an UnknownAttribute error if the attribute is not on the model' do
+    it "raises UnknownAttribute when an attribute name isn't declared as a field" do
       obj = new_class.new
 
       expect {

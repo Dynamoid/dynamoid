@@ -347,7 +347,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    it 'raises an UnknownAttribute error when adding an attribute that is not on the model' do
+    it "raises UnknownAttribute when an attribute name isn't declared as a field" do
       obj = klass.create(title: 'New Document')
 
       expect {
@@ -469,6 +469,27 @@ RSpec.describe Dynamoid::Persistence do
           expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
         end
       end
+    end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as attribute names' do
+      klass = new_class do
+        field :name
+      end
+      obj = klass.create!(name: 'Original')
+      klass.update_fields(obj.id, name: 'Updated')
+      expect(obj.reload.name).to eq 'Updated'
+    end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as partition key and sort key' do
+      klass = new_class(partition_key: { name: :order }) do
+        range :count, :integer
+        field :name
+      end
+      obj = klass.create!(order: 'order-1', count: 1, name: 'Alex')
+      klass.update_fields('order-1', 1, name: 'Michael')
+      expect(obj.reload.name).to eq 'Michael'
     end
   end
 end

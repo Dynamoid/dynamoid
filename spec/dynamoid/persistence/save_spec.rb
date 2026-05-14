@@ -1206,6 +1206,53 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
     end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as attribute names when new record' do
+      klass = new_class do
+        field :name
+      end
+      obj = klass.new(name: 'Alex')
+
+      obj.save
+
+      expect(obj.reload.name).to eq 'Alex'
+    end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as attribute names when persisted model' do
+      klass = new_class do
+        field :name
+      end
+      obj = klass.create!(name: 'Alex')
+
+      obj.name = 'Updated'
+      obj.save
+
+      expect(obj.reload.name).to eq 'Updated'
+    end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as partition key and sort key when new record' do
+      klass = new_class(partition_key: { name: :order }) do
+        range :count, :integer
+      end
+      obj = klass.new(order: 'order-1', count: 1)
+      obj.save
+      expect(obj.reload.count).to eq 1
+    end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as partition key and sort key when persisted model' do
+      klass = new_class(partition_key: { name: :order }) do
+        range :count, :integer
+        field :name
+      end
+      obj = klass.create!(order: 'order-1', count: 1, name: 'Original')
+      obj.name = 'Updated'
+      obj.save
+      expect(obj.reload.name).to eq 'Updated'
+    end
   end
 
   describe '#save!' do

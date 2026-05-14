@@ -43,6 +43,35 @@ describe Dynamoid::Transactions::Mutation, '.upsert' do
     expect(obj_loaded.name).to eql 'Alex [Updated]'
   end
 
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as attribute names' do
+    klass = new_class do
+      field :order, :integer
+    end
+    obj = klass.create!(order: 10)
+
+    described_class.execute do |t|
+      t.upsert klass, obj.id, order: 11
+    end
+
+    expect(obj.reload.order).to eql(11)
+  end
+
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as partition key and sort key' do
+    klass = new_class(partition_key: { name: :name, type: :string }) do
+      range :status, :string
+      field :age, :integer
+    end
+    obj = klass.create!(name: 'Alex', status: 'active', age: 3)
+
+    described_class.execute do |t|
+      t.upsert klass, obj.name, obj.status, age: 4
+    end
+
+    expect(obj.reload.age).to eql(4)
+  end
+
   it 'returns nil' do
     obj = klass.create!(name: 'Alex')
 
@@ -64,7 +93,7 @@ describe Dynamoid::Transactions::Mutation, '.upsert' do
     }.to raise_error(ArgumentError)
   end
 
-  it 'raises an UnknownAttribute error when adding an attribute that is not declared in the model' do
+  it "raises UnknownAttribute when an attribute name isn't declared as a field" do
     obj = klass.create!(name: 'Alex')
 
     expect {
@@ -318,6 +347,21 @@ describe Dynamoid::Transactions::Mutation, '.upsert' do
 
       expect(ScratchPad.recorded).to eql([])
     end
+  end
+
+  it 'uses casted value of partition key and sort key' do
+    klass = new_class(partition_key: { name: :id, type: :integer }) do
+      range :count, :integer
+      field :name
+    end
+
+    obj = klass.create!(id: 1, count: 42, name: 'Original')
+
+    described_class.execute do |t|
+      t.upsert(klass, '1', '42', name: 'Updated')
+    end
+
+    expect(obj.reload.name).to eql('Updated')
   end
 
   it 'uses dumped value of partition key to update item' do

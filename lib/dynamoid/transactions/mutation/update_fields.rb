@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative 'update_request_builder'
 require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
@@ -47,12 +48,21 @@ module Dynamoid
           builder = UpdateRequestBuilder.new(@model_class)
 
           # primary key to look up an item to update
-          builder.hash_key = dump_attribute(@model_class.hash_key, @hash_key)
-          builder.range_key = dump_attribute(@model_class.range_key, @range_key) if @model_class.range_key?
+          builder.hash_key = cast_and_dump(@model_class.hash_key, @hash_key)
+          builder.range_key = cast_and_dump(@model_class.range_key, @range_key) if @model_class.range_key?
+
+          # require primary key to exist
+          builder.add_expression_attribute_name('#_h', @model_class.hash_key)
+          condition_expression = 'attribute_exists(#_h)'
+
+          if @model_class.range_key?
+            builder.add_expression_attribute_name('#_r', @model_class.range_key)
+            condition_expression += ' AND attribute_exists(#_r)'
+          end
+          builder.condition_expression = condition_expression
 
           # changed attributes to persist
-          changes = @attributes.dup
-          changes = add_timestamps(changes, skip_created_at: true)
+          changes = add_timestamps(@attributes, skip_created_at: true)
           changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
           if Dynamoid.config.store_attribute_with_nil_value
@@ -93,13 +103,6 @@ module Dynamoid
             end
           end
 
-          # require primary key to exist
-          condition_expression = "attribute_exists(#{@model_class.hash_key})"
-          if @model_class.range_key?
-            condition_expression += " AND attribute_exists(#{@model_class.range_key})"
-          end
-          builder.condition_expression = condition_expression
-
           builder.request
         end
 
@@ -120,128 +123,10 @@ module Dynamoid
           result
         end
 
-        def dump_attribute(name, value)
+        def cast_and_dump(name, value)
           options = @model_class.attributes[name]
-          Dumping.dump_field(value, options)
-        end
-
-        class UpdateRequestBuilder
-          attr_writer :hash_key, :range_key, :condition_expression
-
-          def initialize(model_class)
-            @model_class = model_class
-
-            @attributes_to_set = {}
-            @attributes_to_add = {}
-            @attributes_to_delete = {}
-            @attributes_to_remove = []
-            @condition_expression = nil
-          end
-
-          def set_attributes(attributes) # rubocop:disable Naming/AccessorMethodName
-            @attributes_to_set.merge!(attributes)
-          end
-
-          def add_value(name, value)
-            @attributes_to_add[name] = value
-          end
-
-          def delete_value(name, value)
-            @attributes_to_delete[name] = value
-          end
-
-          def remove_attributes(names)
-            @attributes_to_remove.concat(names)
-          end
-
-          def request
-            key = { @model_class.hash_key => @hash_key }
-            key[@model_class.range_key] = @range_key if @model_class.range_key?
-
-            # Build UpdateExpression and keep names and values placeholders mapping
-            # in ExpressionAttributeNames and ExpressionAttributeValues.
-            update_expression_statements = []
-            expression_attribute_names = {}
-            expression_attribute_values = {}
-            name_placeholder = '#_n0'
-            value_placeholder = ':_v0'
-
-            unless @attributes_to_set.empty?
-              statements = []
-
-              @attributes_to_set.each do |name, value|
-                statements << "#{name_placeholder} = #{value_placeholder}"
-
-                expression_attribute_names[name_placeholder] = name
-                expression_attribute_values[value_placeholder] = value
-
-                name_placeholder = name_placeholder.succ
-                value_placeholder = value_placeholder.succ
-              end
-
-              update_expression_statements << "SET #{statements.join(', ')}"
-            end
-
-            unless @attributes_to_add.empty?
-              statements = []
-
-              @attributes_to_add.each do |name, value|
-                statements << "#{name_placeholder} #{value_placeholder}"
-
-                expression_attribute_names[name_placeholder] = name
-                expression_attribute_values[value_placeholder] = value
-
-                name_placeholder = name_placeholder.succ
-                value_placeholder = value_placeholder.succ
-              end
-
-              update_expression_statements << "ADD #{statements.join(', ')}"
-            end
-
-            unless @attributes_to_delete.empty?
-              statements = []
-
-              @attributes_to_delete.each do |name, value|
-                statements << "#{name_placeholder} #{value_placeholder}"
-
-                expression_attribute_names[name_placeholder] = name
-                expression_attribute_values[value_placeholder] = value
-
-                name_placeholder = name_placeholder.succ
-                value_placeholder = value_placeholder.succ
-              end
-
-              update_expression_statements << "DELETE #{statements.join(', ')}"
-            end
-
-            unless @attributes_to_remove.empty?
-              name_placeholders = []
-
-              @attributes_to_remove.each do |name|
-                name_placeholders << name_placeholder
-
-                expression_attribute_names[name_placeholder] = name
-
-                name_placeholder = name_placeholder.succ
-                value_placeholder = value_placeholder.succ
-              end
-
-              update_expression_statements << "REMOVE #{name_placeholders.join(', ')}"
-            end
-
-            update_expression = update_expression_statements.join(' ')
-
-            {
-              update: {
-                key: key,
-                table_name: @model_class.table_name,
-                update_expression: update_expression,
-                expression_attribute_names: expression_attribute_names,
-                expression_attribute_values: expression_attribute_values,
-                condition_expression: @condition_expression
-              }
-            }
-          end
+          value_casted = TypeCasting.cast_field(value, options)
+          Dumping.dump_field(value_casted, options)
         end
       end
     end

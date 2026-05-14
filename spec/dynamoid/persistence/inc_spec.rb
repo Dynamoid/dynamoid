@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'fixtures/persistence'
 
 RSpec.describe Dynamoid::Persistence do
   describe '.inc' do
@@ -98,7 +97,7 @@ RSpec.describe Dynamoid::Persistence do
         field :viewed_at, :datetime
       end
 
-      obj = klass.create!(age: 21, viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
+      obj = klass.create!(viewed_at: Time.now - 1.day, updated_at: Time.now - 2.days)
 
       expect do
         expect do
@@ -115,7 +114,6 @@ RSpec.describe Dynamoid::Persistence do
       end
 
       obj = klass.create!(
-        age: 21,
         viewed_at: Time.now - 1.day,
         tagged_at: Time.now - 3.days,
         updated_at: Time.now - 2.days
@@ -144,12 +142,12 @@ RSpec.describe Dynamoid::Persistence do
     describe 'type casting' do
       it 'uses casted value of sort key to call UpdateItem' do
         class_with_sort_key = new_class do
-          range :published_on, :date
+          range :count, :integer
           field :links_count, :integer
         end
 
-        obj = class_with_sort_key.create!(published_on: '2018-10-07'.to_date, links_count: 2)
-        class_with_sort_key.inc(obj.id, '2018-10-07', links_count: 5)
+        obj = class_with_sort_key.create!(count: 101, links_count: 2)
+        class_with_sort_key.inc(obj.id, '101', links_count: 5)
 
         expect(obj.reload.links_count).to eql(7)
       end
@@ -161,6 +159,58 @@ RSpec.describe Dynamoid::Persistence do
           document_class.inc(obj.id, links_count: '5.12345')
         }.to change { document_class.find(obj.id).links_count }.from(2).to(7)
       end
+    end
+
+    describe 'primary key validation' do
+      context 'simple primary key' do
+        it 'requires partition key to be specified' do
+          expect {
+            document_class.inc(nil, links_count: 1)
+          }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+      end
+
+      context 'composite key' do
+        let(:klass) do
+          new_class do
+            range :name
+            field :links_count, :integer
+          end
+        end
+
+        it 'requires partition key to be specified' do
+          expect {
+            klass.inc(nil, 'Alex', links_count: 1)
+          }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+
+        it 'requires sort key to be specified' do
+          id_new = SecureRandom.uuid
+
+          expect {
+            klass.inc(id_new, nil, links_count: 1)
+          }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        end
+      end
+    end
+
+    it "raises UnknownAttribute when an attribute name isn't declared as a field" do
+      obj = document_class.create!
+
+      expect {
+        document_class.inc(obj.id, unknown: 1)
+      }.to raise_error(Dynamoid::Errors::UnknownAttribute)
+    end
+
+    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+    it 'allows reserved words as attribute names' do
+      klass = new_class do
+        field :counter, :integer
+      end
+      obj = klass.create!(counter: 10)
+
+      klass.inc(obj.id, counter: 1)
+      expect(obj.reload.counter).to eq(11)
     end
 
     context 'when a model was concurrently deleted' do

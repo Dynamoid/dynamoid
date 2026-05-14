@@ -429,9 +429,23 @@ describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable RSpec
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end
+
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as partition key and sort key' do
+    klass = new_class(partition_key: { name: :order, type: :string }) do
+      range :connection, :string
+    end
+    obj = klass.create!(order: 'order-1', connection: 'conn-1')
+
+    expect {
+      described_class.execute do |t|
+        t.destroy obj
+      end
+    }.to change(klass, :count).by(-1)
+  end
 end
 
-describe Dynamoid::Transactions::Mutation, '.destroy!' do
+describe Dynamoid::Transactions::Mutation, '#destroy!' do
   # The only difference in specs structure between #destroy and #destroy! is missing
   # a section for callbacks here
 
