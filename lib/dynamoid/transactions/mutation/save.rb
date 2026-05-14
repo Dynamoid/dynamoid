@@ -111,16 +111,20 @@ module Dynamoid
           attributes_dumped = sanitize_item(attributes_dumped)
 
           # require primary key not to exist yet
-          condition = "attribute_not_exists(#{@model_class.hash_key})"
+          expression_attribute_names = { '#_h' => @model_class.hash_key }
+          condition = 'attribute_not_exists(#_h)'
+
           if @model_class.range_key?
-            condition += " AND attribute_not_exists(#{@model_class.range_key})"
+            expression_attribute_names['#_r'] = @model_class.range_key
+            condition += ' AND attribute_not_exists(#_r)'
           end
 
           {
             put: {
               item: attributes_dumped,
               table_name: @model_class.table_name,
-              condition_expression: condition
+              condition_expression: condition,
+              expression_attribute_names: expression_attribute_names
             }
           }
         end

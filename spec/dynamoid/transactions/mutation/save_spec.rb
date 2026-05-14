@@ -1683,6 +1683,68 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
       end
     end
   end
+
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as attribute names when new record' do
+    klass = new_class do
+      field :name
+    end
+    klass.create_table
+
+    obj = klass.new(name: 'Alex')
+    described_class.execute do |t|
+      t.save obj
+    end
+
+    expect(obj.reload.name).to eql 'Alex'
+  end
+
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as attribute names when persisted model' do
+    klass = new_class do
+      field :name
+    end
+
+    obj = klass.create!(name: 'Original')
+    obj.name = 'Updated'
+    described_class.execute do |t|
+      t.save obj
+    end
+    expect(obj.reload.name).to eql 'Updated'
+  end
+
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as partition key and sort key when new record' do
+    klass = new_class(partition_key: { name: :order, type: :string }) do
+      range :connection, :string
+      field :name
+    end
+    klass.create_table
+
+    obj = klass.new(order: 'order-1', connection: 'conn-1', name: 'Alex')
+    described_class.execute do |txn|
+      txn.save obj
+    end
+
+    expect(obj.reload.name).to eql 'Alex'
+  end
+
+  # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  it 'allows reserved words as partition key and sort key when persisted model' do
+    klass = new_class(partition_key: { name: :order, type: :string }) do
+      range :connection, :string
+      field :name
+    end
+    klass.create_table
+
+    obj = klass.create!(order: 'order-1', connection: 'conn-1', name: 'Original')
+    obj.name = 'Updated'
+    described_class.execute do |txn|
+      txn.save obj
+    end
+
+    expect(obj.reload.name).to eql 'Updated'
+  end
 end
 
 describe Dynamoid::Transactions::Mutation, '.save!' do
