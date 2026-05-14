@@ -448,6 +448,10 @@ module Dynamoid
       #   User.inc('1', age: 2, touch: :viewed_at)
       #   User.inc('1', age: 2, touch: [:viewed_at, :accessed_at])
       #
+      # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
+      # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
+      # required but has value +nil+ or is missing.
+      #
       # @param hash_key_value [Scalar value] hash key
       # @param range_key_value [Scalar value] range key (optional)
       # @param counters [Hash] value to increase by

@@ -161,6 +161,39 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
+    describe 'primary key validation' do
+      context 'simple primary key' do
+        it 'requires partition key to be specified' do
+          expect {
+            document_class.inc(nil, links_count: 1)
+          }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+      end
+
+      context 'composite key' do
+        let(:klass) do
+          new_class do
+            range :name
+            field :links_count, :integer
+          end
+        end
+
+        it 'requires partition key to be specified' do
+          expect {
+            klass.inc(nil, 'Alex', links_count: 1)
+          }.to raise_exception(Dynamoid::Errors::MissingHashKey)
+        end
+
+        it 'requires sort key to be specified' do
+          id_new = SecureRandom.uuid
+
+          expect {
+            klass.inc(id_new, nil, links_count: 1)
+          }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        end
+      end
+    end
+
     it "raises UnknownAttribute when an attribute name isn't declared as a field" do
       obj = document_class.create!
 
