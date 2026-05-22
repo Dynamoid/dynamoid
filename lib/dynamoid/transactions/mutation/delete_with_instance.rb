@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative 'delete_request_builder'
 
 module Dynamoid
   module Transactions
@@ -39,16 +40,9 @@ module Dynamoid
         end
 
         def action_requests
-          key = { @model_class.hash_key => dump_attribute(@model_class.hash_key, @model.hash_key) }
-
-          if @model_class.range_key?
-            key[@model_class.range_key] = dump_attribute(@model_class.range_key, @model.range_value)
-          end
-
-          options = {
-            key: key,
-            table_name: @model_class.table_name
-          }
+          builder = DeleteRequestBuilder.new(@model_class)
+          builder.hash_key = dump_attribute(@model_class.hash_key, @model.hash_key)
+          builder.range_key = dump_attribute(@model_class.range_key, @model.range_value) if @model_class.range_key?
 
           if @model_class.attributes[:lock_version]
             lock_version = if @model.changes[:lock_version].nil?
@@ -59,12 +53,13 @@ module Dynamoid
 
             # skip concurrency control when lock_version is nil
             if lock_version
-              options[:condition_expression] = 'lock_version = :lock_version_value'
-              options[:expression_attribute_values] = { ':lock_version_value' => lock_version }
+              builder.add_expression_attribute_name('#_lock_version', 'lock_version')
+              builder.add_expression_attribute_value(':lock_version_value', lock_version)
+              builder.condition_expression = '#_lock_version = :lock_version_value'
             end
           end
 
-          [{ delete: options }]
+          [builder.request]
         end
 
         private
