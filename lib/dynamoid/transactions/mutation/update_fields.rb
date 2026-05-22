@@ -1,13 +1,64 @@
 # frozen_string_literal: true
 
 require_relative 'base'
-require_relative 'update_request_builder'
-require 'dynamoid/persistence/update_validations'
+require_relative 'builders/update_request_builder'
 
 module Dynamoid
   module Transactions
     class Mutation
       class UpdateFields < Base
+        # @private
+        class ItemUpdater
+          attr_reader :attributes_to_set, :attributes_to_add, :attributes_to_delete, :attributes_to_remove
+
+          def initialize(model_class)
+            @model_class = model_class
+
+            @attributes_to_set = {}
+            @attributes_to_add = {}
+            @attributes_to_delete = {}
+            @attributes_to_remove = []
+          end
+
+          def empty?
+            [@attributes_to_set, @attributes_to_add, @attributes_to_delete, @attributes_to_remove].all?(&:empty?)
+          end
+
+          def set(attributes)
+            validate_attribute_names!(attributes.keys)
+            if Dynamoid.config.store_attribute_with_nil_value
+              @attributes_to_set.merge!(attributes)
+            else
+              @attributes_to_set.merge!(attributes.reject { |_, v| v.nil? })
+              @attributes_to_remove += attributes.select { |_, v| v.nil? }.keys
+            end
+          end
+
+          # adds to array of fields for use in REMOVE update expression
+          def remove(*names)
+            validate_attribute_names!(names)
+            @attributes_to_remove += names
+          end
+
+          # increments a number or adds to a set, starts at 0 or [] if it doesn't yet exist
+          def add(attributes)
+            validate_attribute_names!(attributes.keys)
+            @attributes_to_add.merge!(attributes)
+          end
+
+          # deletes a value or values from a set
+          def delete(attributes)
+            validate_attribute_names!(attributes.keys)
+            @attributes_to_delete.merge!(attributes)
+          end
+
+          private
+
+          def validate_attribute_names!(names)
+            UpdateFields.validate_attribute_names!(@model_class, names)
+          end
+        end
+
         def initialize(model_class, hash_key, range_key, attributes, &block)
           super()
 
@@ -20,7 +71,7 @@ module Dynamoid
 
         def on_registration
           validate_primary_key!
-          Dynamoid::Persistence::UpdateValidations.validate_attributes_exist(@model_class, @attributes)
+          validate_attribute_names!(@model_class, @attributes.keys)
 
           if @block
             @item_updater = ItemUpdater.new(@model_class)
@@ -44,8 +95,8 @@ module Dynamoid
           nil
         end
 
-        def action_request
-          builder = UpdateRequestBuilder.new(@model_class)
+        def action_requests
+          builder = Builders::UpdateRequestBuilder.new(@model_class)
 
           # primary key to look up an item to update
           builder.hash_key = cast_and_dump(@model_class.hash_key, @hash_key)
@@ -103,7 +154,7 @@ module Dynamoid
             end
           end
 
-          builder.request
+          [builder.request]
         end
 
         private

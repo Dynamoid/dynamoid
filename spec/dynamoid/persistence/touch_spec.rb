@@ -21,7 +21,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    it 'assigns updated_at attribute to current time' do
+    it 'sets updated_at to current time' do
       obj = klass.create!
 
       travel 1.hour do
@@ -30,14 +30,14 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    it 'saves updated_at attribute value' do
+    it 'saves updated_at' do
       obj = klass.create!
 
       travel 1.hour do
         obj.touch
 
-        obj_persistes = klass.find(obj.id)
-        expect(obj_persistes.updated_at.to_i).to eq(Time.now.to_i)
+        obj_persisted = klass.find(obj.id)
+        expect(obj_persisted.updated_at.to_i).to eq(Time.now.to_i)
       end
     end
 
@@ -46,18 +46,18 @@ RSpec.describe Dynamoid::Persistence do
       expect(obj.touch).to eq obj
     end
 
-    it 'assigns and saves specified time' do
+    it 'supports custom time' do
       obj = klass.create!
 
       time = Time.now + 1.day
       obj.touch(time: time)
 
-      obj_persistes = klass.find(obj.id)
+      obj_persisted = klass.find(obj.id)
       expect(obj.updated_at.to_i).to eq(time.to_i)
-      expect(obj_persistes.updated_at.to_i).to eq(time.to_i)
+      expect(obj_persisted.updated_at.to_i).to eq(time.to_i)
     end
 
-    it 'assignes and saves also specified timestamp attributes' do
+    it 'supports additional timestamp attributes' do
       klass = new_class do
         field :tagged_at, :datetime
         field :logged_in_at, :datetime
@@ -67,20 +67,20 @@ RSpec.describe Dynamoid::Persistence do
       travel 1.hour do
         obj.touch(:tagged_at, :logged_in_at)
 
-        obj_persistes = klass.find(obj.id)
+        obj_persisted = klass.find(obj.id)
 
         expect(obj.updated_at.to_i).to eq(Time.now.to_i)
-        expect(obj_persistes.updated_at.to_i).to eq(Time.now.to_i)
+        expect(obj_persisted.updated_at.to_i).to eq(Time.now.to_i)
 
         expect(obj.tagged_at.to_i).to eq(Time.now.to_i)
-        expect(obj_persistes.tagged_at.to_i).to eq(Time.now.to_i)
+        expect(obj_persisted.tagged_at.to_i).to eq(Time.now.to_i)
 
         expect(obj.logged_in_at.to_i).to eq(Time.now.to_i)
-        expect(obj_persistes.logged_in_at.to_i).to eq(Time.now.to_i)
+        expect(obj_persisted.logged_in_at.to_i).to eq(Time.now.to_i)
       end
     end
 
-    it 'does not save other changed attributes' do
+    it 'skips other changed attributes' do
       klass = new_class do
         field :name
       end
@@ -96,7 +96,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    it 'does not validate' do
+    it 'skips validations' do
       klass_with_validation = new_class do
         field :name
         validates :name, length: { minimum: 4 }
@@ -108,12 +108,12 @@ RSpec.describe Dynamoid::Persistence do
       travel 1.hour do
         obj.touch
 
-        obj_persistes = klass_with_validation.find(obj.id)
-        expect(obj_persistes.updated_at.to_i).to eq(Time.now.to_i)
+        obj_persisted = klass_with_validation.find(obj.id)
+        expect(obj_persisted.updated_at.to_i).to eq(Time.now.to_i)
       end
     end
 
-    it 'raise Dynamoid::Error when not persisted model' do
+    it 'raises error for new record' do
       obj = klass.new
 
       expect {
@@ -121,44 +121,67 @@ RSpec.describe Dynamoid::Persistence do
       }.to raise_error(Dynamoid::Errors::Error, 'cannot touch on a new or destroyed record object')
     end
 
-    describe 'callbacks' do
-      it 'runs callbacks in the proper order' do
-        klass_with_callbacks = new_class do
-          before_validation { puts 'run before_validation' }
-          after_validation { puts 'run after_validation' }
+    describe 'primary key validation' do
+      context 'simple primary key' do
+        it 'requires partition key to be specified' do
+          obj = klass.create!
+          obj.id = nil
+          expect { obj.touch }.to raise_error(Dynamoid::Errors::MissingHashKey)
+        end
+      end
 
-          before_update { puts 'run before_update' }
-          after_update { puts 'run after_update' }
-          around_update :around_update_callback
-
-          before_save { puts 'run before_save' }
-          after_save { puts 'run after_save' }
-          around_save :around_save_callback
-
-          after_touch { puts 'run after_touch' }
-
-          def around_save_callback
-            puts 'start around_save'
-            yield
-            puts 'finish around_save'
-          end
-
-          def around_update_callback
-            puts 'start around_update'
-            yield
-            puts 'finish around_update'
-          end
+      context 'composite key' do
+        it 'requires partition key to be specified' do
+          obj = klass_with_composite_key.create!(name: 'Alex')
+          obj.id = nil
+          expect { obj.touch }.to raise_error(Dynamoid::Errors::MissingHashKey)
         end
 
-        expect { # to suppress printing at model creation
-          obj = klass_with_callbacks.create
-          expect { obj.touch }.to output("run after_touch\n").to_stdout
-        }.to output.to_stdout
+        it 'requires sort key to be specified' do
+          obj = klass_with_composite_key.create!(name: 'Alex')
+          obj.name = nil
+          expect { obj.touch }.to raise_error(Dynamoid::Errors::MissingRangeKey)
+        end
       end
     end
 
-    context 'when a model was concurrently deleted' do
-      it 'does not persist changes when simple primary key' do
+    describe 'callbacks' do
+      it 'runs after_touch callbacks' do
+        klass_with_callbacks = new_class do
+          after_touch { ScratchPad << 'run after_touch' }
+        end
+
+        ScratchPad.record []
+        obj = klass_with_callbacks.create!
+
+        ScratchPad.clear
+        obj.touch
+
+        expect(ScratchPad.recorded).to include('run after_touch')
+      end
+
+      it 'skips other callbacks' do
+        klass_with_callbacks = new_class do
+          before_validation { ScratchPad << 'run before_validation' }
+          after_validation { ScratchPad << 'run after_validation' }
+          before_save { ScratchPad << 'run before_save' }
+          after_save { ScratchPad << 'run after_save' }
+          before_update { ScratchPad << 'run before_update' }
+          after_update { ScratchPad << 'run after_update' }
+        end
+
+        ScratchPad.record []
+        obj = klass_with_callbacks.create
+
+        ScratchPad.clear
+        obj.touch
+
+        expect(ScratchPad.recorded).to be_empty
+      end
+    end
+
+    context 'concurrent deletion' do
+      it 'skips changes for simple primary key' do
         obj = klass.create!
         klass.find(obj.id).delete
 
@@ -166,7 +189,7 @@ RSpec.describe Dynamoid::Persistence do
         expect(klass.exists?(obj.id)).to eql(false)
       end
 
-      it 'does not persist changes when composite primary key' do
+      it 'skips changes for composite primary key' do
         obj = klass_with_composite_key.create!(name: 'Alex')
         klass_with_composite_key.find(obj.id, range_key: obj.name).delete
 
@@ -174,7 +197,7 @@ RSpec.describe Dynamoid::Persistence do
         expect(klass_with_composite_key.exists?(id: obj.id, name: obj.name)).to eql(false)
       end
 
-      it 'does not persist changes when composite primary key and sort key type is not supported by DynamoDB natively' do
+      it 'skips changes for composite primary key and sort key of type not supported natively' do
         obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b])
         klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
 

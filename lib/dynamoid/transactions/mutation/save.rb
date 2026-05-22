@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
-require_relative 'update_request_builder'
+require_relative 'builders/update_request_builder'
 
 module Dynamoid
   module Transactions
@@ -90,12 +90,14 @@ module Dynamoid
           !@aborted
         end
 
-        def action_request
-          if @was_new_record
-            action_request_to_create
-          else
-            action_request_to_update
-          end
+        def action_requests
+          request = if @was_new_record
+                      action_request_to_create
+                    else
+                      action_request_to_update
+                    end
+
+          [request]
         end
 
         private
@@ -137,7 +139,7 @@ module Dynamoid
           changes = @model.attributes.slice(*@model.changed.map(&:to_sym))
           changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
-          builder = UpdateRequestBuilder.new(@model_class)
+          builder = Builders::UpdateRequestBuilder.new(@model_class)
           builder.hash_key = dump_attribute(@model_class.hash_key, @model.hash_key)
           builder.range_key = dump_attribute(@model_class.range_key, @model.range_value) if @model_class.range_key?
 

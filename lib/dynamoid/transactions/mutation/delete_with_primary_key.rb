@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative 'builders/delete_request_builder'
 
 module Dynamoid
   module Transactions
@@ -34,19 +35,12 @@ module Dynamoid
           nil
         end
 
-        def action_request
-          key = { @model_class.hash_key => cast_and_dump(@model_class.hash_key, @hash_key) }
+        def action_requests
+          builder = Builders::DeleteRequestBuilder.new(@model_class)
+          builder.hash_key = cast_and_dump(@model_class.hash_key, @hash_key)
+          builder.range_key = cast_and_dump(@model_class.range_key, @range_key) if @model_class.range_key?
 
-          if @model_class.range_key?
-            key[@model_class.range_key] = cast_and_dump(@model_class.range_key, @range_key)
-          end
-
-          {
-            delete: {
-              key: key,
-              table_name: @model_class.table_name
-            }
-          }
+          [builder.request]
         end
 
         private

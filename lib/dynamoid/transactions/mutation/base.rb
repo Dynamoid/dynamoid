@@ -40,8 +40,22 @@ module Dynamoid
         end
 
         # Coresponding part of a final request body
-        def action_request
+        def action_requests
           raise 'Not implemented'
+        end
+
+        def self.validate_attribute_names!(model_class, names)
+          names.each do |name|
+            unless model_class.attributes[name]
+              raise Dynamoid::Errors::UnknownAttribute.new(model_class, name)
+            end
+          end
+        end
+
+        private
+
+        def validate_attribute_names!(model_class, names)
+          self.class.validate_attribute_names!(model_class, names)
         end
 
         # copied from aws_sdk_v3

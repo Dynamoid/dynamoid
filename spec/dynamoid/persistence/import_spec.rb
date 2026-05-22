@@ -5,25 +5,29 @@ require 'fixtures/persistence'
 
 RSpec.describe Dynamoid::Persistence do
   describe '.import' do
-    before do
-      Address.create_table
-      User.create_table
-      Tweet.create_table
+    let(:klass) do
+      new_class do
+        field :city
+      end
     end
 
-    it 'creates multiple documents' do
+    it 'creates multiple items' do
+      klass.create_table
+
       expect do
-        Address.import([{ city: 'Chicago' }, { city: 'New York' }])
-      end.to change(Address, :count).by(2)
+        klass.import([{ city: 'Chicago' }, { city: 'New York' }])
+      end.to change(klass, :count).by(2)
     end
 
-    it 'returns created documents' do
-      addresses = Address.import([{ city: 'Chicago' }, { city: 'New York' }])
+    it 'returns created items' do
+      klass.create_table
+
+      addresses = klass.import([{ city: 'Chicago' }, { city: 'New York' }])
       expect(addresses[0].city).to eq('Chicago')
       expect(addresses[1].city).to eq('New York')
     end
 
-    it 'does not validate documents' do
+    it 'skips validations' do
       klass = new_class do
         field :city
         validates :city, presence: true
@@ -35,78 +39,120 @@ RSpec.describe Dynamoid::Persistence do
       expect(addresses[1].persisted?).to be true
     end
 
-    it 'does not run callbacks' do
-      klass = new_class do
-        field :city
-        validates :city, presence: true
+    describe 'callbacks' do
+      it 'skips validation callbacks' do
+        klass = new_class do
+          field :city
+          validates :city, presence: true
 
-        before_save { raise 'before save callback called' }
+          before_validation { ScratchPad << 'run before_validation' }
+          after_validation { ScratchPad << 'run after_validation' }
+        end
+        klass.create_table
+        ScratchPad.record []
+
+        klass.import([{ city: 'Chicago' }])
+        expect(ScratchPad.recorded).to be_empty
       end
-      klass.create_table
 
-      expect { klass.import([{ city: 'Chicago' }]) }.not_to raise_error
+      it 'skips save callbacks' do
+        klass = new_class do
+          field :city
+          before_save { ScratchPad << 'run before_save' }
+          after_save { ScratchPad << 'run after_save' }
+        end
+        klass.create_table
+        ScratchPad.record []
+
+        klass.import([{ city: 'Chicago' }])
+        expect(ScratchPad.recorded).to be_empty
+      end
+
+      it 'skips create callbacks' do
+        klass = new_class do
+          field :city
+          before_create { ScratchPad << 'run before_create' }
+          after_create { ScratchPad << 'run after_create' }
+        end
+        klass.create_table
+        ScratchPad.record []
+
+        klass.import([{ city: 'Chicago' }])
+        expect(ScratchPad.recorded).to be_empty
+      end
     end
 
     it 'makes batch operation' do
       expect(Dynamoid.adapter).to receive(:batch_write_item).and_call_original
-      Address.import([{ city: 'Chicago' }, { city: 'New York' }])
+      klass.create_table
+      klass.import([{ city: 'Chicago' }, { city: 'New York' }])
     end
 
-    it 'supports empty containers in `serialized` fields' do
-      users = User.import([{ name: 'Philip', favorite_colors: Set.new }])
+    it 'supports empty containers in serialized fields' do
+      klass_with_serialized = new_class do
+        field :favorite_colors, :serialized
+      end
+      klass_with_serialized.create_table
 
-      user = User.find(users[0].id)
-      expect(user.favorite_colors).to eq Set.new
+      user, = klass_with_serialized.import([{ favorite_colors: Set.new }])
+      expect(user.reload.favorite_colors).to eq Set.new
     end
 
-    it 'supports array being empty' do
-      users = User.import([{ todo_list: [] }])
+    it 'supports empty arrays' do
+      klass_with_array = new_class do
+        field :todo_list, :array
+      end
+      klass_with_array.create_table
 
-      user = User.find(users[0].id)
-      expect(user.todo_list).to eq []
+      user, = klass_with_array.import([{ todo_list: [] }])
+      expect(user.reload.todo_list).to eq []
     end
 
     it 'saves empty Set as nil' do
-      tweets = Tweet.import([{ group: 'one', tags: [] }])
+      klass_with_set = new_class do
+        field :tags, :set
+      end
+      klass_with_set.create_table
 
-      tweet = Tweet.find_by_tweet_id(tweets[0].tweet_id)
-      expect(tweet.tags).to eq nil
+      tweet, = klass_with_set.import([{ tags: Set[] }])
+      expect(tweet.reload.tags).to eq nil
     end
 
-    it 'saves empty string as nil by default' do
-      users = User.import([{ name: '' }])
+    it 'saves empty strings as nil' do
+      klass.create_table
 
-      user = User.find(users[0].id)
-      expect(user.name).to eq nil
+      address, = klass.import([{ city: '' }])
+      expect(address.reload.city).to eq nil
     end
 
-    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
-      users = User.import([{ name: '' }])
-
-      user = User.find(users[0].id)
-      expect(user.name).to eq nil
+    it 'saves empty strings as nil when store_empty_string_as_nil is true', config: { store_empty_string_as_nil: true } do
+      klass.create_table
+      address, = klass.import([{ city: '' }])
+      expect(address.reload.city).to eq nil
     end
 
-    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
-      users = User.import([{ name: '' }])
+    it 'saves empty strings as is when store_empty_string_as_nil is false', config: { store_empty_string_as_nil: false } do
+      klass.create_table
+      address, = klass.import([{ city: '' }])
 
-      user = User.find(users[0].id)
-      expect(user.name).to eq ''
-      expect(raw_attributes(user)[:name]).to eql ''
+      expect(address.reload.city).to eq ''
+      expect(raw_attributes(address)[:city]).to eql ''
     end
 
-    it 'saves attributes with nil value' do
-      users = User.import([{ name: nil }])
-
-      user = User.find(users[0].id)
-      expect(user.name).to eq nil
+    it 'saves nil attributes' do
+      klass.create_table
+      address, = klass.import([{ city: nil }])
+      expect(address.reload.city).to eq nil
     end
 
-    it 'supports container types being nil' do
-      users = User.import([{ name: 'Philip', todo_list: nil }])
+    it 'supports nil containers' do
+      klass_with_array = new_class do
+        field :todo_list, :array
+      end
+      klass_with_array.create_table
 
-      user = User.find(users[0].id)
-      expect(user.todo_list).to eq nil
+      obj, = klass_with_array.import([{ todo_list: nil }])
+      expect(obj.reload.todo_list).to eq nil
     end
 
     describe 'timestamps' do
@@ -139,7 +185,9 @@ RSpec.describe Dynamoid::Persistence do
       end
 
       it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
-        expect { klass.import([{}]) }.not_to raise_error
+        expect {
+          klass.import([{}])
+        }.to change(klass, :count).by(1)
       end
     end
 
@@ -197,10 +245,12 @@ RSpec.describe Dynamoid::Persistence do
         Dynamoid.config.backoff_strategies = @old_backoff_strategies
       end
 
-      it 'creates multiple documents' do
+      it 'creates multiple items' do
+        klass.create_table
+
         expect do
-          Address.import([{ city: 'Chicago' }, { city: 'New York' }])
-        end.to change(Address, :count).by(2)
+          klass.import([{ city: 'Chicago' }, { city: 'New York' }])
+        end.to change(klass, :count).by(2)
       end
 
       it 'uses specified backoff when some items are not processed' do
@@ -276,7 +326,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     context 'when table arn is specified', remove_constants: [:Payment] do
-      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+      it 'uses the table ARN', config: { create_table_on_save: false } do
         # Create table manually because CreateTable doesn't accept ARN as a
         # table name. Add namespace to have this table removed automativally.
         table_name = :"#{Dynamoid::Config.namespace}_purchases"
@@ -313,7 +363,7 @@ RSpec.describe Dynamoid::Persistence do
         klass_with_gsi.create_table
       end
 
-      it 'imports successfuly even if a field declared as a GSI primary key is set to nil' do
+      it 'imports successfully when a GSI partition key is nil' do
         expect do
           klass_with_gsi.import([{ name: nil, age: 42 }])
         end.to change(klass_with_gsi, :count).by(1)
@@ -323,7 +373,7 @@ RSpec.describe Dynamoid::Persistence do
         expect(obj.age).to eql 42
       end
 
-      it 'imports successfuly even if a field declared as a GSI sort key is set to nil' do
+      it 'imports successfully when a GSI sort key is nil' do
         expect do
           klass_with_gsi.import([{ name: 'Alex', age: nil }])
         end.to change(klass_with_gsi, :count).by(1)
@@ -334,7 +384,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    describe '`store_attribute_with_nil_value` config option' do
+    describe 'store_attribute_with_nil_value config option' do
       let(:klass) do
         new_class do
           field :age, :integer

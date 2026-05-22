@@ -398,6 +398,7 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:dis
       end
 
       obj = klass_with_callback.create!(name: 'Alex')
+      ScratchPad.record []
 
       described_class.execute do |txn|
         txn.update_attributes obj, name: 'Bob'
@@ -413,6 +414,7 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:dis
       end
 
       obj = klass_with_callback.create!(name: 'Alex')
+      ScratchPad.record []
 
       described_class.execute do |txn|
         txn.update_attributes obj, name: 'Bob'
@@ -449,6 +451,7 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:dis
       end
 
       obj = klass_with_callback.create!(name: 'Alex')
+      ScratchPad.record []
 
       described_class.execute do |txn|
         txn.update_attributes obj, name: 'Bob'
@@ -464,6 +467,7 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:dis
       end
 
       obj = klass_with_callback.create!(name: 'Alex')
+      ScratchPad.record []
 
       described_class.execute do |txn|
         txn.update_attributes obj, name: 'Bob'
@@ -479,6 +483,7 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:dis
       end
 
       obj = klass_with_callback.create!(name: 'Alex')
+      ScratchPad.record []
 
       described_class.execute do |txn|
         txn.update_attributes obj, name: 'Bob'
@@ -494,6 +499,7 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:dis
       end
 
       obj = klass_with_callback.create!(name: 'Alex')
+      ScratchPad.record []
 
       described_class.execute do |txn|
         txn.update_attributes obj, name: 'Bob'
@@ -570,6 +576,67 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes' do # rubocop:dis
         'run after_save'
       )
       expect(ScratchPad.recorded).to eql []
+    end
+
+    it 'runs after_commit callbacks' do
+      klass_with_callback = new_class do
+        field :name
+        after_commit { ScratchPad << "after_commit #{id}" }
+      end
+      klass_with_callback.create_table
+      obj = klass_with_callback.create!(id: '1')
+      ScratchPad.record []
+
+      described_class.execute do |t|
+        t.update_attributes(obj, name: 'Alex [Updated]')
+      end
+
+      expect(ScratchPad.recorded).to contain_exactly('after_commit 1')
+    end
+
+    it 'runs after_rollback callbacks when exception is raised and aborts a transaction' do
+      klass_with_callback = new_class do
+        field :name
+        after_rollback { ScratchPad << "after_rollback #{id}" }
+      end
+      klass_with_callback.create_table
+      obj = klass_with_callback.create!(id: '1')
+      ScratchPad.record []
+
+      begin
+        described_class.execute do |t|
+          t.update_attributes(obj, name: 'Alex [Updated]')
+          raise 'error'
+        end
+      rescue StandardError => e
+        expect(e.message).to eq('error')
+      end
+
+      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+    end
+
+    it 'runs after_rollback callbacks when a transaction is rolled back' do
+      klass_with_callback = new_class do
+        field :name
+        after_rollback { ScratchPad << "after_rollback #{id}" }
+      end
+      klass_with_callback.create_table
+
+      klass.create(id: 'unique_id')
+
+      obj = klass_with_callback.create!(id: '1')
+      ScratchPad.record []
+
+      begin
+        described_class.execute do |t|
+          t.update_attributes(obj, name: 'Alex [Updated]')
+          t.create klass, id: 'unique_id' # triggers rollback
+        end
+      rescue Aws::DynamoDB::Errors::TransactionCanceledException
+        # ignore
+      end
+
+      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
     end
   end
 
@@ -948,6 +1015,73 @@ describe Dynamoid::Transactions::Mutation, '#update_attributes!' do
     end
 
     expect(obj.reload.name).to eql('Alex [Updated]')
+  end
+
+  describe 'callbacks' do
+    before do
+      ScratchPad.record []
+    end
+
+    it 'runs after_commit callbacks' do
+      klass_with_callback = new_class do
+        field :name
+        after_commit { ScratchPad << "after_commit #{id}" }
+      end
+      klass_with_callback.create_table
+      obj = klass_with_callback.create!(id: '1')
+      ScratchPad.record []
+
+      described_class.execute do |t|
+        t.update_attributes!(obj, name: 'Alex [Updated]')
+      end
+
+      expect(ScratchPad.recorded).to contain_exactly('after_commit 1')
+    end
+
+    it 'runs after_rollback callbacks when exception is raised and aborts a transaction' do
+      klass_with_callback = new_class do
+        field :name
+        after_rollback { ScratchPad << "after_rollback #{id}" }
+      end
+      klass_with_callback.create_table
+      obj = klass_with_callback.create!(id: '1')
+      ScratchPad.record []
+
+      begin
+        described_class.execute do |t|
+          t.update_attributes!(obj, name: 'Alex [Updated]')
+          raise 'error'
+        end
+      rescue StandardError => e
+        expect(e.message).to eq('error')
+      end
+
+      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+    end
+
+    it 'runs after_rollback callbacks when a transaction is rolled back' do
+      klass_with_callback = new_class do
+        field :name
+        after_rollback { ScratchPad << "after_rollback #{id}" }
+      end
+      klass_with_callback.create_table
+
+      klass.create(id: 'unique_id')
+
+      obj = klass_with_callback.create!(id: '1')
+      ScratchPad.record []
+
+      begin
+        described_class.execute do |t|
+          t.update_attributes!(obj, name: 'Alex [Updated]')
+          t.create klass, id: 'unique_id' # triggers rollback
+        end
+      rescue Aws::DynamoDB::Errors::TransactionCanceledException
+        # ignore
+      end
+
+      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+    end
   end
 
   context 'when table arn is specified', remove_constants: [:Payment] do

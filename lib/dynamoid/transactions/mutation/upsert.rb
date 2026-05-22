@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
-require_relative 'update_request_builder'
-require 'dynamoid/persistence/update_validations'
+require_relative 'builders/update_request_builder'
 
 module Dynamoid
   module Transactions
@@ -19,7 +18,7 @@ module Dynamoid
 
         def on_registration
           validate_primary_key!
-          Dynamoid::Persistence::UpdateValidations.validate_attributes_exist(@model_class, @attributes)
+          validate_attribute_names!(@model_class, @attributes.keys)
         end
 
         def on_commit; end
@@ -39,13 +38,13 @@ module Dynamoid
           nil
         end
 
-        def action_request
+        def action_requests
           # changed attributes to persist
           changes = @attributes.dup
           changes = add_timestamps(changes, skip_created_at: true)
           changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
-          builder = UpdateRequestBuilder.new(@model_class)
+          builder = Builders::UpdateRequestBuilder.new(@model_class)
           builder.hash_key = cast_and_dump(@model_class.hash_key, @hash_key)
           builder.range_key = cast_and_dump(@model_class.range_key, @range_key) if @model_class.range_key?
 
@@ -63,7 +62,7 @@ module Dynamoid
           builder.set_attributes(attributes_to_set)
           builder.remove_attributes(attributes_to_remove)
 
-          builder.request
+          [builder.request]
         end
 
         private

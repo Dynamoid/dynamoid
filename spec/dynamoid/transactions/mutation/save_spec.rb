@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/MultipleDescribes
+describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -656,111 +656,113 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
     end
   end
 
-  it 'aborts creation and returns false if callback throws :abort' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
-      skip "Rails 4.x and below don't support aborting with `throw :abort`"
-    end
-
-    klass = new_class do
-      field :name
-      before_create { throw :abort }
-    end
-    klass.create_table
-    obj = klass.new(name: 'Alex')
-
-    expect {
-      described_class.execute do |txn|
-        txn.save obj
+  context 'when a callback aborts saving' do
+    it 'aborts creation and returns false if callback throws :abort' do
+      if ActiveSupport.version < Gem::Version.new('5.0')
+        skip "Rails 4.x and below don't support aborting with `throw :abort`"
       end
-    }.not_to change { klass.count }
 
-    expect(obj).not_to be_persisted
-    expect(obj).to be_changed
-  end
-
-  it 'aborts updating and returns false if callback throws :abort' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
-      skip "Rails 4.x and below don't support aborting with `throw :abort`"
-    end
-
-    klass = new_class do
-      field :name
-      before_update { throw :abort }
-    end
-    obj = klass.create!(name: 'Alex')
-    obj.name = 'Alex [Updated]'
-    result = nil
-
-    expect {
-      described_class.execute do |txn|
-        result = txn.save obj
+      klass = new_class do
+        field :name
+        before_create { throw :abort }
       end
-    }.not_to change { klass.find(obj.id).name }
+      klass.create_table
+      obj = klass.new(name: 'Alex')
 
-    expect(result).to eql false
-    expect(obj).to be_changed
-  end
+      expect {
+        described_class.execute do |txn|
+          txn.save obj
+        end
+      }.not_to change { klass.count }
 
-  it 'does not roll back the transaction when a model creation aborted by a callback' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
-      skip "Rails 4.x and below don't support aborting with `throw :abort`"
+      expect(obj).not_to be_persisted
+      expect(obj).to be_changed
     end
 
-    klass_with_callback = new_class do
-      field :name
-      before_create { throw :abort }
-    end
-    klass = new_class do
-      field :name
-    end
-    klass_with_callback.create_table
-    klass.create_table
-
-    obj = klass.new(name: 'Michael')
-    obj_with_callback = klass_with_callback.new(name: 'Alex')
-
-    expect {
-      described_class.execute do |txn|
-        txn.save obj
-        txn.save obj_with_callback
+    it 'aborts updating and returns false if callback throws :abort' do
+      if ActiveSupport.version < Gem::Version.new('5.0')
+        skip "Rails 4.x and below don't support aborting with `throw :abort`"
       end
-    }.to change { klass.count }.by(1)
 
-    expect(obj).to be_persisted
-    expect(klass.exists?(obj.id)).to eql true
-    expect(obj_with_callback).not_to be_persisted
-    expect(obj_with_callback).to be_changed
-  end
-
-  it 'does not roll back the transaction when a model updating aborted by a callback' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
-      skip "Rails 4.x and below don't support aborting with `throw :abort`"
-    end
-
-    klass_with_callback = new_class do
-      field :name
-      before_update { throw :abort }
-    end
-    klass = new_class do
-      field :name
-    end
-    klass_with_callback.create_table
-    klass.create_table
-
-    obj = klass.new(name: 'Michael')
-    obj_with_callback = klass_with_callback.create!(name: 'Alex')
-    obj_with_callback.name = 'Alex [Updated]'
-
-    expect {
-      described_class.execute do |txn|
-        txn.save obj
-        txn.save obj_with_callback
+      klass = new_class do
+        field :name
+        before_update { throw :abort }
       end
-    }.to change { klass.count }.by(1)
+      obj = klass.create!(name: 'Alex')
+      obj.name = 'Alex [Updated]'
+      result = nil
 
-    expect(obj).to be_persisted
-    expect(klass.exists?(obj.id)).to eql true
-    expect(obj_with_callback).to be_changed
+      expect {
+        described_class.execute do |txn|
+          result = txn.save obj
+        end
+      }.not_to change { klass.find(obj.id).name }
+
+      expect(result).to eql false
+      expect(obj).to be_changed
+    end
+
+    it 'does not roll back the transaction when a model creation aborted by a callback' do
+      if ActiveSupport.version < Gem::Version.new('5.0')
+        skip "Rails 4.x and below don't support aborting with `throw :abort`"
+      end
+
+      klass_with_callback = new_class do
+        field :name
+        before_create { throw :abort }
+      end
+      klass = new_class do
+        field :name
+      end
+      klass_with_callback.create_table
+      klass.create_table
+
+      obj = klass.new(name: 'Michael')
+      obj_with_callback = klass_with_callback.new(name: 'Alex')
+
+      expect {
+        described_class.execute do |txn|
+          txn.save obj
+          txn.save obj_with_callback
+        end
+      }.to change { klass.count }.by(1)
+
+      expect(obj).to be_persisted
+      expect(klass.exists?(obj.id)).to eql true
+      expect(obj_with_callback).not_to be_persisted
+      expect(obj_with_callback).to be_changed
+    end
+
+    it 'does not roll back the transaction when a model updating aborted by a callback' do
+      if ActiveSupport.version < Gem::Version.new('5.0')
+        skip "Rails 4.x and below don't support aborting with `throw :abort`"
+      end
+
+      klass_with_callback = new_class do
+        field :name
+        before_update { throw :abort }
+      end
+      klass = new_class do
+        field :name
+      end
+      klass_with_callback.create_table
+      klass.create_table
+
+      obj = klass.new(name: 'Michael')
+      obj_with_callback = klass_with_callback.create!(name: 'Alex')
+      obj_with_callback.name = 'Alex [Updated]'
+
+      expect {
+        described_class.execute do |txn|
+          txn.save obj
+          txn.save obj_with_callback
+        end
+      }.to change { klass.count }.by(1)
+
+      expect(obj).to be_persisted
+      expect(klass.exists?(obj.id)).to eql true
+      expect(obj_with_callback).to be_changed
+    end
   end
 
   it 'rolls back the transaction when id of a model to create is not unique' do
@@ -1238,6 +1240,64 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
           'start around_create',
         ]
       end
+
+      it 'runs after_commit callbacks' do
+        klass_with_callback = new_class do
+          after_commit { ScratchPad << "after_commit #{id}" }
+        end
+        klass_with_callback.create_table
+        obj = klass_with_callback.new(id: '1')
+        ScratchPad.record []
+
+        described_class.execute do |t|
+          t.save(obj)
+        end
+
+        expect(ScratchPad.recorded).to contain_exactly('after_commit 1')
+      end
+
+      it 'runs after_rollback callbacks when exception is raised and aborts a transaction' do
+        klass_with_callback = new_class do
+          after_rollback { ScratchPad << "after_rollback #{id}" }
+        end
+        klass_with_callback.create_table
+        obj = klass_with_callback.new(id: '1')
+        ScratchPad.record []
+
+        begin
+          described_class.execute do |t|
+            t.save(obj)
+            raise 'error'
+          end
+        rescue StandardError => e
+          expect(e.message).to eq('error')
+        end
+
+        expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      end
+
+      it 'runs after_rollback callbacks when a transaction is rolled back' do
+        klass_with_callback = new_class do
+          after_rollback { ScratchPad << "after_rollback #{id}" }
+        end
+        klass_with_callback.create_table
+
+        klass.create(id: 'unique_id')
+
+        obj = klass_with_callback.new(id: '1')
+        ScratchPad.record []
+
+        begin
+          described_class.execute do |t|
+            t.save(obj)
+            t.create klass, id: 'unique_id' # triggers rollback
+          end
+        rescue Aws::DynamoDB::Errors::TransactionCanceledException
+          # ignore
+        end
+
+        expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      end
     end
 
     context 'persisted model' do
@@ -1548,6 +1608,70 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
           'start around_update',
         ]
       end
+
+      it 'runs after_commit callbacks' do
+        klass_with_callback = new_class do
+          field :name
+          after_commit { ScratchPad << "after_commit #{id}" }
+        end
+        klass_with_callback.create_table
+        obj = klass_with_callback.create!(id: '1')
+        ScratchPad.record []
+
+        described_class.execute do |t|
+          obj.name = 'Updated'
+          t.save(obj)
+        end
+
+        expect(ScratchPad.recorded).to contain_exactly('after_commit 1')
+      end
+
+      it 'runs after_rollback callbacks when exception is raised and aborts a transaction' do
+        klass_with_callback = new_class do
+          field :name
+          after_rollback { ScratchPad << "after_rollback #{id}" }
+        end
+        klass_with_callback.create_table
+        obj = klass_with_callback.create!(id: '1')
+        ScratchPad.record []
+
+        begin
+          described_class.execute do |t|
+            obj.name = 'Updated'
+            t.save(obj)
+            raise 'error'
+          end
+        rescue StandardError => e
+          expect(e.message).to eq('error')
+        end
+
+        expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      end
+
+      it 'runs after_rollback callbacks when a transaction is rolled back' do
+        klass_with_callback = new_class do
+          field :name
+          after_rollback { ScratchPad << "after_rollback #{id}" }
+        end
+        klass_with_callback.create_table
+
+        klass.create!(id: 'unique_id')
+
+        obj = klass_with_callback.create!(id: '1')
+        ScratchPad.record []
+
+        begin
+          described_class.execute do |t|
+            obj.name = 'Updated'
+            t.save(obj)
+            t.create klass, id: 'unique_id' # triggers rollback
+          end
+        rescue Aws::DynamoDB::Errors::TransactionCanceledException
+          # ignore
+        end
+
+        expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      end
     end
   end
 
@@ -1747,7 +1871,7 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
   end
 end
 
-describe Dynamoid::Transactions::Mutation, '.save!' do
+describe Dynamoid::Transactions::Mutation, '#save!' do
   # The only difference in specs structure between #save and #save! is missing
   # a section for callbacks here
 

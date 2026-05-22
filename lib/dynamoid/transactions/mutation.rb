@@ -9,18 +9,19 @@ require_relative 'mutation/update_fields'
 require_relative 'mutation/update_attributes'
 require_relative 'mutation/upsert'
 require_relative 'mutation/inc'
-require_relative 'mutation/item_updater'
+require_relative 'mutation/touch'
+require_relative 'mutation/increment'
+require_relative 'mutation/import'
 
 module Dynamoid
   module Transactions
-    # The class +Mutation+ provides means to perform multiple modifying
-    # operations in transaction, that is atomically, so that either all of them
-    # succeed, or all of them fail.
+    # The +Mutation+ class provides a way to perform multiple modifying operations
+    # atomically in a transaction—either all operations succeed, or all fail.
     #
-    # The persisting methods are supposed to be as close as possible to their
-    # non-transactional counterparts like +.create+, +#save+ and +#delete+:
+    # The persistence methods are designed to mirror their non-transactional
+    # counterparts like +.create+, +#save+, and +#delete+:
     #
-    #   user = User.new()
+    #   user = User.new(name: 'John')
     #   payment = Payment.find(1)
     #
     #   Dynamoid::Transactions::Mutation.execute do |t|
@@ -29,84 +30,71 @@ module Dynamoid
     #     t.delete payment
     #   end
     #
-    # The only difference is that the methods are called on a transaction
-    # instance and a model or a model class should be specified.
+    # The primary difference is that these methods are called on a transaction
+    # instance, and the model (or class) must be passed as an argument.
     #
-    # So +user.save!+ becomes +t.save!(user)+, +Account.create!(name: 'A')+
+    # For example, +user.save!+ becomes +t.save!(user)+, +Account.create!(name: 'A')+
     # becomes +t.create!(Account, name: 'A')+, and +payment.delete+ becomes
     # +t.delete(payment)+.
     #
-    # A transaction can be used without a block. This way a transaction instance
-    # should be instantiated and committed manually with +#commit+ method:
+    # Transactions can also be used without a block by manually instantiating
+    # and committing:
     #
     #   t = Dynamoid::Transactions::Mutation.new
-    #
     #   t.save! user
     #   t.create! Account, name: 'A'
     #   t.delete payment
-    #
     #   t.commit
     #
-    # Some persisting methods are intentionally not available in a transaction,
-    # e.g. +.update+ and +.update!+ that simply call +.find+ and
-    # +#update_attributes+ methods. These methods perform multiple operations so
-    # cannot be implemented in a transactional atomic way.
+    # Some persistence methods (like +.update+ and +.update!+) are intentionally
+    # unavailable because they perform multiple underlying operations and cannot
+    # be implemented atomically.
     #
+    # ### DynamoDB Transactions
     #
-    # ### DynamoDB's transactions
+    # Unlike many databases, DynamoDB transactions are executed in batch.
+    # In Dynamoid, no changes are persisted when a method like +#save+ is called.
+    # All changes are queued and sent to DynamoDB at the end of the transaction.
     #
-    # The main difference between DynamoDB transactions and a common interface is
-    # that DynamoDB's transactions are executed in batch. So in Dynamoid no
-    # changes are actually persisted when some transactional method (e.g+ `#save+) is
-    # called. All the changes are persisted at the end.
-    #
-    # A +TransactWriteItems+ DynamoDB operation is used (see
-    # [documentation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html)
-    # for details).
-    #
+    # This uses the DynamoDB +TransactWriteItems+ operation (see
+    # [documentation](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html)).
     #
     # ### Callbacks
     #
-    # The transactional methods support +before_+, +after_+ and +around_+
-    # callbacks to the extend the non-transactional methods support them.
+    # Transactional methods support +before_+, +after_+, and +around_+ callbacks
+    # to the same extent as their non-transactional counterparts.
     #
-    # There is important difference - a transactional method runs callbacks
-    # immediately (even +after_+ ones) when it is called before changes are
-    # actually persisted. So code in +after_+ callbacks does not see observes
-    # them in DynamoDB and so for.
+    # **Important difference:** Callbacks (even +after_+ ones) run immediately
+    # when the method is called, *before* changes are actually persisted to
+    # DynamoDB. Consequently, code in an +after_+ callback will not yet see the
+    # updated data in DynamoDB.
     #
-    # When a callback aborts persisting of a model or a model is invalid then
-    # transaction is not aborted and may commit successfully.
+    # If a callback aborts the operation or a model is invalid, that specific
+    # action is skipped, but the transaction itself may still commit successfully.
     #
+    # ### Transaction Rollback
     #
-    # ### Transaction rollback
+    # A transaction is automatically rolled back on the DynamoDB side if:
+    # - Another operation is currently updating the same item.
+    # - Provisioned capacity is insufficient.
+    # - Item or transaction size limits are exceeded (e.g., item > 400 KB or total > 4 MB).
+    # - There is a user error (e.g., invalid data format).
     #
-    # A transaction is rolled back on DynamoDB's side automatically when:
-    # - an ongoing operation is in the process of updating the same item.
-    # - there is insufficient provisioned capacity for the transaction to be completed.
-    # - an item size becomes too large (bigger than 400 KB), a local secondary index (LSI) becomes too large, or a similar validation error occurs because of changes made by the transaction.
-    # - the aggregate size of the items in the transaction exceeds 4 MB.
-    # - there is a user error, such as an invalid data format.
+    # Since no changes are persisted until the +#commit+ call, a transaction can
+    # be aborted by simply raising an exception within the block.
     #
-    # A transaction can be interrupted simply by an exception raised within a
-    # block. As far as no changes are actually persisted before the +#commit+
-    # method call - there is nothing to undo on the DynamoDB's site.
-    #
-    # Raising +Dynamoid::Errors::Rollback+ exception leads to interrupting a
-    # transation and it isn't propogated:
+    # Raising +Dynamoid::Errors::Rollback+ will interrupt the transaction without
+    # propagating the exception further:
     #
     #   Dynamoid::Transactions::Mutation.execute do |t|
     #     t.save! user
     #     t.create! Account, name: 'A'
     #
-    #     if user.is_admin?
-    #       raise Dynamoid::Errors::Rollback
-    #     end
+    #     raise Dynamoid::Errors::Rollback if user.is_admin?
     #   end
     #
-    # When a transaction is successfully committed or rolled backed -
-    # corresponding +#after_commit+ or +#after_rollback+ callbacks are run for
-    # each involved model.
+    # When a transaction is successfully committed or rolled back, the corresponding
+    # +#after_commit+ or +#after_rollback+ callbacks are run for each involved model.
     class Mutation
       def self.execute
         transaction = new
@@ -137,7 +125,7 @@ module Dynamoid
         actions_to_commit = @actions.reject(&:aborted?).reject(&:skipped?)
         return if actions_to_commit.empty?
 
-        action_requests = actions_to_commit.map(&:action_request)
+        action_requests = actions_to_commit.flat_map(&:action_requests)
         Dynamoid.adapter.transact_write_items(action_requests)
         actions_to_commit.each(&:on_commit)
 
@@ -149,6 +137,34 @@ module Dynamoid
 
       def rollback
         run_on_rollback_callbacks
+      end
+
+      # Update the +updated_at+ timestamp and optionally other specified
+      # attributes.
+      #
+      # Runs callbacks.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.touch(user)
+      #   end
+      #
+      # If attribute names are passed, they are updated along with updated_at
+      # attribute:
+      #
+      #   t.touch(user, :viewed_at)
+      #   t.touch(user, :viewed_at, :accessed_at)
+      #
+      #   t.touch(user, time: 2.days.ago)
+      #
+      # Raises +Dynamoid::Errors::Error+ if a model is new or destroyed.
+      #
+      # @param model [Dynamoid::Document] a model
+      # @param names [Array<Symbol>] (optional) attribute names to update
+      # @param time [Time] datetime value that can be used instead of the current time (optional)
+      # @return [Dynamoid::Document] self
+      def touch(model, *names, time: nil)
+        action = Touch.new(model, *names, time: time)
+        register_action action
       end
 
       # Create new model or persist changes in already existing one.
@@ -544,6 +560,70 @@ module Dynamoid
         register_action action
       end
 
+      # Change numeric attribute value and save a model.
+      #
+      # Initializes attribute to zero if +nil+ and adds the specified value (by
+      # default is 1). Only makes sense for number-based attributes.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.increment!(user, :followers_count)
+      #     t.increment!(user, :followers_count, 2)
+      #   end
+      #
+      # Only `attribute` is saved. The model itself is not saved. So any other
+      # modified attributes will still be dirty. Validations and callbacks are
+      # skipped.
+      #
+      # When `:touch` option is passed the timestamp columns are updating. If
+      # attribute names are passed, they are updated along with updated_at
+      # attribute:
+      #
+      #   t.increment!(user, :followers_count, touch: true)
+      #   t.increment!(user, :followers_count, touch: :viewed_at)
+      #   t.increment!(user, :followers_count, touch: [:viewed_at, :accessed_at])
+      #
+      # @param model [Dynamoid::Document] a model
+      # @param attribute [Symbol] attribute name
+      # @param by [Numeric] value to add (optional)
+      # @param touch [true | Symbol | Array<Symbol>] to update update_at attribute and optionally the specified ones
+      # @return [Dynamoid::Document] self
+      def increment!(model, attribute, by = 1, touch: nil)
+        action = Increment.new(model, attribute, by, touch: touch)
+        register_action action
+      end
+
+      # Change numeric attribute value and save a model.
+      #
+      # Initializes attribute to zero if +nil+ and subtracts the specified value
+      # (by default is 1). Only makes sense for number-based attributes.
+      #
+      # Runs callbacks.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.decrement!(user, :followers_count)
+      #     t.decrement!(user, :followers_count, 2)
+      #   end
+      #
+      # Only `attribute` is saved. The model itself is not saved. So any other
+      # modified attributes will still be dirty. Validations are skipped.
+      #
+      # When `:touch` option is passed the timestamp columns are updating. If
+      # attribute names are passed, they are updated along with updated_at
+      # attribute:
+      #
+      #   t.decrement!(user, :followers_count, touch: true)
+      #   t.decrement!(user, :followers_count, touch: :viewed_at)
+      #   t.decrement!(user, :followers_count, touch: [:viewed_at, :accessed_at])
+      #
+      # @param model [Dynamoid::Document] a model
+      # @param attribute [Symbol] attribute name
+      # @param by [Numeric] value to subtract (optional)
+      # @param touch [true | Symbol | Array<Symbol>] to update update_at attribute and optionally the specified ones
+      # @return [Dynamoid::Document] self
+      def decrement!(model, attribute, by = 1, touch: nil)
+        increment!(model, attribute, -by, touch: touch)
+      end
+
       # Update multiple attributes at once.
       #
       #   Dynamoid::Transactions::Mutation.execute do |t|
@@ -610,6 +690,51 @@ module Dynamoid
       def update_attributes!(model, attributes)
         action = UpdateAttributes.new(model, attributes, raise_error: true)
         register_action action
+      end
+
+      # Update a single attribute, saving the object afterwards.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.update_attribute(user, :last_name, 'Tylor')
+      #   end
+      #
+      # Validation is skipped.
+      #
+      # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+      # attributes is not on the model
+      #
+      # @param model [Dynamoid::Document] a model
+      # @param attribute [Symbol] attribute name to update
+      # @param value [Object] the value to assign it
+      # @return [Dynamoid::Document] self
+      def update_attribute(model, attribute, value)
+        model.write_attribute(attribute, value)
+        save(model, validate: false)
+      end
+
+      # Update a single attribute, saving the object afterwards.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.update_attribute!(user, :last_name, 'Tylor')
+      #   end
+      #
+      # Validation is skipped.
+      #
+      # If any of the `before_*` callbacks throws `:abort` the action is
+      # cancelled and `update_attribute!` raises
+      # Dynamoid::Errors::RecordNotSaved.
+      #
+      # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+      # attributes is not on the model
+      #
+      # @param model [Dynamoid::Document] a model
+      # @param attribute [Symbol] attribute name to update
+      # @param value [Object] the value to assign it
+      # @return [Dynamoid::Document] self
+      def update_attribute!(model, attribute, value)
+        model.write_attribute(attribute, value)
+        save!(model, validate: false)
+        model
       end
 
       # Delete a model.
@@ -703,6 +828,25 @@ module Dynamoid
       # @return [Dynamoid::Document] self
       def destroy(model)
         action = Destroy.new(model, raise_error: false)
+        register_action action
+      end
+
+      # Create multiple models from an array of attribute hashes.
+      #
+      # Validations and callbacks are skipped.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.import(User, [{ name: 'A' }, { name: 'B' }])
+      #   end
+      #
+      # Since DynamoDB limits the total number of actions per transaction,
+      # each model created via +#import+ consumes one action from this limit.
+      #
+      # @param model_class [Class] a model class
+      # @param array_of_attributes [Array<Hash>] attributes of models
+      # @return [Array<Dynamoid::Document>] created models
+      def import(model_class, array_of_attributes)
+        action = Import.new(model_class, array_of_attributes)
         register_action action
       end
 

@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
-require_relative 'update_request_builder'
-require 'dynamoid/persistence/update_validations'
+require_relative 'builders/update_request_builder'
 
 module Dynamoid
   module Transactions
@@ -20,7 +19,7 @@ module Dynamoid
 
         def on_registration
           validate_primary_key!
-          Dynamoid::Persistence::UpdateValidations.validate_attributes_exist(@model_class, @counters)
+          validate_attribute_names!(@model_class, @counters.keys)
         end
 
         def on_commit; end
@@ -39,8 +38,8 @@ module Dynamoid
           nil
         end
 
-        def action_request
-          builder = UpdateRequestBuilder.new(@model_class)
+        def action_requests
+          builder = Builders::UpdateRequestBuilder.new(@model_class)
 
           # primary key to look up an item to update
           builder.hash_key = cast_and_dump(@model_class.hash_key, @hash_key)
@@ -68,7 +67,7 @@ module Dynamoid
             end
           end
 
-          builder.request
+          [builder.request]
         end
 
         private
