@@ -11,6 +11,7 @@ require_relative 'mutation/upsert'
 require_relative 'mutation/inc'
 require_relative 'mutation/item_updater'
 require_relative 'mutation/touch'
+require_relative 'mutation/increment'
 require_relative 'mutation/import'
 
 module Dynamoid
@@ -572,6 +573,70 @@ module Dynamoid
 
         action = Inc.new(model_class, hash_key, range_key, counters)
         register_action action
+      end
+
+      # Change numeric attribute value and save a model.
+      #
+      # Initializes attribute to zero if +nil+ and adds the specified value (by
+      # default is 1). Only makes sense for number-based attributes.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.increment!(user, :followers_count)
+      #     t.increment!(user, :followers_count, 2)
+      #   end
+      #
+      # Only `attribute` is saved. The model itself is not saved. So any other
+      # modified attributes will still be dirty. Validations and callbacks are
+      # skipped.
+      #
+      # When `:touch` option is passed the timestamp columns are updating. If
+      # attribute names are passed, they are updated along with updated_at
+      # attribute:
+      #
+      #   t.increment!(user, :followers_count, touch: true)
+      #   t.increment!(user, :followers_count, touch: :viewed_at)
+      #   t.increment!(user, :followers_count, touch: [:viewed_at, :accessed_at])
+      #
+      # @param model [Dynamoid::Document] a model
+      # @param attribute [Symbol] attribute name
+      # @param by [Numeric] value to add (optional)
+      # @param touch [true | Symbol | Array<Symbol>] to update update_at attribute and optionally the specified ones
+      # @return [Dynamoid::Document] self
+      def increment!(model, attribute, by = 1, touch: nil)
+        action = Increment.new(model, attribute, by, touch: touch)
+        register_action action
+      end
+
+      # Change numeric attribute value and save a model.
+      #
+      # Initializes attribute to zero if +nil+ and subtracts the specified value
+      # (by default is 1). Only makes sense for number-based attributes.
+      #
+      # Runs callbacks.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.decrement!(user, :followers_count)
+      #     t.decrement!(user, :followers_count, 2)
+      #   end
+      #
+      # Only `attribute` is saved. The model itself is not saved. So any other
+      # modified attributes will still be dirty. Validations are skipped.
+      #
+      # When `:touch` option is passed the timestamp columns are updating. If
+      # attribute names are passed, they are updated along with updated_at
+      # attribute:
+      #
+      #   t.decrement!(user, :followers_count, touch: true)
+      #   t.decrement!(user, :followers_count, touch: :viewed_at)
+      #   t.decrement!(user, :followers_count, touch: [:viewed_at, :accessed_at])
+      #
+      # @param model [Dynamoid::Document] a model
+      # @param attribute [Symbol] attribute name
+      # @param by [Numeric] value to subtract (optional)
+      # @param touch [true | Symbol | Array<Symbol>] to update update_at attribute and optionally the specified ones
+      # @return [Dynamoid::Document] self
+      def decrement!(model, attribute, by = 1, touch: nil)
+        increment!(model, attribute, -by, touch: touch)
       end
 
       # Update multiple attributes at once.
