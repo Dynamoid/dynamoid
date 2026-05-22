@@ -19,9 +19,12 @@ module Dynamoid
 
         def on_commit
           @model.destroyed = true
+          @model.run_callbacks(:commit)
         end
 
-        def on_rollback; end
+        def on_rollback
+          @model.run_callbacks(:rollback)
+        end
 
         def aborted?
           false
