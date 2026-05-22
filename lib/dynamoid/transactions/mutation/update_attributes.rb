@@ -39,8 +39,8 @@ module Dynamoid
           @save_action.observable_by_user_result
         end
 
-        def action_request
-          @save_action.action_request
+        def action_requests
+          @save_action.action_requests
         end
       end
     end

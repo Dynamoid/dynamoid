@@ -90,12 +90,14 @@ module Dynamoid
           !@aborted
         end
 
-        def action_request
-          if @was_new_record
-            action_request_to_create
-          else
-            action_request_to_update
-          end
+        def action_requests
+          request = if @was_new_record
+                      action_request_to_create
+                    else
+                      action_request_to_update
+                    end
+
+          [request]
         end
 
         private

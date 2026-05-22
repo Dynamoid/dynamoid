@@ -34,19 +34,21 @@ module Dynamoid
           nil
         end
 
-        def action_request
+        def action_requests
           key = { @model_class.hash_key => cast_and_dump(@model_class.hash_key, @hash_key) }
 
           if @model_class.range_key?
             key[@model_class.range_key] = cast_and_dump(@model_class.range_key, @range_key)
           end
 
-          {
-            delete: {
-              key: key,
-              table_name: @model_class.table_name
+          [
+            {
+              delete: {
+                key: key,
+                table_name: @model_class.table_name
+              }
             }
-          }
+          ]
         end
 
         private

@@ -39,7 +39,7 @@ module Dynamoid
           nil
         end
 
-        def action_request
+        def action_requests
           # changed attributes to persist
           changes = @attributes.dup
           changes = add_timestamps(changes, skip_created_at: true)
@@ -63,7 +63,7 @@ module Dynamoid
           builder.set_attributes(attributes_to_set)
           builder.remove_attributes(attributes_to_remove)
 
-          builder.request
+          [builder.request]
         end
 
         private

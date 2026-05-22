@@ -10,6 +10,7 @@ require_relative 'mutation/update_attributes'
 require_relative 'mutation/upsert'
 require_relative 'mutation/inc'
 require_relative 'mutation/item_updater'
+require_relative 'mutation/import'
 
 module Dynamoid
   module Transactions
@@ -137,7 +138,7 @@ module Dynamoid
         actions_to_commit = @actions.reject(&:aborted?).reject(&:skipped?)
         return if actions_to_commit.empty?
 
-        action_requests = actions_to_commit.map(&:action_request)
+        action_requests = actions_to_commit.flat_map(&:action_requests)
         Dynamoid.adapter.transact_write_items(action_requests)
         actions_to_commit.each(&:on_commit)
 
@@ -703,6 +704,25 @@ module Dynamoid
       # @return [Dynamoid::Document] self
       def destroy(model)
         action = Destroy.new(model, raise_error: false)
+        register_action action
+      end
+
+      # Create multiple models from an array of attribute hashes.
+      #
+      # Validations and callbacks are skipped.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.import(User, [{ name: 'A' }, { name: 'B' }])
+      #   end
+      #
+      # Since DynamoDB limits the total number of actions per transaction,
+      # each model created via +#import+ consumes one action from this limit.
+      #
+      # @param model_class [Class] a model class
+      # @param array_of_attributes [Array<Hash>] attributes of models
+      # @return [Array<Dynamoid::Document>] created models
+      def import(model_class, array_of_attributes)
+        action = Import.new(model_class, array_of_attributes)
         register_action action
       end
 

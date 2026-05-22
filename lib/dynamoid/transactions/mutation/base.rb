@@ -40,7 +40,7 @@ module Dynamoid
         end
 
         # Coresponding part of a final request body
-        def action_request
+        def action_requests
           raise 'Not implemented'
         end
 

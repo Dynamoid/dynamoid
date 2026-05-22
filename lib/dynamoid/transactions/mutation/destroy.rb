@@ -54,7 +54,7 @@ module Dynamoid
           @model
         end
 
-        def action_request
+        def action_requests
           key = { @model_class.hash_key => dump_attribute(@model_class.hash_key, @model.hash_key) }
 
           if @model_class.range_key?
@@ -80,7 +80,7 @@ module Dynamoid
             end
           end
 
-          { delete: options }
+          [{ delete: options }]
         end
 
         private

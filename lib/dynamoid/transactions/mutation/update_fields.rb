@@ -44,7 +44,7 @@ module Dynamoid
           nil
         end
 
-        def action_request
+        def action_requests
           builder = UpdateRequestBuilder.new(@model_class)
 
           # primary key to look up an item to update
@@ -103,7 +103,7 @@ module Dynamoid
             end
           end
 
-          builder.request
+          [builder.request]
         end
 
         private
