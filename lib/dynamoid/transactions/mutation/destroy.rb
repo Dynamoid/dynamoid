@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
-require_relative 'delete_request_builder'
+require_relative 'builders/delete_request_builder'
 
 module Dynamoid
   module Transactions
@@ -56,7 +56,7 @@ module Dynamoid
         end
 
         def action_requests
-          builder = DeleteRequestBuilder.new(@model_class)
+          builder = Builders::DeleteRequestBuilder.new(@model_class)
           builder.hash_key = dump_attribute(@model_class.hash_key, @model.hash_key)
           builder.range_key = dump_attribute(@model_class.range_key, @model.range_value) if @model_class.range_key?
 

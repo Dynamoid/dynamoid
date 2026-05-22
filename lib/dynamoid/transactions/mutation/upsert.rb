@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
-require_relative 'update_request_builder'
+require_relative 'builders/update_request_builder'
 require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
@@ -45,7 +45,7 @@ module Dynamoid
           changes = add_timestamps(changes, skip_created_at: true)
           changes_dumped = Dynamoid::Dumping.dump_attributes(changes, @model_class.attributes)
 
-          builder = UpdateRequestBuilder.new(@model_class)
+          builder = Builders::UpdateRequestBuilder.new(@model_class)
           builder.hash_key = cast_and_dump(@model_class.hash_key, @hash_key)
           builder.range_key = cast_and_dump(@model_class.range_key, @range_key) if @model_class.range_key?
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
-require_relative 'update_request_builder'
+require_relative 'builders/update_request_builder'
 require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
@@ -40,7 +40,7 @@ module Dynamoid
         end
 
         def action_requests
-          builder = UpdateRequestBuilder.new(@model_class)
+          builder = Builders::UpdateRequestBuilder.new(@model_class)
 
           # primary key to look up an item to update
           builder.hash_key = cast_and_dump(@model_class.hash_key, @hash_key)

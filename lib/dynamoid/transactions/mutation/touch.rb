@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
-require_relative 'update_request_builder'
+require_relative 'builders/update_request_builder'
 
 module Dynamoid
   module Transactions
@@ -57,7 +57,7 @@ module Dynamoid
         end
 
         def action_requests
-          builder = UpdateRequestBuilder.new(@model.class)
+          builder = Builders::UpdateRequestBuilder.new(@model.class)
           builder.hash_key = dump(@model.class.hash_key, @model.hash_key)
           builder.range_key = dump(@model.class.range_key, @model.range_value) if @model.class.range_key?
 
