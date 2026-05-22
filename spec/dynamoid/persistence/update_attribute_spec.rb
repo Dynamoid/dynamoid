@@ -25,29 +25,29 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    it 'changes the attribute value' do
+    it 'updates an attribute value' do
       obj = klass.create!(age: 18)
 
       expect { obj.update_attribute(:age, 20) }.to change { obj.age }.from(18).to(20)
     end
 
-    it 'persists the model' do
+    it 'persists the updated attribute' do
       obj = klass.create!(age: 18)
       obj.update_attribute(:age, 20)
 
       expect(klass.find(obj.id).age).to eq(20)
     end
 
-    it 'skips validation and saves not valid models' do
-      klass = new_class do
+    it 'skips validations' do
+      klass_with_validation = new_class do
         field :age, :integer
         validates :age, numericality: { greater_than: 0 }
       end
 
-      obj = klass.create!(age: 18)
+      obj = klass_with_validation.create!(age: 18)
       obj.update_attribute(:age, -1)
 
-      expect(klass.find(obj.id).age).to eq(-1)
+      expect(klass_with_validation.find(obj.id).age).to eq(-1)
     end
 
     it 'returns self' do
@@ -69,7 +69,7 @@ RSpec.describe Dynamoid::Persistence do
       expect(obj_loaded.tags).to eql nil
     end
 
-    it 'saves empty string as nil by default' do
+    it 'saves empty strings as nil' do
       klass_with_string = new_class do
         field :name
       end
@@ -81,7 +81,7 @@ RSpec.describe Dynamoid::Persistence do
       expect(obj_loaded.name).to eql nil
     end
 
-    it 'saves empty string as nil if store_empty_string_as_nil config option is true', config: { store_empty_string_as_nil: true } do
+    it 'saves empty strings as nil when store_empty_string_as_nil is true', config: { store_empty_string_as_nil: true } do
       klass_with_string = new_class do
         field :name
       end
@@ -93,7 +93,7 @@ RSpec.describe Dynamoid::Persistence do
       expect(obj_loaded.name).to eql nil
     end
 
-    it 'saves empty string as is if store_empty_string_as_nil config option is false', config: { store_empty_string_as_nil: false } do
+    it 'saves empty strings as is when store_empty_string_as_nil is false', config: { store_empty_string_as_nil: false } do
       klass_with_string = new_class do
         field :name
       end
@@ -148,15 +148,13 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+      it 'works if Config.timestamps=false', config: { timestamps: false } do
         obj = klass.create(title: 'Old title')
-
-        expect do
-          obj.update_attribute(:title, 'New title')
-        end.not_to raise_error
+        obj.update_attribute(:title, 'New title')
+        expect(obj.reload.title).to eq('New title')
       end
 
-      it 'does not change updated_at if attributes were assigned the same values' do
+      it 'does not change updated_at if attribute value is the same' do
         obj = klass.create(title: 'Old title', updated_at: Time.now - 1)
         obj.title = obj.title # rubocop:disable Lint/SelfAssignment
 
@@ -166,13 +164,13 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    it "raises UnknownAttribute when an attribute name isn't declared as a field" do
-      klass = new_class do
+    it 'raises UnknownAttribute for undeclared fields' do
+      klass_with_fields = new_class do
         field :age, :integer
         field :name, :string
       end
 
-      obj = klass.create!(name: 'Alex', age: 26)
+      obj = klass_with_fields.create!(name: 'Alex', age: 26)
 
       expect {
         obj.update_attribute(:city, 'Dublin')
@@ -180,167 +178,154 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'callbacks' do
-      it 'runs before_update callback' do
+      it 'runs before_update callbacks' do
         klass_with_callback = new_class do
           field :name
-          before_update { print 'run before_update' }
+          before_update { ScratchPad << 'run before_update' }
         end
 
+        ScratchPad.record []
         obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
 
-        expect do
-          obj.update_attribute(:name, 'Alexey')
-        end.to output('run before_update').to_stdout
+        obj.update_attribute(:name, 'Alexey')
+        expect(ScratchPad.recorded).to include('run before_update')
       end
 
-      it 'runs after_update callback' do
+      it 'runs after_update callbacks' do
         klass_with_callback = new_class do
           field :name
-          after_update { print 'run after_update' }
+          after_update { ScratchPad << 'run after_update' }
         end
 
+        ScratchPad.record []
         obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
 
-        expect do
-          obj.update_attribute(:name, 'Alexey')
-        end.to output('run after_update').to_stdout
+        obj.update_attribute(:name, 'Alexey')
+        expect(ScratchPad.recorded).to include('run after_update')
       end
 
-      it 'runs around_update callback' do
+      it 'runs around_update callbacks' do
         klass_with_callback = new_class do
           field :name
-
           around_update :around_update_callback
-
           def around_update_callback
-            print 'start around_update'
+            ScratchPad << 'start around_update'
             yield
-            print 'finish around_update'
+            ScratchPad << 'finish around_update'
           end
         end
 
+        ScratchPad.record []
         obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
 
-        expect do
-          obj.update_attribute(:name, 'Alexey')
-        end.to output('start around_updatefinish around_update').to_stdout
+        obj.update_attribute(:name, 'Alexey')
+        expect(ScratchPad.recorded).to eq(['start around_update', 'finish around_update'])
       end
 
-      it 'runs before_save callback' do
+      it 'runs before_save callbacks' do
         klass_with_callback = new_class do
           field :name
-
-          before_save { print 'run before_save' }
+          before_save { ScratchPad << 'run before_save' }
         end
 
-        expect { # to suppress printing at model creation
-          obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
+        obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
 
-          expect do
-            obj.update_attribute(:name, 'Alexey')
-          end.to output('run before_save').to_stdout
-        }.to output.to_stdout
+        obj.update_attribute(:name, 'Alexey')
+        expect(ScratchPad.recorded).to include('run before_save')
       end
 
-      it 'runs after_save callback' do
+      it 'runs after_save callbacks' do
         klass_with_callback = new_class do
           field :name
-
-          after_save { print 'run after_save' }
+          after_save { ScratchPad << 'run after_save' }
         end
 
-        expect { # to suppress printing at model creation
-          obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
+        obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
 
-          expect do
-            obj.update_attribute(:name, 'Alexey')
-          end.to output('run after_save').to_stdout
-        }.to output.to_stdout
+        obj.update_attribute(:name, 'Alexey')
+        expect(ScratchPad.recorded).to include('run after_save')
       end
 
-      it 'runs around_save callback' do
+      it 'runs around_save callbacks' do
         klass_with_callback = new_class do
           field :name
-
           around_save :around_save_callback
-
           def around_save_callback
-            print 'start around_save'
+            ScratchPad << 'start around_save'
             yield
-            print 'finish around_save'
+            ScratchPad << 'finish around_save'
           end
         end
 
-        expect { # to suppress printing at model creation
-          obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
+        obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
 
-          expect do
-            obj.update_attribute(:name, 'Alexey')
-          end.to output('start around_savefinish around_save').to_stdout
-        }.to output.to_stdout
+        obj.update_attribute(:name, 'Alexey')
+        expect(ScratchPad.recorded).to eq(['start around_save', 'finish around_save'])
       end
 
-      it 'does not run before_validation callback' do
+      it 'skips before_validation callbacks' do
         klass_with_callback = new_class do
           field :name
-
-          before_validation { print 'run before_validation' }
+          before_validation { ScratchPad << 'run before_validation' }
         end
 
-        expect { # to suppress printing at model creation
-          obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
+        obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
 
-          expect do
-            obj.update_attribute(:name, 'Alexey')
-          end.not_to output.to_stdout
-        }.to output.to_stdout
+        obj.update_attribute(:name, 'Alexey')
+        expect(ScratchPad.recorded).not_to include('run before_validation')
       end
 
-      it 'does not run after_validation callback' do
+      it 'skips after_validation callbacks' do
         klass_with_callback = new_class do
           field :name
-
-          after_validation { print 'run after_validation' }
+          after_validation { ScratchPad << 'run after_validation' }
         end
 
-        expect { # to suppress printing at model creation
-          obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
+        obj = klass_with_callback.create(name: 'Alex')
+        ScratchPad.record []
 
-          expect do
-            obj.update_attribute(:name, 'Alexey')
-          end.not_to output.to_stdout
-        }.to output.to_stdout
+        obj.update_attribute(:name, 'Alexey')
+        expect(ScratchPad.recorded).not_to include('run after_validation')
       end
 
       it 'runs callbacks in the proper order' do
         klass_with_callbacks = new_class do
           field :name
 
-          before_update { puts 'run before_update' }
-          after_update { puts 'run after_update' }
+          before_update { ScratchPad << 'run before_update' }
+          after_update { ScratchPad << 'run after_update' }
           around_update :around_update_callback
 
-          before_save { puts 'run before_save' }
-          after_save { puts 'run after_save' }
-          around_save :around_save_callback
-
+          before_save { ScratchPad << 'run before_save' }
+          after_save { ScratchPad << 'run after_save' }
           around_save :around_save_callback
 
           def around_save_callback
-            puts 'start around_save'
+            ScratchPad << 'start around_save'
             yield
-            puts 'finish around_save'
+            ScratchPad << 'finish around_save'
           end
 
           def around_update_callback
-            puts 'start around_update'
+            ScratchPad << 'start around_update'
             yield
-            puts 'finish around_update'
+            ScratchPad << 'finish around_update'
           end
         end
 
-        # print each message on new line to force RSpec to show meaningful diff
-        expected_output = [ # rubocop:disable Style/StringConcatenation
+        expected_output = [
           'run before_save',
           'start around_save',
           'run before_update',
@@ -349,41 +334,40 @@ RSpec.describe Dynamoid::Persistence do
           'run after_update',
           'finish around_save',
           'run after_save'
-        ].join("\n") + "\n"
+        ]
 
-        expect { # to suppress printing at model creation
-          obj = klass_with_callbacks.create(name: 'Alex')
+        ScratchPad.record []
+        obj = klass_with_callbacks.create(name: 'Alex')
+        ScratchPad.record []
 
-          expect {
-            obj.update_attribute(:name, 'Alexey')
-          }.to output(expected_output).to_stdout
-        }.to output.to_stdout
+        obj.update_attribute(:name, 'Alexey')
+        expect(ScratchPad.recorded).to eq(expected_output)
       end
     end
 
     context 'when a callback aborts saving' do
-      it 'aborts updating if callback throws :abort' do
+      it 'aborts updating when callback throws :abort' do
         if ActiveSupport.version < Gem::Version.new('5.0')
           skip "Rails 4.x and below don't support aborting with `throw :abort`"
         end
 
-        klass = new_class do
+        klass_with_abort = new_class do
           field :name
           before_update { throw :abort }
         end
 
-        obj = klass.create!(name: 'Alex')
+        obj = klass_with_abort.create!(name: 'Alex')
 
         expect {
           obj.update_attribute(:name, 'Alex [Updated]')
-        }.not_to change { klass.find(obj.id).name }
+        }.not_to change { klass_with_abort.find(obj.id).name }
 
         expect(obj).to be_persisted
         expect(obj).to be_changed
       end
     end
 
-    context 'when a model was concurrently deleted' do
+    context 'concurrent deletion' do
       it 'does not persist changes when simple primary key' do
         obj = klass.create!(age: 21)
         klass.find(obj.id).delete
@@ -410,7 +394,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     context 'when table arn is specified', remove_constants: [:Payment] do
-      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+      it 'uses the table ARN', config: { create_table_on_save: false } do
         # Create table manually because CreateTable doesn't accept ARN as a
         # table name. Add namespace to have this table removed automativally.
         table_name = :"#{Dynamoid::Config.namespace}_purchases"
@@ -445,20 +429,20 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      it 'updates successfuly even if a field declared as a GSI primary key is set to nil' do
+      it 'updates successfully when GSI partition key is nil' do
         obj = klass_with_gsi.create!(name: 'Alex', age: 42)
         obj.update_attribute(:name, nil)
         expect(obj.reload.name).to eql nil
       end
 
-      it 'updates successfuly even if a field declared as a GSI sort key is set to nil' do
+      it 'updates successfully when GSI sort key is nil' do
         obj = klass_with_gsi.create!(name: 'Alex', age: 42)
         obj.update_attribute(:age, nil)
         expect(obj.reload.age).to eql nil
       end
     end
 
-    describe '`store_attribute_with_nil_value` config option' do
+    describe 'store_attribute_with_nil_value config option' do
       let(:klass) do
         new_class do
           field :age, :integer
@@ -519,23 +503,23 @@ RSpec.describe Dynamoid::Persistence do
 
   describe '#update_attribute!' do
     context 'when a callback aborts saving' do
-      it 'aborts updating if callback throws :abort' do
+      it 'raises RecordNotSaved when callback throws :abort' do
         if ActiveSupport.version < Gem::Version.new('5.0')
           skip "Rails 4.x and below don't support aborting with `throw :abort`"
         end
 
-        klass = new_class do
+        klass_with_abort = new_class do
           field :name
           before_update { throw :abort }
         end
 
-        obj = klass.create!(name: 'Alex')
+        obj = klass_with_abort.create!(name: 'Alex')
 
         expect {
           expect {
             obj.update_attribute!(:name, 'Alex [Updated]')
           }.to raise_error(Dynamoid::Errors::RecordNotSaved)
-        }.not_to change { klass.find(obj.id).name }
+        }.not_to change { klass_with_abort.find(obj.id).name }
 
         expect(obj).to be_persisted
         expect(obj).to be_changed

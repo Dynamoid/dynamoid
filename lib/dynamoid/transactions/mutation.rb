@@ -613,6 +613,51 @@ module Dynamoid
         register_action action
       end
 
+      # Update a single attribute, saving the object afterwards.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.update_attribute(user, :last_name, 'Tylor')
+      #   end
+      #
+      # Validation is skipped.
+      #
+      # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+      # attributes is not on the model
+      #
+      # @param model [Dynamoid::Document] a model
+      # @param attribute [Symbol] attribute name to update
+      # @param value [Object] the value to assign it
+      # @return [Dynamoid::Document] self
+      def update_attribute(model, attribute, value)
+        model.write_attribute(attribute, value)
+        save(model, validate: false)
+      end
+
+      # Update a single attribute, saving the object afterwards.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.update_attribute!(user, :last_name, 'Tylor')
+      #   end
+      #
+      # Validation is skipped.
+      #
+      # If any of the `before_*` callbacks throws `:abort` the action is
+      # cancelled and `update_attribute!` raises
+      # Dynamoid::Errors::RecordNotSaved.
+      #
+      # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
+      # attributes is not on the model
+      #
+      # @param model [Dynamoid::Document] a model
+      # @param attribute [Symbol] attribute name to update
+      # @param value [Object] the value to assign it
+      # @return [Dynamoid::Document] self
+      def update_attribute!(model, attribute, value)
+        model.write_attribute(attribute, value)
+        save!(model, validate: false)
+        model
+      end
+
       # Delete a model.
       #
       # Can be called either with a model:
