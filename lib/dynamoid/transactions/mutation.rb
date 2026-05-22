@@ -10,6 +10,7 @@ require_relative 'mutation/update_attributes'
 require_relative 'mutation/upsert'
 require_relative 'mutation/inc'
 require_relative 'mutation/item_updater'
+require_relative 'mutation/touch'
 require_relative 'mutation/import'
 
 module Dynamoid
@@ -150,6 +151,34 @@ module Dynamoid
 
       def rollback
         run_on_rollback_callbacks
+      end
+
+      # Update the +updated_at+ timestamp and optionally other specified
+      # attributes.
+      #
+      # Runs callbacks.
+      #
+      #   Dynamoid::Transactions::Mutation.execute do |t|
+      #     t.touch(user)
+      #   end
+      #
+      # If attribute names are passed, they are updated along with updated_at
+      # attribute:
+      #
+      #   t.touch(user, :viewed_at)
+      #   t.touch(user, :viewed_at, :accessed_at)
+      #
+      #   t.touch(user, time: 2.days.ago)
+      #
+      # Raises +Dynamoid::Errors::Error+ if a model is new or destroyed.
+      #
+      # @param model [Dynamoid::Document] a model
+      # @param names [Array<Symbol>] (optional) attribute names to update
+      # @param time [Time] datetime value that can be used instead of the current time (optional)
+      # @return [Dynamoid::Document] self
+      def touch(model, *names, time: nil)
+        action = Touch.new(model, *names, time: time)
+        register_action action
       end
 
       # Create new model or persist changes in already existing one.
