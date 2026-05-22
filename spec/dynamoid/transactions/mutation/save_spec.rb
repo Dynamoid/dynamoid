@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/MultipleDescribes
+describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -1871,7 +1871,7 @@ describe Dynamoid::Transactions::Mutation, '.save' do # rubocop:disable RSpec/Mu
   end
 end
 
-describe Dynamoid::Transactions::Mutation, '.save!' do
+describe Dynamoid::Transactions::Mutation, '#save!' do
   # The only difference in specs structure between #save and #save! is missing
   # a section for callbacks here
 

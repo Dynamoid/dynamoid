@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Transactions::Mutation, '.inc' do
+describe Dynamoid::Transactions::Mutation, '#inc' do
   let(:document_class) do
     new_class do
       field :links_count, :integer
