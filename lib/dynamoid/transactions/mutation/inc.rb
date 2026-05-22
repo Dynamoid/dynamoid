@@ -2,7 +2,6 @@
 
 require_relative 'base'
 require_relative 'builders/update_request_builder'
-require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
   module Transactions
@@ -20,7 +19,7 @@ module Dynamoid
 
         def on_registration
           validate_primary_key!
-          Dynamoid::Persistence::UpdateValidations.validate_attributes_exist(@model_class, @counters)
+          validate_attribute_names!(@model_class, @counters.keys)
         end
 
         def on_commit; end

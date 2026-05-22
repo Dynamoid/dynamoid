@@ -2,7 +2,6 @@
 
 require_relative 'base'
 require_relative 'builders/update_request_builder'
-require 'dynamoid/persistence/update_validations'
 
 module Dynamoid
   module Transactions
@@ -56,11 +55,7 @@ module Dynamoid
           private
 
           def validate_attribute_names!(names)
-            names.each do |name|
-              unless @model_class.attributes[name]
-                raise Dynamoid::Errors::UnknownAttribute.new(@model_class, name)
-              end
-            end
+            UpdateFields.validate_attribute_names!(@model_class, names)
           end
         end
 
@@ -76,7 +71,7 @@ module Dynamoid
 
         def on_registration
           validate_primary_key!
-          Dynamoid::Persistence::UpdateValidations.validate_attributes_exist(@model_class, @attributes)
+          validate_attribute_names!(@model_class, @attributes.keys)
 
           if @block
             @item_updater = ItemUpdater.new(@model_class)
