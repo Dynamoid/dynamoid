@@ -15,7 +15,7 @@ installed and launched when you need either to run specs or to work in
 a REPL. See the [dynamodb-local](#dynamodb-local) section below for more details.
 
 
-## Specs
+## Running Specs
 
 The specs are written with RSpec and are supposed to be run against
 _dynamodb-local_ only.
@@ -114,7 +114,10 @@ $ bin/console
 # dynamodb-local
 
 _dynamodb-local_ is software provided by Amazon to emulate DynamoDB and
-run it locally. See [official documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) to install it.
+run it locally. There are several ways to install it locally (see the [official documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html)).
+
+
+## Run dynamodb-local with Docker
 
 To run _dynamodb-local_ using a Docker image use the following command
 (installs the Docker image automatically):
@@ -125,11 +128,42 @@ $ docker run --rm -d -p 8000:8000 amazon/dynamodb-local
 
 A Docker Compose file is also provided.
 
+
+## Run dynamodb-local manually
+
 To run _dynamodb-local_ as a JAR (that should be already downloaded)
 there are the following scripts to run and stop it:
 
 - `bin/start_dynamodblocal`
 - `bin/stop_dynamodblocal`
+
+Use the following workflow:
+
+ * First download and unpack the latest version of DynamoDB. We have a
+   script that will do this for you if you use bash, and homebrew on a Mac.
+
+    ```shell
+    bin/setup
+    ```
+
+ * Start the local instance of DynamoDB to listen in ***8000*** port
+
+    ```shell
+    bin/start_dynamodblocal
+    ```
+
+ * and lastly, use `rake` to run the tests.
+
+    ```shell
+    rake
+    ```
+
+ * When you are done, remember to stop the local test instance of
+   dynamodb
+
+    ```shell
+    bin/stop_dynamodblocal
+    ```
 
 
 ## Pull Requests
@@ -148,4 +182,11 @@ There are the following requirements for new Pull Requests:
 > The CodeClimate check on GitHub is useful but not mandatory. It isn't
 > necessary to blindly follow its recommendations if it hurts readability
 > or simplicity of code.
+
+
+## Related links
+
+This documentation you may find useful:
+- <https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/welcome.html>
+- <https://docs.aws.amazon.com/sdk-for-ruby/v3/api/index.html>
 
