@@ -14,69 +14,121 @@
 [![Keep-A-Changelog 1.0.0][📗keep-changelog-img]][📗keep-changelog]
 [![Sponsor Project][🖇sponsor-img]][🖇sponsor]
 
-Dynamoid is an ORM for Amazon's DynamoDB for Ruby applications. It
-provides similar functionality to ActiveRecord and improves on Amazon's
-existing
-[HashModel](http://docs.amazonwebservices.com/AWSRubySDK/latest/AWS/Record/HashModel.html)
-by providing better searching tools and native association support.
 
-DynamoDB is not like other document-based databases you might know, and
-is very different indeed from relational databases. It sacrifices
-anything beyond the simplest relational queries and transactional
-support to provide a fast, cost-efficient, and highly durable storage
-solution. If your database requires complicated relational queries
-then this modest Gem cannot provide them for you
-and neither can DynamoDB. In those cases you would do better to look
-elsewhere for your database needs.
+A feature-rich and powerful Ruby ORM for Amazon DynamoDB, designed to provide a familiar ActiveRecord-like experience for Ruby applications.
 
-But if you want a fast, scalable, simple, easy-to-use database (and a
-Gem that supports it) then look no further!
 
-## Installation
+## Key Features
 
-Installing Dynamoid is pretty simple. First include the Gem in your
-Gemfile:
+* ActiveRecord-style DSL: Implements an interface and configuration similar to Rails' ActiveRecord.
+* Querying & Persistence: Provides methods for finding, querying, and updating models.
+* Advanced ORM Features: Supports associations, callbacks, validations, Dirty API, optimistic locking, and type casting.
+* Additional Attribute Types: Supports types not natively provided by Amazon DynamoDB, such as `DateTime`, `Time`, and more.
+* Transactions: Supports Amazon DynamoDB transactional operations.
+
+
+## Quick start
+
+
+### Installation
+
+Add Dynamoid to your `Gemfile`:
 
 ```ruby
 gem 'dynamoid'
 ```
-## Prerequisites
 
-Dynamoid depends on the aws-sdk, and this is tested on the current
-version of aws-sdk (~> 3), rails (>= 4). Hence the configuration as
-needed for aws to work will be dealt with by aws setup.
+Or install it using `bundle`:
 
-### AWS SDK Version Compatibility
+```shell
+bundle add dynamoid
+```
 
-Make sure you are using the version for the right AWS SDK.
+Alternatively, you can install the gem manually:
 
-| Dynamoid version | AWS SDK Version |
-| ---------------- | --------------- |
-| 0.x              | 1.x             |
-| 1.x              | 2.x             |
-| 2.x              | 2.x             |
-| 3.x              | 3.x             |
+```shell
+gem install dynamoid
+```
 
 
-### Ruby & Rails Compatibility
+### Usage
 
-Dynamoid supports Ruby >= 2.3 and Rails >= 4.2.
-
-Its compatibility is tested against following Ruby versions: 2.3, 2.4,
-2.5, 2.6, 2.7, 3.0, 3.1, 3.2, 3.3, 3.4, and 4.0, JRuby 9.4.x and against Rails versions: 4.2, 5.0, 5.1,
-5.2, 6.0, 6.1, 7.0, 7.1, 7.2, 8.0, and 8.1.
-
-## Setup
-
-You *must* include `Dynamoid::Document` in every Dynamoid model.
+To define a model, include `Dynamoid::Document` and declare your fields. Dynamoid supports ActiveModel validations and automatic timestamps:
 
 ```ruby
 class User
   include Dynamoid::Document
 
-  # fields declaration
+  field :name                        # Type defaults to :string
+  field :email
+  field :age, :integer
+  field :active, :boolean, default: true
+
+  validates :name, presence: true
+  validates :email, format: { with: /@/ }
 end
 ```
+
+Once defined, you can interact with your models using a familiar API:
+
+```ruby
+# Create and Save
+user = User.create(name: 'Josh', email: 'josh@example.com')
+
+# Find and Update
+user = User.where(email: 'josh@example.com').first
+user.update_attributes(age: 30)
+
+# Querying
+users = User.where(active: true).all.to_a
+```
+
+
+### Essential Configuration
+
+Minimal connection settings are required. You can configure Dynamoid in several ways, such as in `config/initializers/dynamoid.rb` (for Rails) or directly in your setup:
+
+```ruby
+require 'dynamoid'
+
+Dynamoid.configure do |config|
+  config.access_key = 'REPLACE_WITH_ACCESS_KEY_ID'
+  config.secret_key = 'REPLACE_WITH_SECRET_ACCESS_KEY'
+  config.region = 'REPLACE_WITH_REGION' # e.g. 'us-west-2'
+end
+```
+
+
+## Documentation
+
+* **API Reference:** Comprehensive documentation for all classes and methods is available on [RubyDoc.info](https://www.rubydoc.info/github/Dynamoid/dynamoid/).
+* **User Guides:** Detailed overviews and usage examples for specific features can be found in the [`doc/`](./doc) directory.
+
+
+## Compatibility
+
+Dynamoid relies on `aws-sdk-dynamodb` (AWS SDK v3) and `activemodel` (>= 4.2). It officially supports Ruby >= 2.3 and Rails >= 4.2.
+
+Compatibility is tested against the following versions:
+* Ruby: 2.3 - 4.0 (including JRuby 10.x)
+* Rails: 4.2 - 8.1
+
+
+## Contributing
+
+We welcome contributions to Dynamoid! Please see our [CONTRIBUTING.md][contributing] guide for details on how to get started. Join us!
+
+
+## Security
+
+See [SECURITY.md][security].
+
+
+## License
+
+The gem is available as open source under the terms of
+the [MIT License][license] [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)][license-ref].
+See [LICENSE][license] for the official [Copyright Notice][copyright-notice-explainer].
 
 
 ## Credits
@@ -84,7 +136,7 @@ end
 Dynamoid borrows code, structure, and even its name very liberally from
 the truly amazing [Mongoid](https://github.com/mongoid/mongoid). Without
 Mongoid to crib from none of this would have been possible, and I hope
-they don't mind me reusing their very awesome ideas to make DynamoDB
+they don't mind me reusing their very awesome ideas to make Amazon DynamoDB
 just as accessible to the Ruby world as MongoDB.
 
 Also, without contributors the project wouldn't be nearly as awesome. So
@@ -109,24 +161,12 @@ many thanks to:
 \* Current Maintainers
 
 
-## Security
-
-See [SECURITY.md][security].
-
-
-## License
-
-The gem is available as open source under the terms of
-the [MIT License][license] [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)][license-ref].
-See [LICENSE][license] for the official [Copyright Notice][copyright-notice-explainer].
-
-[copyright-notice-explainer]: https://opensource.stackexchange.com/questions/5778/why-do-licenses-such-as-the-mit-license-specify-a-single-year
-
-[license]: https://github.com/Dynamoid/dynamoid/blob/master/LICENSE.txt
-
-[license-ref]: https://opensource.org/licenses/MIT
-
+[contributing]:
+https://github.com/Dynamoid/dynamoid/blob/master/CONTRIBUTING.md
 [security]: https://github.com/Dynamoid/dynamoid/blob/master/SECURITY.md
+[license]: https://github.com/Dynamoid/dynamoid/blob/master/LICENSE.txt
+[license-ref]: https://opensource.org/licenses/MIT
+[copyright-notice-explainer]: https://opensource.stackexchange.com/questions/5778/why-do-licenses-such-as-the-mit-license-specify-a-single-year
 
 [⛳️gem]: https://rubygems.org/gems/dynamoid
 [⛳️version-img]: http://img.shields.io/gem/v/dynamoid.svg
