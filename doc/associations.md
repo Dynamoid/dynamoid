@@ -38,12 +38,11 @@ class Address
 end
 ```
 
-Contrary to what you'd expect, association information is always
+Contrary to expectations, association information is always
 contained on the object specifying the association, even if it seems
 like the association has a foreign key. This is a side effect of
 DynamoDB's structure: it's very difficult to find foreign keys without
 an index. Usually you won't find this to be a problem, but it does mean
 that association methods that build new models will not work correctly -
 for example, `user.addresses.new` returns an address that is not
-associated with the user. We'll be correcting this ~soon~ maybe someday,
-if we get a pull request.
+associated with the user. We'll be correcting this in a future version.

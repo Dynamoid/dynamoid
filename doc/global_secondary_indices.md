@@ -1,6 +1,6 @@
 ### Global Secondary Indexes
 
-You can define index with `global_secondary_index`:
+You can define an index with `global_secondary_index`:
 
 ```ruby
 class User
@@ -13,18 +13,18 @@ class User
 end
 ```
 
-There are the following options:
-* `hash_key` - is used as hash key of an index,
-* `range_key` - is used as range key of an index,
+The following options are available:
+* `hash_key` - is used as the hash key of an index,
+* `range_key` - is used as the range key of an index,
 * `projected_attributes` - list of fields to store in an index or has a
-  predefined value `:keys_only`, `:all`; `:keys_only` is a default,
+  predefined value `:keys_only`, `:all`; `:keys_only` is the default,
 * `name` - an index will be created with this name when a table is
-  created; by default name is generated and contains table name and keys
+  created; by default, the name is generated and contains the table name and keys
   names,
-* `read_capacity` - is used when table created and used as an index
-  capacity; by default equals `Dynamoid::Config.read_capacity`,
-* `write_capacity` - is used when table created and used as an index
-  capacity; by default equals `Dynamoid::Config.write_capacity`
+* `read_capacity` - is used when the table is created and used as an index
+  capacity; by default, it equals `Dynamoid::Config.read_capacity`,
+* `write_capacity` - is used when the table is created and used as an index
+  capacity; by default, it equals `Dynamoid::Config.write_capacity`
 
 The only mandatory option is `name`.
 

@@ -166,7 +166,7 @@ transaction.commit # changes are persisted in this moment
 #### Reading transactions
 
 Multiple reading actions can be grouped together and submitted as an
-all-or-nothing operation. Atomic  operations are supported in Dynamoid
+all-or-nothing operation. Atomic operations are supported in Dynamoid
 using transactions. If any action in the transaction fails they all
 fail.
 
@@ -188,8 +188,8 @@ end
 
 ##### Find a model
 
-The `#find` action can load single model or multiple ones. Different
-model classes can be mixed in the same transactions. Result is returned
+The `#find` action can load a single model or multiple ones. Different
+model classes can be mixed in the same transaction. The result is returned
 as a plain list of all the found models. The order is preserved.
 
 ```ruby

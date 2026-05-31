@@ -22,7 +22,7 @@ save again.
 Calls to `update` and `update!` also increment the `lock_version`,
 however, they do not check the existing value. This guarantees that a
 update operation will raise an exception in a concurrent save operation,
-however a save operation will never cause an update to fail. Thus,
+however, a save operation will never cause an update to fail. Thus,
 `update` is useful & safe only for doing atomic operations (e.g.
 increment a value, add/remove from a set, etc), but should not be used
 in a read-modify-write pattern.

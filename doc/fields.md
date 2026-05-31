@@ -177,17 +177,17 @@ field :joined_at, :datetime, default: -> { Time.now }
 
 #### Aliases
 
-It might be helpful to define an alias for already existing field when
+It might be helpful to define an alias for an existing field when the
 naming convention used for a table differs from conventions common in
 Ruby:
 
 ```ruby
-field firstName, :string, alias: :first_name
+field :firstName, :string, alias: :first_name
 ```
 
-This way there will be generated
-setters/getters/`<name>?`/`<name>_before_type_cast` methods for both
-original field name (`firstName`) and an alias (`first_name`).
+This way, Dynamoid will generate
+setter/getter/`<name>?`/`<name>_before_type_cast` methods for both the
+original field name (`firstName`) and the alias (`first_name`).
 
 ```ruby
 user = User.new(first_name: 'Michael')

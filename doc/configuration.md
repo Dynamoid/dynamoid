@@ -20,14 +20,14 @@ Listed below are all configuration options.
   credentials if they're present
 * `batch_size` - when you try to load multiple items at once with
 * `batch_get_item` call Dynamoid loads them not with one api call but
-  piece by piece. Default is 100 items
+  in chunks. Default is 100 items
 * `capacity_mode` - used at a table creation and means whether a table
   read/write capacity mode will be on-demand or provisioned. Allowed
   values are `:on_demand` and `:provisioned`. Default value is `nil` which
   means provisioned mode will be used.
-* `read_capacity` - is used at table or indices creation. Default is 100
+* `read_capacity` - is used during table or index creation. Default is 100
   (units)
-* `write_capacity` - is used at table or indices creation. Default is 20
+* `write_capacity` - is used during table or index creation. Default is 20
   (units)
 * `warn_on_scan` - log warnings when scan table. Default is `true`
 * `error_on_scan` - raises an error when scan table. Default is `false`

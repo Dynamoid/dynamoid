@@ -27,7 +27,7 @@ end
 
 ```
 
-You can just specify strategy without any arguments to use default
+You can specify the strategy without any arguments to use default
 presets:
 
 ```ruby
