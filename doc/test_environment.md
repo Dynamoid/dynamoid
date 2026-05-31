@@ -1,4 +1,4 @@
-## Test Environment
+# Test Environment
 
 In test environment you will most likely want to clean the database
 between test runs to keep tests completely isolated. This can be

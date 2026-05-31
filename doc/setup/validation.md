@@ -1,4 +1,4 @@
-### Validations
+# Validations
 
 Dynamoid bakes in ActiveModel validations, just like ActiveRecord does.
 

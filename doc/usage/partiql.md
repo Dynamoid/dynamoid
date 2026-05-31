@@ -1,4 +1,4 @@
-### PartiQL
+# PartiQL
 
 To run PartiQL statements `Dynamoid.adapter.execute` method should be
 used:

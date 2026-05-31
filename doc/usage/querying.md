@@ -1,4 +1,4 @@
-### Querying
+# Querying
 
 Querying can be done in one of the following ways:
 
@@ -63,7 +63,7 @@ Address.where(postcode: nil)
 Address.where('postcode.ne': nil)
 ```
 
-#### Limits
+## Limits
 
 There are three types of limits that you can query with:
 
@@ -117,7 +117,7 @@ the batch sizes to make the request and responses more manageable. Note
 that this batching is for `Query` and `Scans` and not `BatchGetItem`
 commands.
 
-#### DynamoDB pagination
+## DynamoDB pagination
 
 At times it can be useful to rely on DynamoDB [low-level
 pagination](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html#Query.Pagination)
@@ -154,7 +154,7 @@ class UserController < ApplicationController
 end
 ```
 
-#### Sort Conditions and Filters
+## Sort Conditions and Filters
 
 You are able to optimize queries with conditions for sort keys. Following
 operators are available: `gt`, `lt`, `gte`, `lte`, `begins_with`,
@@ -187,7 +187,7 @@ operators check attribute presence in a document, not value. So if
 attribute `postcode`'s value is `NULL`, `NULL` operator will return
 false because attribute exists even if has `NULL` value.
 
-#### Selecting some specific fields only
+## Selecting some specific fields only
 
 It could be done with `project` method:
 

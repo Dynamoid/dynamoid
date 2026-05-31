@@ -1,4 +1,4 @@
-### AWS Configuration
+# AWS Configuration
 
 Configure AWS access:
 [Reference](https://github.com/aws/aws-sdk-ruby)

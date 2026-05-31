@@ -1,4 +1,4 @@
-### Associations
+# Associations
 
 Just like in ActiveRecord (or your other favorite ORM), Dynamoid uses
 associations to create links between models.

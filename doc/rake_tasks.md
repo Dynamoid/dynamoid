@@ -1,4 +1,4 @@
-## Rake Tasks
+# Rake Tasks
 
 There are a few Rake tasks available out of the box:
 

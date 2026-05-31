@@ -1,4 +1,4 @@
-### Type casting
+# Type casting
 
 Dynamoid supports type casting and tries to do it in the most convenient
 way. Values for all fields (except custom type) are coerced to declared

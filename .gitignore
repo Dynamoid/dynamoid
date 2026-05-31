@@ -10,6 +10,9 @@ rdoc
 .yardoc
 /_yardoc/
 
+# mdbook generated
+book
+
 # bundler
 /.bundle/
 

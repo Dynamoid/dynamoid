@@ -1,4 +1,4 @@
-### Backoff strategies
+# Backoff strategies
 
 
 You can use several methods that run efficiently in batch mode like

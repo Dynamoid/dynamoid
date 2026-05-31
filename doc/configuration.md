@@ -1,4 +1,4 @@
-## Configuration
+# Configuration
 
 Listed below are all configuration options.
 
@@ -99,4 +99,3 @@ Listed below are all configuration options.
 * `create_table_on_save`: if `true` then Dynamoid creates a
   corresponding table in DynamoDB at model persisting if the table
   doesn't exist yet. Default is `true`
-

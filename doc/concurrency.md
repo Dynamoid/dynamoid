@@ -1,4 +1,4 @@
-## Concurrency
+# Concurrency
 
 Dynamoid supports basic, ActiveRecord-like optimistic locking on save
 operations. Simply add a `lock_version` column to your table like so:

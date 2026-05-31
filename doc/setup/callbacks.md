@@ -1,4 +1,4 @@
-### Callbacks
+# Callbacks
 
 Dynamoid also employs ActiveModel callbacks. Right now the following
 callbacks are supported:

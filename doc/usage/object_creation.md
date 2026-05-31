@@ -1,5 +1,4 @@
-
-### Object Creation
+# Object Creation
 
 Dynamoid's syntax is generally very similar to ActiveRecord's. Making
 new objects is simple:

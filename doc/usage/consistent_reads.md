@@ -1,4 +1,4 @@
-### Consistent Reads
+# Consistent Reads
 
 Querying supports consistent reading. By default, DynamoDB reads are
 eventually consistent: if you do a write and then a read immediately

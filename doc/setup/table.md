@@ -1,4 +1,4 @@
-### Table
+# Table
 
 Dynamoid has some sensible defaults for you when you create a new table,
 including the table name and the primary key column. But you can change

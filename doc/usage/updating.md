@@ -1,4 +1,4 @@
-### Updating
+# Updating
 
 In order to update document you can use high level methods
 `#update_attributes`, `#update_attribute` and `.update`. They run
@@ -38,4 +38,3 @@ to its keys when you upsert.
 ```ruby
 Address.upsert(id, { city: 'Chicago' }, { unless_exists: [:id] })
 ```
-

@@ -1,4 +1,4 @@
-## Logging
+# Logging
 
 There is a config option `logger`. Dynamoid writes requests and
 responses to DynamoDB using this logger on the `debug` level. So in

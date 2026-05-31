@@ -1,4 +1,4 @@
-### Sort key
+# Sort key
 
 Along with partition key table may have a sort key. In order to declare
 it in a model `range` class method should be used:

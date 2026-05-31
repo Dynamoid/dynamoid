@@ -1,4 +1,4 @@
-### Global Secondary Indexes
+# Global Secondary Indexes
 
 You can define an index with `global_secondary_index`:
 
@@ -43,7 +43,7 @@ end
 There is only one implicit way to query Global and Local Secondary
 Indexes (GSI/LSI).
 
-#### Implicit
+## Implicit
 
 The second way implicitly uses your GSI through the `where` clauses and
 deduces the index based on the query fields provided. Another added

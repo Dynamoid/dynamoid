@@ -1,4 +1,4 @@
-### Transactions in Dynamoid
+# Transactions in Dynamoid
 
 > [!WARNING]
 > Please note that this API is experimental and can be changed in
@@ -10,7 +10,7 @@ limitations:
 - operations are executed in batch, so operations should be given before
   actual execution and cannot be changed on the fly
 
-#### Modifying transactions
+## Modifying transactions
 
 Multiple modifying actions can be grouped together and submitted as an
 all-or-nothing operation. Atomic modifying operations are supported in
@@ -39,7 +39,7 @@ Dynamoid::Document.transaction.writing do |txn|
 end
 ```
 
-##### Create models
+### Create models
 
 Models can be created inside of a transaction. The partition and sort
 keys, if applicable, are used to determine uniqueness. Creating will
@@ -63,7 +63,7 @@ User.transaction do |t|
 end
 ```
 
-##### Save models
+### Save models
 
 Models can be saved in a transaction. New records are created otherwise
 the model is updated. Save, create, update, validate and destroy
@@ -82,7 +82,7 @@ User.transaction do |t|
 end
 ```
 
-##### Update models
+### Update models
 
 A model can be updated by providing a model or primary key, and the fields to update.
 
@@ -110,7 +110,7 @@ User.transaction do |t|
 end
 ```
 
-##### Destroy or delete models
+### Destroy or delete models
 
 Models can be used or the model class and key can be specified.
 `#destroy` uses callbacks and validations. Use `#delete` to skip
@@ -129,7 +129,7 @@ Article.transaction do |t|
 end
 ```
 
-##### Validation failures that don't raise
+### Validation failures that don't raise
 
 All of the transaction methods can be called without the `!` which
 results in `false` instead of a raised exception when validation fails.
@@ -149,7 +149,7 @@ User.transaction do |t|
 end
 ```
 
-##### Incrementally building a transaction
+### Incrementally building a transaction
 
 Transactions can also be built without a block.
 
@@ -163,7 +163,7 @@ transaction.upsert(Address, 'A#1', street: '123')
 transaction.commit # changes are persisted in this moment
 ```
 
-#### Reading transactions
+## Reading transactions
 
 Multiple reading actions can be grouped together and submitted as an
 all-or-nothing operation. Atomic operations are supported in Dynamoid
@@ -186,7 +186,7 @@ Dynamoid::Document.transaction.reading do |t|
 end
 ```
 
-##### Find a model
+### Find a model
 
 The `#find` action can load a single model or multiple ones. Different
 model classes can be mixed in the same transaction. The result is returned

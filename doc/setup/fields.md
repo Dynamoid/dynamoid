@@ -1,4 +1,4 @@
-### Fields
+# Fields
 
 You'll have to define all the fields on the model and the data type of
 each field. Every field on the object must be included here; if you miss
@@ -17,7 +17,7 @@ type is to represent your business logic with high-level types, while
 ensuring portability or backward-compatibility of the serialized
 representation.
 
-#### Note on boolean type
+## Note on boolean type
 
 The boolean fields are stored as DynamoDB boolean values by default.
 Dynamoid can store boolean values as strings as well - `'t'` and `'f'`.
@@ -32,7 +32,7 @@ class Document
 end
 ```
 
-#### Note on date type
+## Note on date type
 
 By default date fields are persisted as days count since 1 January 1970
 like UNIX time. If you prefer dates to be stored as ISO-8601 formatted
@@ -46,7 +46,7 @@ class Document
 end
 ```
 
-#### Note on datetime type
+## Note on datetime type
 
 By default datetime fields are persisted as UNIX timestamps with
 millisecond precision in DynamoDB. If you prefer datetimes to be stored
@@ -71,7 +71,7 @@ key:
 * store `datetime` values without milliseconds (e.g. cut
   them manually with `change` method - `Time.now.change(usec: 0)`
 
-#### Note on set type
+## Note on set type
 
 `Dynamoid`'s type `set` is stored as DynamoDB's Set attribute type.
 DynamoDB supports only Set of strings, numbers and binary. Moreover Set
@@ -111,7 +111,7 @@ DynamoDB doesn't allow empty strings in fields configured as `set`.
 Abiding by this restriction, when `Dynamoid` saves a document it removes
 all empty strings in set fields.
 
-#### Note on array type
+## Note on array type
 
 `Dynamoid`'s type `array` is stored as DynamoDB's List attribute type.
 It can contain elements of different types (in contrast to Set attribute
@@ -129,7 +129,7 @@ class Document
 end
 ```
 
-#### Note on binary type
+## Note on binary type
 
 By default binary fields are persisted as DynamoDB String value encoded
 in the Base64 encoding. DynamoDB supports binary data natively. To use
@@ -147,7 +147,7 @@ end
 There is also a global config option `store_binary_as_native` that is
 `false` by default as well.
 
-#### Magic Columns
+## Magic Columns
 
 You get magic columns of `id` (`string`), `created_at` (`datetime`), and
 `updated_at` (`datetime`) for free.
@@ -165,7 +165,7 @@ class User
 end
 ```
 
-#### Default Values
+## Default Values
 
 You can optionally set a default value on a field using either a plain
 value or a lambda:
@@ -175,7 +175,7 @@ field :actions_taken, :integer, default: 0
 field :joined_at, :datetime, default: -> { Time.now }
 ```
 
-#### Aliases
+## Aliases
 
 It might be helpful to define an alias for an existing field when the
 naming convention used for a table differs from conventions common in
@@ -195,7 +195,7 @@ user.first_name # => 'Michael'
 user.firstName # => 'Michael'
 ```
 
-#### Custom Types
+## Custom Types
 
 To use a custom type for a field, suppose you have a `Money` type.
 

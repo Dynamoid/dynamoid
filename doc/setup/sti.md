@@ -1,4 +1,4 @@
-### STI
+# STI
 
 Dynamoid supports STI (Single Table Inheritance) like Active Record
 does. You need just specify `type` field in a base class. Example:
