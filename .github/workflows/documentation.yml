@@ -1,4 +1,5 @@
-name: Deploy Documentation
+# Generate guides with mdBook and publish on GitHub Pages
+name: Documentation
 
 on:
   release:
@@ -40,7 +41,7 @@ jobs:
       - name: Move into a dedicated subdirectory
         run: |
           mkdir -p combined-docs/guides
-          cp -r build/ combined-docs/guides
+          cp -r book/ combined-docs/guides
 
       - name: Upload static files as artifact
         id: deployment
