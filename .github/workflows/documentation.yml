@@ -41,7 +41,7 @@ jobs:
       - name: Move into a dedicated subdirectory
         run: |
           mkdir -p combined-docs/guides
-          cp -r book/ combined-docs/guides
+          cp -r book/* combined-docs/guides
 
       - name: Upload static files as artifact
         id: deployment
