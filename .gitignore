@@ -10,6 +10,9 @@ rdoc
 .yardoc
 /_yardoc/
 
+# mdbook generated
+book
+
 # bundler
 /.bundle/
 
@@ -60,7 +63,6 @@ rdoc
 .tags
 .tags_sorted_by_file
 
-/doc/
 /spec/reports/
 /tmp/
 /spec/DynamoDBLocal-latest/

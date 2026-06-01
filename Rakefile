@@ -48,7 +48,7 @@ YARD::Rake::YardocTask.new do |t|
   t.options = ['-m', 'markdown'] # optional
 end
 
-desc 'Publish documentation to gh-pages'
+desc 'Publish documentation to gh-pages' # TODO: update and use directory other than doc/
 task :publish do
   Rake::Task['yard'].invoke
   `git add .`

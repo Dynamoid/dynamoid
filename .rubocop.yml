@@ -65,9 +65,6 @@ Style/TrailingCommaInArguments:
   Enabled: false
 Style/UnlessElse:
   Enabled: false
-Style/OneClassPerFile:
-  Exclude:
-    - 'README.md'
 
 # We aren't so brave to tackle all these issues right now
 Layout/LineLength:
@@ -111,10 +108,20 @@ Naming/PredicateMethod:
 Security/YAMLLoad:
   Enabled: false
 
+# disable some copes in documenting Markdown files
 Lint/EmptyClass:
   Exclude:
     - README.md
+    - 'doc/**/*'
 Lint/EmptyBlock:
   Exclude:
     - README.md
-
+    - 'doc/**/*'
+Layout/ExtraSpacing:
+  Exclude:
+    - 'README.md'
+    - 'doc/**/*'
+Style/OneClassPerFile:
+  Exclude:
+    - 'README.md'
+    - 'doc/**/*'
