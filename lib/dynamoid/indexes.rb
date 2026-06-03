@@ -24,22 +24,26 @@ module Dynamoid
       # Defines a Global Secondary index on a table. Keys can be specified as
       # hash-only, or hash & range.
       #
-      #   class Post
-      #     include Dynamoid::Document
+      # ```
+      # class Post
+      #   include Dynamoid::Document
       #
-      #     field :category
+      #   field :category
       #
-      #     global_secondary_index hash_key: :category
-      #   end
+      #   global_secondary_index hash_key: :category
+      # end
+      # ```
       #
       # The full example with all the options being specified:
       #
-      #   global_secondary_index hash_key: :category,
-      #                          range_key: :created_at,
-      #                          name: 'posts_category_created_at_index',
-      #                          projected_attributes: :all,
-      #                          read_capacity: 100,
-      #                          write_capacity: 20
+      # ```
+      # global_secondary_index hash_key: :category,
+      #                        range_key: :created_at,
+      #                        name: 'posts_category_created_at_index',
+      #                        projected_attributes: :all,
+      #                        read_capacity: 100,
+      #                        write_capacity: 20
+      # ```
       #
       # Global secondary index should be declared after fields for mentioned
       # hash key and optional range key are declared (with method +field+)
@@ -88,21 +92,25 @@ module Dynamoid
       # Defines a local secondary index on a table. Will use the same primary
       # hash key as the table.
       #
-      #   class Comment
-      #     include Dynamoid::Document
+      # ```
+      # class Comment
+      #   include Dynamoid::Document
       #
-      #     table hash_key: :post_id
-      #     range :created_at, :datetime
-      #     field :author_id
+      #   table hash_key: :post_id
+      #   range :created_at, :datetime
+      #   field :author_id
       #
-      #     local_secondary_index range_key: :author_id
-      #   end
+      #   local_secondary_index range_key: :author_id
+      # end
+      # ```
       #
       # The full example with all the options being specified:
       #
-      #   local_secondary_index range_key: :created_at,
-      #                         name: 'posts_created_at_index',
-      #                         projected_attributes: :all
+      # ```
+      # local_secondary_index range_key: :created_at,
+      #                       name: 'posts_created_at_index',
+      #                       projected_attributes: :all
+      # ```
       #
       # Local secondary index should be declared after fields for mentioned
       # hash key and optional range key are declared (with method +field+) as

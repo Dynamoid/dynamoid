@@ -101,7 +101,7 @@ end
 
 ## Documentation
 
-* **API Reference:** Comprehensive documentation for all classes and methods is available on [RubyDoc.info](https://www.rubydoc.info/github/Dynamoid/dynamoid/).
+* **API Reference:** Comprehensive documentation for all classes and methods is available on [API Reference](https://dynamoid.github.io/dynamoid/reference/).
 * **User Guides:** For detailed overviews and usage examples of specific features, see the online [User Guides](https://dynamoid.github.io/dynamoid/guides/).
 
 
