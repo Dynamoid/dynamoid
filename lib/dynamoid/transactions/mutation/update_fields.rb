@@ -6,8 +6,8 @@ require_relative 'builders/update_request_builder'
 module Dynamoid
   module Transactions
     class Mutation
+      # @private
       class UpdateFields < Base
-        # @private
         class ItemUpdater
           attr_reader :attributes_to_set, :attributes_to_add, :attributes_to_delete, :attributes_to_remove
 

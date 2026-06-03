@@ -325,6 +325,7 @@ module Dynamoid
       end
     end
 
+    # @private
     module DeepDupper
       def self.dup_attributes(attributes, klass)
         attributes.map do |name, value|

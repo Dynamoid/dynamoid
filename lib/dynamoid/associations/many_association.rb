@@ -5,6 +5,7 @@ module Dynamoid
     module ManyAssociation
       include Association
 
+      # @private
       attr_accessor :query
 
       def initialize(*args)

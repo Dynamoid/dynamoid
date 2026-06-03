@@ -8,10 +8,12 @@ module Dynamoid
     class BelongsTo
       include SingleAssociation
 
+      # @private
       def declaration_field_name
         options[:foreign_key] || "#{name}_ids"
       end
 
+      # @private
       def declaration_field_type
         if options[:foreign_key]
           target_class.attributes[target_class.hash_key][:type]
@@ -20,6 +22,7 @@ module Dynamoid
         end
       end
 
+      # @private
       # Override default implementation
       # to handle case when we store id as scalar value, not as collection
       def associate(hash_key)

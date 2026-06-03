@@ -9,10 +9,12 @@ module Dynamoid
     # The criteria chain is equivalent to an ActiveRecord relation (and realistically I should change the name from
     # chain to relation). It is a chainable object that builds up a query and eventually executes it by a Query or Scan.
     class Chain
+      # @private
       attr_reader :source, :consistent_read, :key_fields_detector
 
       include Enumerable
 
+      # @private
       ALLOWED_FIELD_OPERATORS = Set.new(
         %w[
           eq ne gt lt gte lte between begins_with in contains not_contains null not_null
