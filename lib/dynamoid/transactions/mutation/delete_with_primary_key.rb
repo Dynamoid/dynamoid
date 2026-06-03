@@ -6,6 +6,7 @@ require_relative 'builders/delete_request_builder'
 module Dynamoid
   module Transactions
     class Mutation
+      # @private
       class DeleteWithPrimaryKey < Base
         def initialize(model_class, hash_key, range_key)
           super()

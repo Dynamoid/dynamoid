@@ -3,6 +3,7 @@
 module Dynamoid
   module Transactions
     class Retrieval
+      # @private
       class Find
         attr_reader :model_class
 

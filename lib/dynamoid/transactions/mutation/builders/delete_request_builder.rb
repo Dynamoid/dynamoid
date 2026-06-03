@@ -3,8 +3,8 @@
 module Dynamoid
   module Transactions
     class Mutation
+      # @private
       module Builders
-        # @private
         class DeleteRequestBuilder
           attr_writer :hash_key, :range_key, :condition_expression
 

@@ -154,7 +154,7 @@ module Dynamoid
 
     # Remove changes information for the provided attributes.
     #
-    # @param attributes [Array[String]] - a list of attributes to clear changes for
+    # @param names [Array[String]] - a list of attributes to clear changes for
     def clear_attribute_changes(names)
       attributes_changed_by_setter.except!(*names)
 
@@ -195,7 +195,7 @@ module Dynamoid
 
     # Restore all previous data of the provided attributes.
     #
-    # @param attributes [Array[Symbol]] a list of attribute names
+    # @param names [Array[Symbol]] a list of attribute names
     def restore_attributes(names = changed)
       names.each { |name| restore_attribute! name }
     end
@@ -325,6 +325,7 @@ module Dynamoid
       end
     end
 
+    # @private
     module DeepDupper
       def self.dup_attributes(attributes, klass)
         attributes.map do |name, value|

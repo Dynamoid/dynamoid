@@ -6,9 +6,10 @@ module Dynamoid
   # The target is the object which is referencing by this association.
   # @private
   module Associations
-    # @private
     module Association
-      attr_accessor :name, :options, :source, :loaded
+      attr_accessor :name, :options, :source
+      # @private
+      attr_accessor :loaded
 
       # Create a new association.
       #
@@ -30,12 +31,15 @@ module Dynamoid
         @loaded = false
       end
 
+      # @private
       def loaded?
         @loaded
       end
 
+      # @private
       def find_target; end
 
+      # @private
       def target
         unless loaded?
           @target = find_target
@@ -45,19 +49,23 @@ module Dynamoid
         @target
       end
 
+      # @private
       def reset
         @target = nil
         @loaded = false
       end
 
+      # @private
       def declaration_field_name
         "#{name}_ids"
       end
 
+      # @private
       def declaration_field_type
         :set
       end
 
+      # @private
       def disassociate_source
         Array(target).each do |target_entry|
           target_entry.send(target_association).disassociate(source.hash_key) if target_entry && target_association

@@ -9,6 +9,7 @@ rdoc
 # yardoc generated
 .yardoc
 /_yardoc/
+yardoc
 
 # mdbook generated
 book

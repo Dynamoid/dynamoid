@@ -6,6 +6,7 @@ require_relative 'builders/update_request_builder'
 module Dynamoid
   module Transactions
     class Mutation
+      # @private
       class Save < Base
         def initialize(model, **options)
           super()

@@ -5,6 +5,7 @@ require_relative 'base'
 module Dynamoid
   module Transactions
     class Mutation
+      # @private
       class Create < Base
         def initialize(model_class, attributes = {}, **options, &block)
           super()
