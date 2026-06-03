@@ -50,8 +50,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # actually, we need only yard gem, not the whole Gemfile.lock
+      - name: Setup Ruby & Bundle
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
       - name: Build API Reference
         run: yardoc # generates ./yardoc directory
+
       - name: Upload Guides Raw Material
         uses: actions/upload-artifact@v4
         with:
