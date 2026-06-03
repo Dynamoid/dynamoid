@@ -6,7 +6,6 @@ module Dynamoid
   # The target is the object which is referencing by this association.
   # @private
   module Associations
-    # @private
     module Association
       attr_accessor :name, :options, :source
       # @private

@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 module Dynamoid
-  # The HasOne association.
   module Associations
-    # @private
+    # The HasOne association.
     class HasOne
       include Association
       include SingleAssociation

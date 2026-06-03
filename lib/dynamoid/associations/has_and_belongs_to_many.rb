@@ -3,7 +3,6 @@
 module Dynamoid
   # The has and belongs to many association.
   module Associations
-    # @private
     class HasAndBelongsToMany
       include ManyAssociation
 
