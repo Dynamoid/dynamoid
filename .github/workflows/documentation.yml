@@ -48,6 +48,8 @@ jobs:
   # Generate API References
   build-reference:
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/yard.gemfile
     steps:
       - uses: actions/checkout@v4
 
