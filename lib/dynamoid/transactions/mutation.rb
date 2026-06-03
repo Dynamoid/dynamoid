@@ -213,7 +213,6 @@ module Dynamoid
       #
       # There are the following differences between transactional and
       # non-transactional +#save!+:
-      # - transactional +#save!+ doesn't support the +:touch+ option
       # - transactional +#save!+ doesn't raise +Dynamoid::Errors::StaleObjectError+
       #   when optimistic concurrency control detects a conflict. A generic
       #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
@@ -228,6 +227,7 @@ module Dynamoid
       # @param model [Dynamoid::Document] a model
       # @param options [Hash] (optional)
       # @option options [true|false] :validate validate a model or not - +true+ by default (optional)
+      # @option options [true|false] :touch update tiemstamps fields or not - +true+ by default (optional)
       # @return [true|false] Whether saving successful or not
       def save!(model, **options)
         action = Save.new(model, **options, raise_error: true)
@@ -274,7 +274,6 @@ module Dynamoid
       #
       # There are the following differences between transactional and
       # non-transactional +#save+:
-      # - transactional +#save+ doesn't support the +:touch+ option
       # - transactional +#save+ doesn't raise +Dynamoid::Errors::StaleObjectError+
       #   when optimistic concurrency control detects a conflict. A generic
       #   +Aws::DynamoDB::Errors::TransactionCanceledException+ is raised instead.
