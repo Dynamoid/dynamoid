@@ -60,11 +60,11 @@ jobs:
 
   # Merge and Deploy to GitHub Pages
   deploy:
-    needs: [build-guides, build-api]
+    needs: [build-guides, build-reference]
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps:deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Create Unified Deployment Directory
         run: mkdir -p combined-docs
