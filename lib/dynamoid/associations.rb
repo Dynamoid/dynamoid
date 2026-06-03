@@ -27,11 +27,13 @@ module Dynamoid
     module ClassMethods
       # Declare a +has_many+ association for this document.
       #
-      #   class Category
-      #     include Dynamoid::Document
+      # ```
+      # class Category
+      #   include Dynamoid::Document
       #
-      #     has_many :posts
-      #   end
+      #   has_many :posts
+      # end
+      # ```
       #
       # Association is an enumerable collection and supports following addition
       # operations:
@@ -58,17 +60,19 @@ module Dynamoid
       # the current class and the name doesn't match a name of the current
       # class this name can be specified with +inverse_of+ option:
       #
-      #   class Post
-      #     include Dynamoid::Document
+      # ```
+      # class Post
+      #   include Dynamoid::Document
       #
-      #     belongs_to :item, class_name: 'Tag'
-      #   end
+      #   belongs_to :item, class_name: 'Tag'
+      # end
       #
-      #   class Tag
-      #     include Dynamoid::Document
+      # class Tag
+      #   include Dynamoid::Document
       #
-      #     has_many :posts, inverse_of: :item
-      #   end
+      #   has_many :posts, inverse_of: :item
+      # end
+      # ```
       #
       # @param name [Symbol] the name of the association
       # @param options [Hash] options to pass to the association constructor
@@ -83,11 +87,13 @@ module Dynamoid
 
       # Declare a +has_one+ association for this document.
       #
-      #   class Image
-      #     include Dynamoid::Document
+      # ```
+      # class Image
+      #   include Dynamoid::Document
       #
-      #     has_one :post
-      #   end
+      #   has_one :post
+      # end
+      # ```
       #
       # Association supports following operations:
       #
@@ -106,17 +112,19 @@ module Dynamoid
       # class and the name doesn't match a name of the current class this name
       # can be specified with +inverse_of+ option:
       #
-      #   class Post
-      #     include Dynamoid::Document
+      # ```
+      # class Post
+      #   include Dynamoid::Document
       #
-      #     belongs_to :logo, class_name: 'Image'
-      #   end
+      #   belongs_to :logo, class_name: 'Image'
+      # end
       #
-      #   class Image
-      #     include Dynamoid::Document
+      # class Image
+      #   include Dynamoid::Document
       #
-      #     has_one :post, inverse_of: :logo
-      #   end
+      #   has_one :post, inverse_of: :logo
+      # end
+      # ```
       #
       # @param name [Symbol] the name of the association
       # @param options [Hash] options to pass to the association constructor
@@ -131,11 +139,13 @@ module Dynamoid
 
       # Declare a +belongs_to+ association for this document.
       #
-      #   class Post
-      #     include Dynamoid::Document
+      # ```
+      # class Post
+      #   include Dynamoid::Document
       #
-      #     belongs_to :categories
-      #   end
+      #   belongs_to :categories
+      # end
+      # ```
       #
       # Association supports following operations:
       #
@@ -154,17 +164,19 @@ module Dynamoid
       # the current class and the name doesn't match a name of the current
       # class this name can be specified with +inverse_of+ option:
       #
-      #   class Category
-      #     include Dynamoid::Document
+      # ```
+      # class Category
+      #   include Dynamoid::Document
       #
-      #     has_many :items, class_name: 'Post'
-      #   end
+      #   has_many :items, class_name: 'Post'
+      # end
       #
-      #   class Post
-      #     include Dynamoid::Document
+      # class Post
+      #   include Dynamoid::Document
       #
-      #     belongs_to :categories, inverse_of: :items
-      #   end
+      #   belongs_to :categories, inverse_of: :items
+      # end
+      # ```
       #
       # By default a hash key attribute name is +id+. If an associated class
       # uses another name for a hash key attribute it should be specified in
@@ -186,11 +198,13 @@ module Dynamoid
 
       # Declare a +has_and_belongs_to_many+ association for this document.
       #
-      #   class Post
-      #     include Dynamoid::Document
+      # ```
+      # class Post
+      #   include Dynamoid::Document
       #
-      #     has_and_belongs_to_many :tags
-      #   end
+      #   has_and_belongs_to_many :tags
+      # end
+      # ```
       #
       # Association is an enumerable collection and supports following addition
       # operations:
@@ -217,17 +231,19 @@ module Dynamoid
       # the current class and the name doesn't match a name of the current
       # class this name can be specified with +inverse_of+ option:
       #
-      #   class Tag
-      #     include Dynamoid::Document
+      # ```
+      # class Tag
+      #   include Dynamoid::Document
       #
-      #     has_and_belongs_to_many :items, class_name: 'Post'
-      #   end
+      #   has_and_belongs_to_many :items, class_name: 'Post'
+      # end
       #
-      #   class Post
-      #     include Dynamoid::Document
+      # class Post
+      #   include Dynamoid::Document
       #
-      #     has_and_belongs_to_many :tags, inverse_of: :items
-      #   end
+      #   has_and_belongs_to_many :tags, inverse_of: :items
+      # end
+      # ```
       #
       # @param name [Symbol] the name of the association
       # @param options [Hash] options to pass to the association constructor

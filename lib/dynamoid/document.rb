@@ -89,25 +89,29 @@ module Dynamoid
       #
       # Initialize an object and pass it into a block to set other attributes.
       #
-      #   User.build(name: 'A') do |u|
-      #     u.age = 21
-      #   end
+      # ```
+      # User.build(name: 'A') do |u|
+      #   u.age = 21
+      # end
+      # ```
       #
       # The only difference between +build+ and +new+ methods is that +build+
       # supports STI (Single table inheritance) and looks at the inheritance
       # field. So it can build a model of actual class. For instance:
       #
-      #   class Employee
-      #     include Dynamoid::Document
+      # ```
+      # class Employee
+      #   include Dynamoid::Document
       #
-      #     field :type
-      #     field :name
-      #   end
+      #   field :type
+      #   field :name
+      # end
       #
-      #   class Manager < Employee
-      #   end
+      # class Manager < Employee
+      # end
       #
-      #   Employee.build(name: 'Alice', type: 'Manager') # => #<Manager:0x00007f945756e3f0 ...>
+      # Employee.build(name: 'Alice', type: 'Manager') # => #<Manager:0x00007f945756e3f0 ...>
+      # ```
       #
       # @param attrs [Hash] Attributes with which to create the document
       # @param block [Proc] Block to process a document after initialization
@@ -131,13 +135,15 @@ module Dynamoid
       #
       # Or in case when a range key is declared:
       #
-      #   User.exists?(
-      #     [
-      #       ['713', 'range-key-value-1'],
-      #       ['714', 'range-key-value-2'],
-      #       ['715', 'range-key-value-3']
-      #     ]
-      #   )
+      # ```
+      # User.exists?(
+      #   [
+      #     ['713', 'range-key-value-1'],
+      #     ['714', 'range-key-value-2'],
+      #     ['715', 'range-key-value-3']
+      #   ]
+      # )
+      # ```
       #
       # It's also possible to specify models not with primary key but with
       # conditions on the attributes (in the +where+ method style):
@@ -193,9 +199,11 @@ module Dynamoid
     #
     # Initialize an object and pass it into a block to set other attributes.
     #
-    #   User.new(name: 'A') do |u|
-    #     u.age = 21
-    #   end
+    # ```
+    # User.new(name: 'A') do |u|
+    #   u.age = 21
+    # end
+    # ```
     #
     # @param attrs [Hash] Attributes with which to create the document
     # @param block [Proc] Block to process a document after initialization

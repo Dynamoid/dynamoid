@@ -21,14 +21,16 @@ module Dynamoid
     # The persistence methods are designed to mirror their non-transactional
     # counterparts like +.create+, +#save+, and +#delete+:
     #
-    #   user = User.new(name: 'John')
-    #   payment = Payment.find(1)
+    # ```
+    # user = User.new(name: 'John')
+    # payment = Payment.find(1)
     #
-    #   Dynamoid::Transactions::Mutation.execute do |t|
-    #     t.save! user
-    #     t.create! Account, name: 'A'
-    #     t.delete payment
-    #   end
+    # Dynamoid::Transactions::Mutation.execute do |t|
+    #   t.save! user
+    #   t.create! Account, name: 'A'
+    #   t.delete payment
+    # end
+    # ```
     #
     # The primary difference is that these methods are called on a transaction
     # instance, and the model (or class) must be passed as an argument.
@@ -86,12 +88,14 @@ module Dynamoid
     # Raising +Dynamoid::Errors::Rollback+ will interrupt the transaction without
     # propagating the exception further:
     #
-    #   Dynamoid::Transactions::Mutation.execute do |t|
-    #     t.save! user
-    #     t.create! Account, name: 'A'
+    # ```
+    # Dynamoid::Transactions::Mutation.execute do |t|
+    #   t.save! user
+    #   t.create! Account, name: 'A'
     #
-    #     raise Dynamoid::Errors::Rollback if user.is_admin?
-    #   end
+    #   raise Dynamoid::Errors::Rollback if user.is_admin?
+    # end
+    # ```
     #
     # When a transaction is successfully committed or rolled back, the corresponding
     # +#after_commit+ or +#after_rollback+ callbacks are run for each involved model.
@@ -144,9 +148,11 @@ module Dynamoid
       #
       # Runs callbacks.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.touch(user)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.touch(user)
+      # end
+      # ```
       #
       # If attribute names are passed, they are updated along with updated_at
       # attribute:
@@ -172,19 +178,23 @@ module Dynamoid
       # Run the validation and callbacks. Returns +true+ if saving is successful
       # and +false+ otherwise.
       #
-      #   user = User.new
+      # ```
+      # user = User.new
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.save!(user)
-      #   end
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.save!(user)
+      # end
+      # ```
       #
       # Validation can be skipped with +validate: false+ option:
       #
-      #   user = User.new(age: -1)
+      # ```
+      # user = User.new(age: -1)
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.save!(user, validate: false)
-      #   end
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.save!(user, validate: false)
+      # end
+      # ```
       #
       # +save!+ by default sets timestamps attributes - +created_at+ and
       # +updated_at+ when creates new model and updates +updated_at+ attribute
@@ -229,19 +239,23 @@ module Dynamoid
       # Run the validation and callbacks. Raise
       # +Dynamoid::Errors::DocumentNotValid+ unless this object is valid.
       #
-      #   user = User.new
+      # ```
+      # user = User.new
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.save(user)
-      #   end
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.save(user)
+      # end
+      # ```
       #
       # Validation can be skipped with +validate: false+ option:
       #
-      #   user = User.new(age: -1)
+      # ```
+      # user = User.new(age: -1)
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.save(user, validate: false)
-      #   end
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.save(user, validate: false)
+      # end
+      # ```
       #
       # +save+ by default sets timestamps attributes - +created_at+ and
       # +updated_at+ when creates new model and updates +updated_at+ attribute
@@ -274,6 +288,7 @@ module Dynamoid
       # @param model [Dynamoid::Document] a model
       # @param options [Hash] (optional)
       # @option options [true|false] :validate validate a model or not - +true+ by default (optional)
+      # @option options [true|false] :touch update tiemstamps fields or not - +true+ by default (optional)
       # @return [true|false] Whether saving successful or not
       def save(model, **options)
         action = Save.new(model, **options, raise_error: false)
@@ -282,24 +297,30 @@ module Dynamoid
 
       # Create a model.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.create!(User, name: 'A')
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.create!(User, name: 'A')
+      # end
+      # ```
       #
       # Accepts both Hash and Array of Hashes and can create several models.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.create!(User, [{name: 'A'}, {name: 'B'}, {name: 'C'}])
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.create!(User, [{name: 'A'}, {name: 'B'}, {name: 'C'}])
+      # end
+      # ```
       #
       # Instantiates a model and pass it into an optional block to set other
       # attributes.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.create!(User, name: 'A') do |user|
-      #       user.initialize_roles
-      #     end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.create!(User, name: 'A') do |user|
+      #     user.initialize_roles
       #   end
+      # end
+      # ```
       #
       # Validates model and runs callbacks.
       #
@@ -331,24 +352,30 @@ module Dynamoid
 
       # Create a model.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.create(User, name: 'A')
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.create(User, name: 'A')
+      # end
+      # ```
       #
       # Accepts both Hash and Array of Hashes and can create several models.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.create(User, [{name: 'A'}, {name: 'B'}, {name: 'C'}])
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.create(User, [{name: 'A'}, {name: 'B'}, {name: 'C'}])
+      # end
+      # ```
       #
       # Instantiates a model and pass it into an optional block to set other
       # attributes.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.create(User, name: 'A') do |user|
-      #       user.initialize_roles
-      #     end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.create(User, name: 'A') do |user|
+      #     user.initialize_roles
       #   end
+      # end
+      # ```
       #
       # Validates model and runs callbacks.
       #
@@ -384,15 +411,19 @@ module Dynamoid
       # creates a new document with specified attributes. Doesn't run
       # validations and callbacks.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.upsert(User, '1', age: 26)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.upsert(User, '1', age: 26)
+      # end
+      # ```
       #
       # If range key is declared for a model it should be passed as well:
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.upsert(User, '1', 'Tylor', age: 26)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.upsert(User, '1', 'Tylor', age: 26)
+      # end
+      # ```
       #
       # Raises a +Dynamoid::Errors::UnknownAttribute+ exception if any of the
       # attributes is not declared in the model class.
@@ -422,52 +453,66 @@ module Dynamoid
       #
       # Doesn't run validations and callbacks.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.update_fields(User, '1', age: 26)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.update_fields(User, '1', age: 26)
+      # end
+      # ```
       #
       # If range key is declared for a model it should be passed as well:
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.update_fields(User, '1', 'Tylor', age: 26)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.update_fields(User, '1', 'Tylor', age: 26)
+      # end
+      # ```
       #
       # Updates can also be performed in a block.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.update_fields(User, 1) do |u|
-      #       u.add(article_count: 1)
-      #       u.delete(favorite_colors: 'green')
-      #       u.set(age: 27, last_name: 'Tylor')
-      #     end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.update_fields(User, 1) do |u|
+      #     u.add(article_count: 1)
+      #     u.delete(favorite_colors: 'green')
+      #     u.set(age: 27, last_name: 'Tylor')
       #   end
+      # end
+      # ```
       #
       # Operation +add+ just adds a value for numeric attributes and join
       # collections if attribute is a set.
       #
-      #   t.update_fields(User, 1) do |u|
-      #     u.add(age: 1, followers_count: 5)
-      #     u.add(hobbies: ['skying', 'climbing'])
-      #   end
+      # ```
+      # t.update_fields(User, 1) do |u|
+      #   u.add(age: 1, followers_count: 5)
+      #   u.add(hobbies: ['skying', 'climbing'])
+      # end
+      # ```
       #
       # Operation +delete+ is applied to collection attribute types and
       # substructs one collection from another.
       #
-      #   t.update_fields(User, 1) do |u|
-      #     u.delete(hobbies: ['skying'])
-      #   end
+      # ```
+      # t.update_fields(User, 1) do |u|
+      #   u.delete(hobbies: ['skying'])
+      # end
+      # ```
       #
       # Operation +set+ just changes an attribute value:
       #
-      #   t.update_fields(User, 1) do |u|
-      #     u.set(age: 21)
-      #   end
+      # ```
+      # t.update_fields(User, 1) do |u|
+      #   u.set(age: 21)
+      # end
+      # ```
       #
       # Operation +remove+ removes one or more attributes from an item.
       #
-      #   t.update_fields(User, 1) do |u|
-      #     u.remove(:age)
-      #   end
+      # ```
+      # t.update_fields(User, 1) do |u|
+      #   u.remove(:age)
+      # end
+      # ```
       #
       # All the operations work like +ADD+, +DELETE+, +REMOVE+, and +SET+ actions supported
       # by +UpdateExpression+
@@ -512,22 +557,28 @@ module Dynamoid
       #
       # Doesn't run validations and callbacks.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.inc(User, '1', age: 1)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.inc(User, '1', age: 1)
+      # end
+      # ```
       #
       # If range key is declared for a model it should be passed as well:
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.inc(User, '1', 'Tylor', age: 1)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.inc(User, '1', 'Tylor', age: 1)
+      # end
+      # ```
       #
       # It also supports +touch+ option to update +updated_at+ attribute and
       # optionally other specified attributes.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.inc(User, '1', age: 1, touch: true)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.inc(User, '1', age: 1, touch: true)
+      # end
+      # ```
       #
       # If attribute names are passed, they are updated along with updated_at
       # attribute:
@@ -565,10 +616,12 @@ module Dynamoid
       # Initializes attribute to zero if +nil+ and adds the specified value (by
       # default is 1). Only makes sense for number-based attributes.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.increment!(user, :followers_count)
-      #     t.increment!(user, :followers_count, 2)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.increment!(user, :followers_count)
+      #   t.increment!(user, :followers_count, 2)
+      # end
+      # ```
       #
       # Only `attribute` is saved. The model itself is not saved. So any other
       # modified attributes will still be dirty. Validations and callbacks are
@@ -599,10 +652,12 @@ module Dynamoid
       #
       # Runs callbacks.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.decrement!(user, :followers_count)
-      #     t.decrement!(user, :followers_count, 2)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.decrement!(user, :followers_count)
+      #   t.decrement!(user, :followers_count, 2)
+      # end
+      # ```
       #
       # Only `attribute` is saved. The model itself is not saved. So any other
       # modified attributes will still be dirty. Validations are skipped.
@@ -626,9 +681,11 @@ module Dynamoid
 
       # Update multiple attributes at once.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.update_attributes(user, age: 27, last_name: 'Tylor')
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.update_attributes(user, age: 27, last_name: 'Tylor')
+      # end
+      # ```
       #
       # Returns +true+ if saving is successful and +false+
       # otherwise.
@@ -662,9 +719,11 @@ module Dynamoid
       # Returns +true+ if saving is successful and +false+
       # otherwise.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.update_attributes(user, age: 27, last_name: 'Tylor')
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.update_attributes(user, age: 27, last_name: 'Tylor')
+      # end
+      # ```
       #
       # Raises a +Dynamoid::Errors::DocumentNotValid+ exception if some vaidation
       # fails.
@@ -694,9 +753,11 @@ module Dynamoid
 
       # Update a single attribute, saving the object afterwards.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.update_attribute(user, :last_name, 'Tylor')
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.update_attribute(user, :last_name, 'Tylor')
+      # end
+      # ```
       #
       # Validation is skipped.
       #
@@ -714,9 +775,11 @@ module Dynamoid
 
       # Update a single attribute, saving the object afterwards.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.update_attribute!(user, :last_name, 'Tylor')
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.update_attribute!(user, :last_name, 'Tylor')
+      # end
+      # ```
       #
       # Validation is skipped.
       #
@@ -741,15 +804,19 @@ module Dynamoid
       #
       # Can be called either with a model:
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.delete(user)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.delete(user)
+      # end
+      # ```
       #
       # or with a primary key:
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.delete(User, user_id)
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.delete(User, user_id)
+      # end
+      # ```
       #
       # Raises +Dynamoid::Errors::MissingHashKey+ if a partition key has value
       # +nil+ and raises +Dynamoid::Errors::MissingRangeKey+ if a sort key is
@@ -835,9 +902,11 @@ module Dynamoid
       #
       # Validations and callbacks are skipped.
       #
-      #   Dynamoid::Transactions::Mutation.execute do |t|
-      #     t.import(User, [{ name: 'A' }, { name: 'B' }])
-      #   end
+      # ```
+      # Dynamoid::Transactions::Mutation.execute do |t|
+      #   t.import(User, [{ name: 'A' }, { name: 'B' }])
+      # end
+      # ```
       #
       # Since DynamoDB limits the total number of actions per transaction,
       # each model created via +#import+ consumes one action from this limit.

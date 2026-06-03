@@ -48,17 +48,19 @@ module Dynamoid
       #
       # For instance here
       #
-      #   class User
-      #     include Dynamoid::Document
+      # ```
+      # class User
+      #   include Dynamoid::Document
       #
-      #     table key: :uuid
-      #     range :last_name
+      #   table key: :uuid
+      #   range :last_name
       #
-      #     field :first_name
-      #     field :last_name
-      #   end
+      #   field :first_name
+      #   field :last_name
+      # end
       #
-      #   User.create_table
+      # User.create_table
+      # ```
       #
       # +create_table+ method call will create a table +dynamoid_users+ with
       # hash key +uuid+ and range key +name+, DynamoDB default billing mode and
@@ -186,9 +188,11 @@ module Dynamoid
       # Instantiates a model and pass it into an optional block to set other
       # attributes.
       #
-      #   User.create(first_name: 'Mark') do |u|
-      #     u.age = 21
-      #   end
+      # ```
+      # User.create(first_name: 'Mark') do |u|
+      #   u.age = 21
+      # end
+      # ```
       #
       # Validates model and runs callbacks.
       #
@@ -227,9 +231,11 @@ module Dynamoid
       # Instantiates a model and pass it into an optional block to set other
       # attributes.
       #
-      #   User.create!(first_name: 'Mark') do |u|
-      #     u.age = 21
-      #   end
+      # ```
+      # User.create!(first_name: 'Mark') do |u|
+      #   u.age = 21
+      # end
+      # ```
       #
       # Validates model and runs callbacks.
       #
@@ -854,23 +860,29 @@ module Dynamoid
     # Operation +add+ just adds a value for numeric attributes and join
     # collections if attribute is a set.
     #
-    #   user.update! do |t|
-    #     t.add(age: 1, followers_count: 5)
-    #     t.add(hobbies: ['skying', 'climbing'])
-    #   end
+    # ```
+    # user.update! do |t|
+    #   t.add(age: 1, followers_count: 5)
+    #   t.add(hobbies: ['skying', 'climbing'])
+    # end
+    # ```
     #
     # Operation +delete+ is applied to collection attribute types and
     # substructs one collection from another.
     #
-    #   user.update! do |t|
-    #     t.delete(hobbies: ['skying'])
-    #   end
+    # ```
+    # user.update! do |t|
+    #   t.delete(hobbies: ['skying'])
+    # end
+    # ```
     #
     # Operation +set+ just changes an attribute value:
     #
-    #   user.update! do |t|
-    #     t.set(age: 21)
-    #   end
+    # ```
+    # user.update! do |t|
+    #   t.set(age: 21)
+    # end
+    # ```
     #
     # All the operations work like +ADD+, +DELETE+ and +PUT+ actions supported
     # by +AttributeUpdates+
@@ -883,18 +895,22 @@ module Dynamoid
     #
     # Can update a model conditionaly:
     #
-    #   user.update!(if: { age: 20 }) do |t|
-    #     t.add(age: 1)
-    #   end
+    # ```
+    # user.update!(if: { age: 20 }) do |t|
+    #   t.add(age: 1)
+    # end
+    # ```
     #
     # To check if some attribute (or attributes) isn't stored in a DynamoDB
     # item (e.g. it wasn't set explicitly) there is another condition -
     # +unless_exists+:
     #
-    #   user = User.create(name: 'Tylor')
-    #   user.update!(unless_exists: [:age]) do |t|
-    #     t.set(age: 18)
-    #   end
+    # ```
+    # user = User.create(name: 'Tylor')
+    # user.update!(unless_exists: [:age]) do |t|
+    #   t.set(age: 18)
+    # end
+    # ```
     #
     # If a document doesn't meet conditions it raises
     # +Dynamoid::Errors::StaleObjectError+ exception.
@@ -961,36 +977,46 @@ module Dynamoid
     # Operation +add+ just adds a value for numeric attributes and join
     # collections if attribute is a set.
     #
-    #   user.update do |t|
-    #     t.add(age: 1, followers_count: 5)
-    #     t.add(hobbies: ['skying', 'climbing'])
-    #   end
+    # ```
+    # user.update do |t|
+    #   t.add(age: 1, followers_count: 5)
+    #   t.add(hobbies: ['skying', 'climbing'])
+    # end
+    # ```
     #
     # Operation +delete+ is applied to collection attribute types and
     # substructs one collection from another.
     #
-    #   user.update do |t|
-    #     t.delete(hobbies: ['skying'])
-    #   end
+    # ```
+    # user.update do |t|
+    #   t.delete(hobbies: ['skying'])
+    # end
+    # ```
     #
     # If it's applied to a scalar attribute then the item's attribute is
     # removed at all:
     #
-    #   user.update do |t|
-    #     t.delete(age: nil)
-    #   end
+    # ```
+    # user.update do |t|
+    #   t.delete(age: nil)
+    # end
+    # ```
     #
     # or even without useless value at all:
     #
-    #   user.update do |t|
-    #     t.delete(:age)
-    #   end
+    # ```
+    # user.update do |t|
+    #   t.delete(:age)
+    # end
+    # ```
     #
     # Operation +set+ just changes an attribute value:
     #
-    #   user.update do |t|
-    #     t.set(age: 21)
-    #   end
+    # ```
+    # user.update do |t|
+    #   t.set(age: 21)
+    # end
+    # ```
     #
     # All the operations works like +ADD+, +DELETE+ and +PUT+ actions supported
     # by +AttributeUpdates+
@@ -999,18 +1025,22 @@ module Dynamoid
     #
     # Can update a model conditionaly:
     #
-    #   user.update(if: { age: 20 }) do |t|
-    #     t.add(age: 1)
-    #   end
+    # ```
+    # user.update(if: { age: 20 }) do |t|
+    #   t.add(age: 1)
+    # end
+    # ```
     #
     # To check if some attribute (or attributes) isn't stored in a DynamoDB
     # item (e.g. it wasn't set explicitly) there is another condition -
     # +unless_exists+:
     #
-    #   user = User.create(name: 'Tylor')
-    #   user.update(unless_exists: [:age]) do |t|
-    #     t.set(age: 18)
-    #   end
+    # ```
+    # user = User.create(name: 'Tylor')
+    # user.update(unless_exists: [:age]) do |t|
+    #   t.set(age: 18)
+    # end
+    # ```
     #
     # If a document doesn't meet conditions it just returns +false+. Otherwise it returns +true+.
     #
