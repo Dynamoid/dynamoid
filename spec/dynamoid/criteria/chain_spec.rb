@@ -1407,7 +1407,7 @@ describe Dynamoid::Criteria::Chain do
         expect { klass_with_callback.where(name: 'Alex').to_a }.to output('run after_find').to_stdout
       end
 
-      it 'runs callbacks in the proper order' do
+      it 'runs callbacks in the proper order', log_level: :debug do
         klass_with_callback = new_class do
           field :name
           after_initialize { print 'run after_initialize' }
@@ -1601,7 +1601,7 @@ describe Dynamoid::Criteria::Chain do
         end.to output('run after_find').to_stdout
       end
 
-      it 'runs callbacks in the proper order' do
+      it 'runs callbacks in the proper order', log_level: :debug do
         klass_with_callback = new_class do
           field :name
           after_initialize { print 'run after_initialize' }
@@ -2114,7 +2114,7 @@ describe Dynamoid::Criteria::Chain do
         end.to output('run after_find').to_stdout
       end
 
-      it 'runs callbacks in the proper order' do
+      it 'runs callbacks in the proper order', log_level: :debug do
         klass_with_callback = new_class do
           after_initialize { print 'run after_initialize' }
           after_find { print 'run after_find' }
