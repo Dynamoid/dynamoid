@@ -60,7 +60,7 @@ jobs:
           bundler-cache: true
 
       - name: Build API Reference
-        run: yardoc # generates ./yardoc directory
+        run: bundle exec yardoc # generates ./yardoc directory
 
       - name: Upload Guides Raw Material
         uses: actions/upload-artifact@v4
