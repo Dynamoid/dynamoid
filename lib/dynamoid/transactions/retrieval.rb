@@ -11,13 +11,15 @@ module Dynamoid
     # The reading methods are supposed to be as close as possible to their
     # non-transactional counterparts:
     #
-    #   user_id = params[:user_id]
-    #   payment = params[:payment_id]
+    # ```
+    # user_id = params[:user_id]
+    # payment = params[:payment_id]
     #
-    #   models = Dynamoid::Transactions::Retrieval.execute do |t|
-    #     t.find User, user_id
-    #     t.find Payment, payment_id
-    #   end
+    # models = Dynamoid::Transactions::Retrieval.execute do |t|
+    #   t.find User, user_id
+    #   t.find Payment, payment_id
+    # end
+    # ```
     #
     # The only difference is that the methods are called on a transaction
     # instance and a model or a model class should be specified. So +User.find+

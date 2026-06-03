@@ -305,9 +305,11 @@ module Dynamoid
       # the specified size instead of relying on the default paging mechanism
       # of DynamoDB.
       #
-      #   Post.where(links_count: 2).batch(1000).all.each do |post|
-      #     # process a post
-      #   end
+      # ```
+      # Post.where(links_count: 2).batch(1000).all.each do |post|
+      #   # process a post
+      # end
+      # ```
       #
       # It's useful to limit memory usage or throughput consumption
       #
@@ -370,19 +372,20 @@ module Dynamoid
       # needs. When this case occurs you may want to force an order. This occurs
       # when you are searching by hash key, but not specifying a range key.
       #
-      #  class Comment
-      #    include Dynamoid::Document
+      # ```
+      # class Comment
+      #   include Dynamoid::Document
       #
-      #    table key: :post_id
-      #    range_key :author_id
+      #   table key: :post_id
+      #   range_key :author_id
       #
-      #    field :post_date, :datetime
+      #   field :post_date, :datetime
       #
-      #    global_secondary_index name: :time_sorted_comments, hash_key: :post_id, range_key: post_date, projected_attributes: :all
-      #  end
+      #   global_secondary_index name: :time_sorted_comments, hash_key: :post_id, range_key: post_date, projected_attributes: :all
+      # end
       #
-      #
-      #   Comment.where(post_id: id).with_index(:time_sorted_comments).scan_index_forward(false)
+      # Comment.where(post_id: id).with_index(:time_sorted_comments).scan_index_forward(false)
+      # ```
       #
       # @return [Dynamoid::Criteria::Chain]
       def with_index(index_name)
@@ -396,14 +399,16 @@ module Dynamoid
       # Allows to use the results of a search as an enumerable over the results
       # found.
       #
-      #   Post.each do |post|
-      #   end
+      # ```
+      # Post.each do |post|
+      # end
       #
-      #   Post.all.each do |post|
-      #   end
+      # Post.all.each do |post|
+      # end
       #
-      #   Post.where(links_count: 2).each do |post|
-      #   end
+      # Post.where(links_count: 2).each do |post|
+      # end
+      # ```
       #
       # It works similar to the +all+ method so results are loaded lazily.
       #
@@ -420,9 +425,11 @@ module Dynamoid
       #
       # The pages are loaded lazily.
       #
-      #   Post.where('views_count.gt' => 1000).find_by_pages do |posts, options|
-      #     # process posts
-      #   end
+      # ```
+      # Post.where('views_count.gt' => 1000).find_by_pages do |posts, options|
+      #   # process posts
+      # end
+      # ```
       #
       # It passes as block argument an +Array+ of models and a Hash with options.
       #
@@ -430,21 +437,25 @@ module Dynamoid
       # evaluated key is a Hash with key attributes of the last item processed by
       # DynamoDB. It can be used to resume querying using the +start+ method.
       #
-      #   posts, options = Post.where('views_count.gt' => 1000).find_by_pages.first
-      #   last_key = options[:last_evaluated_key]
+      # ```
+      # posts, options = Post.where('views_count.gt' => 1000).find_by_pages.first
+      # last_key = options[:last_evaluated_key]
       #
-      #   # ...
+      # # ...
       #
-      #   Post.where('views_count.gt' => 1000).start(last_key).find_by_pages do |posts, options|
-      #   end
+      # Post.where('views_count.gt' => 1000).start(last_key).find_by_pages do |posts, options|
+      # end
+      # ```
       #
       # If it's called without a block then it returns an +Enumerator+.
       #
-      #   enum = Post.where('views_count.gt' => 1000).find_by_pages
+      # ```
+      # enum = Post.where('views_count.gt' => 1000).find_by_pages
       #
-      #   enum.each do |posts, options|
-      #     # process posts
-      #   end
+      # enum.each do |posts, options|
+      #   # process posts
+      # end
+      # ```
       #
       # @return [Enumerator::Lazy]
       def find_by_pages(&block)

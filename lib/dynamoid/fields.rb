@@ -26,13 +26,15 @@ module Dynamoid
     module ClassMethods
       # Specify a field for a document.
       #
-      #   class User
-      #     include Dynamoid::Document
+      # ```
+      # class User
+      #   include Dynamoid::Document
       #
-      #     field :last_name
-      #     field :age, :integer
-      #     field :last_sign_in, :datetime
-      #   end
+      #   field :last_name
+      #   field :age, :integer
+      #   field :last_sign_in, :datetime
+      # end
+      # ```
       #
       # Its type determines how it is coerced when read in and out of the
       # data store. You can specify +string+, +integer+, +number+, +set+, +array+,
@@ -101,35 +103,39 @@ module Dynamoid
       #
       # It works in the following way:
       #
-      #   class User
-      #     include Dynamoid::Document
+      # ```
+      # class User
+      #   include Dynamoid::Document
       #
-      #     field :age, :integer
-      #   end
+      #   field :age, :integer
+      # end
       #
-      #   user = User.new
-      #   user.age # => nil
-      #   user.age? # => false
+      # user = User.new
+      # user.age # => nil
+      # user.age? # => false
       #
-      #   user.age = 20
-      #   user.age? # => true
+      # user.age = 20
+      # user.age? # => true
       #
-      #   user.age = '21'
-      #   user.age # => 21 - integer
-      #   user.age_before_type_cast # => '21' - string
+      # user.age = '21'
+      # user.age # => 21 - integer
+      # user.age_before_type_cast # => '21' - string
+      # ```
       #
       # There is also an option +alias+ which allows to use another name for a
       # field:
       #
-      #   class User
-      #     include Dynamoid::Document
+      # ```
+      # class User
+      #   include Dynamoid::Document
       #
-      #     field :firstName, :string, alias: :first_name
-      #   end
+      #   field :firstName, :string, alias: :first_name
+      # end
       #
-      #   user = User.new(firstName: 'Michael')
-      #   user.firstName # Michael
-      #   user.first_name # Michael
+      # user = User.new(firstName: 'Michael')
+      # user.firstName # Michael
+      # user.first_name # Michael
+      # ```
       #
       # @param name [Symbol] name of the field
       # @param type [Symbol] type of the field (optional)
@@ -152,11 +158,13 @@ module Dynamoid
 
       # Declare a table range key.
       #
-      #   class User
-      #     include Dynamoid::Document
+      # ```
+      # class User
+      #   include Dynamoid::Document
       #
-      #     range :last_name
-      #   end
+      #   range :last_name
+      # end
+      # ```
       #
       # By default a range key is a string. In order to use any other type it
       # should be specified as a second argument:
@@ -187,29 +195,35 @@ module Dynamoid
       #
       # The +table+ method can be used to override the defaults:
       #
-      #   class User
-      #     include Dynamoid::Document
+      # ```
+      # class User
+      #   include Dynamoid::Document
       #
-      #     table name: :customers, key: :uuid
-      #   end
+      #   table name: :customers, key: :uuid
+      # end
+      # ```
       #
       # The hash key field is declared by default and a type is a string. If
       # another type is needed the field should be declared explicitly:
       #
-      #   class User
-      #     include Dynamoid::Document
+      # ```
+      # class User
+      #   include Dynamoid::Document
       #
-      #     field :id, :integer
-      #   end
+      #   field :id, :integer
+      # end
+      # ```
       #
       # To declare a new attribute with not-default type as a table hash key a
       # :key_type option can be used:
       #
-      #   class User
-      #     include Dynamoid::Document
+      # ```
+      # class User
+      #   include Dynamoid::Document
       #
-      #     table key: :user_id, key_type: :integer
-      #   end
+      #   table key: :user_id, key_type: :integer
+      # end
+      # ```
       #
       # @param options [Hash] options to override default table settings
       # @option options [Symbol] :name name of a table

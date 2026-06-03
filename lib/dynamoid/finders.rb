@@ -243,7 +243,7 @@ module Dynamoid
       #     field :email,  :string
       #     field :age,    :integer
       #     field :gender, :string
-      #     field :rank    :number
+      #     field :rank,   :number
       #   end
       #
       #   # NOTE: the first param and the second param are both hashes,
