@@ -48,21 +48,4 @@ YARD::Rake::YardocTask.new do |t|
   t.options = ['-m', 'markdown'] # optional
 end
 
-desc 'Publish documentation to gh-pages' # TODO: update and use directory other than doc/
-task :publish do
-  Rake::Task['yard'].invoke
-  `git add .`
-  `git commit -m 'Regenerated documentation'`
-  `git checkout gh-pages`
-  `git clean -fdx`
-  `git checkout master -- doc`
-  `cp -R doc/* .`
-  `git rm -rf doc/`
-  `git add .`
-  `git commit -m 'Regenerated documentation'`
-  `git pull`
-  `git push`
-  `git checkout master`
-end
-
 task default: %i[test rubocop]
