@@ -19,6 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Generate Guides
   build-guides:
     runs-on: ubuntu-latest
     env:
@@ -36,27 +37,55 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Build with mdBook
-        run: ./mdbook build
+        run: ./mdbook build # generates ./book directory
 
-      - name: Move into a dedicated subdirectory
-        run: |
-          mkdir -p combined-docs/guides
-          cp -r book/* combined-docs/guides
+      - name: Upload Guides Raw Material
+        uses: actions/upload-artifact@v4
+        with:
+          name: guides-output
+          path: book
 
-      - name: Upload static files as artifact
-        id: deployment
+  # Generate API References
+  build-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API Reference
+        run: yardoc # generates ./yardoc directory
+      - name: Upload Guides Raw Material
+        uses: actions/upload-artifact@v4
+        with:
+          name: reference-output
+          path: yardoc
+
+  # Merge and Deploy to GitHub Pages
+  deploy:
+    needs: [build-guides, build-api]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps:deployment.outputs.page_url }}
+    steps:
+      - name: Create Unified Deployment Directory
+        run: mkdir -p combined-docs
+
+      - name: Download Guides
+        uses: actions/download-artifact@v4
+        with:
+          name: guides-output
+          path: combined-docs/guides
+
+      - name: Download API Reference
+        uses: actions/download-artifact@v4
+        with:
+          name: reference-output
+          path: combined-docs/reference
+
+      - name: Upload Single Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: combined-docs
 
-  # Deployment job
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build-guides
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
