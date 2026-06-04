@@ -19,7 +19,6 @@ plugins:
 # It's the lowest supported Ruby version
 AllCops:
   DisplayCopNames: true # Display the name of the failing cops
-  TargetRubyVersion: 2.3
   NewCops: enable
 
 # It's a matter of taste
