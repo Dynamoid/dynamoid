@@ -11,13 +11,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
-## 3.13.1
+## 3.14.0 / 2026-07-26
+
+### Fixed
+* [#1006](https://github.com/Dynamoid/dynamoid/pull/1006) Fix non-transactional modifying methods to:
+    * preserve explicitly specified `lock_version` values
+    * preserve an already persisted `nil` value of `lock_version` during model persistence
+    * skip locking when `lock_version` is `nil`
+* [#1007](https://github.com/Dynamoid/dynamoid/pull/1007) Fix transactional `#update_fields` and `#save` methods to support DynamoDB reserved words as partition and sort key names
+* [#1007](https://github.com/Dynamoid/dynamoid/pull/1007) Fix non-transactional `#inc` method to
+    * raise `UnknownAttribute` when passed an unknown field name
+    * raise `MissingHashKey` or `MissingRangeKey` when the partition or sort key is `nil` or omitted
+* [#1007](https://github.com/Dynamoid/dynamoid/pull/1007) Fix transactional `#delete`, `#update_fields`, and `#upsert` methods to type-cast partition and sort key values
+* [#1010](https://github.com/Dynamoid/dynamoid/pull/1010) Fix transactional `#delete(model)` to run `after_commit` and `after_rollback` callbacks
+### Added
+* [#1005](https://github.com/Dynamoid/dynamoid/pull/1005) Introduce public methods to start transactions (replace the removed `Dynamoid::TransactionRead` class):
+    * `Dynamoid::Document.transaction`
+    * `Dynamoid::Document.transaction.writing`
+    * `Dynamoid::Document.transaction.reading`
+* [#1007](https://github.com/Dynamoid/dynamoid/pull/1007) Add transactional `#inc` method
+* [#1010](https://github.com/Dynamoid/dynamoid/pull/1010) Add missing transactional methods:
+    * `#increment!`, `#decrement!`
+    * `#touch`
+    * `#update_attribute`, `#update_attribute!`
+    * `#import`
+### Changed
+* [#1006](https://github.com/Dynamoid/dynamoid/pull/1006) Implement optimistic locking for transactional methods using the `lock_version` field. The following methods now support it:
+    * `#save`, `#save!`
+    * `#create`, `#create!`
+    * `#update_attributes`, `#update_attributes!`
+    * `#update_attribute`
+    * `#delete`
+    * `#destroy`, `#destroy!`
+### Removed
+* [#1005](https://github.com/Dynamoid/dynamoid/pull/1005) Remove the `Dynamoid::TransactionRead` class (which was part of the experimental API)
+
+## 3.13.1 / 2026-05-05
 
 ### Fixed
 * [#1003](https://github.com/Dynamoid/dynamoid/pull/1003) Fix detecting dirty changes for `:map` fields
-### Added
-### Changed
-### Removed
 
 ## 3.13.0 / 2026-03-29
 
@@ -30,8 +62,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * [#945](https://github.com/Dynamoid/dynamoid/pull/945) Implement `#update_attribute!` method
 * [#947](https://github.com/Dynamoid/dynamoid/pull/947) Allow skipping default model fields generation and add option `:skip_generating_fields` for the `table` method to specify field names
 * [#988](https://github.com/Dynamoid/dynamoid/pull/988) Add Ruby 4.0 and Rails 8.1 in CI
-### Changed
-### Removed
 
 ## 3.12.0 / 2025-08-23
 
@@ -54,7 +84,6 @@ A proper behaviour is to use adapter's .dynamoid_dump method instead of a value'
 * [#926](https://github.com/Dynamoid/dynamoid/pull/926) Implemented read transactions (using DynamoDB's `TransactGetItems` operation)
 ### Changed
 * [#846](https://github.com/Dynamoid/dynamoid/pull/846) Changed transactional `update_fields()` method to accept a block and support low-level operations `set`, `add`, `delete`, `remove` (similar to the non-transactional `#update()` method) (@ckhsponge)
-### Removed
 
 ## 3.11.0 / 2025-01-12
 ### Fixed
