@@ -6,7 +6,7 @@ module Dynamoid
   module Persistence
     # @private
     class Inc
-      def self.call(model_class, partition_key, sort_key = nil, counters)
+      def self.call(model_class, partition_key, sort_key = nil, counters) # rubocop:disable Style/OptionalArguments
         new(model_class, partition_key, sort_key, counters).call
       end
 
