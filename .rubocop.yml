@@ -16,8 +16,8 @@ plugins:
   - rubocop-rspec
   - rubocop-thread_safety
 
-# It's the lowest supported Ruby version
 AllCops:
+  TargetRubyVersion: 2.3 # It's the lowest supported Ruby version
   DisplayCopNames: true # Display the name of the failing cops
   NewCops: enable
 
