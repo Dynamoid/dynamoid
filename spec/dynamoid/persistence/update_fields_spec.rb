@@ -49,7 +49,7 @@ RSpec.describe Dynamoid::Persistence do
       expect(result.title).to eq 'New title'
     end
 
-    context 'condition specified' do
+    context 'when condition specified' do
       describe 'if condition' do
         it 'updates when model matches conditions' do
           obj = klass.create(title: 'Old title', version: 1)
@@ -233,7 +233,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'primary key validation' do
-      context 'simple primary key' do
+      context 'with simple primary key' do
         it 'requires partition key to be specified' do
           obj = klass.create!(title: 'Alex')
 
@@ -243,7 +243,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'composite key' do
+      context 'with composite key' do
         it 'requires partition key to be specified' do
           obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
 
@@ -329,7 +329,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context ':raw field' do
+    context 'with :raw field' do
       let(:klass) do
         new_class do
           field :hash, :raw
@@ -407,7 +407,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-    context 'Global Secondary Index' do
+    context 'with Global Secondary Index' do
       let(:klass_with_gsi) do
         new_class do
           field :name
@@ -441,7 +441,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'true', config: { store_attribute_with_nil_value: true } do
+      context 'when true', config: { store_attribute_with_nil_value: true } do
         it 'keeps document attribute with nil' do
           obj = klass.create!(age: 42)
           klass.update_fields(obj.id, age: nil)
@@ -450,7 +450,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'false', config: { store_attribute_with_nil_value: false } do
+      context 'when false', config: { store_attribute_with_nil_value: false } do
         it 'does not keep document attribute with nil' do
           obj = klass.create!(age: 42)
           klass.update_fields(obj.id, age: nil)
@@ -460,7 +460,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'by default', config: { store_attribute_with_nil_value: nil } do
+      context 'when by default', config: { store_attribute_with_nil_value: nil } do
         it 'does not keep document attribute with nil' do
           obj = klass.create!(age: 42)
           klass.update_fields(obj.id, age: nil)

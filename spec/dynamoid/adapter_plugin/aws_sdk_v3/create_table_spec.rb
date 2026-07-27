@@ -17,7 +17,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
   let(:table_description) { double('table_description', table_status: 'ACTIVE') }
 
   describe 'call' do
-    context 'table properties' do
+    context 'with table properties' do
       it 'has the correct table name' do
         expect(client).to receive(:create_table)
           .with(hash_including(table_name: :dogs))
@@ -42,7 +42,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
         described_class.new(client, :dogs, :id, options).call
       end
 
-      context 'on demand' do
+      context 'when on demand' do
         let(:options) do
           { billing_mode: :on_demand }
         end
@@ -65,7 +65,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
       end
     end
 
-    context 'key schema' do
+    context 'with key schema' do
       it 'defines a simple primary key' do
         expect(client).to receive(:create_table)
           .with(hash_including(key_schema: [hash_including(attribute_name: 'id', key_type: 'HASH')]))
@@ -110,7 +110,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
       end
     end
 
-    context 'local secondary index' do
+    context 'with local secondary index' do
       let(:options) do
         super().merge(local_secondary_indexes: [index])
       end
@@ -147,7 +147,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
       end
     end
 
-    context 'global secondary index' do
+    context 'with global secondary index' do
       let(:options) do
         super().merge(global_secondary_indexes: [index])
       end
@@ -197,7 +197,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
         described_class.new(client, :dogs, :id, options).call
       end
 
-      context 'on demand' do
+      context 'when on demand' do
         let(:options) do
           super().merge(billing_mode: :on_demand)
         end

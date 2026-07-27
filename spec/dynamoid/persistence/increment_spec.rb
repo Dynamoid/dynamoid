@@ -216,14 +216,14 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'primary key validation' do
-      context 'simple primary key' do
+      context 'with simple primary key' do
         it 'requires partition key to be specified' do
           obj = klass.new
           expect { obj.increment!(:age) }.to raise_error(Dynamoid::Errors::MissingHashKey)
         end
       end
 
-      context 'composite key' do
+      context 'with composite key' do
         it 'requires partition key to be specified' do
           obj = klass_with_composite_key.new(name: 'Alex')
           expect { obj.increment!(:age) }.to raise_error(Dynamoid::Errors::MissingHashKey)

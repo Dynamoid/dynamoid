@@ -282,8 +282,8 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'not unique primary key' do
-      context 'composite key' do
+    context 'with not unique primary key' do
+      context 'with composite key' do
         it 'raises RecordNotUnique error' do
           klass_with_composite_key.create(id: '10', age: 42)
 
@@ -293,7 +293,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'simple key' do
+      context 'with simple key' do
         it 'raises RecordNotUnique error' do
           klass.create(id: '10')
 
@@ -305,8 +305,8 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'primary key validation' do
-      context 'simple primary key' do
-        context 'persisted model' do
+      context 'with simple primary key' do
+        context 'with persisted model' do
           it 'allows partition key to be nil so it will be generated' do
             obj = klass.create(id: nil)
             expect(obj.id).to be_present
@@ -314,8 +314,8 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'composite key' do
-        context 'new model' do
+      context 'with composite key' do
+        context 'when new model' do
           it 'allows partition key to be nil so it will be generated' do
             obj = klass_with_composite_key.create id: nil, age: 42
             expect(obj.id).to be_present
@@ -384,7 +384,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-    context 'Global Secondary Index' do
+    context 'with Global Secondary Index' do
       let(:klass_with_gsi) do
         new_class do
           field :name
@@ -418,14 +418,14 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'true', config: { store_attribute_with_nil_value: true } do
+      context 'when true', config: { store_attribute_with_nil_value: true } do
         it 'keeps document attribute with nil' do
           obj = klass.create(age: nil)
           expect(raw_attributes(obj)).to include(age: nil)
         end
       end
 
-      context 'false', config: { store_attribute_with_nil_value: false } do
+      context 'when false', config: { store_attribute_with_nil_value: false } do
         it 'does not keep document attribute with nil' do
           obj = klass.create(age: nil)
 
@@ -434,7 +434,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'by default', config: { store_attribute_with_nil_value: nil } do
+      context 'when by default', config: { store_attribute_with_nil_value: nil } do
         it 'does not keep document attribute with nil' do
           obj = klass.create(age: nil)
 
@@ -509,7 +509,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'validation' do
+    context 'with validation' do
       let(:klass_with_validation) do
         new_class do
           field :city

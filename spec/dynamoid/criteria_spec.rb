@@ -26,7 +26,7 @@ describe Dynamoid::Criteria do
     expect(User.all.first.new_record).to be_falsey
   end
 
-  context 'Magazine table' do
+  context 'with Magazine table' do
     before do
       Magazine.create_table
     end

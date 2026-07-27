@@ -56,7 +56,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
   end
 
   describe 'primary key schema' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'persists changes in already persisted model' do
         obj = klass.create!(name: 'Alex')
 
@@ -68,7 +68,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'persists changes in already persisted model' do
         obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
 
@@ -82,7 +82,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
   end
 
   describe 'primary key validation' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'requires partition key to be specified' do
         obj = klass.create!(name: 'Alex')
 
@@ -94,7 +94,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'requires partition key to be specified' do
         obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
 
@@ -296,7 +296,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
     end
   end
 
-  context 'given a block' do
+  context 'when given a block' do
     describe 'add' do
       it 'increments numeric attribute' do
         klass = new_class do
@@ -828,7 +828,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
   end
 
   # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-  context 'Global Secondary Index' do
+  context 'with Global Secondary Index' do
     let(:klass_with_gsi) do
       new_class do
         field :name
@@ -862,7 +862,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
       expect(obj.reload.age).to eql nil
     end
 
-    context 'given a block' do
+    context 'when given a block' do
       it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
         obj = klass_with_gsi.create!(name: 'Alex', age: 42)
 
@@ -896,7 +896,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
       end
     end
 
-    context 'true', config: { store_attribute_with_nil_value: true } do
+    context 'when true', config: { store_attribute_with_nil_value: true } do
       it 'keeps document attribute with nil' do
         obj = klass.create!(name: 'Alex', age: 42)
         described_class.execute { |t| t.update_fields klass, obj.id, age: nil }
@@ -904,7 +904,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
       end
     end
 
-    context 'false', config: { store_attribute_with_nil_value: false } do
+    context 'when false', config: { store_attribute_with_nil_value: false } do
       it 'does not keep document attribute with nil' do
         obj = klass.create!(name: 'Alex', age: 42)
         described_class.execute { |t| t.update_fields klass, obj.id, age: nil }
@@ -912,7 +912,7 @@ describe Dynamoid::Transactions::Mutation, '#update_fields' do
       end
     end
 
-    context 'by default', config: { store_attribute_with_nil_value: nil } do
+    context 'when by default', config: { store_attribute_with_nil_value: nil } do
       it 'does not keep document attribute with nil' do
         obj = klass.create!(name: 'Alex', age: 42)
         described_class.execute { |t| t.update_fields klass, obj.id, age: nil }

@@ -162,7 +162,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'primary key validation' do
-      context 'simple primary key' do
+      context 'with simple primary key' do
         it 'requires partition key to be specified' do
           expect {
             document_class.inc(nil, links_count: 1)
@@ -170,7 +170,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'composite key' do
+      context 'with composite key' do
         let(:klass) do
           new_class do
             range :name

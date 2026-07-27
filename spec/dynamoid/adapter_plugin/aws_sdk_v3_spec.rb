@@ -49,7 +49,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
     end
 
-    context 'multiple name entities' do
+    context 'with multiple name entities' do
       before do
         (1..4).each do |i|
           Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: i.to_f)
@@ -170,7 +170,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     # Tests that even with large records we are paginating to pull more data
     # even if we hit response data size limits
     #
-    context 'large records still returns as much data' do
+    context 'when large records still returns as much data' do
       before do
         # 64 of these items will exceed the 1MB result record_limit thus query won't return all results on first loop
         # We use :age since :range won't work for filtering in queries
@@ -925,7 +925,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         )
       end
 
-      context 'optional block passed' do
+      context 'when optional block passed' do
         it 'passes as block arguments flag if there are unprocessed items for each batch' do
           # dynamodb-local ignores provisioned throughput settings
           # so we cannot emulate unprocessed items - let's stub
@@ -1000,7 +1000,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(Dynamoid.adapter.query(test_table1, { id: [[:eq, '1']] }).first).to eq([[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }])
     end
 
-    context 'backoff is specified' do
+    context 'when backoff is specified' do
       before do
         @old_backoff = Dynamoid.config.backoff
         @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
@@ -1094,7 +1094,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(Dynamoid.adapter.scan(test_table1, [], record_limit: 1, batch_size: 1).flat_map { |i| i }.count).to eq(1)
     end
 
-    context 'backoff is specified' do
+    context 'when backoff is specified' do
       before do
         @old_backoff = Dynamoid.config.backoff
         @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
@@ -1175,7 +1175,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(name: 'Justin', id: '1')
     end
 
-    context 'for attribute values' do
+    context 'when for attribute values' do
       it 'adds attribute values' do
         Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
@@ -1226,7 +1226,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
     end
 
-    context 'updates item conditionally' do
+    context 'with updates item conditionally' do
       it 'raises Exception if condition fails' do
         Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh', age: 17)
 

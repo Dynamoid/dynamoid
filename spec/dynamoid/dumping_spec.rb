@@ -5,7 +5,7 @@ require 'fixtures/dumping'
 
 describe 'Dumping' do
   describe 'Boolean field' do
-    context 'string format' do
+    context 'with string format' do
       let(:klass) do
         new_class do
           field :active, :boolean, store_as_native_boolean: false
@@ -34,7 +34,7 @@ describe 'Dumping' do
       end
     end
 
-    context 'boolean format' do
+    context 'with boolean format' do
       let(:klass) do
         new_class do
           field :active, :boolean, store_as_native_boolean: true
@@ -83,7 +83,7 @@ describe 'Dumping' do
         expect(reload(obj).active).to eql(true)
       end
 
-      context 'store_boolean_as_native=true' do
+      context 'when store_boolean_as_native=true' do
         it 'is stored as boolean if field option store_as_native_boolean is not set',
            config: { store_boolean_as_native: true } do
           klass = new_class do
@@ -121,7 +121,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'store_boolean_as_native=false' do
+      context 'when store_boolean_as_native=false' do
         it 'is stored as string if field option store_as_native_boolean is not set',
            config: { store_boolean_as_native: false } do
           klass = new_class do
@@ -162,7 +162,7 @@ describe 'Dumping' do
   end
 
   describe 'DateTime field' do
-    context 'Stored in :number format' do
+    context 'with Stored in :number format' do
       let(:klass) do
         new_class do
           field :sent_at, :datetime
@@ -192,7 +192,7 @@ describe 'Dumping' do
       end
     end
 
-    context 'Stored in :string ISO-8601 format',
+    context 'with Stored in :string ISO-8601 format',
             config: { application_timezone: :utc, dynamodb_timezone: :utc } do
       let(:klass) do
         new_class do
@@ -342,7 +342,7 @@ describe 'Dumping' do
   end
 
   describe 'Date field' do
-    context 'stored in :string format' do
+    context 'with stored in :string format' do
       it 'stores in ISO 8601 format' do
         klass = new_class do
           field :signed_up_on, :date, store_as_string: true
@@ -394,7 +394,7 @@ describe 'Dumping' do
       end
     end
 
-    context 'stored in :number format' do
+    context 'with stored in :number format' do
       it 'stores as number of days between dates' do
         klass = new_class do
           field :signed_up_on, :date, store_as_string: false
@@ -492,7 +492,7 @@ describe 'Dumping' do
     end
 
     describe 'typed set' do
-      context 'set of string' do
+      context 'when set of string' do
         let(:class_with_typed_set) do
           new_class do
             field :values, :set, of: :string
@@ -528,7 +528,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'set of number' do
+      context 'when set of number' do
         let(:class_with_typed_set) do
           new_class do
             field :values, :set, of: :number
@@ -543,7 +543,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'set of integer' do
+      context 'when set of integer' do
         let(:class_with_typed_set) do
           new_class do
             field :values, :set, of: :integer
@@ -558,7 +558,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'set of date' do
+      context 'when set of date' do
         let(:class_with_typed_set) do
           new_class do
             field :values, :set, of: :date
@@ -598,7 +598,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'set of datetime' do
+      context 'when set of datetime' do
         let(:class_with_typed_set) do
           new_class do
             field :values, :set, of: :datetime
@@ -638,7 +638,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'set of serialized' do
+      context 'when set of serialized' do
         it 'serializes elements' do
           class_with_typed_set = new_class do
             field :values, :set, of: :serialized
@@ -664,7 +664,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'set of custom type' do
+      context 'when set of custom type' do
         let(:class_with_typed_set) do
           new_class do
             field :values, :set, of: DumpingSpecs::User
@@ -680,7 +680,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'specified type is not supported' do
+      context 'when specified type is not supported' do
         let(:class_with_typed_set) do
           new_class do
             field :values, :set, of: :boolean
@@ -763,7 +763,7 @@ describe 'Dumping' do
     end
 
     describe 'typed array' do
-      context 'array of string' do
+      context 'with array of string' do
         let(:class_with_typed_array) do
           new_class do
             field :values, :array, of: :string
@@ -799,7 +799,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'array of number' do
+      context 'with array of number' do
         let(:class_with_typed_array) do
           new_class do
             field :values, :array, of: :number
@@ -814,7 +814,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'array of integer' do
+      context 'with array of integer' do
         let(:class_with_typed_array) do
           new_class do
             field :values, :array, of: :integer
@@ -829,7 +829,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'array of date' do
+      context 'with array of date' do
         let(:class_with_typed_array) do
           new_class do
             field :values, :array, of: :date
@@ -869,7 +869,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'array of datetime' do
+      context 'with array of datetime' do
         let(:class_with_typed_array) do
           new_class do
             field :values, :array, of: :datetime
@@ -909,7 +909,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'array of serialized' do
+      context 'with array of serialized' do
         it 'serializes elements' do
           class_with_typed_array = new_class do
             field :values, :array, of: :serialized
@@ -935,7 +935,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'array of custom type' do
+      context 'with array of custom type' do
         let(:class_with_typed_array) do
           new_class do
             field :values, :array, of: DumpingSpecs::User
@@ -951,7 +951,7 @@ describe 'Dumping' do
         end
       end
 
-      context 'specified type is not supported' do
+      context 'when specified type is not supported' do
         let(:class_with_typed_array) do
           new_class do
             field :values, :array, of: :boolean
@@ -1415,7 +1415,7 @@ describe 'Dumping' do
   end
 
   describe 'Custom type field' do
-    context 'Custom type provided' do
+    context 'when Custom type provided' do
       let(:klass) do
         new_class do |_options|
           field :user, DumpingSpecs::User
@@ -1432,7 +1432,7 @@ describe 'Dumping' do
       end
     end
 
-    context 'Adapter provided' do
+    context 'when Adapter provided' do
       let(:klass) do
         new_class do
           field :user, DumpingSpecs::UserValueAdapter
@@ -1449,7 +1449,7 @@ describe 'Dumping' do
       end
     end
 
-    context 'Custom type with adapter interface provided' do
+    context 'when Custom type with adapter interface provided' do
       let(:klass) do
         new_class do |_options|
           field :user, DumpingSpecs::UserWithAdapterInterface
@@ -1464,7 +1464,7 @@ describe 'Dumping' do
       end
     end
 
-    context 'DynamoDB type specified' do
+    context 'when DynamoDB type specified' do
       let(:klass) do
         new_class do
           field :user, DumpingSpecs::UserValueToArrayAdapter
@@ -1486,7 +1486,7 @@ describe 'Dumping' do
     let(:unfrozen_string) { +"\x00\x88\xFF" }
     let(:binary_value) { unfrozen_string.force_encoding('ASCII-8BIT') }
 
-    context 'default non-native binary' do
+    context 'with default non-native binary' do
       let(:klass) do
         new_class do
           field :image, :binary
@@ -1501,7 +1501,7 @@ describe 'Dumping' do
       end
     end
 
-    context 'native binary' do
+    context 'with native binary' do
       let(:klass) do
         new_class do
           field :image, :binary, store_as_native_binary: true
@@ -1539,7 +1539,7 @@ describe 'Dumping' do
       end
     end
 
-    context 'store_binary_as_native config option' do
+    context 'with store_binary_as_native config option' do
       it 'is stored as binary if store_binary_as_native config option is true',
          config: { store_binary_as_native: true } do
         klass = new_class do

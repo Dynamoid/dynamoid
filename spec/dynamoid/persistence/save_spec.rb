@@ -376,8 +376,8 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'primary key dumping' do
-      context 'new model' do
+    context 'with primary key dumping' do
+      context 'when new model' do
         it 'uses dumped value of partition key to save item' do
           klass = new_class(partition_key: { name: :published_on, type: :date }) do
             field :title
@@ -404,7 +404,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'persisted model' do
+      context 'with persisted model' do
         it 'uses dumped value of partition key to save item' do
           klass = new_class(partition_key: { name: :published_on, type: :date }) do
             field :title
@@ -435,7 +435,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'callbacks' do
-      context 'new model' do
+      context 'when new model' do
         it 'runs before_create callback' do
           klass_with_callback = new_class do
             field :name
@@ -573,7 +573,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'persisted model' do
+      context 'with persisted model' do
         it 'runs before_update callback' do
           klass_with_callback = new_class do
             field :name
@@ -870,8 +870,8 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'not unique primary key' do
-      context 'composite key' do
+    context 'with not unique primary key' do
+      context 'with composite key' do
         it 'raises RecordNotUnique error' do
           klass_with_composite_key.create(id: '10', age: 42)
           obj = klass_with_composite_key.new(id: '10', age: 42)
@@ -880,7 +880,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'simple key' do
+      context 'with simple key' do
         it 'raises RecordNotUnique error' do
           klass.create(id: '10')
           obj = klass.new(id: '10')
@@ -890,7 +890,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context ':raw field' do
+    context 'with :raw field' do
       let(:klass) do
         new_class do
           field :hash, :raw
@@ -909,8 +909,8 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'primary key validation' do
-      context 'simple primary key' do
-        context 'persisted model' do
+      context 'with simple primary key' do
+        context 'with persisted model' do
           it 'requires partition key to be specified' do
             obj = klass.create!(name: 'Alex')
             obj.id = nil
@@ -921,8 +921,8 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'composite key' do
-        context 'new model' do
+      context 'with composite key' do
+        context 'when new model' do
           it 'requires sort key to be specified' do
             obj = klass_with_composite_key.new name: 'Alex', age: nil
 
@@ -930,7 +930,7 @@ RSpec.describe Dynamoid::Persistence do
           end
         end
 
-        context 'persisted model' do
+        context 'with persisted model' do
           it 'requires partition key to be specified' do
             obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
             obj.id = nil
@@ -957,7 +957,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'new record' do
+      context 'when new record' do
         it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
           travel 1.hour do
             time_now = Time.now
@@ -988,7 +988,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'persisted record' do
+      context 'with persisted record' do
         it 'does not change created_at if Config.timestamps=true', config: { timestamps: true } do
           obj = klass.create(title: 'Old title')
 
@@ -1093,7 +1093,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-    context 'Global Secondary Index' do
+    context 'with Global Secondary Index' do
       let(:klass_with_gsi) do
         new_class do
           field :name
@@ -1103,7 +1103,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'new model' do
+      context 'when new model' do
         it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
           obj = klass_with_gsi.new(name: nil, age: 42)
           obj.save
@@ -1127,7 +1127,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'persisted model' do
+      context 'with persisted model' do
         it 'saves successfuly even if a field declared as a GSI primary key is set to nil' do
           obj = klass_with_gsi.create!(name: 'Alex', age: 42)
           obj.name = nil
@@ -1151,7 +1151,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'true', config: { store_attribute_with_nil_value: true } do
+      context 'when true', config: { store_attribute_with_nil_value: true } do
         it 'keeps document attribute with nil when model is not persisted' do
           obj = klass.new(age: nil)
           obj.save
@@ -1168,7 +1168,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'false', config: { store_attribute_with_nil_value: false } do
+      context 'when false', config: { store_attribute_with_nil_value: false } do
         it 'does not keep document attribute with nil when model is not persisted' do
           obj = klass.new(age: nil)
           obj.save
@@ -1187,7 +1187,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'by default', config: { store_attribute_with_nil_value: nil } do
+      context 'when by default', config: { store_attribute_with_nil_value: nil } do
         it 'does not keep document attribute with nil when model is not persisted' do
           obj = klass.new(age: nil)
           obj.save

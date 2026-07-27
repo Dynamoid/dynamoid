@@ -104,7 +104,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
   end
 
   describe 'primary key schema' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'persists a new model' do
         klass.create_table
         id_new = SecureRandom.uuid
@@ -127,7 +127,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'persists a new model' do
         klass_with_composite_key.create_table
         id_new = SecureRandom.uuid
@@ -152,7 +152,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
   end
 
   describe 'primary key validation' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'requires partition key to be specified' do
         expect {
           described_class.execute do |txn|
@@ -162,7 +162,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'requires partition key to be specified' do
         expect {
           described_class.execute do |txn|
@@ -184,7 +184,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
   end
 
   describe 'timestamps' do
-    context 'new model' do
+    context 'when new model' do
       it 'sets updated_at only if Config.timestamps=true', config: { timestamps: true } do
         klass.create_table
         id_new = SecureRandom.uuid
@@ -239,7 +239,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
       end
     end
 
-    context 'already created model' do
+    context 'when already created model' do
       it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
         obj = klass.create!
 
@@ -398,7 +398,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
   end
 
   # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-  context 'Global Secondary Index' do
+  context 'with Global Secondary Index' do
     let(:klass_with_gsi) do
       new_class do
         field :name
@@ -412,7 +412,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
       klass_with_gsi.create_table
     end
 
-    context 'new model' do
+    context 'when new model' do
       it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
         id_new = SecureRandom.uuid
         expect {
@@ -440,7 +440,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
       end
     end
 
-    context 'existing model' do
+    context 'when existing model' do
       it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
         obj = klass_with_gsi.create!(name: 'Alex', age: 42)
 
@@ -470,7 +470,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
       end
     end
 
-    context 'true', config: { store_attribute_with_nil_value: true } do
+    context 'when true', config: { store_attribute_with_nil_value: true } do
       it 'keeps document attribute with nil' do
         obj = klass.create!(name: 'Alex', age: 42)
         described_class.execute { |t| t.upsert klass, obj.id, age: nil }
@@ -478,7 +478,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
       end
     end
 
-    context 'false', config: { store_attribute_with_nil_value: false } do
+    context 'when false', config: { store_attribute_with_nil_value: false } do
       it 'does not keep document attribute with nil' do
         obj = klass.create!(name: 'Alex', age: 42)
         described_class.execute { |t| t.upsert klass, obj.id, age: nil }
@@ -486,7 +486,7 @@ describe Dynamoid::Transactions::Mutation, '#upsert' do
       end
     end
 
-    context 'by default', config: { store_attribute_with_nil_value: nil } do
+    context 'when by default', config: { store_attribute_with_nil_value: nil } do
       it 'does not keep document attribute with nil' do
         obj = klass.create!(name: 'Alex', age: 42)
         described_class.execute { |t| t.upsert klass, obj.id, age: nil }

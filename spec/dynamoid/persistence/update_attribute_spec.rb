@@ -367,7 +367,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'concurrent deletion' do
+    context 'with concurrent deletion' do
       it 'does not persist changes when simple primary key' do
         obj = klass.create!(age: 21)
         klass.find(obj.id).delete
@@ -419,7 +419,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-    context 'Global Secondary Index' do
+    context 'with Global Secondary Index' do
       let(:klass_with_gsi) do
         new_class do
           field :name
@@ -449,7 +449,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'true', config: { store_attribute_with_nil_value: true } do
+      context 'when true', config: { store_attribute_with_nil_value: true } do
         it 'keeps document attribute with nil' do
           obj = klass.create!(age: 42)
           obj.update_attribute(:age, nil)
@@ -458,7 +458,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'false', config: { store_attribute_with_nil_value: false } do
+      context 'when false', config: { store_attribute_with_nil_value: false } do
         it 'does not keep document attribute with nil' do
           obj = klass.create!(age: 42)
           obj.update_attribute(:age, nil)
@@ -468,7 +468,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'by default', config: { store_attribute_with_nil_value: nil } do
+      context 'when by default', config: { store_attribute_with_nil_value: nil } do
         it 'does not keep document attribute with nil' do
           obj = klass.create!(age: 42)
           obj.update_attribute(:age, nil)

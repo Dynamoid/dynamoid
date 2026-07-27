@@ -241,7 +241,7 @@ describe Dynamoid::Fields do
       end
     end
 
-    context 'default values for fields' do
+    context 'with default values for fields' do
       let(:doc_class) do
         new_class do
           field :name, :string, default: 'x'
@@ -338,7 +338,7 @@ describe Dynamoid::Fields do
       end
     end
 
-    context 'an extention overrides field accessors' do
+    context 'when an extention overrides field accessors' do
       let(:klass) do
         extention = Module.new do
           def name
@@ -627,7 +627,7 @@ describe Dynamoid::Fields do
     end
   end
 
-  context 'implicitly declared attribute' do
+  context 'when implicitly declared attribute' do
     it 'automatically declares id' do
       expect { address.id }.not_to raise_error
     end

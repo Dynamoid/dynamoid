@@ -699,7 +699,7 @@ describe 'Type casting' do
   describe 'Custom type field' do # rubocop:disable Lint/EmptyBlock
   end
 
-  context 'there is no such field' do
+  context 'when there is no such field' do
     let(:klass) do
       new_class do
         attr_accessor :active
@@ -712,7 +712,7 @@ describe 'Type casting' do
     end
   end
 
-  context 'unknown type' do
+  context 'with unknown type' do
     let(:klass) do
       new_class do
         field :active, :some_incorrect_type

@@ -284,7 +284,7 @@ describe Dynamoid::Criteria::Chain do
       end.to raise_error(Dynamoid::Errors::Error, 'Unsupported operator foo in age.foo')
     end
 
-    context 'primary key dumping' do
+    context 'with primary key dumping' do
       it 'uses dumped value of partition key to query item' do
         klass = new_class(partition_key: { name: :published_on, type: :date })
 
@@ -1144,7 +1144,7 @@ describe Dynamoid::Criteria::Chain do
       ).to contain_exactly(customer2)
     end
 
-    context 'Query' do
+    context 'with Query' do
       it 'dumps partition key `equal` condition' do
         model = new_class(partition_key: { name: :registered_on, type: :date })
 
@@ -1213,7 +1213,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'Scan' do
+    context 'with Scan' do
       it 'dumps field for `equal` condition' do
         model = new_class do
           field :birthday, :date
@@ -1238,8 +1238,8 @@ describe Dynamoid::Criteria::Chain do
     end
   end
 
-  context 'field is not declared in document' do
-    context 'Query' do
+  context 'when field is not declared in document' do
+    context 'with Query' do
       let(:class_with_not_declared_field) do
         new_class do
           field :name
@@ -1258,7 +1258,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'Scan' do
+    context 'with Scan' do
       let(:class_with_not_declared_field) do
         new_class do
           range :name
@@ -1279,7 +1279,7 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe '#where' do
-    context 'passed condition for nonexistent attribute' do
+    context 'when passed condition for nonexistent attribute' do
       let(:model) do
         new_class do
           field :city
@@ -1312,7 +1312,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'nil check' do
+    context 'when nil check' do
       let(:model) do
         new_class do
           field :name
@@ -1324,7 +1324,7 @@ describe Dynamoid::Criteria::Chain do
         @johndoe = model.create(name: nil)
       end
 
-      context 'store_attribute_with_nil_value = true', config: { store_attribute_with_nil_value: true } do
+      context 'when store_attribute_with_nil_value = true', config: { store_attribute_with_nil_value: true } do
         it 'supports "eq nil" check' do
           expect(model.where(name: nil).to_a).to eq [@johndoe]
         end
@@ -1338,7 +1338,7 @@ describe Dynamoid::Criteria::Chain do
         end
       end
 
-      context 'store_attribute_with_nil_value = false', config: { store_attribute_with_nil_value: false } do
+      context 'when store_attribute_with_nil_value = false', config: { store_attribute_with_nil_value: false } do
         it 'supports "null" check' do
           expect(model.where('name.null': true).to_a).to eq [@johndoe]
           expect(model.where('name.null': false).to_a).to eq [@mike]
@@ -1423,7 +1423,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     context 'when table arn is specified', remove_constants: [:Payment] do
-      context 'Query' do
+      context 'with Query' do
         it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
           # Create table manually because CreateTable doesn't accept ARN as a
           # table name. Add namespace to have this table removed automativally.
@@ -1451,7 +1451,7 @@ describe Dynamoid::Criteria::Chain do
         end
       end
 
-      context 'Scan' do
+      context 'with Scan' do
         it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
           # Create table manually because CreateTable doesn't accept ARN as a
           # table name. Add namespace to have this table removed automativally.
@@ -1521,7 +1521,7 @@ describe Dynamoid::Criteria::Chain do
       expect(klass.where('age < :age', age: 40).where(first_name: 'Alex').all).to contain_exactly(obj3)
     end
 
-    context 'Query' do
+    context 'with Query' do
       it 'filters by specified conditions' do
         obj = klass.create!(first_name: 'Alex', age: 42)
 
@@ -1530,7 +1530,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'Scan' do
+    context 'with Scan' do
       it 'filters by specified conditions' do
         obj = klass.create!(first_name: 'Alex', age: 42)
         expect(klass.where('age = :age', age: 42).all.to_a).to eq([obj])
@@ -1658,7 +1658,7 @@ describe Dynamoid::Criteria::Chain do
       expect(customers + customers_rest).to contain_exactly(customer1, customer2, customer3)
     end
 
-    context 'document with range key' do
+    context 'with document with range key' do
       let(:model) do
         Class.new do
           include Dynamoid::Document
@@ -1696,7 +1696,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'document without range key' do
+    context 'with document without range key' do
       let(:model) do
         new_class(partition_key: :name) do
           field :age, :integer
@@ -1778,7 +1778,7 @@ describe Dynamoid::Criteria::Chain do
         expect { chain.delete_all }.to change { klass.count }.by(-1)
       end
 
-      context 'Query (partition key specified)' do
+      context 'when Query (partition key specified)' do
         it 'works well with composite primary key' do
           klass = new_class do
             range :title
@@ -1822,7 +1822,7 @@ describe Dynamoid::Criteria::Chain do
         end
       end
 
-      context 'Scan (partition key is not specified)' do
+      context 'when Scan (partition key is not specified)' do
         it 'works well with composite primary key' do
           klass = new_class do
             range :title
@@ -1867,7 +1867,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'there are no conditions' do
+    context 'when there are no conditions' do
       it 'deletes all the items' do
         klass = new_class do
           field :title
@@ -1878,7 +1878,7 @@ describe Dynamoid::Criteria::Chain do
         expect { chain.delete_all }.to change { klass.count }.from(3).to(0)
       end
 
-      context 'Scan' do
+      context 'with Scan' do
         it 'works well with composite primary key' do
           klass = new_class do
             range :title
@@ -1900,7 +1900,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     context 'when table arn is specified', remove_constants: [:Payment] do
-      context 'Query' do
+      context 'with Query' do
         it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
           # Create table manually because CreateTable doesn't accept ARN as a
           # table name. Add namespace to have this table removed automativally.
@@ -1929,7 +1929,7 @@ describe Dynamoid::Criteria::Chain do
         end
       end
 
-      context 'Scan' do
+      context 'with Scan' do
         it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
           # Create table manually because CreateTable doesn't accept ARN as a
           # table name. Add namespace to have this table removed automativally.
@@ -2058,7 +2058,7 @@ describe Dynamoid::Criteria::Chain do
       expect(model.where(name: 'Alice').first.age).to eq(6)
     end
 
-    context 'scope is reused' do
+    context 'when scope is reused' do
       it 'does not affect other query methods when no key conditions' do
         klass = new_class do
           field :name
@@ -2174,7 +2174,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'Query' do
+    context 'with Query' do
       let(:model) do
         Class.new do
           include Dynamoid::Document
@@ -2206,7 +2206,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'Scan' do
+    context 'with Scan' do
       let(:model) do
         new_class do
           field :age, :integer
@@ -2231,7 +2231,7 @@ describe Dynamoid::Criteria::Chain do
     end
 
     context 'when table arn is specified', remove_constants: [:Payment] do
-      context 'Query' do
+      context 'with Query' do
         it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
           # Create table manually because CreateTable doesn't accept ARN as a
           # table name. Add namespace to have this table removed automativally.
@@ -2259,7 +2259,7 @@ describe Dynamoid::Criteria::Chain do
         end
       end
 
-      context 'Scan' do
+      context 'with Scan' do
         it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
           # Create table manually because CreateTable doesn't accept ARN as a
           # table name. Add namespace to have this table removed automativally.
@@ -2456,7 +2456,7 @@ describe Dynamoid::Criteria::Chain do
       expect(model.pluck(:created_at)).to eq(['03-04-2020 23:40:00'.to_time])
     end
 
-    context 'scope is reused' do
+    context 'when scope is reused' do
       it 'does not affect other query methods when there is one field to fetch' do
         klass = new_class do
           field :name

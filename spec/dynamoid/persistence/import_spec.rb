@@ -226,7 +226,7 @@ RSpec.describe Dynamoid::Persistence do
       expect(obj.changed?).to eql false
     end
 
-    context 'backoff is specified' do
+    context 'when backoff is specified' do
       let(:backoff_strategy) do
         ->(_) { -> { @counter += 1 } }
       end
@@ -304,7 +304,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context ':raw field' do
+    context 'with :raw field' do
       let(:klass) do
         new_class do
           field :hash, :raw
@@ -349,7 +349,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-    context 'Global Secondary Index' do
+    context 'with Global Secondary Index' do
       let(:klass_with_gsi) do
         new_class do
           field :name
@@ -395,7 +395,7 @@ RSpec.describe Dynamoid::Persistence do
         klass.create_table
       end
 
-      context 'true', config: { store_attribute_with_nil_value: true } do
+      context 'when true', config: { store_attribute_with_nil_value: true } do
         it 'keeps document attribute with nil' do
           objects = klass.import([{ age: nil }])
           obj = objects[0]
@@ -404,7 +404,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'false', config: { store_attribute_with_nil_value: false } do
+      context 'when false', config: { store_attribute_with_nil_value: false } do
         it 'does not keep document attribute with nil' do
           objects = klass.import([{ age: nil }])
           obj = objects[0]
@@ -414,7 +414,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'by default', config: { store_attribute_with_nil_value: nil } do
+      context 'when by default', config: { store_attribute_with_nil_value: nil } do
         it 'does not keep document attribute with nil' do
           objects = klass.import([{ age: nil }])
           obj = objects[0]

@@ -55,7 +55,7 @@ describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable RSpec
   end
 
   describe 'primary key schemas' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'deletes a model' do
         obj = klass.create!(name: 'one')
 
@@ -67,7 +67,7 @@ describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable RSpec
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'deletes a model' do
         obj = klass_with_composite_key.create!(name: 'one', age: 1)
 
@@ -81,7 +81,7 @@ describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable RSpec
   end
 
   describe 'primary key validation' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'requires partition key to be specified' do
         obj = klass.create!(name: 'one')
         obj.id = nil
@@ -94,7 +94,7 @@ describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable RSpec
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'requires partition key to be specified' do
         obj = klass_with_composite_key.create!(name: 'one', age: 1)
         obj.id = nil
