@@ -248,12 +248,8 @@ module Dynamoid
     def attribute_will_change!(name)
       return if attribute_changed?(name)
 
-      begin
-        value = read_attribute(name)
-        value = value.clone if value.duplicable?
-      rescue TypeError, NoMethodError
-      end
-
+      value = read_attribute(name)
+      value = value.clone if value.duplicable?
       set_attribute_was(name, value)
     end
 
