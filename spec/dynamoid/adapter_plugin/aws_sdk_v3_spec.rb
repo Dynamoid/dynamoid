@@ -779,85 +779,86 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(id: '1', name: 'Josh')
     end
 
-    # BatchDeleteItem
-    it 'performs BatchDeleteItem with singular keys' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table2, id: '1', name: 'Justin')
+    describe '#batch_delete_item' do
+      it 'performs BatchDeleteItem with singular keys' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table2, id: '1', name: 'Justin')
 
-      Dynamoid.adapter.batch_delete_item(test_table1 => ['1'], test_table2 => ['1'])
+        Dynamoid.adapter.batch_delete_item(test_table1 => ['1'], test_table2 => ['1'])
 
-      results = Dynamoid.adapter.batch_get_item(test_table1 => '1', test_table2 => '1')
-      expect(results.size).to eq 2
+        results = Dynamoid.adapter.batch_get_item(test_table1 => '1', test_table2 => '1')
+        expect(results.size).to eq 2
 
-      expect(results[test_table1]).to be_blank
-      expect(results[test_table2]).to be_blank
-    end
-
-    it 'performs BatchDeleteItem with multiple keys' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
-
-      Dynamoid.adapter.batch_delete_item(test_table1 => %w[1 2])
-
-      results = Dynamoid.adapter.batch_get_item(test_table1 => %w[1 2])
-
-      expect(results.size).to eq 1
-      expect(results[test_table1]).to be_blank
-    end
-
-    it 'performs BatchDeleteItem with one ranged key' do
-      Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: 1.0)
-      Dynamoid.adapter.put_item(test_table3, id: '2', name: 'Justin', range: 2.0)
-
-      Dynamoid.adapter.batch_delete_item(test_table3 => [['1', 1.0]])
-      results = Dynamoid.adapter.batch_get_item(test_table3 => [['1', 1.0]])
-
-      expect(results.size).to eq 1
-      expect(results[test_table3]).to be_blank
-    end
-
-    it 'performs BatchDeleteItem with multiple ranged keys' do
-      Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: 1.0)
-      Dynamoid.adapter.put_item(test_table3, id: '2', name: 'Justin', range: 2.0)
-
-      Dynamoid.adapter.batch_delete_item(test_table3 => [['1', 1.0], ['2', 2.0]])
-      results = Dynamoid.adapter.batch_get_item(test_table3 => [['1', 1.0], ['2', 2.0]])
-
-      expect(results.size).to eq 1
-      expect(results[test_table3]).to be_blank
-    end
-
-    it 'performs BatchDeleteItem with more than 25 items' do
-      (25 + 1).times do |i|
-        Dynamoid.adapter.put_item(test_table1, id: i.to_s)
+        expect(results[test_table1]).to be_blank
+        expect(results[test_table2]).to be_blank
       end
 
-      expect(Dynamoid.adapter.client).to receive(:batch_write_item)
-        .twice.and_call_original
-      Dynamoid.adapter.batch_delete_item(test_table1 => (0..25).map(&:to_s))
+      it 'performs BatchDeleteItem with multiple keys' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
 
-      results = Dynamoid.adapter.scan(test_table1).flat_map { |i| i }
-      expect(results.to_a.size).to eq 0
-    end
+        Dynamoid.adapter.batch_delete_item(test_table1 => %w[1 2])
 
-    it 'performs BatchDeleteItem with more than 25 items and different tables' do
-      13.times do |i|
-        Dynamoid.adapter.put_item(test_table1, id: i.to_s)
-        Dynamoid.adapter.put_item(test_table2, id: i.to_s)
+        results = Dynamoid.adapter.batch_get_item(test_table1 => %w[1 2])
+
+        expect(results.size).to eq 1
+        expect(results[test_table1]).to be_blank
       end
 
-      expect(Dynamoid.adapter.client).to receive(:batch_write_item)
-        .twice.and_call_original
-      Dynamoid.adapter.batch_delete_item(
-        test_table1 => (0..12).map(&:to_s),
-        test_table2 => (0..12).map(&:to_s)
-      )
+      it 'performs BatchDeleteItem with one ranged key' do
+        Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: 1.0)
+        Dynamoid.adapter.put_item(test_table3, id: '2', name: 'Justin', range: 2.0)
 
-      results = Dynamoid.adapter.scan(test_table1).flat_map { |i| i }
-      expect(results.to_a.size).to eq 0
+        Dynamoid.adapter.batch_delete_item(test_table3 => [['1', 1.0]])
+        results = Dynamoid.adapter.batch_get_item(test_table3 => [['1', 1.0]])
 
-      results = Dynamoid.adapter.scan(test_table2).flat_map { |i| i }
-      expect(results.to_a.size).to eq 0
+        expect(results.size).to eq 1
+        expect(results[test_table3]).to be_blank
+      end
+
+      it 'performs BatchDeleteItem with multiple ranged keys' do
+        Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: 1.0)
+        Dynamoid.adapter.put_item(test_table3, id: '2', name: 'Justin', range: 2.0)
+
+        Dynamoid.adapter.batch_delete_item(test_table3 => [['1', 1.0], ['2', 2.0]])
+        results = Dynamoid.adapter.batch_get_item(test_table3 => [['1', 1.0], ['2', 2.0]])
+
+        expect(results.size).to eq 1
+        expect(results[test_table3]).to be_blank
+      end
+
+      it 'performs BatchDeleteItem with more than 25 items' do
+        (25 + 1).times do |i|
+          Dynamoid.adapter.put_item(test_table1, id: i.to_s)
+        end
+
+        expect(Dynamoid.adapter.client).to receive(:batch_write_item)
+          .twice.and_call_original
+        Dynamoid.adapter.batch_delete_item(test_table1 => (0..25).map(&:to_s))
+
+        results = Dynamoid.adapter.scan(test_table1).flat_map { |i| i }
+        expect(results.to_a.size).to eq 0
+      end
+
+      it 'performs BatchDeleteItem with more than 25 items and different tables' do
+        13.times do |i|
+          Dynamoid.adapter.put_item(test_table1, id: i.to_s)
+          Dynamoid.adapter.put_item(test_table2, id: i.to_s)
+        end
+
+        expect(Dynamoid.adapter.client).to receive(:batch_write_item)
+          .twice.and_call_original
+        Dynamoid.adapter.batch_delete_item(
+          test_table1 => (0..12).map(&:to_s),
+          test_table2 => (0..12).map(&:to_s)
+        )
+
+        results = Dynamoid.adapter.scan(test_table1).flat_map { |i| i }
+        expect(results.to_a.size).to eq 0
+
+        results = Dynamoid.adapter.scan(test_table2).flat_map { |i| i }
+        expect(results.to_a.size).to eq 0
+      end
     end
 
     describe '#batch_write_item' do
@@ -952,200 +953,204 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
     end
 
-    # ListTables
-    it 'performs ListTables' do
-      # Force creation of the tables
-      test_table1
-      test_table2
-      test_table3
-      test_table4
+    describe '#list_tables' do
+      it 'performs ListTables' do
+        # Force creation of the tables
+        test_table1
+        test_table2
+        test_table3
+        test_table4
 
-      expect(Dynamoid.adapter.list_tables).to include test_table1
-      expect(Dynamoid.adapter.list_tables).to include test_table2
+        expect(Dynamoid.adapter.list_tables).to include test_table1
+        expect(Dynamoid.adapter.list_tables).to include test_table2
+      end
+
+      context 'when calling ListTables with more than 200 tables' do
+        let!(:count_before) { Dynamoid.adapter.list_tables.size }
+
+        before do
+          201.times do |n|
+            Dynamoid.adapter.create_table("dynamoid_tests_ALotOfTables#{n}", [:id])
+          end
+        end
+
+        after do
+          201.times do |n|
+            Dynamoid.adapter.delete_table("dynamoid_tests_ALotOfTables#{n}")
+          end
+        end
+
+        it 'automatically pages through all results' do
+          expect(Dynamoid.adapter.list_tables).to include 'dynamoid_tests_ALotOfTables44'
+          expect(Dynamoid.adapter.list_tables).to include 'dynamoid_tests_ALotOfTables200'
+          expect(Dynamoid.adapter.list_tables.size).to eq 201 + count_before
+        end
+      end
     end
 
-    context 'when calling ListTables with more than 200 tables' do
-      let!(:count_before) { Dynamoid.adapter.list_tables.size }
+    describe '#query' do
+      it 'performs query on a table and returns items' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
-      before do
-        201.times do |n|
-          Dynamoid.adapter.create_table("dynamoid_tests_ALotOfTables#{n}", [:id])
+        expect(Dynamoid.adapter.query(test_table1, { id: [[:eq, '1']] }).first).to eq([[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }])
+      end
+
+      it 'performs query on a table and returns items if there are multiple items' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
+
+        expect(Dynamoid.adapter.query(test_table1, { id: [[:eq, '1']] }).first).to eq([[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }])
+      end
+
+      context 'when backoff is specified' do
+        before do
+          @old_backoff = Dynamoid.config.backoff
+          @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
+
+          @counter = 0
+          Dynamoid.config.backoff_strategies[:simple] = ->(_) { -> { @counter += 1 } }
+          Dynamoid.config.backoff = { simple: nil }
+        end
+
+        after do
+          Dynamoid.config.backoff = @old_backoff
+          Dynamoid.config.backoff_strategies = @old_backoff_strategies
+        end
+
+        it 'uses specified backoff' do
+          Dynamoid.adapter.put_item(test_table3, id: '1', range: 1)
+          Dynamoid.adapter.put_item(test_table3, id: '1', range: 2)
+
+          expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']] }, [], { batch_size: 1 }).flat_map { |i| i }.count).to eq 2
+          expect(@counter).to eq 2
         end
       end
 
-      after do
-        201.times do |n|
-          Dynamoid.adapter.delete_table("dynamoid_tests_ALotOfTables#{n}")
-        end
-      end
+      it_behaves_like 'range queries'
 
-      it 'automatically pages through all results' do
-        expect(Dynamoid.adapter.list_tables).to include 'dynamoid_tests_ALotOfTables44'
-        expect(Dynamoid.adapter.list_tables).to include 'dynamoid_tests_ALotOfTables200'
-        expect(Dynamoid.adapter.list_tables.size).to eq 201 + count_before
+      describe 'query' do
+        it_behaves_like 'correctly handling limits', :query
       end
     end
 
-    # Query
-    it 'performs query on a table and returns items' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+    describe '#scan' do
+      it 'performs scan on a table and returns items' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
 
-      expect(Dynamoid.adapter.query(test_table1, { id: [[:eq, '1']] }).first).to eq([[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }])
-    end
-
-    it 'performs query on a table and returns items if there are multiple items' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
-
-      expect(Dynamoid.adapter.query(test_table1, { id: [[:eq, '1']] }).first).to eq([[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }])
-    end
-
-    context 'when backoff is specified' do
-      before do
-        @old_backoff = Dynamoid.config.backoff
-        @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
-
-        @counter = 0
-        Dynamoid.config.backoff_strategies[:simple] = ->(_) { -> { @counter += 1 } }
-        Dynamoid.config.backoff = { simple: nil }
+        expect(Dynamoid.adapter.scan(test_table1, [{ name: { eq: 'Josh' } }]).to_a).to eq [[[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }]]
       end
 
-      after do
-        Dynamoid.config.backoff = @old_backoff
-        Dynamoid.config.backoff_strategies = @old_backoff_strategies
+      it 'performs scan on a table and returns items if there are multiple items but only one match' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
+
+        expect(Dynamoid.adapter.scan(test_table1, [{ name: { eq: 'Josh' } }]).to_a).to eq [[[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }]]
       end
 
-      it 'uses specified backoff' do
-        Dynamoid.adapter.put_item(test_table3, id: '1', range: 1)
-        Dynamoid.adapter.put_item(test_table3, id: '1', range: 2)
+      it 'performs scan on a table and returns multiple items if there are multiple matches' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
 
-        expect(Dynamoid.adapter.query(test_table3, { id: [[:eq, '1']] }, [], { batch_size: 1 }).flat_map { |i| i }.count).to eq 2
-        expect(@counter).to eq 2
-      end
-    end
-
-    it_behaves_like 'range queries'
-
-    describe 'query' do
-      it_behaves_like 'correctly handling limits', :query
-    end
-
-    # Scan
-    it 'performs scan on a table and returns items' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-
-      expect(Dynamoid.adapter.scan(test_table1, [{ name: { eq: 'Josh' } }]).to_a).to eq [[[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }]]
-    end
-
-    it 'performs scan on a table and returns items if there are multiple items but only one match' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Justin')
-
-      expect(Dynamoid.adapter.scan(test_table1, [{ name: { eq: 'Josh' } }]).to_a).to eq [[[{ id: '1', name: 'Josh' }], { last_evaluated_key: nil }]]
-    end
-
-    it 'performs scan on a table and returns multiple items if there are multiple matches' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
-
-      expect(
-        Dynamoid.adapter.scan(test_table1, [{ name: { eq: 'Josh' } }]).to_a
-      ).to match(
-        [
+        expect(
+          Dynamoid.adapter.scan(test_table1, [{ name: { eq: 'Josh' } }]).to_a
+        ).to match(
           [
-            contain_exactly({ name: 'Josh', id: '2' }, { name: 'Josh', id: '1' }),
-            { last_evaluated_key: nil }
+            [
+              contain_exactly({ name: 'Josh', id: '2' }, { name: 'Josh', id: '1' }),
+              { last_evaluated_key: nil }
+            ]
           ]
-        ]
-      )
-    end
-
-    it 'performs scan on a table and returns all items if no criteria are specified' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
-
-      expect(Dynamoid.adapter.scan(test_table1, []).flat_map { |i| i }).to include({ name: 'Josh', id: '2' }, name: 'Josh', id: '1')
-    end
-
-    it 'performs scan on a table and returns correct limit' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
-
-      expect(Dynamoid.adapter.scan(test_table1, [], record_limit: 1).flat_map { |i| i }.count).to eq(1)
-    end
-
-    it 'performs scan on a table and returns correct batch' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
-
-      expect(Dynamoid.adapter.scan(test_table1, [], batch_size: 1).flat_map { |i| i }.count).to eq(4)
-    end
-
-    it 'performs scan on a table and returns correct limit and batch' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
-
-      expect(Dynamoid.adapter.scan(test_table1, [], record_limit: 1, batch_size: 1).flat_map { |i| i }.count).to eq(1)
-    end
-
-    context 'when backoff is specified' do
-      before do
-        @old_backoff = Dynamoid.config.backoff
-        @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
-
-        @counter = 0
-        Dynamoid.config.backoff_strategies[:simple] = ->(_) { -> { @counter += 1 } }
-        Dynamoid.config.backoff = { simple: nil }
+        )
       end
 
-      after do
-        Dynamoid.config.backoff = @old_backoff
-        Dynamoid.config.backoff_strategies = @old_backoff_strategies
+      it 'performs scan on a table and returns all items if no criteria are specified' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
+
+        expect(Dynamoid.adapter.scan(test_table1, []).flat_map { |i| i }).to include({ name: 'Josh', id: '2' }, name: 'Josh', id: '1')
       end
 
-      it 'uses specified backoff' do
+      it 'performs scan on a table and returns correct limit' do
         Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
         Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
         Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
         Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
 
-        expect(Dynamoid.adapter.scan(test_table1, [], batch_size: 1).flat_map { |i| i }.count).to eq 4
-        expect(@counter).to eq 4
+        expect(Dynamoid.adapter.scan(test_table1, [], record_limit: 1).flat_map { |i| i }.count).to eq(1)
+      end
+
+      it 'performs scan on a table and returns correct batch' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
+
+        expect(Dynamoid.adapter.scan(test_table1, [], batch_size: 1).flat_map { |i| i }.count).to eq(4)
+      end
+
+      it 'performs scan on a table and returns correct limit and batch' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
+
+        expect(Dynamoid.adapter.scan(test_table1, [], record_limit: 1, batch_size: 1).flat_map { |i| i }.count).to eq(1)
+      end
+
+      context 'when backoff is specified' do
+        before do
+          @old_backoff = Dynamoid.config.backoff
+          @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
+
+          @counter = 0
+          Dynamoid.config.backoff_strategies[:simple] = ->(_) { -> { @counter += 1 } }
+          Dynamoid.config.backoff = { simple: nil }
+        end
+
+        after do
+          Dynamoid.config.backoff = @old_backoff
+          Dynamoid.config.backoff_strategies = @old_backoff_strategies
+        end
+
+        it 'uses specified backoff' do
+          Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+          Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Josh')
+          Dynamoid.adapter.put_item(test_table1, id: '3', name: 'Josh')
+          Dynamoid.adapter.put_item(test_table1, id: '4', name: 'Josh')
+
+          expect(Dynamoid.adapter.scan(test_table1, [], batch_size: 1).flat_map { |i| i }.count).to eq 4
+          expect(@counter).to eq 4
+        end
+      end
+
+      describe 'scans' do
+        it_behaves_like 'correctly handling limits', :scan
       end
     end
 
-    describe 'scans' do
-      it_behaves_like 'correctly handling limits', :scan
-    end
+    describe '#truncate' do
+      it 'performs truncate on an existing table' do
+        Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
+        Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Pascal')
 
-    # Truncate
-    it 'performs truncate on an existing table' do
-      Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
-      Dynamoid.adapter.put_item(test_table1, id: '2', name: 'Pascal')
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(name: 'Josh', id: '1')
+        expect(Dynamoid.adapter.get_item(test_table1, '2')).to eq(name: 'Pascal', id: '2')
 
-      expect(Dynamoid.adapter.get_item(test_table1, '1')).to eq(name: 'Josh', id: '1')
-      expect(Dynamoid.adapter.get_item(test_table1, '2')).to eq(name: 'Pascal', id: '2')
+        Dynamoid.adapter.truncate(test_table1)
 
-      Dynamoid.adapter.truncate(test_table1)
+        expect(Dynamoid.adapter.get_item(test_table1, '1')).to be_nil
+        expect(Dynamoid.adapter.get_item(test_table1, '2')).to be_nil
+      end
 
-      expect(Dynamoid.adapter.get_item(test_table1, '1')).to be_nil
-      expect(Dynamoid.adapter.get_item(test_table1, '2')).to be_nil
-    end
+      it 'performs truncate on an existing table with a range key' do
+        Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: 1.0)
+        Dynamoid.adapter.put_item(test_table3, id: '2', name: 'Justin', range: 2.0)
 
-    it 'performs truncate on an existing table with a range key' do
-      Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: 1.0)
-      Dynamoid.adapter.put_item(test_table3, id: '2', name: 'Justin', range: 2.0)
+        Dynamoid.adapter.truncate(test_table3)
 
-      Dynamoid.adapter.truncate(test_table3)
-
-      expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to be_nil
-      expect(Dynamoid.adapter.get_item(test_table3, '2', range_key: 2.0)).to be_nil
+        expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to be_nil
+        expect(Dynamoid.adapter.get_item(test_table3, '2', range_key: 2.0)).to be_nil
+      end
     end
 
     it_behaves_like 'correct ordering'
@@ -1153,7 +1158,6 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
   # DescribeTable
 
-  # UpdateItem
   describe '#update_item' do
     it 'updates an existing item' do
       Dynamoid.adapter.put_item(test_table1, id: '1', name: 'Josh')
@@ -1252,8 +1256,6 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
     end
   end
-
-  # UpdateTable
 
   describe 'update_time_to_live' do
     let(:table_name) { "#{Dynamoid::Config.namespace}_table_with_expiration" }
@@ -1378,7 +1380,6 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
   end
 
-  # connection_config
   describe '#connectin_config' do
     subject { described_class.new.connection_config }
 
