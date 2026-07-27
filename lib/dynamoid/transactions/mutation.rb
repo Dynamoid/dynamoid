@@ -443,7 +443,7 @@ module Dynamoid
       # @param range_key [Scalar value] range key value (optional)
       # @param attributes [Hash]
       # @return [nil]
-      def upsert(model_class, hash_key, range_key = nil, attributes) # rubocop:disable Style/OptionalArguments
+      def upsert(model_class, hash_key, range_key = nil, attributes)
         action = Upsert.new(model_class, hash_key, range_key, attributes)
         register_action action
       end

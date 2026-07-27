@@ -21,6 +21,11 @@ AllCops:
   DisplayCopNames: true # Display the name of the failing cops
   NewCops: enable
 
+# Intentionally disabled
+# There are several cases with already established method signatires
+Style/OptionalArguments:
+  Enabled: false
+
 # It's a matter of taste
 Layout/ParameterAlignment:
   EnforcedStyle: with_fixed_indentation
