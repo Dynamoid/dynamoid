@@ -6,19 +6,17 @@ module Dynamoid
   module Persistence
     # @private
     class Inc
-      def self.call(model_class, partition_key, sort_key = nil, counters) # rubocop:disable Style/OptionalArguments
-        new(model_class, partition_key, sort_key, counters).call
+      def self.call(model_class, partition_key, sort_key, **counters)
+        new(model_class, partition_key, sort_key, **counters).call
       end
 
-      # rubocop:disable Style/OptionalArguments
-      def initialize(model_class, partition_key, sort_key = nil, counters)
+      def initialize(model_class, partition_key, sort_key, **counters)
         @model_class = model_class
         @partition_key = partition_key
         @sort_key = sort_key
         @counters = counters
         @touch = @counters.delete(:touch)
       end
-      # rubocop:enable Style/OptionalArguments
 
       def call
         validate_primary_key!

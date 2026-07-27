@@ -465,7 +465,7 @@ module Dynamoid
       # @return [Model class] self
       def inc(hash_key_value, range_key_value = nil, counters)
         # It's similar to Rails' #update_counters.
-        Inc.call(self, hash_key_value, range_key_value, counters)
+        Inc.call(self, hash_key_value, range_key_value, **counters)
         self
       end
 

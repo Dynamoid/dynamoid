@@ -123,7 +123,7 @@ module Dynamoid
     #
     # @return [ActiveSupport::HashWithIndifferentAccess]
     def previous_changes
-      @previously_changed ||= ActiveSupport::HashWithIndifferentAccess.new
+      @previous_changes ||= ActiveSupport::HashWithIndifferentAccess.new
     end
 
     # Returns a hash of the attributes with unsaved changes indicating their original

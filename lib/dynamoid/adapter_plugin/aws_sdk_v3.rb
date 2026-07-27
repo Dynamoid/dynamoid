@@ -156,9 +156,7 @@ module Dynamoid
       # Return the client object.
       #
       # @since 1.0.0
-      def client
-        @client
-      end
+      attr_reader :client
 
       # Puts multiple items in one table
       #
