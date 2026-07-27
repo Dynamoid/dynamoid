@@ -140,14 +140,14 @@ module Dynamoid
 
     # Clear all dirty data: current changes and previous changes.
     def clear_changes_information
-      @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
+      @previous_changes = ActiveSupport::HashWithIndifferentAccess.new
       @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
       @attributes_from_database = HashWithIndifferentAccess.new(DeepDupper.dup_attributes(@attributes, self.class))
     end
 
     # Clears dirty data and moves +changes+ to +previous_changes+.
     def changes_applied
-      @previously_changed = changes
+      @previous_changes = changes
       @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
       @attributes_from_database = HashWithIndifferentAccess.new(DeepDupper.dup_attributes(@attributes, self.class))
     end
