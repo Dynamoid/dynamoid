@@ -16,8 +16,8 @@ class SendRequestMatching < RSpec::Matchers::BuiltIn::BaseMatcher
   end
 
   # @api private
-  def does_not_match?(_event_proc)
-    !matches?(given_proc, :negative_expectation) && given_proc.is_a?(Proc)
+  def does_not_match?(event_proc)
+    !matches?(event_proc)
   end
 
   # @api private

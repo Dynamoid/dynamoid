@@ -1977,8 +1977,10 @@ describe Dynamoid::Criteria::Chain do
       document = model.create(name: 'Bob', age: 5)
 
       chain = described_class.new(model)
-      expect_any_instance_of(described_class).to receive(:scan_limit).with(1).and_call_original
-      expect(chain.first).to eq(document)
+
+      expect {
+        expect(chain.first).to eq(document)
+      }.to send_request_matching(:Scan, { Limit: 1 })
     end
 
     it 'applies the correct scan limit if no conditions are present' do
@@ -1987,16 +1989,18 @@ describe Dynamoid::Criteria::Chain do
       document3 = model.create(name: 'Bob', age: 7)
 
       chain = described_class.new(model)
-      expect_any_instance_of(described_class).to receive(:scan_limit).with(2).and_call_original
-      expect(chain.first(2).to_set).to eq([document1, document2].to_set)
+      expect {
+        expect(chain.first(2).to_set).to eq([document1, document2].to_set)
+      }.to send_request_matching(:Scan, { Limit: 2 })
     end
 
     it 'applies a record limit if only key conditions are present' do
       document = model.create(name: 'Bob', age: 5)
 
       chain = described_class.new(model)
-      expect_any_instance_of(described_class).to receive(:record_limit).with(1).and_call_original
-      expect(chain.where(name: 'Bob', age: 5).first).to eq(document)
+      expect {
+        expect(chain.where(name: 'Bob', age: 5).first).to eq(document)
+      }.to send_request_matching(:Query, { Limit: 1 })
     end
 
     it 'applies the correct record limit if only key conditions are present' do
@@ -2005,26 +2009,36 @@ describe Dynamoid::Criteria::Chain do
       document3 = model.create(name: 'Bob', age: 7)
 
       chain = described_class.new(model)
-      expect_any_instance_of(described_class).to receive(:record_limit).with(2).and_call_original
-      expect(chain.where(name: 'Bob').first(2)).to eq([document1, document2])
+      expect {
+        expect(chain.where(name: 'Bob').first(2)).to eq([document1, document2])
+      }.to send_request_matching(:Query, { Limit: 2 })
     end
 
     it 'does not apply a record limit if the hash key is missing' do
       document = model.create(name: 'Bob', city: 'New York', age: 5)
 
       chain = described_class.new(model)
-      expect_any_instance_of(described_class).not_to receive(:record_limit)
-      expect(chain.where(age: 5).first).to eq(document)
+      expect {
+        expect(chain.where(age: 5).first).to eq(document)
+      }.not_to send_request_matching(:Scan, { Limit: anything })
     end
 
     it 'does not apply a record limit if non-key conditions are present' do
       document = model.create(name: 'Bob', city: 'New York', age: 5)
 
       chain = described_class.new(model)
-      expect_any_instance_of(described_class).not_to receive(:record_limit)
-      expect(chain.where(city: 'New York').first).to eq(document)
-      expect(chain.where(name: 'Bob', city: 'New York').first).to eq(document)
-      expect(chain.where(name: 'Bob', age: 5, city: 'New York').first).to eq(document)
+
+      expect {
+        expect(chain.where(city: 'New York').first).to eq(document)
+      }.not_to send_request_matching(:Scan, { Limit: anything })
+
+      expect {
+        expect(chain.where(name: 'Bob', city: 'New York').first).to eq(document)
+      }.not_to send_request_matching(:Query, { Limit: anything })
+
+      expect {
+        expect(chain.where(name: 'Bob', age: 5, city: 'New York').first).to eq(document)
+      }.not_to send_request_matching(:Query, { Limit: anything })
     end
 
     it 'does not apply a record limit if non-equality conditions are present' do
@@ -2032,8 +2046,9 @@ describe Dynamoid::Criteria::Chain do
       document2 = model.create(name: 'Alice', age: 6)
 
       chain = described_class.new(model)
-      expect_any_instance_of(described_class).not_to receive(:record_limit)
-      expect(chain.where('name.gt': 'Alice').first).to eq(document1)
+      expect {
+        expect(chain.where('name.gt': 'Alice').first).to eq(document1)
+      }.not_to send_request_matching(:Scan, { Limit: anything })
     end
 
     it 'returns nil if no matching document is present' do
