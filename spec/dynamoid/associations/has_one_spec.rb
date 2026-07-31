@@ -37,12 +37,6 @@ describe Dynamoid::Associations::HasOne do
     expect(magazine.sponsor).to eq sponsor
   end
 
-  it 'is equal from its target record' do
-    sponsor = magazine.sponsor.create
-
-    expect(magazine.sponsor).to eq sponsor
-  end
-
   it 'associates belongs_to automatically' do
     sponsor = magazine.sponsor.create
     expect(sponsor.magazine).to eq magazine

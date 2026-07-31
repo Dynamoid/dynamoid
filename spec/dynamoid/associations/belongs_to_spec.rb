@@ -167,7 +167,7 @@ describe Dynamoid::Associations::BelongsTo do
         end.to change { sponsor.magazine.target }.from(magazine_old).to(magazine_new)
       end
 
-      it 're-associates model on this side' do
+      it 're-associates model on that side' do
         magazine_old = Magazine.create
         magazine_new = Magazine.create
         sponsor.magazine = magazine_old
