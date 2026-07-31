@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'Type casting' do
+describe Dynamoid::Fields, 'Type casting' do # rubocop:disable RSpec/DescribeMethod
   describe 'Boolean field' do
     let(:klass) do
       new_class do
