@@ -44,7 +44,7 @@ require 'dynamoid/middleware/identity_map'
 require 'dynamoid/railtie' if defined?(Rails)
 
 module Dynamoid
-  extend self
+  extend self # rubocop:disable Style/ModuleFunction
 
   def configure
     block_given? ? yield(Dynamoid::Config) : Dynamoid::Config
