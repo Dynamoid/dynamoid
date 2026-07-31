@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'fixtures/dumping'
 
 describe Dynamoid::Fields, 'Type casting' do # rubocop:disable RSpec/DescribeMethod
   describe 'Boolean field' do
@@ -449,7 +450,25 @@ describe Dynamoid::Fields, 'Type casting' do # rubocop:disable RSpec/DescribeMet
     end
   end
 
-  describe 'Raw field' do # rubocop:disable Lint/EmptyBlock
+  describe 'Raw field' do
+    let(:klass) do
+      new_class do
+        field :config, :raw
+      end
+    end
+
+    it 'does not change scalar values' do
+      expect(klass.new(config: 1).config).to eq 1
+      expect(klass.new(config: 1.0).config).to eq 1.0
+      expect(klass.new(config: false).config).to eq false
+      expect(klass.new(config: 'foo').config).to eq 'foo'
+      expect(klass.new(config: :foo).config).to eq :foo
+    end
+
+    it 'does not change collections' do
+      expect(klass.new(config: [1, 2, 3]).config).to eq [1, 2, 3]
+      expect(klass.new(config: { a: 'b' }).config).to eq(a: 'b')
+    end
   end
 
   describe 'Map field' do
@@ -693,10 +712,53 @@ describe Dynamoid::Fields, 'Type casting' do # rubocop:disable RSpec/DescribeMet
     end
   end
 
-  describe 'Serialized field' do # rubocop:disable Lint/EmptyBlock
+  describe 'Serialized field' do
+    let(:klass) do
+      new_class do
+        field :config, :serialized
+      end
+    end
+
+    it 'does not change scalar values' do
+      expect(klass.new(config: 1).config).to eq 1
+      expect(klass.new(config: 1.0).config).to eq 1.0
+      expect(klass.new(config: false).config).to eq false
+      expect(klass.new(config: 'foo').config).to eq 'foo'
+      expect(klass.new(config: :foo).config).to eq :foo
+    end
+
+    it 'does not change collections' do
+      expect(klass.new(config: [1, 2, 3]).config).to eq [1, 2, 3]
+      expect(klass.new(config: { a: 'b' }).config).to eq(a: 'b')
+    end
   end
 
-  describe 'Custom type field' do # rubocop:disable Lint/EmptyBlock
+  describe 'Custom type field' do
+    context 'when Custom type provided' do
+      let(:klass) do
+        new_class do
+          field :user, DumpingSpecs::User
+        end
+      end
+
+      it 'does not change value' do
+        user = DumpingSpecs::User.new('John')
+        expect(klass.new(user: user).user).to eq user
+      end
+    end
+
+    context 'when Adapter provided' do
+      let(:klass) do
+        new_class do
+          field :user, DumpingSpecs::UserValueAdapter
+        end
+      end
+
+      it 'does not change value' do
+        user = DumpingSpecs::UserValue.new('John')
+        expect(klass.new(user: user).user).to eq user
+      end
+    end
   end
 
   context 'when there is no such field' do

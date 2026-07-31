@@ -1417,7 +1417,7 @@ describe 'Dumping' do
   describe 'Custom type field' do
     context 'when Custom type provided' do
       let(:klass) do
-        new_class do |_options|
+        new_class do
           field :user, DumpingSpecs::User
         end
       end
