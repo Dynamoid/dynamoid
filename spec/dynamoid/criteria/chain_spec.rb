@@ -1367,15 +1367,14 @@ describe Dynamoid::Criteria::Chain do
     # https://github.com/Dynamoid/dynamoid/issues/435
     context 'when inheritance field (:type by default) is a GSI hash key' do
       it 'works without exception' do
-        # rubocop:disable Lint/ConstantDefinitionInBlock
-        UserWithGSI = new_class class_name: 'UserWithGSI' do
+        klass = new_class class_name: 'UserWithGSI' do
           field :type
 
           global_secondary_index hash_key: :type,
                                  range_key: :created_at,
                                  projected_attributes: :all
         end
-        # rubocop:enable Lint/ConstantDefinitionInBlock
+        stub_const 'UserWithGSI', klass
 
         obj = UserWithGSI.create
 
@@ -1422,7 +1421,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'when table arn is specified', remove_constants: [:Payment] do
+    context 'when table arn is specified' do
       context 'with Query' do
         it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
           # Create table manually because CreateTable doesn't accept ARN as a
@@ -1433,12 +1432,13 @@ describe Dynamoid::Criteria::Chain do
           table = Dynamoid.adapter.describe_table(table_name)
           expect(table.arn).to be_present
 
-          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+          klass = Class.new do
             include Dynamoid::Document
 
             table arn: table.arn
             field :comment
           end
+          stub_const 'Payment', klass
 
           obj = Payment.create!(comment: 'foobar')
 
@@ -1461,12 +1461,13 @@ describe Dynamoid::Criteria::Chain do
           table = Dynamoid.adapter.describe_table(table_name)
           expect(table.arn).to be_present
 
-          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+          klass = Class.new do
             include Dynamoid::Document
 
             table arn: table.arn
             field :comment
           end
+          stub_const 'Payment', klass
 
           obj = Payment.create!(comment: 'foobar')
 
@@ -1899,7 +1900,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'when table arn is specified', remove_constants: [:Payment] do
+    context 'when table arn is specified' do
       context 'with Query' do
         it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
           # Create table manually because CreateTable doesn't accept ARN as a
@@ -1910,12 +1911,13 @@ describe Dynamoid::Criteria::Chain do
           table = Dynamoid.adapter.describe_table(table_name)
           expect(table.arn).to be_present
 
-          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+          klass = Class.new do
             include Dynamoid::Document
 
             table arn: table.arn
             field :comment
           end
+          stub_const 'Payment', klass
 
           obj = Payment.create!(comment: 'foobar')
 
@@ -1939,12 +1941,13 @@ describe Dynamoid::Criteria::Chain do
           table = Dynamoid.adapter.describe_table(table_name)
           expect(table.arn).to be_present
 
-          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+          klass = Class.new do
             include Dynamoid::Document
 
             table arn: table.arn
             field :comment
           end
+          stub_const 'Payment', klass
 
           obj = Payment.create!(comment: 'foobar')
 
@@ -2245,7 +2248,7 @@ describe Dynamoid::Criteria::Chain do
       end
     end
 
-    context 'when table arn is specified', remove_constants: [:Payment] do
+    context 'when table arn is specified' do
       context 'with Query' do
         it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
           # Create table manually because CreateTable doesn't accept ARN as a
@@ -2256,12 +2259,13 @@ describe Dynamoid::Criteria::Chain do
           table = Dynamoid.adapter.describe_table(table_name)
           expect(table.arn).to be_present
 
-          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+          klass = Class.new do
             include Dynamoid::Document
 
             table arn: table.arn
             field :comment
           end
+          stub_const 'Payment', klass
 
           obj = Payment.create!(comment: 'foobar')
 
@@ -2284,12 +2288,13 @@ describe Dynamoid::Criteria::Chain do
           table = Dynamoid.adapter.describe_table(table_name)
           expect(table.arn).to be_present
 
-          Payment = Class.new do # rubocop:disable Lint/ConstantDefinitionInBlock
+          klass = Class.new do
             include Dynamoid::Document
 
             table arn: table.arn
             field :comment
           end
+          stub_const 'Payment', klass
 
           obj = Payment.create!(comment: 'foobar')
 
