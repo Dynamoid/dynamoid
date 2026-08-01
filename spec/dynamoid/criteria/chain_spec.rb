@@ -1586,32 +1586,37 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe '#find_by_pages' do
-    let(:model) do
-      new_class do
-        self.range_key = :range
+    it 'yields one page at a time' do
+      klass = new_class do
+        range :range
         field :city
         field :age, :number
         field :range, :number
         field :data
       end
-    end
 
-    before do
       120.times do |i|
-        model.create(
-          id: '1',
-          range: i.to_f,
-          age: i.to_f,
-          data: 'A' * 1024 * 16
-        )
+        klass.create(id: '1', range: i.to_f, age: i.to_f, data: 'A' * 1024 * 16)
       end
+
+      expect { |b| klass.where(id: '1').find_by_pages(&b) }.to yield_successive_args(
+        [all(be_a(klass)), { last_evaluated_key: an_instance_of(Hash) }],
+        [all(be_a(klass)), { last_evaluated_key: nil }],
+      )
     end
 
-    it 'yields one page at a time' do
-      expect { |b| model.where(id: '1').find_by_pages(&b) }.to yield_successive_args(
-        [all(be_a(model)), { last_evaluated_key: an_instance_of(Hash) }],
-        [all(be_a(model)), { last_evaluated_key: nil }],
-      )
+    it 'returns :last_evaluated_key which may be used to restart iteration' do
+      klass = new_class do
+        field :name
+      end
+
+      # Creates exactly 2 full pages
+      58.times { klass.create!(name: SecureRandom.uuid * 1024) }
+
+      first_page, first_page_meta = klass.find_by_pages.first
+      second_page, = klass.start(first_page_meta[:last_evaluated_key]).find_by_pages.first
+
+      expect(first_page & second_page).to be_empty
     end
 
     describe 'callbacks' do
@@ -2893,6 +2898,36 @@ describe Dynamoid::Criteria::Chain do
         expect(models.map(&:nickname)).to eq %w[c b a]
         expect(chain.key_fields_detector.index_name).to eq(:age_nickname_index)
       end
+    end
+  end
+
+  describe '#consistent' do
+    it 'sends ConsistentRead attribute in Query request' do
+      klass = new_class do
+        range :name
+      end
+      klass.create_table
+
+      expect {
+        described_class.new(klass).where(id: '1', name: 'Alex').consistent.all.to_a
+      }.to send_request_matching(:Query, { ConsistentRead: true })
+
+      expect {
+        described_class.new(klass).where(id: '1', name: 'Alex').all.to_a
+      }.not_to send_request_matching(:Query, { ConsistentRead: true })
+    end
+
+    it 'sends ConsistentRead attribute in Scan request' do
+      klass = new_class do
+        range :name
+      end
+      klass.create_table
+
+      chain = described_class.new(klass)
+
+      expect {
+        described_class.new(klass).where(name: 'Alex').consistent.all.to_a
+      }.to send_request_matching(:Scan, { ConsistentRead: true })
     end
   end
 end
