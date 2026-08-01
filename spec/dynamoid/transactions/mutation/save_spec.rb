@@ -106,7 +106,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
   end
 
   describe 'primary key schema' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'persists a new model' do
         klass.create_table
         obj = klass.new
@@ -130,7 +130,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'persists a new model' do
         klass_with_composite_key.create_table
         obj = klass_with_composite_key.new(age: 3)
@@ -156,8 +156,8 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
   end
 
   describe 'primary key validation' do
-    context 'simple primary key' do
-      context 'persisted model' do
+    context 'with simple primary key' do
+      context 'with persisted model' do
         it 'requires partition key to be specified' do
           obj = klass.create!(name: 'Alex')
           obj.id = nil
@@ -172,8 +172,8 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       end
     end
 
-    context 'composite key' do
-      context 'new model' do
+    context 'with composite key' do
+      context 'when new model' do
         it 'requires sort key to be specified' do
           obj = klass_with_composite_key.new name: 'Alex', age: nil
 
@@ -185,7 +185,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
         end
       end
 
-      context 'persisted model' do
+      context 'with persisted model' do
         it 'requires partition key to be specified' do
           obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
           obj.id = nil
@@ -324,7 +324,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
   end
 
   describe 'timestamps' do
-    context 'new model' do
+    context 'when new model' do
       before do
         klass.create_table
       end
@@ -376,7 +376,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       end
     end
 
-    context 'already created model' do
+    context 'when already created model' do
       it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
         obj = klass.create!
 
@@ -465,7 +465,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
   end
 
   describe 'validation' do
-    context 'new model' do
+    context 'when new model' do
       before do
         klass_with_validation.create_table
       end
@@ -499,7 +499,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
         expect(obj).to be_changed
       end
 
-      context 'validate: false option' do
+      context 'when validate: false option' do
         it 'persists an invalid model' do
           obj = klass_with_validation.new(name: 'one')
           expect(obj.valid?).to eql false
@@ -560,7 +560,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       end
     end
 
-    context 'already persisted model' do
+    context 'when already persisted model' do
       it 'persists a valid model' do
         obj = klass_with_validation.create!(name: 'oneone')
         obj.name = 'twotwo'
@@ -592,7 +592,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
         expect(obj).to be_changed
       end
 
-      context 'validate: false option' do
+      context 'when validate: false option' do
         it 'persists an invalid model' do
           obj = klass_with_validation.create!(name: 'oneone')
           obj.name = 'one'
@@ -830,8 +830,8 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
     expect(obj).to be_changed
   end
 
-  context 'primary key is of non-native DynamoDB type' do
-    context 'a new model' do
+  context 'when primary key is of non-native DynamoDB type' do
+    context 'when a new model' do
       it 'uses dumped value of partition key to update item' do
         klass = new_class(partition_key: { name: :published_on, type: :date }) do
           field :name
@@ -864,7 +864,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       end
     end
 
-    context 'already persisted model' do
+    context 'when already persisted model' do
       it 'uses dumped value of partition key to update item' do
         klass = new_class(partition_key: { name: :published_on, type: :date }) do
           field :name
@@ -901,7 +901,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       ScratchPad.clear
     end
 
-    context 'new model' do
+    context 'when new model' do
       it 'runs before_save callback' do
         klass_with_callback = new_class do
           before_save { ScratchPad.record 'run before_save' }
@@ -1300,7 +1300,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       end
     end
 
-    context 'persisted model' do
+    context 'with persisted model' do
       it 'runs before_save callback' do
         klass_with_callback = new_class do
           field :name
@@ -1682,7 +1682,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
   end
 
   # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-  context 'Global Secondary Index' do
+  context 'with Global Secondary Index' do
     let(:klass_with_gsi) do
       new_class do
         field :name
@@ -1696,7 +1696,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       klass_with_gsi.create_table
     end
 
-    context 'new model' do
+    context 'when new model' do
       it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
         obj = klass_with_gsi.new(name: nil, age: 42)
 
@@ -1726,7 +1726,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       end
     end
 
-    context 'persisted model' do
+    context 'with persisted model' do
       it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
         obj = klass_with_gsi.create!(name: 'Alex', age: 42)
         obj.name = nil
@@ -1762,7 +1762,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       klass.create_table
     end
 
-    context 'true', config: { store_attribute_with_nil_value: true } do
+    context 'when true', config: { store_attribute_with_nil_value: true } do
       it 'keeps document attribute with nil when new model' do
         obj = klass.new(name: 'Alex', age: nil)
         described_class.execute { |t| t.save obj }
@@ -1777,7 +1777,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       end
     end
 
-    context 'false', config: { store_attribute_with_nil_value: false } do
+    context 'when false', config: { store_attribute_with_nil_value: false } do
       it 'does not keep document attribute with nil when new model' do
         obj = klass.new(name: 'Alex', age: nil)
         described_class.execute { |t| t.save obj }
@@ -1792,7 +1792,7 @@ describe Dynamoid::Transactions::Mutation, '#save' do # rubocop:disable RSpec/Mu
       end
     end
 
-    context 'by default', config: { store_attribute_with_nil_value: nil } do
+    context 'when by default', config: { store_attribute_with_nil_value: nil } do
       it 'does not keep document attribute with nil when new model' do
         obj = klass.new(name: 'Alex', age: nil)
         described_class.execute { |t| t.save obj }
@@ -2180,8 +2180,8 @@ describe Dynamoid::Transactions::Mutation, '#save!' do
     expect(obj).to be_changed
   end
 
-  context 'primary key is of non-native DynamoDB type' do
-    context 'a new model' do
+  context 'when primary key is of non-native DynamoDB type' do
+    context 'when a new model' do
       it 'uses dumped value of partition key to update item' do
         klass = new_class(partition_key: { name: :published_on, type: :date }) do
           field :name
@@ -2214,7 +2214,7 @@ describe Dynamoid::Transactions::Mutation, '#save!' do
       end
     end
 
-    context 'already persisted model' do
+    context 'when already persisted model' do
       it 'uses dumped value of partition key to update item' do
         klass = new_class(partition_key: { name: :published_on, type: :date }) do
           field :name
@@ -2253,7 +2253,7 @@ describe Dynamoid::Transactions::Mutation, '#save!' do
   end
 
   # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-  context 'Global Secondary Index' do
+  context 'with Global Secondary Index' do
     let(:klass_with_gsi) do
       new_class do
         field :name
@@ -2267,7 +2267,7 @@ describe Dynamoid::Transactions::Mutation, '#save!' do
       klass_with_gsi.create_table
     end
 
-    context 'new model' do
+    context 'when new model' do
       it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
         obj = klass_with_gsi.new(name: nil, age: 42)
 
@@ -2297,7 +2297,7 @@ describe Dynamoid::Transactions::Mutation, '#save!' do
       end
     end
 
-    context 'persisted model' do
+    context 'with persisted model' do
       it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
         obj = klass_with_gsi.create!(name: 'Alex', age: 42)
         obj.name = nil
@@ -2333,7 +2333,7 @@ describe Dynamoid::Transactions::Mutation, '#save!' do
       klass.create_table
     end
 
-    context 'true', config: { store_attribute_with_nil_value: true } do
+    context 'when true', config: { store_attribute_with_nil_value: true } do
       it 'keeps document attribute with nil when new model' do
         obj = klass.new(name: 'Alex', age: nil)
         described_class.execute { |t| t.save! obj }
@@ -2348,7 +2348,7 @@ describe Dynamoid::Transactions::Mutation, '#save!' do
       end
     end
 
-    context 'false', config: { store_attribute_with_nil_value: false } do
+    context 'when false', config: { store_attribute_with_nil_value: false } do
       it 'does not keep document attribute with nil when new model' do
         obj = klass.new(name: 'Alex', age: nil)
         described_class.execute { |t| t.save! obj }
@@ -2363,7 +2363,7 @@ describe Dynamoid::Transactions::Mutation, '#save!' do
       end
     end
 
-    context 'by default', config: { store_attribute_with_nil_value: nil } do
+    context 'when by default', config: { store_attribute_with_nil_value: nil } do
       it 'does not keep document attribute with nil when new model' do
         obj = klass.new(name: 'Alex', age: nil)
         described_class.execute { |t| t.save! obj }

@@ -72,7 +72,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'primary key validation' do
-      context 'simple primary key' do
+      context 'with simple primary key' do
         it 'requires partition key to be specified' do
           obj = klass.create!(name: 'one')
           obj.id = nil
@@ -81,7 +81,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'composite key' do
+      context 'with composite key' do
         it 'requires partition key to be specified' do
           obj = klass_with_composite_key.create!(name: 'one', age: 1)
           obj.id = nil
@@ -98,7 +98,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'optimistic locking' do
+    context 'with optimistic locking' do
       let(:klass) do
         new_class do
           field :name

@@ -11,7 +11,7 @@ describe Dynamoid::IdentityMap do
     Dynamoid::Config.identity_map = false
   end
 
-  context 'object identity' do
+  context 'with object identity' do
     it 'maintains a single object' do
       tweet = Tweet.create(tweet_id: 'x', group: 'one')
       tweet1 = Tweet.where(tweet_id: 'x', group: 'one').first
@@ -19,7 +19,7 @@ describe Dynamoid::IdentityMap do
     end
   end
 
-  context 'cache' do
+  context 'with cache' do
     it 'uses cache' do
       tweet = Tweet.create(tweet_id: 'x', group: 'one')
       expect(Dynamoid::Adapter).not_to receive(:read)
@@ -34,7 +34,7 @@ describe Dynamoid::IdentityMap do
     end
   end
 
-  context 'clear' do
+  context 'with clear' do
     it 'clears the identiy map' do
       Tweet.create(tweet_id: 'x', group: 'one')
       Tweet.create(tweet_id: 'x', group: 'two')

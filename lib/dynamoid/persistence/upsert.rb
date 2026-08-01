@@ -28,7 +28,7 @@ module Dynamoid
 
         raw_attributes = update_item
         @model_class.new(undump_attributes(raw_attributes))
-      rescue Dynamoid::Errors::ConditionalCheckFailedException
+      rescue Dynamoid::Errors::ConditionalCheckFailedException # rubocop:disable Lint/SuppressedException
       end
 
       private

@@ -17,12 +17,6 @@ RSpec.describe 'STI' do
       end
     end
 
-    let!(:class_c) do
-      Class.new(class_a) do
-        field :c
-      end
-    end
-
     it 'enables only own attributes in a base class' do
       expect(class_a.attributes.keys).to match_array(%i[id type a created_at updated_at])
     end

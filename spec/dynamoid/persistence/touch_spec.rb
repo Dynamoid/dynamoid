@@ -122,7 +122,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'primary key validation' do
-      context 'simple primary key' do
+      context 'with simple primary key' do
         it 'requires partition key to be specified' do
           obj = klass.create!
           obj.id = nil
@@ -130,7 +130,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'composite key' do
+      context 'with composite key' do
         it 'requires partition key to be specified' do
           obj = klass_with_composite_key.create!(name: 'Alex')
           obj.id = nil
@@ -180,7 +180,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'concurrent deletion' do
+    context 'with concurrent deletion' do
       it 'skips changes for simple primary key' do
         obj = klass.create!
         klass.find(obj.id).delete

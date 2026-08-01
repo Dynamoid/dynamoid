@@ -241,7 +241,7 @@ describe Dynamoid::Indexes do
         end
       end
 
-      context 'validation' do
+      context 'with validation' do
         it 'throws an error when :dynamoid_class is not specified' do
           expect do
             Dynamoid::Indexes::Index.new
@@ -312,7 +312,7 @@ describe Dynamoid::Indexes do
         end
       end
 
-      context 'correct parameters' do
+      context 'when correct parameters' do
         context 'with only required params' do
           let(:defaults_index) do
             Dynamoid::Indexes::Index.new(

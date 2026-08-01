@@ -123,7 +123,7 @@ module Dynamoid
     #
     # @return [ActiveSupport::HashWithIndifferentAccess]
     def previous_changes
-      @previously_changed ||= ActiveSupport::HashWithIndifferentAccess.new
+      @previous_changes ||= ActiveSupport::HashWithIndifferentAccess.new
     end
 
     # Returns a hash of the attributes with unsaved changes indicating their original
@@ -140,14 +140,14 @@ module Dynamoid
 
     # Clear all dirty data: current changes and previous changes.
     def clear_changes_information
-      @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
+      @previous_changes = ActiveSupport::HashWithIndifferentAccess.new
       @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
       @attributes_from_database = HashWithIndifferentAccess.new(DeepDupper.dup_attributes(@attributes, self.class))
     end
 
     # Clears dirty data and moves +changes+ to +previous_changes+.
     def changes_applied
-      @previously_changed = changes
+      @previous_changes = changes
       @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
       @attributes_from_database = HashWithIndifferentAccess.new(DeepDupper.dup_attributes(@attributes, self.class))
     end
@@ -248,12 +248,8 @@ module Dynamoid
     def attribute_will_change!(name)
       return if attribute_changed?(name)
 
-      begin
-        value = read_attribute(name)
-        value = value.clone if value.duplicable?
-      rescue TypeError, NoMethodError
-      end
-
+      value = read_attribute(name)
+      value = value.clone if value.duplicable?
       set_attribute_was(name, value)
     end
 

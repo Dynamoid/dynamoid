@@ -13,8 +13,8 @@ describe Dynamoid::Transactions::Retrieval, '#find' do
     end
   end
 
-  context 'a single primary key provided' do
-    context 'simple primary key' do
+  context 'when a single primary key provided' do
+    context 'with simple primary key' do
       it 'finds a model' do
         obj = klass.create!
 
@@ -62,7 +62,7 @@ describe Dynamoid::Transactions::Retrieval, '#find' do
       end
     end
 
-    context 'composite primary key' do
+    context 'with composite primary key' do
       it 'finds a model' do
         obj = klass_with_composite_key.create!(age: 12)
 
@@ -133,7 +133,7 @@ describe Dynamoid::Transactions::Retrieval, '#find' do
       expect(obj_found).to be_persisted
     end
 
-    context 'field is not declared in document' do
+    context 'when field is not declared in document' do
       let(:class_with_not_declared_field) do
         new_class do
           field :name
@@ -244,8 +244,8 @@ describe Dynamoid::Transactions::Retrieval, '#find' do
     end
   end
 
-  context 'multiple primary keys provided' do
-    context 'simple primary key' do
+  context 'when multiple primary keys provided' do
+    context 'with simple primary key' do
       it 'finds models by an array of keys' do # rubocop:disable RSpec/RepeatedExample
         objects = (1..2).map { klass.create! }
         obj1, obj2 = objects
@@ -341,7 +341,7 @@ describe Dynamoid::Transactions::Retrieval, '#find' do
       end
     end
 
-    context 'composite primary key' do
+    context 'with composite primary key' do
       it 'finds models by an array of keys' do
         objects = (1..2).map { |i| klass_with_composite_key.create!(age: i) }
         obj1, obj2 = objects
@@ -537,7 +537,7 @@ describe Dynamoid::Transactions::Retrieval, '#find' do
       expect(objects).to contain_exactly(obj1, obj2)
     end
 
-    context 'field is not declared in document' do
+    context 'when field is not declared in document' do
       let(:class_with_not_declared_field) do
         new_class do
           field :name

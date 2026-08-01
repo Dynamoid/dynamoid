@@ -5,7 +5,7 @@ require 'dynamoid/adapter_plugin/aws_sdk_v3'
 
 describe Dynamoid::AdapterPlugin::AwsSdkV3::UntilPastTableStatus do
   describe 'call' do
-    context 'table creation' do
+    context 'with table creation' do
       let(:client) { double('client') }
       let(:response_creating) { double('response#creating', table: creating_table) }
       let(:response_active) { double('response#active', table: active_table) }

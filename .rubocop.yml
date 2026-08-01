@@ -4,7 +4,6 @@ inherit_from:
   - .rubocop_performance.yml
   - .rubocop_rspec.yml
   - .rubocop_thread_safety.yml
-  - .rubocop_todo.yml
 
 require:
   - rubocop-packaging
@@ -20,6 +19,11 @@ AllCops:
   TargetRubyVersion: 2.3 # It's the lowest supported Ruby version
   DisplayCopNames: true # Display the name of the failing cops
   NewCops: enable
+
+# Intentionally disabled
+# There are several cases with already established method signatires
+Style/OptionalArguments:
+  Enabled: false
 
 # It's a matter of taste
 Layout/ParameterAlignment:

@@ -831,7 +831,7 @@ RSpec.describe Dynamoid::Persistence do
       expect(@tweet.user_name).to eq 'Alex'
     end
 
-    context 'condition specified' do
+    context 'when condition specified' do
       let(:document_class) do
         new_class do
           field :title
@@ -1063,7 +1063,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context ':raw field' do
+    context 'with :raw field' do
       let(:klass) do
         new_class do
           field :hash, :raw

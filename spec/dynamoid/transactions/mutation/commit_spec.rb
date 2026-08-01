@@ -32,7 +32,7 @@ describe Dynamoid::Transactions::Mutation, '#commit' do
       end
     end
 
-    context 'transaction succeeds' do
+    context 'with transaction succeeds' do
       it 'runs #after_commit callbacks for each involved model' do
         klass.create_table
 
@@ -45,7 +45,7 @@ describe Dynamoid::Transactions::Mutation, '#commit' do
       end
     end
 
-    context 'transaction fails' do
+    context 'with transaction fails' do
       before do
         ScratchPad.clear
       end
@@ -66,7 +66,7 @@ describe Dynamoid::Transactions::Mutation, '#commit' do
       end
     end
 
-    context 'transaction interrupted by exception in a callback' do
+    context 'with transaction interrupted by exception in a callback' do
       before do
         ScratchPad.clear
       end

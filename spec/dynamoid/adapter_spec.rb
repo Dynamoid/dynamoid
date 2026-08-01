@@ -8,8 +8,6 @@ describe Dynamoid::Adapter do
   def test_table
     'dynamoid_tests_TestTable'
   end
-  let(:single_id) { '123' }
-  let(:many_ids) { %w[1 2] }
 
   {
     1 => [:id],
@@ -24,19 +22,26 @@ describe Dynamoid::Adapter do
     end
   end
 
+  let(:adapter_plugin) { subject.adapter }
+
   describe 'connection management' do
+    let(:adapter_plugin) { instance_double(described_class.adapter_plugin_class) }
+
     it 'does not auto-establish a connection' do
-      expect_any_instance_of(described_class.adapter_plugin_class).not_to receive(:connect!)
+      allow(described_class.adapter_plugin_class).to receive(:new).and_return(adapter_plugin)
+      expect(adapter_plugin).not_to receive(:connect!)
       subject
     end
 
     it 'establishes a connection when adapter is requested' do
-      expect_any_instance_of(described_class.adapter_plugin_class).to receive(:connect!).and_call_original
+      allow(described_class.adapter_plugin_class).to receive(:new).and_return(adapter_plugin)
+      expect(adapter_plugin).to receive(:connect!)
       subject.adapter
     end
 
     it 'reuses a connection' do
-      expect_any_instance_of(described_class.adapter_plugin_class).to receive(:connect!).once.and_call_original
+      allow(described_class.adapter_plugin_class).to receive(:new).and_return(adapter_plugin)
+      expect(adapter_plugin).to receive(:connect!).once
       subject.adapter
       subject.adapter
     end
@@ -44,26 +49,31 @@ describe Dynamoid::Adapter do
 
   describe 'caching tables' do
     it 'caches list of tables' do
-      expect(subject).to receive(:list_tables).once.and_call_original
-      subject.create_table('test_table', 'key')
-      subject.tables
-      subject.tables
+      expect {
+        subject.create_table('test_table', 'key')
+        subject.tables
+        subject.tables
+      }.to send_request_matching(:ListTables).once
     end
 
     it 'maintains table cache when creating a table' do
       # cache
       subject.tables
 
-      expect(subject).not_to receive(:list_tables)
       subject.create_table('test_table', 'key')
-      expect(subject.tables).to include('test_table')
+
+      expect {
+        expect(subject.tables).to include('test_table')
+      }.not_to send_request_matching(:ListTables)
     end
 
     it 'clears cached list via #clear_cache!' do
       subject.create_table('test_table', 'key')
       subject.clear_cache!
-      expect(subject).to receive(:list_tables).and_call_original
-      subject.tables
+
+      expect {
+        subject.tables
+      }.to send_request_matching(:ListTables)
     end
   end
 
@@ -72,25 +82,25 @@ describe Dynamoid::Adapter do
   end
 
   it 'writes through the adapter' do
-    expect(subject).to receive(:put_item).with(test_table, { id: single_id }, nil).and_return(true)
-    subject.write(test_table, id: single_id)
+    expect(adapter_plugin).to receive(:put_item).with(test_table, { id: '123' }, nil).and_return(true)
+    subject.write(test_table, id: '123')
   end
 
   describe '#read' do
     it 'reads through the adapter for one ID' do
-      expect(subject).to receive(:get_item).with(test_table, single_id, {}).and_return(true)
-      subject.read(test_table, single_id)
+      expect(adapter_plugin).to receive(:get_item).with(test_table, '123', {}).and_return(true)
+      subject.read(test_table, '123')
     end
 
     it 'reads through the adapter for many IDs' do
-      expect(subject).to receive(:batch_get_item).with({ test_table => many_ids }, {}).and_return(true)
-      subject.read(test_table, many_ids)
+      expect(adapter_plugin).to receive(:batch_get_item).with({ test_table => %w[1 2] }, {}).and_return(true)
+      subject.read(test_table, %w[1 2])
     end
 
     it 'reads through the adapter for one ID and a range key' do
-      allow(subject).to receive(:get_item).and_return(true)
-      subject.read(test_table, single_id, range_key: 'boot')
-      expect(subject).to have_received(:get_item).with(test_table, single_id, { range_key: 'boot' })
+      allow(adapter_plugin).to receive(:get_item).and_return(true)
+      subject.read(test_table, '123', range_key: 'boot')
+      expect(adapter_plugin).to have_received(:get_item).with(test_table, '123', { range_key: 'boot' })
     end
   end
 
@@ -102,10 +112,9 @@ describe Dynamoid::Adapter do
     end
 
     it 'does not try to create table if it is already in cache' do
-      expect(Dynamoid.adapter.client).to receive(:create_table).once
-        .and_call_original
-
-      3.times { Dynamoid.adapter.create_table(table_name, :id, sync: true) }
+      expect {
+        3.times { Dynamoid.adapter.create_table(table_name, :id, sync: true) }
+      }.to send_request_matching(:CreateTable).once
     end
 
     it 'returns true if table created' do
@@ -169,13 +178,13 @@ describe Dynamoid::Adapter do
       Dynamoid.adapter.put_item(test_table3, id: '2', range: 1.0)
       Dynamoid.adapter.put_item(test_table3, id: '2', range: 2.0)
 
-      expect(subject).to receive(:batch_delete_item).and_call_original
-
-      expect do
-        subject.delete(test_table3, %w[1 2], range_key: 1.0)
-      end.to change {
-        Dynamoid.adapter.scan(test_table3).flat_map { |i| i }.to_a.size
-      }.from(4).to(2)
+      expect {
+        expect {
+          subject.delete(test_table3, %w[1 2], range_key: 1.0)
+        }.to change {
+          Dynamoid.adapter.scan(test_table3).flat_map { |i| i }.to_a.size
+        }.from(4).to(2)
+      }.to send_request_matching(:BatchWriteItem)
 
       expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to be_nil
       expect(Dynamoid.adapter.get_item(test_table3, '2', range_key: 1.0)).to be_nil

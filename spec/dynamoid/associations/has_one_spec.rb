@@ -37,12 +37,6 @@ describe Dynamoid::Associations::HasOne do
     expect(magazine.sponsor).to eq sponsor
   end
 
-  it 'is equal from its target record' do
-    sponsor = magazine.sponsor.create
-
-    expect(magazine.sponsor).to eq sponsor
-  end
-
   it 'associates belongs_to automatically' do
     sponsor = magazine.sponsor.create
     expect(sponsor.magazine).to eq magazine
@@ -53,7 +47,7 @@ describe Dynamoid::Associations::HasOne do
   end
 
   describe 'assigning' do
-    context 'belongs to' do
+    context 'with belongs to' do
       let(:magazine) { Magazine.create }
 
       it 'associates model on this side' do
@@ -116,7 +110,7 @@ describe Dynamoid::Associations::HasOne do
     end
   end
 
-  context 'set to nil' do
+  context 'when set to nil' do
     it 'can be set to nil' do
       magazine = Magazine.create!
 
@@ -171,7 +165,7 @@ describe Dynamoid::Associations::HasOne do
       end.to change { Magazine.find(magazine.title).sponsor.target }.from(sponsor).to(nil)
     end
 
-    context 'belongs to' do
+    context 'with belongs to' do
       let(:magazine) { Magazine.create }
       let!(:sponsor) { magazine.sponsor.create }
 

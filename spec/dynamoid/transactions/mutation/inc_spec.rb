@@ -204,7 +204,7 @@ describe Dynamoid::Transactions::Mutation, '#inc' do
   end
 
   describe 'primary key validation' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'requires partition key to be specified' do
         expect {
           described_class.execute do |t|
@@ -214,7 +214,7 @@ describe Dynamoid::Transactions::Mutation, '#inc' do
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'requires partition key to be specified' do
         expect {
           described_class.execute do |t|

@@ -100,7 +100,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'primary key validation' do
-      context 'simple primary key' do
+      context 'with simple primary key' do
         it 'requires partition key to be specified' do
           klass = new_class
           expect { klass.delete(nil) }.to raise_exception(Dynamoid::Errors::MissingHashKey)
@@ -108,7 +108,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'composite key' do
+      context 'with composite key' do
         it 'requires partition key to be specified' do
           expect { klass_with_composite_key.delete(nil, 1) }.to raise_exception(Dynamoid::Errors::MissingHashKey)
         end
@@ -226,7 +226,7 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     describe 'primary key validation' do
-      context 'simple primary key' do
+      context 'with simple primary key' do
         it 'requires partition key to be specified' do
           klass = new_class
           obj = klass.create!
@@ -236,7 +236,7 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'composite key' do
+      context 'with composite key' do
         it 'requires partition key to be specified' do
           obj = klass_with_composite_key.create!(age: 1)
           obj.id = nil
@@ -253,7 +253,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'optimistic locking' do
+    context 'with optimistic locking' do
       let(:klass) do
         new_class do
           field :name

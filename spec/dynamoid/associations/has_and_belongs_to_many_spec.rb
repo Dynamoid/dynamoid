@@ -78,7 +78,7 @@ describe Dynamoid::Associations::HasAndBelongsToMany do
       end.to change { Subscription.find(subscription.id).users.target }.from([user]).to([])
     end
 
-    context 'has and belongs to many' do
+    context 'when has and belongs to many' do
       let(:subscription) { Subscription.create }
       let!(:user) { subscription.users.create }
 

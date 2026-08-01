@@ -19,7 +19,7 @@ module Dynamoid
                           'dynamoid'
                         end
 
-    extend self
+    extend self # rubocop:disable Style/ModuleFunction
 
     extend Options
     include ActiveModel::Observing if defined?(ActiveModel::Observing)

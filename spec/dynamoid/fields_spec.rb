@@ -241,7 +241,7 @@ describe Dynamoid::Fields do
       end
     end
 
-    context 'default values for fields' do
+    context 'with default values for fields' do
       let(:doc_class) do
         new_class do
           field :name, :string, default: 'x'
@@ -338,7 +338,7 @@ describe Dynamoid::Fields do
       end
     end
 
-    context 'an extention overrides field accessors' do
+    context 'when an extention overrides field accessors' do
       let(:klass) do
         extention = Module.new do
           def name
@@ -627,7 +627,7 @@ describe Dynamoid::Fields do
     end
   end
 
-  context 'implicitly declared attribute' do
+  context 'when implicitly declared attribute' do
     it 'automatically declares id' do
       expect { address.id }.not_to raise_error
     end
@@ -676,6 +676,115 @@ describe Dynamoid::Fields do
         expect(class_with_timestamps_true.new).to respond_to(:created_at)
         expect(class_with_timestamps_true.new).to respond_to(:updated_at)
       end
+    end
+  end
+
+  describe '#attributes_before_type_cast', config: { timestamps: false } do
+    let(:klass) do
+      new_class do
+        field :admin, :boolean
+      end
+    end
+
+    it 'returns original attributes value' do
+      obj = klass.new(admin: 0)
+
+      expect(obj.attributes_before_type_cast).to eql(
+        admin: 0,
+      )
+    end
+
+    it 'returns values for all the attributes even not assigned' do
+      klass_with_many_fields = new_class do
+        field :first_name
+        field :last_name
+        field :email
+      end
+      obj = klass_with_many_fields.new(first_name: 'John')
+
+      expect(obj.attributes_before_type_cast).to eql(
+        first_name: 'John',
+      )
+    end
+
+    it 'returns original default value if field has default value' do
+      klass_with_default_value = new_class do
+        field :activated_on, :date, default: '2018-09-27'
+      end
+      obj = klass_with_default_value.new
+
+      expect(obj.attributes_before_type_cast).to eql(
+        activated_on: '2018-09-27',
+      )
+    end
+
+    it 'returns nil if field does not have default value' do
+      obj = klass.new
+
+      expect(obj.attributes_before_type_cast).to eql({})
+    end
+
+    it 'returns values loaded from the storage before type casting' do
+      obj = klass.create!(admin: false)
+      obj2 = klass.find(obj.id)
+
+      expect(obj2.attributes_before_type_cast).to eql(
+        id: obj.id,
+        admin: false,
+      )
+    end
+  end
+
+  describe '#read_attribute_before_type_cast' do
+    let(:klass) do
+      new_class do
+        field :admin, :boolean
+      end
+    end
+
+    it 'returns attribute original value' do
+      obj = klass.new(admin: 1)
+
+      expect(obj.read_attribute_before_type_cast(:admin)).to eql(1)
+    end
+
+    it 'accepts string as well as symbol argument' do
+      obj = klass.new(admin: 1)
+
+      expect(obj.read_attribute_before_type_cast('admin')).to eql(1)
+    end
+
+    it 'returns nil if there is no such attribute' do
+      obj = klass.new
+
+      expect(obj.read_attribute_before_type_cast(:first_name)).to eql(nil)
+    end
+  end
+
+  describe '#<name>_before_type_cast' do
+    let(:klass) do
+      new_class do
+        field :first_name
+        field :last_name
+        field :admin, :boolean
+      end
+    end
+
+    it 'exists for every model attribute' do
+      obj = klass.new
+
+      expect(obj).to respond_to(:id)
+      expect(obj).to respond_to(:first_name_before_type_cast)
+      expect(obj).to respond_to(:last_name_before_type_cast)
+      expect(obj).to respond_to(:admin)
+      expect(obj).to respond_to(:created_at)
+      expect(obj).to respond_to(:updated_at)
+    end
+
+    it 'returns attribute original value' do
+      obj = klass.new(admin: 0)
+
+      expect(obj.admin_before_type_cast).to eql(0)
     end
   end
 end

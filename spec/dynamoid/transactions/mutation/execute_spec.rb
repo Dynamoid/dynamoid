@@ -21,7 +21,7 @@ describe Dynamoid::Transactions::Mutation, '.execute' do
   end
 
   describe 'callbacks' do
-    context 'transaction succeeds' do
+    context 'with transaction succeeds' do
       before do
         ScratchPad.clear
       end
@@ -85,7 +85,7 @@ describe Dynamoid::Transactions::Mutation, '.execute' do
       end
     end
 
-    context 'transaction interrupted by user exception' do
+    context 'with transaction interrupted by user exception' do
       before do
         ScratchPad.clear
       end
@@ -175,7 +175,7 @@ describe Dynamoid::Transactions::Mutation, '.execute' do
       end
     end
 
-    context 'transaction interrupted by Dynamoid::Error::Rollback exception' do
+    context 'with transaction interrupted by Dynamoid::Error::Rollback exception' do
       before do
         ScratchPad.clear
       end

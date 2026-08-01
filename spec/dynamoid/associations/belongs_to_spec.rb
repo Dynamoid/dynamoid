@@ -6,7 +6,7 @@ require 'active_support/core_ext/object'
 require 'spec_helper'
 
 describe Dynamoid::Associations::BelongsTo do
-  context 'has many' do
+  context 'when has many' do
     let(:subscription) { Subscription.create }
     let(:camel_case) { CamelCase.create }
     let(:magazine) { subscription.magazine.create }
@@ -30,7 +30,7 @@ describe Dynamoid::Associations::BelongsTo do
       expect(user.books).to include magazine
     end
 
-    context 'proxied behavior' do
+    context 'with proxied behavior' do
       let(:proxy) do
         expect(magazine.subscriptions).to include(subscription)
         subscription.magazine
@@ -50,7 +50,7 @@ describe Dynamoid::Associations::BelongsTo do
     end
   end
 
-  context 'has one' do
+  context 'when has one' do
     let(:subscription) { Subscription.create }
     let(:sponsor) { Sponsor.create }
     let(:magazine) { sponsor.magazine.create }
@@ -78,7 +78,7 @@ describe Dynamoid::Associations::BelongsTo do
   end
 
   describe 'assigning' do
-    context 'has many' do
+    context 'when has many' do
       let(:subscription) { Subscription.create }
 
       it 'associates model on this side' do
@@ -140,7 +140,7 @@ describe Dynamoid::Associations::BelongsTo do
       end
     end
 
-    context 'has one' do
+    context 'when has one' do
       let(:sponsor) { Sponsor.create }
 
       it 'associates model on this side' do
@@ -167,7 +167,7 @@ describe Dynamoid::Associations::BelongsTo do
         end.to change { sponsor.magazine.target }.from(magazine_old).to(magazine_new)
       end
 
-      it 're-associates model on this side' do
+      it 're-associates model on that side' do
         magazine_old = Magazine.create
         magazine_new = Magazine.create
         sponsor.magazine = magazine_old
@@ -203,7 +203,7 @@ describe Dynamoid::Associations::BelongsTo do
     end
   end
 
-  context 'set to nil' do
+  context 'when set to nil' do
     it 'can be set to nil' do
       subscription = Subscription.new
 
@@ -258,7 +258,7 @@ describe Dynamoid::Associations::BelongsTo do
       end.to change { Subscription.find(subscription.id).magazine.target }.from(magazine).to(nil)
     end
 
-    context 'has many' do
+    context 'when has many' do
       let(:subscription) { Subscription.create }
       let!(:magazine) { subscription.magazine.create }
 
@@ -275,7 +275,7 @@ describe Dynamoid::Associations::BelongsTo do
       end
     end
 
-    context 'has one' do
+    context 'when has one' do
       let(:sponsor) { Sponsor.create }
       let!(:magazine) { sponsor.magazine.create }
 

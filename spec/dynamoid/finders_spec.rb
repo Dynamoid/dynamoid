@@ -14,8 +14,8 @@ describe Dynamoid::Finders do
       end
     end
 
-    context 'a single primary key provided' do
-      context 'simple primary key' do
+    context 'when a single primary key provided' do
+      context 'with simple primary key' do
         it 'finds a model' do
           obj = klass.create!
           expect(klass.find(obj.id)).to eql(obj)
@@ -36,7 +36,7 @@ describe Dynamoid::Finders do
         end
       end
 
-      context 'composite primary key' do
+      context 'with composite primary key' do
         it 'finds a model' do
           obj = klass_with_composite_key.create!(age: 12)
           expect(klass_with_composite_key.find(obj.id, range_key: 12)).to eql(obj)
@@ -71,7 +71,7 @@ describe Dynamoid::Finders do
         expect(klass.find(obj.id)).to be_persisted
       end
 
-      context 'field is not declared in document' do
+      context 'when field is not declared in document' do
         let(:class_with_not_declared_field) do
           new_class do
             field :name
@@ -169,8 +169,8 @@ describe Dynamoid::Finders do
       end
     end
 
-    context 'multiple primary keys provided' do
-      context 'simple primary key' do
+    context 'when multiple primary keys provided' do
+      context 'with simple primary key' do
         it 'finds models with an array of keys' do
           objects = (1..2).map { klass.create! }
           obj1, obj2 = objects
@@ -221,7 +221,7 @@ describe Dynamoid::Finders do
         end
       end
 
-      context 'composite primary key' do
+      context 'with composite primary key' do
         it 'finds with an array of keys' do
           objects = (1..2).map { |i| klass_with_composite_key.create!(age: i) }
           obj1, obj2 = objects
@@ -358,7 +358,7 @@ describe Dynamoid::Finders do
         expect(objects).to contain_exactly(obj1, obj2)
       end
 
-      context 'field is not declared in document' do
+      context 'when field is not declared in document' do
         let(:class_with_not_declared_field) do
           new_class do
             field :name
@@ -380,7 +380,7 @@ describe Dynamoid::Finders do
         end
       end
 
-      context 'backoff is specified' do
+      context 'when backoff is specified' do
         before do
           @old_backoff = Dynamoid.config.backoff
           @old_backoff_strategies = Dynamoid.config.backoff_strategies.dup
@@ -511,10 +511,9 @@ describe Dynamoid::Finders do
   it 'sends consistent option to the adapter' do
     address = Address.create!(city: 'Chicago')
 
-    expect(Dynamoid.adapter).to receive(:get_item)
-      .with(anything, anything, hash_including(consistent_read: true))
-      .and_call_original
-    Address.find(address.id, consistent_read: true)
+    expect {
+      Address.find(address.id, consistent_read: true)
+    }.to send_request_matching(:GetItem, { TableName: Address.table_name, ConsistentRead: true })
   end
 
   context 'with users' do
@@ -597,7 +596,7 @@ describe Dynamoid::Finders do
     end
   end
 
-  context 'find_all' do
+  context 'with find_all' do
     it 'passes options to the adapter' do
       pending 'This test is broken as we are overriding the consistent_read option to true inside the adapter'
       user_ids = [%w[1 red], %w[1 green]]
@@ -653,7 +652,7 @@ describe Dynamoid::Finders do
       end.to raise_exception(Dynamoid::Errors::MissingIndex)
     end
 
-    context 'local secondary index' do
+    context 'with local secondary index' do
       it 'queries the local secondary index' do
         time = DateTime.now
         p1 = Post.create!(name: 'p1', post_id: 1, posted_at: time)
@@ -672,7 +671,7 @@ describe Dynamoid::Finders do
       end
     end
 
-    context 'global secondary index' do
+    context 'with global secondary index' do
       it 'can sort' do
         time = DateTime.now
         first_visit = Bar.create!(name: 'Drank', visited_at: (time - 1.day).to_i)

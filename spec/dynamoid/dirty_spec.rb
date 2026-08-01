@@ -631,7 +631,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  context 'in-place changes' do
+  context 'with in-place changes' do
     let(:klass_with_string) do
       new_class do
         field :name, :string
@@ -692,7 +692,7 @@ describe Dynamoid::Dirty do
       end
     end
 
-    context 'string type' do
+    context 'with string type' do
       it 'detects in-place modifying a String value' do
         obj = klass_with_string.create!(name: +'Alex')
         obj.name.upcase!
@@ -701,7 +701,7 @@ describe Dynamoid::Dirty do
       end
     end
 
-    context 'set type' do
+    context 'when set type' do
       it 'detects adding elements' do
         obj = klass_with_set.create!(names: ['Alex'])
         obj.names << 'Michael'
@@ -729,7 +729,7 @@ describe Dynamoid::Dirty do
       end
     end
 
-    context 'array type' do
+    context 'with array type' do
       it 'detects adding elements' do
         obj = klass_with_array.create!(names: ['Alex'])
         obj.names << 'Michael'
@@ -752,7 +752,7 @@ describe Dynamoid::Dirty do
       end
     end
 
-    context 'map type' do
+    context 'with map type' do
       it 'detects adding key-value pair' do
         obj = klass_with_map.create!(config: { 'level' => 'debug' })
         obj.config['namespace'] = 'us-west'
@@ -775,7 +775,7 @@ describe Dynamoid::Dirty do
       end
     end
 
-    context 'raw type' do
+    context 'with raw type' do
       it 'detects structure changing' do
         obj = klass_with_raw.create!(metadata: { 'a' => 1 })
         obj.metadata['b'] = [1, 2, 3]
@@ -784,7 +784,7 @@ describe Dynamoid::Dirty do
       end
     end
 
-    context 'serialized' do
+    context 'with serialized' do
       it 'detects structure changing' do
         obj = klass_with_serialized.create!(metadata: { 'a' => 1 })
         obj.metadata['b'] = [1, 2, 3]
@@ -793,7 +793,7 @@ describe Dynamoid::Dirty do
       end
     end
 
-    context 'binary type' do
+    context 'with binary type' do
       it 'detects in-place modifying a String value' do
         obj = klass_with_binary.create!(image: '012345689'.b)
         obj.image.sub!('0123', '----')
@@ -802,7 +802,7 @@ describe Dynamoid::Dirty do
       end
     end
 
-    context 'custom type' do
+    context 'with custom type' do
       it 'detects in-place modifying' do
         obj = klass_with_custom_type.create!(user: DirtySpec::User.new(+'Alex'))
         obj.user.name.upcase!
@@ -859,7 +859,7 @@ describe Dynamoid::Dirty do
 
   # Regression test
   # See https://github.com/Dynamoid/dynamoid/issues/1000
-  context 'field of type :map' do
+  context 'with field of type :map' do
     let(:klass_with_map) do
       new_class do
         field :config, :map
@@ -873,7 +873,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  context 'field of type :raw' do
+  context 'with field of type :raw' do
     let(:klass_with_raw) do
       new_class do
         field :config, :raw
@@ -887,7 +887,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  context 'field of type :array' do
+  context 'with field of type :array' do
     let(:klass_with_array) do
       new_class do
         field :config, :array
@@ -901,7 +901,7 @@ describe Dynamoid::Dirty do
     end
   end
 
-  context 'field of type :serialized' do
+  context 'with field of type :serialized' do
     let(:klass_with_serialized) do
       new_class do
         field :config, :serialized

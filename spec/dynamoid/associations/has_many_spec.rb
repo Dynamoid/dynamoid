@@ -129,7 +129,7 @@ describe Dynamoid::Associations::HasMany do
       end.to change { Magazine.find(magazine.title).subscriptions.target }.from([subscription]).to([])
     end
 
-    context 'belongs to' do
+    context 'with belongs to' do
       let(:magazine) { Magazine.create }
       let!(:subscription) { magazine.subscriptions.create }
 

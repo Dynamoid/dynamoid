@@ -60,7 +60,7 @@ RSpec.describe Dynamoid::Persistence do
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
         end
 
-        context 'field option :store_as_string is nil' do
+        context 'when field option :store_as_string is nil' do
           it 'maps :datetime to String if :store_datetime_as_string is true', config: { store_datetime_as_string: true } do
             klass = new_class(partition_key: { name: :id, type: :datetime, options: { store_as_string: nil } })
             klass.create_table
@@ -94,7 +94,7 @@ RSpec.describe Dynamoid::Persistence do
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
         end
 
-        context 'field option :store_as_string is nil' do
+        context 'when field option :store_as_string is nil' do
           it 'maps :date to String if :store_date_as_string is true', config: { store_date_as_string: true } do
             klass = new_class(partition_key: { name: :id, type: :date, options: { store_as_string: nil } })
             klass.create_table
@@ -214,7 +214,7 @@ RSpec.describe Dynamoid::Persistence do
           expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
         end
 
-        context 'field option :store_as_string is nil' do
+        context 'when field option :store_as_string is nil' do
           it 'maps :datetime to String if :store_datetime_as_string is true', config: { store_datetime_as_string: true } do
             klass = new_class do
               range :prop, :datetime, store_as_string: nil
@@ -263,7 +263,7 @@ RSpec.describe Dynamoid::Persistence do
           expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
         end
 
-        context 'field option :store_as_string is nil' do
+        context 'when field option :store_as_string is nil' do
           it 'maps :date to String if :store_date_as_string is true', config: { store_date_as_string: true } do
             klass = new_class do
               range :prop, :date, store_as_string: nil
@@ -363,21 +363,29 @@ RSpec.describe Dynamoid::Persistence do
       end
 
       it 'sets up TTL for table' do
-        expect(Dynamoid.adapter).to receive(:update_time_to_live)
-          .with(class_with_expiration.table_name, :ttl)
-          .and_call_original
-
-        class_with_expiration.create_table
+        expect {
+          class_with_expiration.create_table
+        }.to send_request_matching(:UpdateTimeToLive, {
+                                     TableName: class_with_expiration.table_name,
+          TimeToLiveSpecification: {
+            'AttributeName' => 'ttl',
+            'Enabled' => true
+          }
+                                   })
       end
 
       it 'sets up TTL for table with specified table_name' do
         table_name = "#{class_with_expiration.table_name}_alias"
 
-        expect(Dynamoid.adapter).to receive(:update_time_to_live)
-          .with(table_name, :ttl)
-          .and_call_original
-
-        class_with_expiration.create_table(table_name: table_name)
+        expect {
+          class_with_expiration.create_table(table_name: table_name)
+        }.to send_request_matching(:UpdateTimeToLive, {
+                                     TableName: table_name,
+          TimeToLiveSpecification: {
+            'AttributeName' => 'ttl',
+            'Enabled' => true
+          }
+                                   })
       end
     end
 

@@ -125,7 +125,7 @@ describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/
   it 'can be called without attributes to modify'
 
   describe 'primary key schema' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'persists a model' do
         klass.create_table
 
@@ -137,7 +137,7 @@ describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'persists a model' do
         klass_with_composite_key.create_table
 
@@ -151,7 +151,7 @@ describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/
   end
 
   describe 'primary key validation' do
-    context 'composite key' do
+    context 'with composite key' do
       it 'requires sort key to be specified' do
         klass_with_composite_key.create_table
 
@@ -617,7 +617,7 @@ describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/
   end
 
   # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-  context 'Global Secondary Index' do
+  context 'with Global Secondary Index' do
     let(:klass_with_gsi) do
       new_class do
         field :name
@@ -667,7 +667,7 @@ describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/
       klass.create_table
     end
 
-    context 'true', config: { store_attribute_with_nil_value: true } do
+    context 'when true', config: { store_attribute_with_nil_value: true } do
       it 'keeps document attribute with nil' do
         obj = nil
         described_class.execute { |t| obj = t.create klass, age: nil }
@@ -675,7 +675,7 @@ describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/
       end
     end
 
-    context 'false', config: { store_attribute_with_nil_value: false } do
+    context 'when false', config: { store_attribute_with_nil_value: false } do
       it 'does not keep document attribute with nil' do
         obj = nil
         described_class.execute { |t| obj = t.create klass, age: nil }
@@ -683,7 +683,7 @@ describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/
       end
     end
 
-    context 'by default', config: { store_attribute_with_nil_value: nil } do
+    context 'when by default', config: { store_attribute_with_nil_value: nil } do
       it 'does not keep document attribute with nil' do
         obj = nil
         described_class.execute { |t| obj = t.create klass, age: nil }
@@ -817,7 +817,7 @@ describe Dynamoid::Transactions::Mutation, '#create!' do
   end
 
   describe 'primary key schema' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'persists a model' do
         klass.create_table
 
@@ -829,7 +829,7 @@ describe Dynamoid::Transactions::Mutation, '#create!' do
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'persists a model' do
         klass_with_composite_key.create_table
 
@@ -843,7 +843,7 @@ describe Dynamoid::Transactions::Mutation, '#create!' do
   end
 
   describe 'primary key validation' do
-    context 'composite key' do
+    context 'with composite key' do
       it 'requires sort key to be specified' do
         klass_with_composite_key.create_table
 
@@ -1101,7 +1101,7 @@ describe Dynamoid::Transactions::Mutation, '#create!' do
   end
 
   # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-  context 'Global Secondary Index' do
+  context 'with Global Secondary Index' do
     let(:klass_with_gsi) do
       new_class do
         field :name
@@ -1151,7 +1151,7 @@ describe Dynamoid::Transactions::Mutation, '#create!' do
       klass.create_table
     end
 
-    context 'true', config: { store_attribute_with_nil_value: true } do
+    context 'when true', config: { store_attribute_with_nil_value: true } do
       it 'keeps document attribute with nil' do
         obj = nil
         described_class.execute { |t| obj = t.create! klass, age: nil }
@@ -1159,7 +1159,7 @@ describe Dynamoid::Transactions::Mutation, '#create!' do
       end
     end
 
-    context 'false', config: { store_attribute_with_nil_value: false } do
+    context 'when false', config: { store_attribute_with_nil_value: false } do
       it 'does not keep document attribute with nil' do
         obj = nil
         described_class.execute { |t| obj = t.create! klass, age: nil }
@@ -1167,7 +1167,7 @@ describe Dynamoid::Transactions::Mutation, '#create!' do
       end
     end
 
-    context 'by default', config: { store_attribute_with_nil_value: nil } do
+    context 'when by default', config: { store_attribute_with_nil_value: nil } do
       it 'does not keep document attribute with nil' do
         obj = nil
         described_class.execute { |t| obj = t.create! klass, age: nil }

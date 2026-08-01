@@ -41,7 +41,7 @@ describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:disable
   end
 
   describe 'primary key schemas' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'deletes a model' do
         obj = klass.create!(name: 'one')
 
@@ -53,7 +53,7 @@ describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:disable
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'deletes a model' do
         obj = klass_with_composite_key.create!(name: 'one', age: 1)
 
@@ -67,7 +67,7 @@ describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:disable
   end
 
   describe 'primary key validation' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'requires partition key to be specified' do
         obj = klass.create!(name: 'one')
         obj.id = nil
@@ -80,7 +80,7 @@ describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:disable
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'requires partition key to be specified' do
         obj = klass_with_composite_key.create!(name: 'one', age: 1)
         obj.id = nil
@@ -394,7 +394,7 @@ describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' do
   end
 
   describe 'primary key schemas' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'deletes a model' do
         obj = klass.create!(name: 'one')
 
@@ -406,7 +406,7 @@ describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' do
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'deletes a model' do
         obj = klass_with_composite_key.create!(name: 'one', age: 1)
 
@@ -420,7 +420,7 @@ describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' do
   end
 
   describe 'primary key validation' do
-    context 'simple primary key' do
+    context 'with simple primary key' do
       it 'raises MissingHashKey if partition key is not specified' do
         expect {
           described_class.execute do |txn|
@@ -430,7 +430,7 @@ describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' do
       end
     end
 
-    context 'composite key' do
+    context 'with composite key' do
       it 'raises MissingHashKey if partition key is not specified' do
         expect {
           described_class.execute do |txn|
