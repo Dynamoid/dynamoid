@@ -363,21 +363,29 @@ RSpec.describe Dynamoid::Persistence do
       end
 
       it 'sets up TTL for table' do
-        expect(Dynamoid.adapter).to receive(:update_time_to_live)
-          .with(class_with_expiration.table_name, :ttl)
-          .and_call_original
-
-        class_with_expiration.create_table
+        expect {
+          class_with_expiration.create_table
+        }.to send_request_matching(:UpdateTimeToLive, {
+                                     TableName: class_with_expiration.table_name,
+          TimeToLiveSpecification: {
+            'AttributeName' => 'ttl',
+            'Enabled' => true
+          }
+                                   })
       end
 
       it 'sets up TTL for table with specified table_name' do
         table_name = "#{class_with_expiration.table_name}_alias"
 
-        expect(Dynamoid.adapter).to receive(:update_time_to_live)
-          .with(table_name, :ttl)
-          .and_call_original
-
-        class_with_expiration.create_table(table_name: table_name)
+        expect {
+          class_with_expiration.create_table(table_name: table_name)
+        }.to send_request_matching(:UpdateTimeToLive, {
+                                     TableName: table_name,
+          TimeToLiveSpecification: {
+            'AttributeName' => 'ttl',
+            'Enabled' => true
+          }
+                                   })
       end
     end
 

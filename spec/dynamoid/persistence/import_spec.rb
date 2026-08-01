@@ -83,9 +83,10 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     it 'makes batch operation' do
-      expect(Dynamoid.adapter).to receive(:batch_write_item).and_call_original
       klass.create_table
-      klass.import([{ city: 'Chicago' }, { city: 'New York' }])
+      expect {
+        klass.import([{ city: 'Chicago' }, { city: 'New York' }])
+      }.to send_request_matching(:BatchWriteItem, { RequestItems: { klass.table_name => anything } })
     end
 
     it 'supports empty containers in serialized fields' do

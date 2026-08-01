@@ -30,11 +30,11 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   # requires some inputs. The internal aspects will configure request parameters and
   # the Dynamoid adapter call correctly.
   #
-  # @param [Symbol] request_type the name of the request, either :query or :scan
+  # @param [Symbol] operation the name of the request, either :Query or :Scan
   #
-  shared_examples 'correctly handling limits' do |request_type|
+  shared_examples 'correctly handling limits' do |operation|
     before do
-      @request_type = request_type
+      @operation = operation
     end
 
     def query_key_conditions
@@ -42,7 +42,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     def dynamo_request(table_name, conditions = [], options = {})
-      if @request_type == :query
+      if @operation == :Query
         Dynamoid.adapter.query(table_name, query_key_conditions, conditions, options).flat_map { |i| i }
       else
         Dynamoid.adapter.scan(table_name, conditions, options).flat_map { |i| i }
@@ -68,13 +68,15 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
 
       it 'returns correct batch' do
         # Receives 8 times for each item and 1 more for empty page
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(9).times.and_call_original
-        expect(dynamo_request(test_table3, [], { batch_size: 1 }).count).to eq(8)
+        expect {
+          expect(dynamo_request(test_table3, [], { batch_size: 1 }).count).to eq(8)
+        }.to send_request_matching(operation).exactly(9).times
       end
 
       it 'returns correct batch and paginates in batches' do
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(3).times.and_call_original
-        expect(dynamo_request(test_table3, [], { batch_size: 3 }).count).to eq(8)
+        expect {
+          expect(dynamo_request(test_table3, [], { batch_size: 3 }).count).to eq(8)
+        }.to send_request_matching(operation).exactly(3).times
       end
 
       it 'returns correct record limit and batch' do
@@ -88,81 +90,87 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       it 'obeys correct scan limit with filter' do
-        expect(Dynamoid.adapter.client).to receive(request_type).once.and_call_original
-        expect(
-          dynamo_request(test_table3, [{ name: [[:eq, 'Josh']] }], { scan_limit: 2 }).count
-        ).to eq(2)
+        expect {
+          expect(
+            dynamo_request(test_table3, [{ name: [[:eq, 'Josh']] }], { scan_limit: 2 }).count
+          ).to eq(2)
+        }.to send_request_matching(operation).once
       end
 
       it 'obeys correct scan limit over record limit with filter' do
-        expect(Dynamoid.adapter.client).to receive(request_type).once.and_call_original
-        expect(
-          dynamo_request(
-            test_table3,
-            [{ name: [[:eq, 'Josh']] }],
-            {
-              scan_limit: 2,
-              record_limit: 10 # Won't be able to return more than 2 due to scan limit
-            }
-          ).count
-        ).to eq(2)
+        expect {
+          expect(
+            dynamo_request(
+              test_table3,
+              [{ name: [[:eq, 'Josh']] }],
+              {
+                scan_limit: 2,
+                record_limit: 10 # Won't be able to return more than 2 due to scan limit
+              }
+            ).count
+          ).to eq(2)
+        }.to send_request_matching(operation).once
       end
 
       it 'obeys correct scan limit with filter with some return' do
-        expect(Dynamoid.adapter.client).to receive(request_type).once.and_call_original
-        expect(
-          dynamo_request(test_table3, [{ name: [[:eq, 'Pascal']] }], { scan_limit: 5 }).count
-        ).to eq(1)
+        expect {
+          expect(
+            dynamo_request(test_table3, [{ name: [[:eq, 'Pascal']] }], { scan_limit: 5 }).count
+          ).to eq(1)
+        }.to send_request_matching(operation).once
       end
 
       it 'obeys correct scan limit and batch size with filter with some return' do
-        expect(Dynamoid.adapter.client).to receive(request_type).twice.and_call_original
-        expect(
-          dynamo_request(
-            test_table3,
-            [{ name: [[:eq, 'Josh']] }],
-            {
-              scan_limit: 3,
-              batch_size: 2 # This would force batching of size 2 for potential of 4 results!
-            }
-          ).count
-        ).to eq(3)
+        expect {
+          expect(
+            dynamo_request(
+              test_table3,
+              [{ name: [[:eq, 'Josh']] }],
+              {
+                scan_limit: 3,
+                batch_size: 2 # This would force batching of size 2 for potential of 4 results!
+              }
+            ).count
+          ).to eq(3)
+        }.to send_request_matching(operation).twice
       end
 
       it 'obeys correct scan limit with filter and batching for some return' do
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(5).times.and_call_original
         # We should paginate through 5 responses each of size 1 (batch) and
         # only scan through 5 records at most which with our given filter
         # should return 1 result since first 4 are Josh and last is Pascal.
-        expect(
-          dynamo_request(
-            test_table3,
-            [{ name: [[:eq, 'Pascal']] }],
-            {
-              batch_size: 1,
-              scan_limit: 5,
-              record_limit: 3
-            }
-          ).count
-        ).to eq(1)
+        expect {
+          expect(
+            dynamo_request(
+              test_table3,
+              [{ name: [[:eq, 'Pascal']] }],
+              {
+                batch_size: 1,
+                scan_limit: 5,
+                record_limit: 3
+              }
+            ).count
+          ).to eq(1)
+        }.to send_request_matching(operation).exactly(5).times
       end
 
       it 'obeys correct record limit with filter, batching, and scan limit' do
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(6).times.and_call_original
         # We should paginate through 6 responses each of size 1 (batch) and
         # only scan through 6 records at most which with our given filter
         # should return 2 results, and hit record limit before scan limit.
-        expect(
-          dynamo_request(
-            test_table3,
-            [{ name: [[:eq, 'Pascal']] }],
-            {
-              batch_size: 1,
-              scan_limit: 10,
-              record_limit: 2
-            }
-          ).count
-        ).to eq(2)
+        expect {
+          expect(
+            dynamo_request(
+              test_table3,
+              [{ name: [[:eq, 'Pascal']] }],
+              {
+                batch_size: 1,
+                scan_limit: 10,
+                record_limit: 2
+              }
+            ).count
+          ).to eq(2)
+        }.to send_request_matching(operation).exactly(6).times
       end
     end
 
@@ -193,18 +201,20 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         # Not sure why there is difference but :query will do 1 page and see 100 records and filter out 10
         # while :scan will do 2 pages and see 64 records on first page similar to the 1MB return limit
         # and then look at 36 records and find 10 on the second page.
-        pages = request_type == :query ? 1 : 2
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(pages).times.and_call_original
-        expect(
-          dynamo_request(test_table3, [{ age: [[:gte, 90.0]] }], { scan_limit: 100 }).count
-        ).to eq(10)
+        pages = operation == :Query ? 1 : 2
+        expect {
+          expect(
+            dynamo_request(test_table3, [{ age: [[:gte, 90.0]] }], { scan_limit: 100 }).count
+          ).to eq(10)
+        }.to send_request_matching(operation).exactly(pages).times
       end
 
       it 'returns correct for record limit' do
-        expect(Dynamoid.adapter.client).to receive(request_type).twice.and_call_original
-        expect(
-          dynamo_request(test_table3, [{ age: [[:gte, 5.0]] }], { record_limit: 100 }).count
-        ).to eq(100)
+        expect {
+          expect(
+            dynamo_request(test_table3, [{ age: [[:gte, 5.0]] }], { record_limit: 100 }).count
+          ).to eq(100)
+        }.to send_request_matching(operation).twice
       end
 
       it 'returns correct record limit with filtering' do
@@ -217,32 +227,35 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         # Since we hit the data size limit 3 times, so we must make 4 requests
         # which is limitation of DynamoDB and therefore batch limit is
         # restricted by this limitation as well!
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(4).times.and_call_original
-        expect(dynamo_request(test_table3, [], { batch_size: 100 }).count).to eq(200)
+        expect {
+          expect(dynamo_request(test_table3, [], { batch_size: 100 }).count).to eq(200)
+        }.to send_request_matching(operation).exactly(4).times
       end
 
       it 'returns correct with batching and record limit beyond data size limit' do
         # Since we hit limit once, we need to make sure the second request only
         # requests for as many as we have left for our record limit.
-        expect(Dynamoid.adapter.client).to receive(request_type).twice.and_call_original
-        expect(
-          dynamo_request(test_table3, [], { record_limit: 83, batch_size: 100 }).count
-        ).to eq(83)
+        expect {
+          expect(
+            dynamo_request(test_table3, [], { record_limit: 83, batch_size: 100 }).count
+          ).to eq(83)
+        }.to send_request_matching(operation).twice
       end
 
       it 'returns correct with batching and record limit' do
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(11).times.and_call_original
         # Since we do age >= 5.0 we lose the first 5 results so we make 11 paginated requests
-        expect(
-          dynamo_request(
-            test_table3,
-            [{ age: [[:gte, 5.0]] }],
-            {
-              record_limit: 100,
-              batch_size: 10
-            }
-          ).count
-        ).to eq(100)
+        expect {
+          expect(
+            dynamo_request(
+              test_table3,
+              [{ age: [[:gte, 5.0]] }],
+              {
+                record_limit: 100,
+                batch_size: 10
+              }
+            ).count
+          ).to eq(100)
+        }.to send_request_matching(operation).exactly(11).times
       end
     end
 
@@ -255,22 +268,23 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         Dynamoid.adapter.put_item(test_table3, id: '1', name: 'Josh', range: i.to_f)
       end
 
-      expect(Dynamoid.adapter.client).to receive(request_type).twice.and_call_original
       # In faulty code, the record limit would adjust limit to 2 thus on second page
       # we would get the 5th Josh (range value 6.0) whereas correct implementation would
       # adjust limit to 1 since can only scan 1 more record therefore would see Pascal
       # and not go to next valid record.
-      expect(
-        dynamo_request(
-          test_table3,
-          [{ name: [[:eq, 'Josh']] }],
-          {
-            batch_size: 4,
-            scan_limit: 5, # Scan limit would adjust requested limit to 1
-            record_limit: 6 # Record limit would adjust requested limit to 2
-          }
-        ).count
-      ).to eq(4)
+      expect {
+        expect(
+          dynamo_request(
+            test_table3,
+            [{ name: [[:eq, 'Josh']] }],
+            {
+              batch_size: 4,
+              scan_limit: 5, # Scan limit would adjust requested limit to 1
+              record_limit: 6 # Record limit would adjust requested limit to 2
+            }
+          ).count
+        ).to eq(4)
+      }.to send_request_matching(operation).twice
     end
   end
 
@@ -415,8 +429,9 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     it 'performs BatchGetItem API call' do
-      expect(Dynamoid.adapter.client).to receive(:batch_get_item).and_call_original
-      Dynamoid.adapter.batch_get_item(table => ['1'])
+      expect {
+        Dynamoid.adapter.batch_get_item(table => ['1'])
+      }.to send_request_matching(:BatchGetItem)
     end
 
     it 'accepts [] as an ids list' do
@@ -540,15 +555,13 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         Dynamoid.adapter.put_item(table, id: id, text: text)
       end
 
-      expect(Dynamoid.adapter.client).to receive(:batch_get_item)
-        .exactly(3)
-        .times.and_call_original
+      expect {
+        results = Dynamoid.adapter.batch_get_item(table => ids)
+        items = results[table]
 
-      results = Dynamoid.adapter.batch_get_item(table => ids)
-      items = results[table]
-
-      expect(items.size).to eq 100
-      expect(items.map { |h| h[:id] }).to match_array(ids)
+        expect(items.size).to eq 100
+        expect(items.map { |h| h[:id] }).to match_array(ids)
+      }.to send_request_matching(:BatchGetItem).exactly(3).times
     end
 
     it 'loads unprocessed items for a table with a range key' do
@@ -574,15 +587,13 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
         Dynamoid.adapter.put_item(table_with_composite_key, id: id, age: age, name: text)
       end
 
-      expect(Dynamoid.adapter.client).to receive(:batch_get_item)
-        .exactly(3)
-        .times.and_call_original
+      expect {
+        results = Dynamoid.adapter.batch_get_item(table_with_composite_key => ids)
+        items = results[table_with_composite_key]
 
-      results = Dynamoid.adapter.batch_get_item(table_with_composite_key => ids)
-      items = results[table_with_composite_key]
-
-      expect(items.size).to eq(100)
-      expect(items.map { |h| [h[:id], h[:age]] }).to match_array(ids)
+        expect(items.size).to eq(100)
+        expect(items.map { |h| [h[:id], h[:age]] }).to match_array(ids)
+      }.to send_request_matching(:BatchGetItem).exactly(3).times
     end
 
     context 'when called with block' do
@@ -745,8 +756,9 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   context 'with a preexisting table' do
     # GetItem, PutItem and DeleteItem
     it 'passes options to underlying GetItem call' do
-      expect(Dynamoid.adapter.client).to receive(:get_item).with(hash_including(consistent_read: true)).and_call_original
-      expect(Dynamoid.adapter.get_item(test_table1, '1', consistent_read: true)).to be_nil
+      expect {
+        expect(Dynamoid.adapter.get_item(test_table1, '1', consistent_read: true)).to be_nil
+      }.to send_request_matching(:GetItem, { ConsistentRead: true })
     end
 
     it 'performs GetItem for an item that does not exist' do
@@ -838,9 +850,9 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
           Dynamoid.adapter.put_item(test_table1, id: i.to_s)
         end
 
-        expect(Dynamoid.adapter.client).to receive(:batch_write_item)
-          .twice.and_call_original
-        Dynamoid.adapter.batch_delete_item(test_table1 => (0..25).map(&:to_s))
+        expect {
+          Dynamoid.adapter.batch_delete_item(test_table1 => (0..25).map(&:to_s))
+        }.to send_request_matching(:BatchWriteItem).twice
 
         results = Dynamoid.adapter.scan(test_table1).flat_map { |i| i }
         expect(results.to_a.size).to eq 0
@@ -852,12 +864,12 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
           Dynamoid.adapter.put_item(test_table2, id: i.to_s)
         end
 
-        expect(Dynamoid.adapter.client).to receive(:batch_write_item)
-          .twice.and_call_original
-        Dynamoid.adapter.batch_delete_item(
-          test_table1 => (0..12).map(&:to_s),
-          test_table2 => (0..12).map(&:to_s)
-        )
+        expect {
+          Dynamoid.adapter.batch_delete_item(
+            test_table1 => (0..12).map(&:to_s),
+            test_table2 => (0..12).map(&:to_s)
+          )
+        }.to send_request_matching(:BatchWriteItem).twice
 
         results = Dynamoid.adapter.scan(test_table1).flat_map { |i| i }
         expect(results.to_a.size).to eq 0
@@ -889,10 +901,9 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       it 'performs BatchDeleteItem with more than 25 items' do
         items = (1..26).map { |i| { id: i.to_s } }
 
-        expect(Dynamoid.adapter.client).to receive(:batch_write_item)
-          .twice.and_call_original
-
-        Dynamoid.adapter.batch_write_item(test_table1, items)
+        expect {
+          Dynamoid.adapter.batch_write_item(test_table1, items)
+        }.to send_request_matching(:BatchWriteItem).twice
       end
 
       it 'writes unprocessed items' do
@@ -1035,7 +1046,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       it_behaves_like 'range queries'
 
       describe 'query' do
-        it_behaves_like 'correctly handling limits', :query
+        it_behaves_like 'correctly handling limits', :Query
       end
     end
 
@@ -1130,7 +1141,7 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
       end
 
       describe 'scans' do
-        it_behaves_like 'correctly handling limits', :scan
+        it_behaves_like 'correctly handling limits', :Scan
       end
     end
 
@@ -1275,16 +1286,15 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     it 'calls UpdateTimeToLive' do
-      allow(Dynamoid.adapter.client).to receive(:update_time_to_live).and_call_original
-      Dynamoid.adapter.update_time_to_live(table_name, :ttl)
-      expect(Dynamoid.adapter.client).to have_received(:update_time_to_live)
-        .with(
-          table_name: table_name,
-          time_to_live_specification: {
-            attribute_name: :ttl,
-            enabled: true,
-          }
-        )
+      expect {
+        Dynamoid.adapter.update_time_to_live(table_name, :ttl)
+      }.to send_request_matching(:UpdateTimeToLive, {
+                                   TableName: table_name,
+        TimeToLiveSpecification: {
+          'AttributeName' => 'ttl',
+          'Enabled' => true,
+        }
+                                 })
     end
 
     it 'updates a table schema' do
@@ -1350,17 +1360,13 @@ describe Dynamoid::AdapterPlugin::AwsSdkV3 do
     end
 
     it 'accepts :consistent_read option' do
-      expect(Dynamoid.adapter.client).to receive(:execute_statement)
-        .with(including(consistent_read: true))
-        .and_call_original
+      expect {
+        Dynamoid.adapter.execute("SELECT * FROM #{test_table1} WHERE id = '1'", [], consistent_read: true)
+      }.to send_request_matching(:ExecuteStatement, { ConsistentRead: true })
 
-      Dynamoid.adapter.execute("SELECT * FROM #{test_table1} WHERE id = '1'", [], consistent_read: true)
-
-      expect(Dynamoid.adapter.client).to receive(:execute_statement)
-        .with(including(consistent_read: false))
-        .and_call_original
-
-      Dynamoid.adapter.execute("SELECT * FROM #{test_table1} WHERE id = '1'", [], consistent_read: false)
+      expect {
+        Dynamoid.adapter.execute("SELECT * FROM #{test_table1} WHERE id = '1'", [], consistent_read: false)
+      }.to send_request_matching(:ExecuteStatement, { ConsistentRead: false })
     end
 
     it 'loads lazily all the pages of a paginated result' do

@@ -52,7 +52,9 @@ describe Dynamoid::Criteria::Chain do
   end
 
   describe 'Limits' do
-    shared_examples 'correct handling chain limits' do |request_type|
+    # The operation parameter is a name used in the request header X-AMZ-TARGET
+    # and is a DynamoDB operation name, e.g. Scan, Query, BatchWriteItems...
+    shared_examples 'correct handling chain limits' do |operation|
       let(:model) do
         new_class do
           range :age, :integer
@@ -61,7 +63,7 @@ describe Dynamoid::Criteria::Chain do
       end
 
       before do
-        @request_type = request_type
+        @operation = operation
         (1..10).each do |i|
           model.create(id: '1', name: 'Josh', age: i)
           model.create(id: '1', name: 'Pascal', age: i + 100)
@@ -69,7 +71,7 @@ describe Dynamoid::Criteria::Chain do
       end
 
       def request_params
-        return { id: '1' } if @request_type == :query
+        return { id: '1' } if @operation == :Query
 
         {}
       end
@@ -93,30 +95,32 @@ describe Dynamoid::Criteria::Chain do
         # Scanning through 13 means it'll see 10 Josh objects and then
         # 3 Pascal objects but it'll hit record_limit first with 2 objects
         # so we'd only see 12 requests due to batching.
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(12).times.and_call_original
-        expect(model.where(request_params.merge(name: 'Pascal'))
-                    .record_limit(2)
-                    .scan_limit(13)
-                    .batch(1).count).to eq(2)
+        expect {
+          expect(model.where(request_params.merge(name: 'Pascal'))
+                      .record_limit(2)
+                      .scan_limit(13)
+                      .batch(1).count).to eq(2)
+        }.to send_request_matching(operation).exactly(12).times
       end
 
       it 'supports combined limits with batch size other than 1' do
         # Querying in batches of 3 so we'd see:
         # 3 Josh, 3 Josh, 3 Josh, 1 Josh + 2 Pascal, 3 Pascal, 3 Pascal, 2 Pascal
         # So total of 7 requests
-        expect(Dynamoid.adapter.client).to receive(request_type).exactly(7).times.and_call_original
-        expect(model.where(request_params.merge(name: 'Pascal'))
-                    .record_limit(10)
-                    .batch(3).count).to eq(10)
+        expect {
+          expect(model.where(request_params.merge(name: 'Pascal'))
+                      .record_limit(10)
+                      .batch(3).count).to eq(10)
+        }.to send_request_matching(operation).exactly(7).times
       end
     end
 
     describe 'Query' do
-      it_behaves_like 'correct handling chain limits', :query
+      it_behaves_like 'correct handling chain limits', :Query
     end
 
     describe 'Scan' do
-      it_behaves_like 'correct handling chain limits', :scan
+      it_behaves_like 'correct handling chain limits', :Scan
     end
   end
 
@@ -132,8 +136,9 @@ describe Dynamoid::Criteria::Chain do
       customer2 = model.create(name: 'Bob', age: 30)
 
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(name: 'Bob', age: 10).all).to contain_exactly(customer1)
+      expect {
+        expect(chain.where(name: 'Bob', age: 10).all).to contain_exactly(customer1)
+      }.to send_request_matching(:Query)
       expect(chain.key_fields_detector.hash_key).to eq(:name)
       expect(chain.key_fields_detector.range_key).to eq(:age)
       expect(chain.key_fields_detector.index_name).to be_nil
@@ -150,20 +155,24 @@ describe Dynamoid::Criteria::Chain do
       document4 = klass.create(id: '4', config: 42)
 
       chain = described_class.new(klass)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(id: '1', config: [1, 2]).all).to contain_exactly(document1)
+      expect {
+        expect(chain.where(id: '1', config: [1, 2]).all).to contain_exactly(document1)
+      }.to send_request_matching(:Query)
 
       chain = described_class.new(klass)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(id: '2', config: { a: 1 }).all).to contain_exactly(document2)
+      expect {
+        expect(chain.where(id: '2', config: { a: 1 }).all).to contain_exactly(document2)
+      }.to send_request_matching(:Query)
 
       chain = described_class.new(klass)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(id: '3', config: 'foobar').all).to contain_exactly(document3)
+      expect {
+        expect(chain.where(id: '3', config: 'foobar').all).to contain_exactly(document3)
+      }.to send_request_matching(:Query)
 
       chain = described_class.new(klass)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(id: '4', config: 42).all).to contain_exactly(document4)
+      expect {
+        expect(chain.where(id: '4', config: 42).all).to contain_exactly(document4)
+      }.to send_request_matching(:Query)
     end
 
     it 'supports lt' do
@@ -292,10 +301,10 @@ describe Dynamoid::Criteria::Chain do
         obj2 = klass.create(published_on: Date.today + 2)
 
         chain = described_class.new(klass)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-
-        objects_found = chain.where(published_on: obj1.published_on).all
-        expect(objects_found).to contain_exactly(obj1)
+        expect {
+          objects_found = chain.where(published_on: obj1.published_on).all
+          expect(objects_found).to contain_exactly(obj1)
+        }.to send_request_matching(:Query)
       end
 
       it 'uses dumped value of sort key to query item' do
@@ -307,10 +316,10 @@ describe Dynamoid::Criteria::Chain do
         obj2 = klass.create(published_on: Date.today + 2)
 
         chain = described_class.new(klass)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-
-        objects_found = chain.where(id: obj1.id, published_on: obj1.published_on).all
-        expect(objects_found).to contain_exactly(obj1)
+        expect {
+          objects_found = chain.where(id: obj1.id, published_on: obj1.published_on).all
+          expect(objects_found).to contain_exactly(obj1)
+        }.to send_request_matching(:Query)
       end
     end
   end
@@ -330,8 +339,9 @@ describe Dynamoid::Criteria::Chain do
       customer2 = model.create(name: 'a', last_name: 'b', age: 30)
 
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(name: 'a', age: 10).all).to contain_exactly(customer1)
+      expect {
+        expect(chain.where(name: 'a', age: 10).all).to contain_exactly(customer1)
+      }.to send_request_matching(:Query)
       expect(chain.key_fields_detector.hash_key).to eq(:name)
       expect(chain.key_fields_detector.range_key).to be_nil
       expect(chain.key_fields_detector.index_name).to be_nil
@@ -347,8 +357,9 @@ describe Dynamoid::Criteria::Chain do
       document2 = klass.create(id: '1', last_name: 'b', set: [3, 4].to_set)
 
       chain = described_class.new(klass)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(id: '1', set: [1, 2].to_set).all).to contain_exactly(document1)
+      expect {
+        expect(chain.where(id: '1', set: [1, 2].to_set).all).to contain_exactly(document1)
+      }.to send_request_matching(:Query)
     end
 
     it 'supports eq for array' do
@@ -361,8 +372,9 @@ describe Dynamoid::Criteria::Chain do
       document2 = klass.create(id: '1', last_name: 'b', array: [3, 4])
 
       chain = described_class.new(klass)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(id: '1', array: [1, 2]).all).to contain_exactly(document1)
+      expect {
+        expect(chain.where(id: '1', array: [1, 2]).all).to contain_exactly(document1)
+      }.to send_request_matching(:Query)
     end
 
     it 'supports eq for serialized' do
@@ -377,20 +389,24 @@ describe Dynamoid::Criteria::Chain do
       document4 = klass.create(id: '4', last_name: 'b', config: 42)
 
       chain = described_class.new(klass)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(id: '1', config: [1, 2]).all).to contain_exactly(document1)
+      expect {
+        expect(chain.where(id: '1', config: [1, 2]).all).to contain_exactly(document1)
+      }.to send_request_matching(:Query)
 
       chain = described_class.new(klass)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(id: '2', config: { a: 1 }).all).to contain_exactly(document2)
+      expect {
+        expect(chain.where(id: '2', config: { a: 1 }).all).to contain_exactly(document2)
+      }.to send_request_matching(:Query)
 
       chain = described_class.new(klass)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(id: '3', config: 'foobar').all).to contain_exactly(document3)
+      expect {
+        expect(chain.where(id: '3', config: 'foobar').all).to contain_exactly(document3)
+      }.to send_request_matching(:Query)
 
       chain = described_class.new(klass)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(id: '4', config: 42).all).to contain_exactly(document4)
+      expect {
+        expect(chain.where(id: '4', config: 42).all).to contain_exactly(document4)
+      }.to send_request_matching(:Query)
     end
 
     it 'supports ne' do
@@ -597,8 +613,9 @@ describe Dynamoid::Criteria::Chain do
       customer2 = model.create(age: 30)
 
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_scan).and_call_original
-      expect(chain.where(age: 10).all).to contain_exactly(customer1)
+      expect {
+        expect(chain.where(age: 10).all).to contain_exactly(customer1)
+      }.to send_request_matching(:Scan)
       expect(chain.key_fields_detector.hash_key).to be_nil
       expect(chain.key_fields_detector.range_key).to be_nil
       expect(chain.key_fields_detector.index_name).to be_nil
@@ -828,8 +845,9 @@ describe Dynamoid::Criteria::Chain do
       it 'does load result lazily' do
         Vehicle.create
 
-        expect(Dynamoid.adapter.client).to receive(:scan).exactly(0).times.and_call_original
-        Vehicle.record_limit(1).all
+        expect {
+          Vehicle.record_limit(1).all
+        }.not_to send_request_matching(:Scan)
       end
     end
 
@@ -837,8 +855,9 @@ describe Dynamoid::Criteria::Chain do
       it 'does load result lazily' do
         Vehicle.create
 
-        expect(Dynamoid.adapter.client).to receive(:scan).exactly(0).times.and_call_original
-        Vehicle.record_limit(1).find_by_pages
+        expect {
+          Vehicle.record_limit(1).find_by_pages
+        }.not_to send_request_matching(:Scan)
       end
     end
   end
@@ -864,8 +883,9 @@ describe Dynamoid::Criteria::Chain do
 
     it 'supports query on local secondary index but always defaults to table range key' do
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(name: 'Bob', 'range.lt': 3, 'range2.gt': 15).to_a.size).to eq(1)
+      expect {
+        expect(chain.where(name: 'Bob', 'range.lt': 3, 'range2.gt': 15).to_a.size).to eq(1)
+      }.to send_request_matching(:Query)
       expect(chain.key_fields_detector.hash_key).to eq(:name)
       expect(chain.key_fields_detector.range_key).to eq(:range)
       expect(chain.key_fields_detector.index_name).to be_nil
@@ -873,15 +893,17 @@ describe Dynamoid::Criteria::Chain do
 
     it 'supports query on local secondary index' do
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(name: 'Bob', 'range2.gt': 15).to_a.size).to eq(2)
+      expect {
+        expect(chain.where(name: 'Bob', 'range2.gt': 15).to_a.size).to eq(2)
+      }.to send_request_matching(:Query)
       expect(chain.key_fields_detector.hash_key).to eq(:name)
       expect(chain.key_fields_detector.range_key).to eq(:range2)
       expect(chain.key_fields_detector.index_name).to eq(:range2index)
 
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(name: 'Bob', 'range3.lt': 200).to_a.size).to eq(1)
+      expect {
+        expect(chain.where(name: 'Bob', 'range3.lt': 200).to_a.size).to eq(1)
+      }.to send_request_matching(:Query)
       expect(chain.key_fields_detector.hash_key).to eq(:name)
       expect(chain.key_fields_detector.range_key).to eq(:range3)
       expect(chain.key_fields_detector.index_name).to eq(:range3index)
@@ -889,15 +911,17 @@ describe Dynamoid::Criteria::Chain do
 
     it 'supports query on local secondary index with start' do
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(name: 'Bob', 'range2.gt': 15).to_a.size).to eq(2)
+      expect {
+        expect(chain.where(name: 'Bob', 'range2.gt': 15).to_a.size).to eq(2)
+      }.to send_request_matching(:Query)
       expect(chain.key_fields_detector.hash_key).to eq(:name)
       expect(chain.key_fields_detector.range_key).to eq(:range2)
       expect(chain.key_fields_detector.index_name).to eq(:range2index)
 
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(name: 'Bob', 'range2.gt': 15).start(@customer2).all).to contain_exactly(@customer3)
+      expect {
+        expect(chain.where(name: 'Bob', 'range2.gt': 15).start(@customer2).all).to contain_exactly(@customer3)
+      }.to send_request_matching(:Query)
       expect(chain.key_fields_detector.hash_key).to eq(:name)
       expect(chain.key_fields_detector.range_key).to eq(:range2)
       expect(chain.key_fields_detector.index_name).to eq(:range2index)
@@ -920,8 +944,9 @@ describe Dynamoid::Criteria::Chain do
       customer2 = model.create(name: 'Jeff', city: 'San Francisco', age: 15, gender: 'male', customerid: 2)
 
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_scan).and_call_original
-      expect(chain.where(city: 'San Francisco').to_a.size).to eq(2)
+      expect {
+        expect(chain.where(city: 'San Francisco').to_a.size).to eq(2)
+      }.to send_request_matching(:Scan)
       # Does not use GSI since not projecting all attributes
       expect(chain.key_fields_detector.hash_key).to be_nil
       expect(chain.key_fields_detector.range_key).to be_nil
@@ -958,8 +983,9 @@ describe Dynamoid::Criteria::Chain do
 
       it 'supports query on global secondary index but always defaults to table hash key' do
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        expect(chain.where(name: 'Bob').to_a.size).to eq(1)
+        expect {
+          expect(chain.where(name: 'Bob').to_a.size).to eq(1)
+        }.to send_request_matching(:Query)
         expect(chain.key_fields_detector.hash_key).to eq(:name)
         expect(chain.key_fields_detector.range_key).to be_nil
         expect(chain.key_fields_detector.index_name).to be_nil
@@ -967,29 +993,33 @@ describe Dynamoid::Criteria::Chain do
 
       it 'supports query on global secondary index' do
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco').to_a.size).to eq(3)
+        expect {
+          expect(chain.where(city: 'San Francisco').to_a.size).to eq(3)
+        }.to send_request_matching(:Query)
         expect(chain.key_fields_detector.hash_key).to eq(:city)
         expect(chain.key_fields_detector.range_key).to eq(:age)
         expect(chain.key_fields_detector.index_name).to eq(:cityage)
 
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco', 'age.gt': 12).to_a.size).to eq(2)
+        expect {
+          expect(chain.where(city: 'San Francisco', 'age.gt': 12).to_a.size).to eq(2)
+        }.to send_request_matching(:Query)
         expect(chain.key_fields_detector.hash_key).to eq(:city)
         expect(chain.key_fields_detector.range_key).to eq(:age)
         expect(chain.key_fields_detector.index_name).to eq(:cityage)
 
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        expect(chain.where(email: 'greg@test.com').to_a.size).to eq(1)
+        expect {
+          expect(chain.where(email: 'greg@test.com').to_a.size).to eq(1)
+        }.to send_request_matching(:Query)
         expect(chain.key_fields_detector.hash_key).to eq(:email)
         expect(chain.key_fields_detector.range_key).to eq(:age)
         expect(chain.key_fields_detector.index_name).to eq(:emailage)
 
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        expect(chain.where(email: 'greg@test.com', 'age.gt': 12).to_a.size).to eq(1)
+        expect {
+          expect(chain.where(email: 'greg@test.com', 'age.gt': 12).to_a.size).to eq(1)
+        }.to send_request_matching(:Query)
         expect(chain.key_fields_detector.hash_key).to eq(:email)
         expect(chain.key_fields_detector.range_key).to eq(:age)
         expect(chain.key_fields_detector.index_name).to eq(:emailage)
@@ -997,8 +1027,9 @@ describe Dynamoid::Criteria::Chain do
 
       it 'supports scan when no global secondary index available' do
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_scan).and_call_original
-        expect(chain.where(gender: 'male').to_a.size).to eq(4)
+        expect {
+          expect(chain.where(gender: 'male').to_a.size).to eq(4)
+        }.to send_request_matching(:Scan)
         expect(chain.key_fields_detector.hash_key).to be_nil
         expect(chain.key_fields_detector.range_key).to be_nil
         expect(chain.key_fields_detector.index_name).to be_nil
@@ -1006,22 +1037,25 @@ describe Dynamoid::Criteria::Chain do
 
       it 'supports query on global secondary index with start' do
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco').to_a.size).to eq(3)
+        expect {
+          expect(chain.where(city: 'San Francisco').to_a.size).to eq(3)
+        }.to send_request_matching(:Query)
         expect(chain.key_fields_detector.hash_key).to eq(:city)
         expect(chain.key_fields_detector.range_key).to eq(:age)
         expect(chain.key_fields_detector.index_name).to eq(:cityage)
 
         # Now query with start at customer2 and we should only see customer3
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco').start(@customer2).all).to contain_exactly(@customer3)
+        expect {
+          expect(chain.where(city: 'San Francisco').start(@customer2).all).to contain_exactly(@customer3)
+        }.to send_request_matching(:Query)
       end
 
       it "does not use index if a condition for index hash key is other than 'equal'" do
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_scan).and_call_original
-        expect(chain.where('city.begins_with': 'San').to_a.size).to eq(3)
+        expect {
+          expect(chain.where('city.begins_with': 'San').to_a.size).to eq(3)
+        }.to send_request_matching(:Scan)
         expect(chain.key_fields_detector.hash_key).to be_nil
         expect(chain.key_fields_detector.range_key).to be_nil
         expect(chain.key_fields_detector.index_name).to be_nil
@@ -1029,15 +1063,17 @@ describe Dynamoid::Criteria::Chain do
 
       it 'prefers global secondary index with range key used in conditions to index w/o such range key' do
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco', 'age.lte': 15).to_a.size).to eq(2)
+        expect {
+          expect(chain.where(city: 'San Francisco', 'age.lte': 15).to_a.size).to eq(2)
+        }.to send_request_matching(:Query)
         expect(chain.key_fields_detector.hash_key).to eq(:city)
         expect(chain.key_fields_detector.range_key).to eq(:age)
         expect(chain.key_fields_detector.index_name).to eq(:cityage)
 
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        expect(chain.where(city: 'San Francisco', gender: 'male').to_a.size).to eq(3)
+        expect {
+          expect(chain.where(city: 'San Francisco', gender: 'male').to_a.size).to eq(3)
+        }.to send_request_matching(:Query)
         expect(chain.key_fields_detector.hash_key).to eq(:city)
         expect(chain.key_fields_detector.range_key).to eq(:gender)
         expect(chain.key_fields_detector.index_name).to eq(:citygender)
@@ -1045,8 +1081,9 @@ describe Dynamoid::Criteria::Chain do
 
       it 'uses global secondary index when secondary hash key overlaps with primary hash key and range key matches' do
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        expect(chain.where(name: 'Bob', age: 10).to_a.size).to eq(1)
+        expect {
+          expect(chain.where(name: 'Bob', age: 10).to_a.size).to eq(1)
+        }.to send_request_matching(:Query)
         expect(chain.key_fields_detector.hash_key).to eq(:name)
         expect(chain.key_fields_detector.range_key).to eq(:age)
         expect(chain.key_fields_detector.index_name).to eq(:nameage)
@@ -1065,8 +1102,9 @@ describe Dynamoid::Criteria::Chain do
       customer2 = model.create(name: 'Jeff', city: 'San Francisco', age: 15)
 
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-      expect(chain.where(city: 'San Francisco').start(customer1).all).to contain_exactly(customer2)
+      expect {
+        expect(chain.where(city: 'San Francisco').start(customer1).all).to contain_exactly(customer2)
+      }.to send_request_matching(:Query)
     end
   end
 
@@ -1540,8 +1578,9 @@ describe Dynamoid::Criteria::Chain do
       it 'performs Scan when key attributes are used only in String query' do
         obj = klass.create!(first_name: 'Alex', age: 42)
 
-        expect(Dynamoid.adapter.client).to receive(:scan).and_call_original
-        expect(klass.where('id = :id', id: obj.id).all.to_a).to eq([obj])
+        expect {
+          expect(klass.where('id = :id', id: obj.id).all.to_a).to eq([obj])
+        }.to send_request_matching(:Scan)
       end
     end
   end
@@ -1681,19 +1720,19 @@ describe Dynamoid::Criteria::Chain do
       it 'return query result from the specified item' do
         chain = described_class.new(model)
 
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-        customers = chain.where(version: 'v1', 'age.gt': 10).start(@customer2).all.to_a
-
-        expect(customers).to contain_exactly(@customer3, @customer4)
+        expect {
+          customers = chain.where(version: 'v1', 'age.gt': 10).start(@customer2).all.to_a
+          expect(customers).to contain_exactly(@customer3, @customer4)
+        }.to send_request_matching(:Query)
       end
 
       it 'return scan result from the specified item' do
         chain = described_class.new(model)
 
-        expect(chain).to receive(:raw_pages_via_scan).and_call_original
-        customers = chain.where(gender: 'male').start(@customer1).all.to_a
-
-        expect(customers).to contain_exactly(@customer3)
+        expect {
+          customers = chain.where(gender: 'male').start(@customer1).all.to_a
+          expect(customers).to contain_exactly(@customer3)
+        }.to send_request_matching(:Scan)
       end
     end
 
@@ -1714,10 +1753,10 @@ describe Dynamoid::Criteria::Chain do
       it 'return scan result from the specified item' do
         chain = described_class.new(model)
 
-        expect(chain).to receive(:raw_pages_via_scan).and_call_original
-        customers = chain.where('age.gt': 10).start(@customer2).all.to_a
-
-        expect(customers).to contain_exactly(@customer3, @customer4)
+        expect {
+          customers = chain.where('age.gt': 10).start(@customer2).all.to_a
+          expect(customers).to contain_exactly(@customer3, @customer4)
+        }.to send_request_matching(:Scan)
       end
     end
   end
@@ -1729,8 +1768,9 @@ describe Dynamoid::Criteria::Chain do
 
       chain = described_class.new(klass)
 
-      expect(Dynamoid.adapter.client).to receive(:batch_write_item).and_call_original
-      chain.delete_all
+      expect {
+        chain.delete_all
+      }.to send_request_matching(:BatchWriteItem)
     end
 
     context 'when some conditions specified' do
@@ -1760,8 +1800,9 @@ describe Dynamoid::Criteria::Chain do
         chain = described_class.new(klass)
         chain = chain.where(id: document.id)
 
-        expect(Dynamoid.adapter.client).to receive(:query).and_call_original
-        expect { chain.delete_all }.to change { klass.count }.by(-1)
+        expect {
+          expect { chain.delete_all }.to change { klass.count }.by(-1)
+        }.to send_request_matching(:Query)
       end
 
       it 'loads items with Scan if cannot use Query' do
@@ -1775,8 +1816,9 @@ describe Dynamoid::Criteria::Chain do
         chain = described_class.new(klass)
         chain = chain.where(author: 'J. K. Rowling')
 
-        expect(Dynamoid.adapter.client).to receive(:scan).and_call_original
-        expect { chain.delete_all }.to change { klass.count }.by(-1)
+        expect {
+          expect { chain.delete_all }.to change { klass.count }.by(-1)
+        }.to send_request_matching(:Scan)
       end
 
       context 'when Query (partition key specified)' do
@@ -2331,20 +2373,20 @@ describe Dynamoid::Criteria::Chain do
       model.create(name: 'Alex', age: 21)
 
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_scan).and_call_original
-
-      obj, = chain.project(:age).to_a
-      expect(obj.attributes).to eq(age: 21)
+      expect {
+        obj, = chain.project(:age).to_a
+        expect(obj.attributes).to eq(age: 21)
+      }.to send_request_matching(:Scan)
     end
 
     it 'works with Query' do
       obj = model.create(name: 'Alex', age: 21)
 
       chain = described_class.new(model)
-      expect(chain).to receive(:raw_pages_via_query).and_call_original
-
-      obj_loaded, = chain.where(id: obj.id).project(:age).to_a
-      expect(obj_loaded.attributes).to eq(age: 21)
+      expect {
+        obj_loaded, = chain.where(id: obj.id).project(:age).to_a
+        expect(obj_loaded.attributes).to eq(age: 21)
+      }.to send_request_matching(:Query)
     end
 
     context 'when attribute name is a DynamoDB reserved word' do
@@ -2359,20 +2401,20 @@ describe Dynamoid::Criteria::Chain do
         model.create(name: 'Alex', bucket: 2)
 
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_scan).and_call_original
-
-        obj, = chain.project(:bucket).to_a
-        expect(obj.attributes).to eq(bucket: 2)
+        expect {
+          obj, = chain.project(:bucket).to_a
+          expect(obj.attributes).to eq(bucket: 2)
+        }.to send_request_matching(:Scan)
       end
 
       it 'works with Query' do
         object = model.create(name: 'Alex', bucket: 2)
 
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-
-        obj, = chain.where(id: object.id).project(:bucket).to_a
-        expect(obj.attributes).to eq(bucket: 2)
+        expect {
+          obj, = chain.where(id: object.id).project(:bucket).to_a
+          expect(obj.attributes).to eq(bucket: 2)
+        }.to send_request_matching(:Query)
       end
     end
 
@@ -2387,20 +2429,20 @@ describe Dynamoid::Criteria::Chain do
         model.create('first:name': 'Alex')
 
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_scan).and_call_original
-
-        obj, = chain.project(:'first:name').to_a
-        expect(obj.attributes).to eq('first:name': 'Alex')
+        expect {
+          obj, = chain.project(:'first:name').to_a
+          expect(obj.attributes).to eq('first:name': 'Alex')
+        }.to send_request_matching(:Scan)
       end
 
       it 'works with Query' do
         object = model.create('first:name': 'Alex')
 
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-
-        obj, = chain.where(id: object.id).project(:'first:name').to_a
-        expect(obj.attributes).to eq('first:name': 'Alex')
+        expect {
+          obj, = chain.where(id: object.id).project(:'first:name').to_a
+          expect(obj.attributes).to eq('first:name': 'Alex')
+        }.to send_request_matching(:Query)
       end
     end
 
@@ -2415,20 +2457,20 @@ describe Dynamoid::Criteria::Chain do
         model.create(_name: 'Alex')
 
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_scan).and_call_original
-
-        obj, = chain.project(:_name).to_a
-        expect(obj.attributes).to eq(_name: 'Alex')
+        expect {
+          obj, = chain.project(:_name).to_a
+          expect(obj.attributes).to eq(_name: 'Alex')
+        }.to send_request_matching(:Scan)
       end
 
       it 'works with Query' do
         object = model.create(_name: 'Alex')
 
         chain = described_class.new(model)
-        expect(chain).to receive(:raw_pages_via_query).and_call_original
-
-        obj, = chain.where(id: object.id).project(:_name).to_a
-        expect(obj.attributes).to eq(_name: 'Alex')
+        expect {
+          obj, = chain.where(id: object.id).project(:_name).to_a
+          expect(obj.attributes).to eq(_name: 'Alex')
+        }.to send_request_matching(:Query)
       end
     end
   end

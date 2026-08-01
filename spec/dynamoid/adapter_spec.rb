@@ -49,26 +49,31 @@ describe Dynamoid::Adapter do
 
   describe 'caching tables' do
     it 'caches list of tables' do
-      expect(adapter_plugin).to receive(:list_tables).once.and_call_original
-      subject.create_table('test_table', 'key')
-      subject.tables
-      subject.tables
+      expect {
+        subject.create_table('test_table', 'key')
+        subject.tables
+        subject.tables
+      }.to send_request_matching(:ListTables).once
     end
 
     it 'maintains table cache when creating a table' do
       # cache
       subject.tables
 
-      expect(adapter_plugin).not_to receive(:list_tables)
       subject.create_table('test_table', 'key')
-      expect(subject.tables).to include('test_table')
+
+      expect {
+        expect(subject.tables).to include('test_table')
+      }.not_to send_request_matching(:ListTables)
     end
 
     it 'clears cached list via #clear_cache!' do
       subject.create_table('test_table', 'key')
       subject.clear_cache!
-      expect(adapter_plugin).to receive(:list_tables).and_call_original
-      subject.tables
+
+      expect {
+        subject.tables
+      }.to send_request_matching(:ListTables)
     end
   end
 
@@ -107,10 +112,9 @@ describe Dynamoid::Adapter do
     end
 
     it 'does not try to create table if it is already in cache' do
-      expect(Dynamoid.adapter.client).to receive(:create_table).once
-        .and_call_original
-
-      3.times { Dynamoid.adapter.create_table(table_name, :id, sync: true) }
+      expect {
+        3.times { Dynamoid.adapter.create_table(table_name, :id, sync: true) }
+      }.to send_request_matching(:CreateTable).once
     end
 
     it 'returns true if table created' do
@@ -174,13 +178,13 @@ describe Dynamoid::Adapter do
       Dynamoid.adapter.put_item(test_table3, id: '2', range: 1.0)
       Dynamoid.adapter.put_item(test_table3, id: '2', range: 2.0)
 
-      expect(adapter_plugin).to receive(:batch_delete_item).and_call_original
-
-      expect do
-        subject.delete(test_table3, %w[1 2], range_key: 1.0)
-      end.to change {
-        Dynamoid.adapter.scan(test_table3).flat_map { |i| i }.to_a.size
-      }.from(4).to(2)
+      expect {
+        expect {
+          subject.delete(test_table3, %w[1 2], range_key: 1.0)
+        }.to change {
+          Dynamoid.adapter.scan(test_table3).flat_map { |i| i }.to_a.size
+        }.from(4).to(2)
+      }.to send_request_matching(:BatchWriteItem)
 
       expect(Dynamoid.adapter.get_item(test_table3, '1', range_key: 1.0)).to be_nil
       expect(Dynamoid.adapter.get_item(test_table3, '2', range_key: 1.0)).to be_nil

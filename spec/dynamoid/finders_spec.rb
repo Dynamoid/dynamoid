@@ -511,10 +511,9 @@ describe Dynamoid::Finders do
   it 'sends consistent option to the adapter' do
     address = Address.create!(city: 'Chicago')
 
-    expect(Dynamoid.adapter).to receive(:get_item)
-      .with(anything, anything, hash_including(consistent_read: true))
-      .and_call_original
-    Address.find(address.id, consistent_read: true)
+    expect {
+      Address.find(address.id, consistent_read: true)
+    }.to send_request_matching(:GetItem, { TableName: Address.table_name, ConsistentRead: true })
   end
 
   context 'with users' do

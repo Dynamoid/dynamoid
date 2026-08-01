@@ -10,9 +10,17 @@ class SendRequestMatching < RSpec::Matchers::BuiltIn::BaseMatcher
 
     PrintHttpBody.enabled = false
 
-    PrintHttpBody.logged_requests
+    matching_requests = PrintHttpBody.logged_requests
       .select { |r| r[:operation_name] == @operation_name }
-      .any? { |r| values_match?(@pattern, r[:body]) }
+      .select { |r| values_match?(@pattern, r[:body]) }
+
+    @actual_count = matching_requests.size
+
+    if @expected_count
+      @actual_count == @expected_count
+    else
+      @actual_count > 0
+    end
   end
 
   # @api private
@@ -23,19 +31,31 @@ class SendRequestMatching < RSpec::Matchers::BuiltIn::BaseMatcher
   # @api private
   # @return [String]
   def failure_message
-    "expected #{PrintHttpBody.logged_requests} to contain #{@operation_name} request matching #{@pattern}"
+    if @expected_count
+      "expected #{@operation_name} request matching #{@pattern} to be sent #{@expected_count} times, but it was sent #{@actual_count} times"
+    else
+      "expected #{@operation_name} request matching #{@pattern} to be sent, but it was not"
+    end
   end
 
   # @api private
   # @return [String]
   def failure_message_when_negated
-    "expected #{PrintHttpBody.logged_requests} not to contain #{@operation_name} request matching #{@pattern}"
+    if @expected_count
+      "expected #{@operation_name} request matching #{@pattern} not to be sent #{@expected_count} times, but it was"
+    else
+      "expected #{@operation_name} request matching #{@pattern} not to be sent, but it was"
+    end
   end
 
   # @api private
   # @return [String]
   def description
-    "match #{@operation_name} request #{@pattern}"
+    if @expected_count
+      "match #{@operation_name} request #{@pattern} exactly #{@expected_count} times"
+    else
+      "match #{@operation_name} request #{@pattern}"
+    end
   end
 
   # @private
@@ -48,12 +68,32 @@ class SendRequestMatching < RSpec::Matchers::BuiltIn::BaseMatcher
     false
   end
 
+  def exactly(count)
+    @expected_count = count
+    self
+  end
+
+  def times
+    self
+  end
+
+  def once
+    @expected_count = 1
+    self
+  end
+
+  def twice
+    @expected_count = 2
+    self
+  end
+
   private
 
   def initialize(operation_name, pattern)
     super()
     @operation_name = operation_name.to_s
     @pattern = pattern.stringify_keys
+    @expected_count = nil
   end
 
   def values_match?(expected, actual)
@@ -105,6 +145,6 @@ class SendRequestMatching < RSpec::Matchers::BuiltIn::BaseMatcher
   end
 end
 
-def send_request_matching(operation, pattern)
+def send_request_matching(operation, pattern = {})
   SendRequestMatching.new(operation, pattern)
 end

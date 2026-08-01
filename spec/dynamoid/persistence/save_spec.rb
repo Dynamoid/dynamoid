@@ -71,11 +71,11 @@ RSpec.describe Dynamoid::Persistence do
     it 'creates table if it does not exist' do
       model = klass.new
 
-      expect(klass).to receive(:create_table).with(sync: true).and_call_original
-
-      expect { model.save }
-        .to change { tables_created.include?(klass.table_name) }
-        .from(false).to(true)
+      expect {
+        expect { model.save }
+          .to change { tables_created.include?(klass.table_name) }
+          .from(false).to(true)
+      }.to send_request_matching(:CreateTable, { TableName: klass.table_name })
     end
 
     it 'dumps attribute values' do
@@ -142,18 +142,21 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     it 'does not make a request to persist a model if there is no any changed attribute' do
-      obj = klass.create(name: 'Alex')
-
-      expect(Dynamoid.adapter).to receive(:update_item).and_call_original
+      obj = klass.create!(name: 'Alex')
       obj.name = 'Michael'
-      obj.save
 
-      expect(Dynamoid.adapter).not_to receive(:update_item).and_call_original
-      obj.save
+      expect {
+        obj.save
+      }.to send_request_matching(:UpdateItem, { TableName: klass.table_name })
 
-      expect(Dynamoid.adapter).not_to receive(:update_item)
+      expect {
+        obj.save
+      }.not_to send_request_matching(:UpdateItem)
+
       obj_loaded = klass.find(obj.id)
-      obj_loaded.save
+      expect {
+        obj_loaded.save
+      }.not_to send_request_matching(:UpdateItem)
     end
 
     it 'returns true if there is no any changed attribute' do
@@ -165,8 +168,9 @@ RSpec.describe Dynamoid::Persistence do
     end
 
     it 'calls PutItem for a new record' do
-      expect(Dynamoid.adapter).to receive(:write).and_call_original
-      klass.create(name: 'Alex')
+      expect {
+        klass.create(name: 'Alex')
+      }.to send_request_matching(:PutItem, { TableName: klass.table_name })
     end
 
     it 'calls UpdateItem for already persisted record' do
@@ -178,8 +182,9 @@ RSpec.describe Dynamoid::Persistence do
       obj = klass.create!(name: 'Alex', age: 21)
       obj.age = 31
 
-      expect(Dynamoid.adapter).to receive(:update_item).and_call_original
-      obj.save
+      expect {
+        obj.save
+      }.to send_request_matching(:UpdateItem, { TableName: klass.table_name })
     end
 
     context 'when a model was concurrently deleted' do
