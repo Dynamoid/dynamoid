@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:disable RSpec/MultipleDescribes
+RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -356,7 +356,7 @@ describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:disable
   end
 end
 
-describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' do
+RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' do
   let(:klass) do
     new_class do
       field :name

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Tasks::Database do
+RSpec.describe Dynamoid::Tasks::Database do
   describe '#ping' do
     context 'when the database is reachable' do
       it 'is able to ping (connect to) DynamoDB' do

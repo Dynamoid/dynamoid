@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Associations do
+RSpec.describe Dynamoid::Associations do
   let(:magazine) { Magazine.create }
 
   it 'defines a getter' do

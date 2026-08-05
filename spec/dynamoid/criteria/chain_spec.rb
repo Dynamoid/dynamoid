@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Criteria::Chain do
+RSpec.describe Dynamoid::Criteria::Chain do
   let(:time) { DateTime.now }
   let(:user) { User.create(name: 'Josh', email: 'josh@joshsymonds.com', password: 'Test123') }
   let(:chain) { described_class.new(User) }

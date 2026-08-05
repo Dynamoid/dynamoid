@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/MultipleDescribes
+RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -724,7 +724,7 @@ describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/
   end
 end
 
-describe Dynamoid::Transactions::Mutation, '#create!' do
+RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
   let(:klass) do
     new_class do
       field :name

@@ -13,7 +13,6 @@ require 'active_support/lazy_load_hooks'
 require 'active_support/time_with_zone'
 require 'active_model'
 
-require 'dynamoid/version'
 require 'dynamoid/errors'
 require 'dynamoid/application_time_zone'
 require 'dynamoid/dynamodb_time_zone'
@@ -40,6 +39,8 @@ require 'dynamoid/adapter'
 require 'dynamoid/tasks/database'
 
 require 'dynamoid/middleware/identity_map'
+require "version_gem"
+require_relative "dynamoid/version"
 
 require 'dynamoid/railtie' if defined?(Rails)
 
@@ -69,4 +70,8 @@ module Dynamoid
     # all the deprecated behavior will be removed in the next major version
     @deprecator ||= ActiveSupport::Deprecation.new('4.0', 'Dynamoid')
   end
+end
+
+Dynamoid::Version.class_eval do
+  extend VersionGem::Basic
 end

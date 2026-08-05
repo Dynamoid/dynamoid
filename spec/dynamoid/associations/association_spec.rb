@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Associations::Association do
+RSpec.describe Dynamoid::Associations::Association do
   let(:subscription) { Subscription.create }
   let(:magazine) { Magazine.create }
 

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Finders do
+RSpec.describe Dynamoid::Finders do
   describe '.find' do
     let(:klass) do
       new_class(class_name: 'Document')

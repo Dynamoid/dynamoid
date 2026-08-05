@@ -1,17 +1,97 @@
 # Changelog
+
+[![SemVer 2.0.0][📌semver-img]][📌semver] [![Keep-A-Changelog 1.0.0][📗keep-changelog-img]][📗keep-changelog]
+
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog][📗keep-changelog],
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html),
+and [yes][📌major-versions-not-sacred], platform and engine support are part of the [public API][📌semver-breaking].
+Please file a bug if you notice a violation of semantic versioning.
+
+[📌semver]: https://semver.org/spec/v2.0.0.html
+[📌semver-img]: https://img.shields.io/badge/semver-2.0.0-FFDD67.svg?style=flat
+[📌semver-breaking]: https://github.com/semver/semver/issues/716#issuecomment-869336139
+[📌major-versions-not-sacred]: https://tom.preston-werner.com/2022/05/23/major-version-numbers-are-not-sacred.html
+[📗keep-changelog]: https://keepachangelog.com/en/1.0.0/
+[📗keep-changelog-img]: https://img.shields.io/badge/keep--a--changelog-1.0.0-FFDD67.svg?style=flat
 
 ## [Unreleased]
 
-### Fixed
 ### Added
+
+- kettle-jem-template-20260720-005 - README Support & Community links now
+  include RubyForum.
+- kettle-jem-template-20260726-001 - Projects now include YARD lint
+  configuration and documentation dependencies so documentation issues fail
+  before generated docs are refreshed.
+- kettle-jem-template-20260727-001 - Spec harness documentation now lists the
+  RSpec helpers provided by `kettle-test`.
+
 ### Changed
+
+- kettle-jem-template-20260716-002 - Gemspecs now ship fewer repository-only
+  files, reducing package noise for downstream packagers.
+- kettle-jem-template-20260720-002 - Development Gemfiles now use the released
+  `tree_sitter_language_pack` gem 1.13.3 or newer by default.
+- kettle-jem-template-20260725-002 - Version specs now use `anonymous_loader` to
+  cover `version.rb` without redefining constants, or are removed when version
+  specs are not managed for the project.
+- kettle-jem-template-20260728-001 - Generated Ruby workflows now use clearer
+  setup-ruby-flash planning and can prepare appraisal-only jobs without
+  installing the main Gemfile bundle.
+- kettle-jem-template-20260801-001 - Generated README gem dashboard links now
+  use ClickGems instead of BestGems.
+
+### Deprecated
+
 ### Removed
 
-## 3.13.1
+### Fixed
+
+- kettle-jem-template-20260720-003 - StructuredMerge Git diff driver config now
+  uses the installed `smorg-rb` driver command.
+- kettle-jem-template-20260725-001 - Release pull request branches beginning
+  with `feature/release` now run JRuby and TruffleRuby workflows.
+- kettle-jem-template-20260726-002 - Generated version files now document their
+  version namespace and constants, reducing warning-only YARD lint output.
+- kettle-jem-template-20260726-003 - Coverage upload steps now treat Coveralls,
+  QLTY, and Codecov as optional, so provider outages do not fail CI when local
+  coverage thresholds still pass.
+- kettle-jem-template-20260728-002 - Generated RuboCop configs now ignore the
+  same `gemfiles/vendor/bundle` tree as `.gitignore`, so vendored dependency
+  installs are not reported as project lint debt.
+- kettle-jem-template-20260728-005 - VersionGem bootstrap now creates the
+  missing canonical version spec when a project only has shim namespace version
+  specs.
+- kettle-jem-template-20260730-001 - Gemspec package file enumeration now runs
+  relative to the gemspec directory, so release package contents stay correct
+  even when the gemspec is loaded from another working directory.
+- kettle-jem-template-20260801-002 - Generated RSpec helpers now normalize
+  managed configuration block bindings structurally, preventing mixed block
+  parameter names from producing invalid configuration after a merge.
+- kettle-jem-template-20260801-003 - Generated project metadata and
+  documentation now normalize configured underscore hostnames to valid
+  hyphenated hostnames.
+- kettle-jem-template-20260801-004 - Generated organization README logos now
+  use GitHub's stable organization avatar endpoint instead of assuming a
+  matching Galtzo-hosted asset exists.
+- kettle-jem-template-20260802-001 - Devcontainer JSON files now merge as JSONC,
+  preserving comments and trailing commas during template updates.
+
+- kettle-jem-template-20260728-003 - Generated dep-heads workflows now run
+  TruffleRuby jobs with current RubyGems and Bundler, avoiding setup failures
+  before the test suite starts.
+- kettle-jem-template-20260728-004 - Generated dep-heads workflows now use the
+  setup-ruby Bundler install path for direct appraisal Gemfiles, avoiding rv
+  lockfile parser failures on Git and path dependencies.
+- kettle-jem-template-20260729-001 - Generated JRuby 9.4 workflows now use the
+  legacy manual bundle install path, avoiding setup-time Bundler full-index
+  failures against `gem.coop`.
+
+### Security
+
+## [3.13.1]
 
 ### Fixed
 * [#1003](https://github.com/Dynamoid/dynamoid/pull/1003) Fix detecting dirty changes for `:map` fields
@@ -213,11 +293,11 @@ A proper behaviour is to use adapter's .dynamoid_dump method instead of a value'
 * [#421](https://github.com/Dynamoid/dynamoid/pull/421) Added `touch: false` option of the #save method
 * [#423](https://github.com/Dynamoid/dynamoid/pull/423) Added warning when generated for a field methods override existing ones
 
-## 3.4.1
+## [3.4.1]
 ### Fixed
 * Fix: [#398](https://github.com/Dynamoid/dynamoid/pull/398) Fix broken configuration
 
-## 3.4.0
+## [3.4.0]
 ### Added
 * Feature: [#386](https://github.com/Dynamoid/dynamoid/pull/386) Disable timestamps fields on a table level with new
   table option `timestamps`
@@ -234,7 +314,7 @@ A proper behaviour is to use adapter's .dynamoid_dump method instead of a value'
 * Fix: [#382](https://github.com/Dynamoid/dynamoid/pull/382) Fixed deprecation warning about `Module#parent_name` in Rails 6 (@tmandke)
 * Fix: Typos in Readme.md (@romeuhcf)
 
-## 3.3.0
+## [3.3.0]
 ### Added
 * [#374](https://github.com/Dynamoid/dynamoid/pull/374) Add `#project` query method to load only specified fields
 
@@ -249,7 +329,7 @@ A proper behaviour is to use adapter's .dynamoid_dump method instead of a value'
 * [#368](https://github.com/Dynamoid/dynamoid/pull/368) Repair `#previous_changes` method from Dirty API
 * [#373](https://github.com/Dynamoid/dynamoid/pull/373) Fix threadsafety of loading `Dynamoid::Adapter` (@tsub)
 
-## 3.2.0
+## [3.2.0]
 ### Added
 * [#341](https://github.com/Dynamoid/dynamoid/pull/341), [#342](https://github.com/Dynamoid/dynamoid/pull/342) Add `find_by_pages` method to provide access to DynamoDB query result pagination mechanism (@bmalinconico, @arjes)
 * [#354](https://github.com/Dynamoid/dynamoid/pull/354) Add `map` field type
@@ -261,7 +341,7 @@ A proper behaviour is to use adapter's .dynamoid_dump method instead of a value'
 * [#356](https://github.com/Dynamoid/dynamoid/pull/356) Simplify requiring Rake tasks in non-Rails application
 * Readme.md. Minor improvements and Fixed (@cabello)
 
-## 3.1.0
+## [3.1.0]
 ### Added
 * [#302](https://github.com/Dynamoid/dynamoid/pull/302) Add methods similar to `ActiveRecord::AttributeMethods::BeforeTypeCast`:
   * method `attributes_before_type_cast`
@@ -291,7 +371,7 @@ A proper behaviour is to use adapter's .dynamoid_dump method instead of a value'
 * [#319](https://github.com/Dynamoid/dynamoid/pull/319) Repair consistent reading for `find_all`
 * [#317](https://github.com/Dynamoid/dynamoid/pull/317) Fix `create_tables` rake task
 
-## 3.0.0
+## [3.0.0]
 ### Changed
 * BREAKING [#267](https://github.com/Dynamoid/dynamoid/pull/267) Upgrade AWS SDK to V3
 * BREAKING [#268](https://github.com/Dynamoid/dynamoid/pull/268) Drop support of old Ruby versions. Support Ruby since 2.3 version
@@ -313,14 +393,14 @@ A proper behaviour is to use adapter's .dynamoid_dump method instead of a value'
 * Bug: [#283](https://github.com/Dynamoid/Dynamoid/pull/283) Fix type declaration of custom type fields. Returned by `.dynamoid_field_type` value is treated as Dynamoid's type now
 * Bug: [#287](https://github.com/Dynamoid/Dynamoid/pull/287) Fix logging disabling (@ghiculescu)
 
-## 2.2.0
+## [2.2.0]
 ### Changed
 * Feature: [#256](https://github.com/Dynamoid/Dynamoid/pull/256) Support Rails 5.2 (@andrykonchin)
 
 ### Fixed
 * Bug: [#255](https://github.com/Dynamoid/Dynamoid/pull/255) Fix Vagrant RVM configuration and upgrade to Ruby 2.4.1 (@richardhsu)
 
-## 2.1.0
+## [2.1.0]
 ### Changed
 * Feature: [#221](https://github.com/Dynamoid/Dynamoid/pull/221) Add field declaration option `of` to specify the type of `set` elements (@pratik60)
 * Feature: [#223](https://github.com/Dynamoid/Dynamoid/pull/223) Add field declaration option `store_as_string` to store `datetime` as ISO-8601 formatted strings (@william101)
@@ -345,7 +425,7 @@ A proper behaviour is to use adapter's .dynamoid_dump method instead of a value'
 * Bug: [#250](https://github.com/Dynamoid/Dynamoid/pull/250) Update outdated warning message about inefficient query and missing indices (@andrykonchin)
 * Bug: [252](https://github.com/Dynamoid/Dynamoid/pull/252) Don't loose nanoseconds when store DateTime as float number
 
-## 2.0.0
+## [2.0.0]
 Breaking changes in this release generally bring Dynamoid behavior closer to the Rails-way.
 
 ### Added
@@ -396,7 +476,7 @@ Breaking changes in this release generally bring Dynamoid behavior closer to the
     * Fixed exception when makes query and sort key isn't declared in model
 * [#207](https://github.com/Dynamoid/Dynamoid/pull/207) Fixed `#delete` method for case `adapter.delete(table_name, [1, 2, 3], range_key: 1)` (@andrykonchin)
 
-## 1.3.4
+## [1.3.4]
 ### Added
 * Added `Chain#last` method (@andrykonchin)
 * Added `date` field type (@andrykonchin)
@@ -426,16 +506,16 @@ Breaking changes in this release generally bring Dynamoid behavior closer to the
 * Fix paginating for Scan requests (@richardhsu)
 * Fix `batch_get_item` method call for integer partition key (@mudasirraza)
 
-## 1.3.3
+## [1.3.3]
 ### Added
 * Allow configuration of the Dynamoid models directory, as not everyone keeps non AR models in app/models
   - Dynamoid::Config.models_dir = "app/whatever"
 
-## 1.3.2
+## [1.3.2]
 ### Fixed
 * Fix migrations by stopping the loading of all rails models outside the rails env.
 
-## 1.3.1
+## [1.3.1]
 * Implements #135
   * dump values for :integer, :string, :boolean fields passed to where query
     * e.g. You can search for booleans with any of: `[true, false, "t", "f", "true", "false"]`
@@ -448,7 +528,7 @@ Breaking changes in this release generally bring Dynamoid behavior closer to the
 * Added wwtd and appraisal to spec suite for easier verification of the compatibility matrix
 * Support is now officially Ruby 2.0+, (including JRuby 9000) and Rails 4.0+
 
-## 1.3.0
+## [1.3.0]
 * Fixed specs (@AlexNisnevich & @pboling)
 * Fix `blank?` and `present?` behavior for single associations (#110, @AlexNisnevich & @bayesimpact)
 * Support BatchGet for more than 100 items (#80, @getninjas)
@@ -461,7 +541,7 @@ Breaking changes in this release generally bring Dynamoid behavior closer to the
 * Better support for raw datatype (#104, @OpenGov)
 * Fix associative tables with non-id primary keys (#86, @everett-wetchler)
 
-## 1.2.1
+## [1.2.1]
 * Remove accidental Gemfile.lock; fix .gitignore (#95, @pboling)
 * Allow options to put_items (#95, @alexperto)
 * Support range key in secondary index queries (#95, @pboling)
@@ -469,7 +549,7 @@ Breaking changes in this release generally bring Dynamoid behavior closer to the
 * Support for batch_delete_item API (#95, @pboling)
 * Support for batch_write_item API (#95, @alexperto)
 
-## 1.2.0
+## [1.2.0]
 * Add create_table_syncronously, and sync: option to regular create_table (@pboling)
   * make required for tables created with secondary indexes
 * Expose and fix truncate method on adapter (#52, @pcorpet)
@@ -486,11 +566,11 @@ Breaking changes in this release generally bring Dynamoid behavior closer to the
 * Fix query attribute behavior for booleans (#35, @amirmanji)
 * Ignore unknown fields on model initialize (PR #33, @sumocoder)
 
-## 1.1.0
+## [1.1.0]
 * Added support for optimistic locking on delete (PR #29, @sumocoder)
 * upgrade concurrent-ruby requirement to 1.0 (PR #31, @keithmgould)
 
-## 1.0.0
+## [1.0.0]
 * Add support for AWS SDK v2.
 * Add support for custom class type for fields.
 * Remove partitioning support.

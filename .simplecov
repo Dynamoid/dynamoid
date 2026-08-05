@@ -11,23 +11,16 @@
 #   so coverage only runs in that workflow, and outputs all formats.
 #
 
-if RUN_COVERAGE
-  SimpleCov.start do
-    enable_coverage :branch
-    primary_coverage :branch
-    add_filter 'spec'
-    # Why exclude version.rb? See: https://github.com/simplecov-ruby/simplecov/issues/557#issuecomment-410105995
-    add_filter 'lib/dynamoid/version.rb'
-    track_files '**/*.rb'
-
-    if ALL_FORMATTERS
-      command_name "#{ENV.fetch('GITHUB_WORKFLOW')} Job #{ENV.fetch('GITHUB_RUN_ID')}:#{ENV.fetch('GITHUB_RUN_NUMBER')}"
-    else
-      formatter SimpleCov::Formatter::HTMLFormatter
-    end
-
-    minimum_coverage(line: 90, branch: 89)
+SimpleCov.configure do
+  if SimpleCov::Configuration.instance_methods.include?(:cover)
+    cover "lib/**/*.rb", "lib/**/*.rake", "exe/*.rb"
+  else
+    track_files "{lib/**/*.rb,lib/**/*.rake,exe/*.rb}"
   end
-else
-  puts "Not running coverage on #{RUBY_VERSION}-#{RUBY_ENGINE}"
+  enable_coverage :branch
+  primary_coverage :branch
+  add_filter 'spec'
+  # Why exclude version.rb? See: https://github.com/simplecov-ruby/simplecov/issues/557#issuecomment-410105995
+  add_filter 'lib/dynamoid/version.rb'
+  track_files '**/*.rb'
 end

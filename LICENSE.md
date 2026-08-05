@@ -1,0 +1,89 @@
+# License
+
+This project is made available under the following license.
+Choose the option that best fits your use case:
+
+- [MIT](https://github.com/Dynamoid/dynamoid/blob/main/MIT.md)
+
+## Copyright Notice
+
+- Copyright (c) 2012 Anantha Kumaran
+- Copyright (c) 2012 Andrés Rojas
+- Copyright (c) 2012 bcoe
+- Copyright (c) 2012 Craig Heneveld
+- Copyright (c) 2012 Jason Dew
+- Copyright (c) 2012 Jon Spalding
+- Copyright (c) 2012 Josh Symonds
+- Copyright (c) 2012 Kishorekumar Neelamegam
+- Copyright (c) 2012-2013 Logan Bowers
+- Copyright (c) 2013 Alexander Lang
+- Copyright (c) 2013 Daniel Marschner
+- Copyright (c) 2013 Lane LaRue
+- Copyright (c) 2013 Luis Arias
+- Copyright (c) 2013 Michael Patricios
+- Copyright (c) 2013 Stefan
+- Copyright (c) 2014, 2018, 2022-2023 bonty
+- Copyright (c) 2015 peeyush1234
+- Copyright (c) 2015 Philip White
+- Copyright (c) 2015-2016 Sumanth Ravipati
+- Copyright (c) 2015 Wan
+- Copyright (c) 2016 Agustin Cavilliotti
+- Copyright (c) 2016 Alex Cabrera
+- Copyright (c) 2016 Alex Emelyanov
+- Copyright (c) 2016 Alex Nisnevich
+- Copyright (c) 2016 Amir Manji
+- Copyright (c) 2016 Brenden Kokoszka
+- Copyright (c) 2016 Everett Wetchler
+- Copyright (c) 2016 Gas unknown developer
+- Copyright (c) 2016 NielsKSchjoedt
+- Copyright (c) 2016 Nigel Brookes-Thomas
+- Copyright (c) 2016 Pascal Corpet
+- Copyright (c) 2016-2018, 2022, 2025-2026 Peter Boling
+- Copyright (c) 2016, 2018-2019 Richard Hsu
+- Copyright (c) 2016 Sergey Petrenko
+- Copyright (c) 2016 Tadas Tamosauskas
+- Copyright (c) 2016 Yuichiro Someya
+- Copyright (c) 2017-2026 Andrew Konchin
+- Copyright (c) 2017 Richard Hsu
+- Copyright (c) 2018 Alex Ghiculescu
+- Copyright (c) 2018 baloran
+- Copyright (c) 2018 Danilo Cabello
+- Copyright (c) 2018 kokuyouwind
+- Copyright (c) 2018 Kristijan Novoselic
+- Copyright (c) 2018 Kristijan Novoselic
+- Copyright (c) 2018 lulu-ulul
+- Copyright (c) 2018 Micael Nussbaumer
+- Copyright (c) 2019 Ash Tyndall
+- Copyright (c) 2019-2020 Brian Malinconico
+- Copyright (c) 2019 Emma Hyde
+- Copyright (c) 2019 Emma Hyde
+- Copyright (c) 2019 Postmodern
+- Copyright (c) 2019 ryosuke_sato
+- Copyright (c) 2019 Tejas Mandke
+- Copyright (c) 2020 Aaron Allen
+- Copyright (c) 2020 Alex Gascón
+- Copyright (c) 2020 Ankun Yu
+- Copyright (c) 2020 Benjamin Vetter
+- Copyright (c) 2020 Dima
+- Copyright (c) 2020 Jānis Kiršteins
+- Copyright (c) 2020 Michael Miller
+- Copyright (c) 2020 Nigel Gomes
+- Copyright (c) 2020 Remo Mueller
+- Copyright (c) 2020  TheSmartnik
+- Copyright (c) 2021-2022 a5-stable
+- Copyright (c) 2021 Brian Malinconico
+- Copyright (c) 2021 Jan Bajena
+- Copyright (c) 2021 Konstantin Kanyuka
+- Copyright (c) 2022 Hiroki Koike
+- Copyright (c) 2022 rahul342
+- Copyright (c) 2022 ta1kt0me
+- Copyright (c) 2022 Tony Spataro
+- Copyright (c) 2022 Tony Spataro
+- Copyright (c) 2023 kiharito
+- Copyright (c) 2023 Maximilian Babescu
+- Copyright (c) 2024-2025 Chris Hobbs
+- Copyright (c) 2024 Dalibor Nasevic
+- Copyright (c) 2024 ndjndj
+- Copyright (c) 2025 Aaron Alberg
+- Copyright (c) 2025 Chris Hobbs
+- Copyright (c) 2025 ogidow

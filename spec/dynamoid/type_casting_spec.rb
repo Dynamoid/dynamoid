@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'Type casting' do
+RSpec.describe 'Type casting' do
   describe 'Boolean field' do
     let(:klass) do
       new_class do

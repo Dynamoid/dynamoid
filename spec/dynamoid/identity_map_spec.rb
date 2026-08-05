@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::IdentityMap do
+RSpec.describe Dynamoid::IdentityMap do
   before do
     Dynamoid::Config.identity_map = true
   end

@@ -1,51 +1,51 @@
 # frozen_string_literal: true
 
-# NOTE: This Gemfile is only relevant to local development.
-#       It allows during local development:
-#         - code coverage reports to be generated
-#         - style linting to be run with RuboCop & extensions
-#       All CI builds use files in gemfiles/*.
-source 'https://rubygems.org'
+# kettle-jem:freeze
+# To retain chunks of comments & code during kettle-jem templating:
+# Wrap custom sections with freeze markers (e.g., as above and below this comment chunk).
+# kettle-jem will then preserve content between those markers across template runs.
+# kettle-jem:unfreeze
 
-# Specify your gem's dependencies in dynamoid.gemspec
+source "https://gem.coop"
+
+git_source(:codeberg) { |repo_name| "https://codeberg.org/#{repo_name}" }
+git_source(:gitlab) { |repo_name| "https://gitlab.com/#{repo_name}" }
+
+#### IMPORTANT #######################################################
+# Gemfile is for local development ONLY; Gemfile is NOT loaded in CI #
+####################################################### IMPORTANT ####
+
+# Include dependencies from dynamoid.gemspec
 gemspec
 
-# Only add to the set of gems from the gemspec when running on local.
-# All CI jobs must use a discrete Gemfile located at gemfiles/*.gemfile. They will not use this Gemfile
-if ENV['CI'].nil?
-  ruby_version = Gem::Version.new(RUBY_VERSION)
-  minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && engine == RUBY_ENGINE }
-  committing = minimum_version.call('2.4')
-  linting = minimum_version.call('2.7')
-  coverage = minimum_version.call('2.7')
+gem "kettle-family", "~> 1.2", ">= 1.2.23"
 
-  platforms :mri do
-    if committing
-      gem 'overcommit'
-    end
-    if linting
-      gem 'rubocop-md', require: false
-      gem 'rubocop-packaging', require: false
-      gem 'rubocop-performance', require: false
-      gem 'rubocop-rake', require: false
-      gem 'rubocop-rspec', require: false
-      gem 'rubocop-thread_safety', require: false
-    end
-    if coverage
-      gem 'codecov', '~> 0.6' # For CodeCov
-      gem 'simplecov', '~> 0.21', require: false
-      gem 'simplecov-cobertura' # XML for Jenkins
-      gem 'simplecov-json' # For CodeClimate
-      gem 'simplecov-lcov', '~> 0.8', require: false
-    end
-  end
 
-  platforms :jruby do
-    # Add `binding.pry` to your code where you want to drop to REPL
-    gem 'pry-debugger-jruby'
-  end
+# Local workspace dependency wiring for *_local.gemfile overrides
+gem "nomono", "~> 1.1", ">= 1.1.4", require: false # ruby >= 3.2.0
 
-  platforms :ruby do
-    gem 'pry-byebug'
-  end
-end
+
+
+# Templating (env-switched: STRUCTUREDMERGE_DEV=/path/to/structuredmerge/ruby/gems for local paths)
+eval_gemfile "gemfiles/modular/templating.gemfile" if ENV.fetch("K_JEM_TEMPLATING", "false").casecmp("true").zero?
+
+# Debugging
+eval_gemfile "gemfiles/modular/debug.gemfile"
+
+# Code Coverage (env-switched: KETTLE_DEV_DEV=true for local paths)
+eval_gemfile "gemfiles/modular/coverage.gemfile"
+
+# Linting
+eval_gemfile "gemfiles/modular/style.gemfile"
+
+# Documentation
+eval_gemfile "gemfiles/modular/documentation.gemfile"
+
+# Optional
+eval_gemfile "gemfiles/modular/optional.gemfile"
+
+### Std Lib Extracted Gems
+eval_gemfile "gemfiles/modular/x_std_libs.gemfile"
+
+# See unlocked_deps appraisal for more details on irb inclusion
+gem "irb", "~> 1.17" # ruby >= 2.7

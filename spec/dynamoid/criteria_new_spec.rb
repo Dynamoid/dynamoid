@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Criteria do
+RSpec.describe Dynamoid::Criteria do
   it 'supports querying with .where method' do
     klass = new_class do
       field :name

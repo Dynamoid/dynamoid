@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'fixtures/fields'
 
-describe Dynamoid::Fields do
+RSpec.describe Dynamoid::Fields do
   let(:address) { Address.new }
 
   describe '.table' do

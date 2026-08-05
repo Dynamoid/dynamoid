@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Adapter do
+RSpec.describe Dynamoid::Adapter do
   subject { described_class.new }
 
   def test_table

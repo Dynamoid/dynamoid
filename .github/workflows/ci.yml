@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -213,10 +216,10 @@ jobs:
     name: ${{ matrix.gemfile }}, Ruby ${{ matrix.ruby }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Setup Ruby & Bundle
-      uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
       with:
         ruby-version: ${{ matrix.ruby }}
         rubygems: ${{ matrix.rubygems }}

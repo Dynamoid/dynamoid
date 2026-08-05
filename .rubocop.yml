@@ -1,3 +1,5 @@
+inherit_gem:
+  rubocop-lts: config/rubygem_rspec.yml
 # We chose not to make these changes
 inherit_from:
   - .rubocop_gemspec.yml
@@ -11,13 +13,36 @@ require:
 
 plugins:
   - rubocop-md
+  - rubocop-on-rbs
   - rubocop-performance
   - rubocop-rake
   - rubocop-rspec
   - rubocop-thread_safety
+# This tells RuboCop to add the exclusions in this file
+# to the default exclusions (and those from other inherited files),
+# rather than overwriting them.
+inherit_mode:
+  merge:
+    - Exclude
 
 # It's the lowest supported Ruby version
 AllCops:
+  Exclude:
+    - certs/**/*
+    - checksums/**/*
+    - docs/**/*
+    - examples/**/*
+    - fixtures/**/*
+    - gemfiles/*.gemfile
+    - gemfiles/vendor/**/*
+    - pkg/**/*
+    - README.md
+    - results/**/*
+    - spec/fixtures/**/*
+    - tmp/**/*
+    - vendor/**/*
+    - "**/vendor/**/*"
+    - AGENTS.md
   DisplayCopNames: true # Display the name of the failing cops
   NewCops: enable
 
@@ -124,3 +149,7 @@ Style/OneClassPerFile:
   Exclude:
     - 'README.md'
     - 'doc/**/*'
+RBS:
+  Enabled: true
+Layout/IndentationConsistency:
+  Exclude: ['*.md']

@@ -3,7 +3,7 @@
 require 'dynamoid/adapter_plugin/aws_sdk_v3/create_table'
 require 'spec_helper'
 
-describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
+RSpec.describe Dynamoid::AdapterPlugin::AwsSdkV3::CreateTable do
   let(:client) { double('client') }
   let(:options) do
     {

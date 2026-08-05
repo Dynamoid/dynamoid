@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'fixtures/dirty'
 
-describe Dynamoid::Dirty do
+RSpec.describe Dynamoid::Dirty do
   let(:model) do
     new_class do
       field :name

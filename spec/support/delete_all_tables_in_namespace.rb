@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.configure do |config|
-  config.before do
+  config.before do |example|
+    next if example.metadata[:skip_database_setup]
+
     unless Dynamoid.adapter.tables.empty?
       Dynamoid.adapter.list_tables.each do |table|
         Dynamoid.adapter.delete_table(table) if table =~ /^#{Dynamoid::Config.namespace}/

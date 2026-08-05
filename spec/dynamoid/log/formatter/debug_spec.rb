@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'dynamoid/log/formatter'
 
-describe Dynamoid::Log::Formatter::Debug do
+RSpec.describe Dynamoid::Log::Formatter::Debug do
   describe '#format' do
     subject { described_class.new }
 

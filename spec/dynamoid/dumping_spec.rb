@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'fixtures/dumping'
 
-describe 'Dumping' do
+RSpec.describe 'Dumping' do
   describe 'Boolean field' do
     context 'string format' do
       let(:klass) do

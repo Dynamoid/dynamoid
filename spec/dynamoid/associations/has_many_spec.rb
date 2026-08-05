@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Associations::HasMany do
+RSpec.describe Dynamoid::Associations::HasMany do
   let(:magazine) { Magazine.create }
   let(:user) { User.create }
   let(:camel_case) { CamelCase.create }

@@ -1,14 +1,24 @@
-name: Code Coverage
+name: Test Coverage
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
 
 env:
-  CI_CODECOV: true
-  COVER_ALL: true
+  K_SOUP_COV_MIN_BRANCH: 76
+  K_SOUP_COV_MIN_LINE: 92
+  K_SOUP_COV_MIN_HARD: true
+  K_SOUP_COV_FORMATTERS: "xml,rcov,lcov,tty"
+  K_SOUP_COV_DO: true
+  K_SOUP_COV_MULTI_FORMATTERS: true
+  K_SOUP_COV_COMMAND_NAME: "Test Coverage"
 
 on:
   push:
     branches:
       - 'main'
-      - 'master'
+      - '*-stable'
     tags:
       - '!*' # Do not execute on tags
   pull_request:
@@ -20,92 +30,125 @@ on:
 # Cancels all previous workflow runs for the same branch that have not yet completed.
 concurrency:
   # The concurrency group contains the workflow name and the branch name.
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Specs with Coverage - Ruby ${{ matrix.ruby }} ${{ matrix.name_extra || '' }}
-    if: "!contains(github.event.commits[0].message, '[ci skip]') && !contains(github.event.commits[0].message, '[skip ci]')"
+  coverage:
+    if: "github.event_name != 'push' || (!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]'))"
+    name: Code Coverage on ${{ matrix.ruby }}@current
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental || endsWith(matrix.ruby, 'head') }}
+    env: # $BUNDLE_GEMFILE must be set at job level, so it is set for all steps
+      BUNDLE_GEMFILE: ${{ github.workspace }}/Appraisal.root.gemfile
     strategy:
       fail-fast: false
       matrix:
-        experimental: [false]
-        rubygems:
-          - latest
-        bundler:
-          - latest
-        ruby:
-          - "2.7"
+        include:
+          # Coverage
+          - ruby: "ruby"
+            appraisal: "coverage"
+            exec_cmd: "env KETTLE_TEST_RUNNER=rspec kettle-test"
+            rubygems: latest
+            bundler: latest
 
-    runs-on: ubuntu-latest
-    env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
-      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/coverage.gemfile
     steps:
-      - uses: amancevice/setup-code-climate@v0
-        name: CodeClimate Install
-        if: matrix.ruby == '2.7' && github.event_name != 'pull_request' && always()
-        with:
-          cc_test_reporter_id: ${{ secrets.CC_TEST_REPORTER_ID }}
-
       - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Ruby & Bundle
-        uses: ruby/setup-ruby@v1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ruby-version: ${{ matrix.ruby }}
-          rubygems: ${{ matrix.rubygems }}
-          bundler: ${{ matrix.bundler }}
+          persist-credentials: false
+
+      - name: Setup Ruby & RubyGems
+        uses: appraisal-rb/setup-ruby-flash@b22cb587431e9611d9e0a624a43872e2bbfbcd66 # v2.0
+        with:
+          ruby-version: "${{ matrix.ruby }}"
+          rubygems: "${{ matrix.rubygems }}"
+          bundler: "${{ matrix.bundler }}"
           bundler-cache: true
+          manual-compatibility-bundle: true
+          gem-install-retries: 7
 
-      - name: CodeClimate Pre-build Notification
-        run: cc-test-reporter before-build
-        if: matrix.ruby == '2.7' && github.event_name != 'pull_request' && always()
-        continue-on-error: ${{ matrix.experimental != 'false' }}
+      - name: "[Attempt 1] Appraisal for ${{ matrix.ruby }}@${{ matrix.appraisal }}"
+        id: bundleAppraisalAttempt1
+        run: bundle exec appraisal ${{ matrix.appraisal }} install
+        # Continue to the next step on failure
+        continue-on-error: true
 
-      - name: Start dynamodb-local
+      # Effectively an automatic retry of the previous step.
+      - name: "[Attempt 2] Appraisal for ${{ matrix.ruby }}@${{ matrix.appraisal }}"
+        id: bundleAppraisalAttempt2
+        # If bundleAppraisalAttempt1 failed, try again here; Otherwise skip.
+        if: ${{ steps.bundleAppraisalAttempt1.outcome == 'failure' }}
+        run: bundle exec appraisal ${{ matrix.appraisal }} install
+
+      - name: Restore RSpec status log
+        if: "${{!env.ACT}}"
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .rspec_status
+          key: rspec-status-coverage-${{matrix.ruby}}-${{matrix.appraisal}}-${{hashFiles('**/Gemfile.lock','Appraisal.root.gemfile','gemfiles/**/*.gemfile')}}-${{github.run_id}}-${{github.run_attempt}}
+          restore-keys: |
+            rspec-status-coverage-${{matrix.ruby}}-${{matrix.appraisal}}-${{hashFiles('**/Gemfile.lock','Appraisal.root.gemfile','gemfiles/**/*.gemfile')}}-
+            rspec-status-coverage-${{matrix.ruby}}-${{matrix.appraisal}}-
+
+      - name: Tests for ${{ matrix.ruby }}@current via ${{ matrix.exec_cmd }}
+        run: bundle exec appraisal ${{ matrix.appraisal }} bundle exec ${{ matrix.exec_cmd }}
+
+      - name: Verify coverage reports
         run: |
-          docker compose up -d
+          test -s coverage/lcov.info
+          test -s coverage/coverage.xml
 
-      - name: Run RSpec tests
-        run: |
-          bundle exec rspec
+      - name: Upload coverage to Coveralls
+        if: ${{ !env.ACT }}
+        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: coverage/lcov.info
+          format: lcov
+          fail-on-error: false
+        continue-on-error: true
 
-      - name: Stop dynamodb-local
-        run: |
-          docker compose down
+      - name: Upload coverage to QLTY
+        if: ${{ !env.ACT }}
+        uses: qltysh/qlty-action/coverage@08a0a862c159eae9b9003081da6663d96efef637 # v2.3.0
+        with:
+          oidc: true
+          files: coverage/lcov.info
+          format: lcov
+          skip-errors: true
+        continue-on-error: true
 
-      - name: CodeClimate Post-build Notification
-        run: cc-test-reporter after-build
-        if: matrix.ruby == '2.7' && github.event_name != 'pull_request' && always()
-        continue-on-error: ${{ matrix.experimental != 'false' }}
+      - name: Upload coverage to CodeCov
+        if: ${{ !env.ACT }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          use_oidc: true
+          disable_search: true
+          fail_ci_if_error: false
+          files: coverage/lcov.info,coverage/coverage.xml
+          verbose: true
+        continue-on-error: true
 
       - name: Code Coverage Summary Report
-        uses: irongut/CodeCoverageSummary@v1.2.0
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 # v1.3.0
         with:
           filename: ./coverage/coverage.xml
           badge: true
           fail_below_min: true
           format: markdown
-          hide_branch_rate: true
+          hide_branch_rate: false
           hide_complexity: true
           indicators: true
           output: both
-          thresholds: '90 89'
-        continue-on-error: ${{ matrix.experimental != 'false' }}
+          thresholds: '${{ env.K_SOUP_COV_MIN_LINE }} ${{ env.K_SOUP_COV_MIN_BRANCH }}'
+        continue-on-error: ${{ matrix.experimental || endsWith(matrix.ruby, 'head') }}
 
       - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: matrix.ruby == '2.7' && always()
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
         with:
           recreate: true
           path: code-coverage-results.md
-        continue-on-error: ${{ matrix.experimental != 'false' }}
-
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        if: matrix.ruby == '2.7' && github.event_name != 'pull_request' && always()
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: ${{ matrix.experimental != 'false' }}
+        continue-on-error: ${{ matrix.experimental || endsWith(matrix.ruby, 'head') }}

@@ -1,76 +1,57 @@
-.project
-
-# rcov generated
-coverage
-
-# rdoc generated
-rdoc
-
-# yardoc generated
-.yardoc
-/_yardoc/
-yardoc
-
-# mdbook generated
-book
-
-# bundler
-/.bundle/
-
-# jeweler generated
+# Build Artifacts
 /pkg/
+/tmp/*
+!/tmp/.gitignore
+*.gem
 
-# Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore:
-#
-# * Create a file at ~/.gitignore
-# * Include files you want ignored
-# * Run: git config --global core.excludesfile ~/.gitignore
-#
-# After doing this, these files will be ignored in all your git projects,
-# saving you from having to 'pollute' every project you touch with them
-#
-# Not sure what to needs to be ignored for particular editors/OSes? Here's some ideas to get you started. (Remember, remove the leading # of the line)
-#
-# For MacOS:
-#
-#.DS_Store
+# Bundler
+/vendor/bundle/
+/.bundle/
+/gemfiles/*.lock
+/gemfiles/**/*.gemfile.lock
+/gemfiles/.bundle/
+/gemfiles/.bundle/config
+/gemfiles/vendor/
+Appraisal.*.gemfile.lock
 
-# For TextMate
-#*.tmproj
-#tmtags
-
-# For emacs:
-#*~
-#\#*
-#.\#*
-
-# For vim:
-#*.swp
-
-# For redcar:
-#.redcar
-
-# For rubinius:
-#*.rbc
-
-# for RVM
-.rvmrc
-
-# For RubyMine:
-/.idea/
-
-# For Ctags
-.gemtags
-.tags
-.tags_sorted_by_file
-
+# Specs
+.rspec_status
+/coverage/
 /spec/reports/
-/tmp/
 /spec/DynamoDBLocal-latest/
-/vendor/
+/results/
+.output.txt
 
-# For vagrant
-.vagrant
+# DynamoDB Local runtime metadata
+/dynamodb-local-metadata.json
 
-# For Appraisals
-gemfiles/*.gemfile.lock
+# Documentation
+/.yardoc/
+/_yardoc/
+/rdoc/
+/doc/
+
+# Ruby Version Managers (RVM, rbenv, etc)
+# Ignored because we currently use mise.toml
+.rvmrc
+.ruby-version
+.ruby-gemset
+.tool-versions
+
+# Benchmarking
+/measurement/
+
+# Debugger detritus
+.byebug_history
+
+# Local environment overrides (KEY=value, loaded by mise via dotenvy)
+.env.local
+
+# OS Detritus
+.DS_Store
+
+# Editors
+*~
+
+# Sentinels
+.floss_funding.*.lock

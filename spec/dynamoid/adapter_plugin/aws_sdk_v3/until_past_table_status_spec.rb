@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'dynamoid/adapter_plugin/aws_sdk_v3'
 
-describe Dynamoid::AdapterPlugin::AwsSdkV3::UntilPastTableStatus do
+RSpec.describe Dynamoid::AdapterPlugin::AwsSdkV3::UntilPastTableStatus do
   describe 'call' do
     context 'table creation' do
       let(:client) { double('client') }

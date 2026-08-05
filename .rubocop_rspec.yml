@@ -2,6 +2,8 @@ RSpec/SpecFilePathFormat:
   Enabled: false
 
 RSpec/SpecFilePathSuffix:
+  Exclude:
+    - 'spec/README.md'
   Enabled: false
 
 RSpec/MultipleExpectations:
@@ -30,6 +32,21 @@ RSpec/NestedGroups:
 
 RSpec/ExpectInHook:
   Enabled: false
+RSpec/DescribeClass:
+  Exclude:
+    - 'spec/examples/*'
+    - 'spec/integration/*'
+    - 'spec/system/*'
+    - 'spec/e2e/*'
+RSpec/NoExpectationExample:
+  Exclude:
+    - 'spec/README.md'
+RSpec/MultipleDescribes:
+  Exclude:
+    - 'spec/README.md'
+RSpec/RepeatedExampleGroupDescription:
+  Exclude:
+    - 'spec/README.md'
 
 RSpec/ExpectInLet:
   Enabled: false
@@ -51,4 +68,8 @@ RSpec/IndexedLet:
 
 # Disable while callbacks specs use printing into output
 RSpec/Output:
+  Exclude:
+    - 'spec/support/**/*'
+    - 'spec/config/**/*'
+    - 'spec/fixtures/**/*'
   Enabled: false

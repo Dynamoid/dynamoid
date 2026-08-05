@@ -5,7 +5,7 @@ require 'active_support/core_ext/object'
 
 require 'spec_helper'
 
-describe Dynamoid::Associations::BelongsTo do
+RSpec.describe Dynamoid::Associations::BelongsTo do
   context 'has many' do
     let(:subscription) { Subscription.create }
     let(:camel_case) { CamelCase.create }

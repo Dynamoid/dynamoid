@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Validations do
+RSpec.describe Dynamoid::Validations do
   let(:doc_class) do
     new_class
   end

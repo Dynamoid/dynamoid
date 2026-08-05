@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Config do
+RSpec.describe Dynamoid::Config do
   describe 'credentials' do
     let(:credentials_new) do
       Aws::Credentials.new('your_access_key_id', 'your_secret_access_key')

@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+# To retain during kettle-jem templating:
+#     kettle-jem:freeze
+#     # ... your code
+#     kettle-jem:unfreeze
+#
+
+# Test against HEAD of runtime dependencies so we can proactively file bugs
+
+eval_gemfile("x_std_libs/vHEAD.gemfile")

@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'fixtures/indexes'
 
-describe Dynamoid::Indexes do
+RSpec.describe Dynamoid::Indexes do
   let(:doc_class) do
     new_class
   end

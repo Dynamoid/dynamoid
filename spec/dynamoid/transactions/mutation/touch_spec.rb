@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Transactions::Mutation, '#touch' do
+RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
   let(:klass) do
     new_class
   end

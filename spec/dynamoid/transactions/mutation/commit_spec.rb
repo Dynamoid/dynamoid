@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Transactions::Mutation, '#commit' do
+RSpec.describe Dynamoid::Transactions::Mutation, '#commit' do
   let(:klass) do
     new_class do
       field :name

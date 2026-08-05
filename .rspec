@@ -1,2 +1,10 @@
---format documentation
+--format progress
 --color
+--order random
+--require spec_helper
+--exclude-pattern spec/tmp/**/*_spec.rb
+--warnings
+--format html
+--out results/test_results.html
+--format RspecJunitFormatter
+--out results/test_results.xml

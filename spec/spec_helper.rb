@@ -1,5 +1,24 @@
 # frozen_string_literal: true
 
+# Config for development dependencies of this library
+# i.e., not configured by this library
+#
+# SimpleCov & related config (must run BEFORE any other requires)
+# NOTE: Gemfiles for non-coverage appraisals may not have kettle-soup-cover.
+#       The rescue LoadError handles that scenario.
+begin
+  require "kettle-soup-cover"
+  if Kettle::Soup::Cover::DO_COV
+    # Requiring simplecov loads the project-local `.simplecov`.
+    require "simplecov"
+    require "kettle/soup/cover/config"
+    SimpleCov.start
+  end
+rescue LoadError => error
+  # check the error message and re-raise when unexpected
+  raise error unless error.message.include?("kettle")
+end
+
 # Standard Libs
 
 # Explicit requiring the "logger" library is needed for Rails 6.0-7.0
@@ -15,48 +34,23 @@ require 'active_support/testing/time_helpers'
 require 'rspec'
 require 'pry'
 
+# External RSpec & related config
+require "kettle/test/rspec"
+# `kettle/test/rspec` installs harness helpers documented in spec/README.md.
+
 # Debugging
 DEBUG = ENV['DEBUG'] == 'true'
 
 ruby_version = Gem::Version.new(RUBY_VERSION)
 minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && engine == RUBY_ENGINE }
-actual_version = lambda do |major, minor|
-  actual = Gem::Version.new(ruby_version)
-  major == actual.segments[0] && minor == actual.segments[1] && RUBY_ENGINE == 'ruby'
-end
 debugging = minimum_version.call('2.7') && DEBUG
-RUN_COVERAGE = minimum_version.call('2.6') && (ENV['COVER_ALL'] || ENV['CI_CODECOV'] || ENV['CI'].nil?)
-ALL_FORMATTERS = actual_version.call(2, 7) && (ENV['COVER_ALL'] || ENV['CI_CODECOV'] || ENV['CI']) # rubocop:disable Style/FetchEnvVar
+RUN_COVERAGE = defined?(Kettle::Soup::Cover::DO_COV) && Kettle::Soup::Cover::DO_COV
 
 if DEBUG
   if debugging
-    require 'byebug'
+    require "debug" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7")
   elsif minimum_version.call('2.7', 'jruby')
     require 'pry-debugger-jruby'
-  end
-end
-
-# Load Code Coverage as the last thing before this gem
-if RUN_COVERAGE
-  require 'simplecov' # Config file `.simplecov` is run immediately when simplecov loads
-  require 'codecov'
-  require 'simplecov-json'
-  require 'simplecov-lcov'
-  require 'simplecov-cobertura'
-  if ALL_FORMATTERS
-    # This would override the formatter set in .simplecov, if set
-    SimpleCov::Formatter::LcovFormatter.config do |c|
-      c.report_with_single_file = true
-      c.single_report_path = 'coverage/lcov.info'
-    end
-
-    SimpleCov.formatters = [
-      SimpleCov::Formatter::HTMLFormatter,
-      SimpleCov::Formatter::CoberturaFormatter, # XML for Jenkins
-      SimpleCov::Formatter::LcovFormatter,
-      SimpleCov::Formatter::JSONFormatter, # For CodeClimate
-      SimpleCov::Formatter::Codecov, # For CodeCov
-    ]
   end
 end
 
@@ -92,6 +86,16 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].sort.each { |f| require f }
 Dir[File.join(MODELS, '*.rb')].sort.each { |file| require file }
 
 RSpec.configure do |config|
+  # Enable flags like --only-failures and --next-failure
+  config.example_status_persistence_file_path = ".rspec_status"
+
+  # Disable RSpec exposing methods globally on `Module` and `main`
+  config.disable_monkey_patching!
+
+  config.expect_with :rspec do |c|
+    c.syntax = :expect
+  end
+
   config.order = :random
   config.raise_errors_for_deprecations!
   config.alias_it_should_behave_like_to :configured_with, 'configured with'

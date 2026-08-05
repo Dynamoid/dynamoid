@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Associations::HasAndBelongsToMany do
+RSpec.describe Dynamoid::Associations::HasAndBelongsToMany do
   let(:subscription) { Subscription.create }
   let(:camel_case) { CamelCase.create }
 

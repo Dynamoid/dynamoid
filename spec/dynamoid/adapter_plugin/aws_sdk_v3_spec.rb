@@ -3,7 +3,7 @@
 require 'dynamoid/adapter_plugin/aws_sdk_v3'
 require 'spec_helper'
 
-describe Dynamoid::AdapterPlugin::AwsSdkV3 do
+RSpec.describe Dynamoid::AdapterPlugin::AwsSdkV3 do
   #
   # These let() definitions create tables "dynamoid_tests_TestTable<N>" and return the
   # name of the table.

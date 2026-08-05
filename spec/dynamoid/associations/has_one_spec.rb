@@ -5,7 +5,7 @@ require 'active_support/core_ext/object'
 
 require 'spec_helper'
 
-describe Dynamoid::Associations::HasOne do
+RSpec.describe Dynamoid::Associations::HasOne do
   let(:magazine) { Magazine.create }
   let(:user) { User.create }
   let(:camel_case) { CamelCase.create }

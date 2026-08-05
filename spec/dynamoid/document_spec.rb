@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Dynamoid::Document do
+RSpec.describe Dynamoid::Document do
   it 'runs load hooks' do
     result = nil
     ActiveSupport.on_load(:dynamoid) { |loaded| result = loaded }
