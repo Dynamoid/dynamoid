@@ -1,22 +1,4 @@
 {
-  "# Disable RSpec exposing methods globally on `Module` and `main`\nconfig.disable_monkey_patching!": [
-    {
-      "file": "spec/spec_helper.rb",
-      "lines": [
-        73,
-        101
-      ]
-    }
-  ],
-  "# Enable flags like --only-failures and --next-failure\nconfig.example_status_persistence_file_path = \".rspec_status\"": [
-    {
-      "file": "spec/spec_helper.rb",
-      "lines": [
-        70,
-        98
-      ]
-    }
-  ],
   "- 'README.md'\n- 'doc/**/*'": [
     {
       "file": ".rubocop.yml",
@@ -50,15 +32,6 @@
       "lines": [
         137,
         141
-      ]
-    }
-  ],
-  "config.expect_with :rspec do |c|\nc.syntax = :expect": [
-    {
-      "file": "spec/spec_helper.rb",
-      "lines": [
-        76,
-        104
       ]
     }
   ]

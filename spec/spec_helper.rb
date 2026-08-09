@@ -48,7 +48,7 @@ RUN_COVERAGE = defined?(Kettle::Soup::Cover::DO_COV) && Kettle::Soup::Cover::DO_
 
 if DEBUG
   if debugging
-    require "debug" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7")
+require "debug" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7")
   elsif minimum_version.call('2.7', 'jruby')
     require 'pry-debugger-jruby'
   end
