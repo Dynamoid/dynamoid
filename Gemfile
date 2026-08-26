@@ -18,7 +18,7 @@ git_source(:gitlab) { |repo_name| "https://gitlab.com/#{repo_name}" }
 # Include dependencies from dynamoid.gemspec
 gemspec
 
-gem 'kettle-family', '~> 1.2', '>= 1.2.60'
+gem 'kettle-family', '~> 1.2', '>= 1.2.61'
 
 
 # Local workspace dependency wiring for *_local.gemfile overrides
