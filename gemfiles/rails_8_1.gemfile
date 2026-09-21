@@ -8,6 +8,5 @@ gem 'activemodel', '~> 8.1.0'
 gem 'base64'
 gem 'bigdecimal'
 gem 'mutex_m'
-gem 'pry-byebug', platforms: :ruby
 
 gemspec path: '../'
