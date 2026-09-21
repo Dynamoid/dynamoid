@@ -2,6 +2,9 @@
 
 source 'https://rubygems.org'
 
+# Pin exact version to prevent failures on CI when a new Rubocop version is released
+gem 'rubocop', '= 1.91.0', require: false
+
 gem 'rubocop-md', require: false
 gem 'rubocop-packaging', require: false
 gem 'rubocop-performance', require: false
