@@ -133,6 +133,8 @@ See [LICENSE][license] for the official [Copyright Notice][copyright-notice-expl
 
 ## Credits
 
+Dynamoid was originally created in 2012 by [Josh Symonds](https://github.com/joshsymonds) ([original repository](https://github.com/joshsymonds/Dynamoid)). Historical issues and discussions prior to the project's migration in 2015 can still be found in the [legacy issue tracker](https://github.com/joshsymonds/Dynamoid/issues).
+
 Dynamoid borrows code, structure, and even its name very liberally from
 the truly amazing [Mongoid](https://github.com/mongoid/mongoid). Without
 Mongoid to crib from none of this would have been possible, and I hope
