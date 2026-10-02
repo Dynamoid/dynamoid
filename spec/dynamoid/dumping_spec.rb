@@ -1412,6 +1412,41 @@ describe 'Dumping' do
       expect(reload(obj).options).to eql(nil)
       expect(raw_attributes(obj)[:options]).to eql(nil)
     end
+
+    context 'when :use_yaml_unsafe_load config option is false', config: { use_yaml_unsafe_load: false } do
+      it 'disallows loading unpermitted class' do
+        klass = new_class do
+          field :options, :serialized
+        end
+
+        # Range isn't permitted by default (see `yaml_permitted_classes` config option)
+        obj = klass.create(options: 1..2)
+
+        expect { reload(obj) }.to raise_error(Psych::DisallowedClass, 'Tried to load unspecified class: Range')
+      end
+
+      it 'allows loading permitted class', config: { yaml_permitted_classes: [Range] } do
+        klass = new_class do
+          field :options, :serialized
+        end
+
+        obj = klass.create(options: 1..2)
+
+        expect(reload(obj).options).to eql(1..2)
+      end
+    end
+
+    context 'when :use_yaml_unsafe_load config option is true', config: { use_yaml_unsafe_load: true } do
+      it 'loads YAML document without validation' do
+        klass = new_class do
+          field :options, :serialized
+        end
+
+        obj = klass.create(options: 1..2)
+
+        expect(reload(obj).options).to eql(1..2)
+      end
+    end
   end
 
   describe 'Custom type field' do

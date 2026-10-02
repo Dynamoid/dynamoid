@@ -3,7 +3,10 @@
 # Set given config options and roll them back after a test complision
 RSpec.configure do |config|
   config.around :each, :config do |example|
-    config = example.metadata[:config]
+    configs = example.example_group.parent_groups.reverse.map { |g| g.metadata[:config] }.compact
+    configs << example.metadata[:config]
+    config = configs.reduce({}, :merge)
+
     config_old = {}
 
     config.each do |key, value|

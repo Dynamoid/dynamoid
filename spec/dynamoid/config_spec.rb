@@ -88,4 +88,48 @@ describe Dynamoid::Config do
       end
     end
   end
+
+  describe 'use_yaml_unsafe_load' do
+    before do
+      @use_yaml_unsafe_load_old = Dynamoid.config.use_yaml_unsafe_load
+    end
+
+    after do
+      Dynamoid.config.use_yaml_unsafe_load = @use_yaml_unsafe_load_old
+    end
+
+    if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.1.0')
+      it 'is true by default' do
+        expect(Dynamoid.config.use_yaml_unsafe_load).to be true
+      end
+    else
+      it 'is false by default' do
+        expect(Dynamoid.config.use_yaml_unsafe_load).to be false
+      end
+    end
+
+    it 'can be changed' do
+      Dynamoid.config.use_yaml_unsafe_load = true
+      expect(Dynamoid.config.use_yaml_unsafe_load).to be true
+    end
+  end
+
+  describe 'yaml_permitted_classes' do
+    before do
+      @yaml_permitted_classes_old = Dynamoid.config.yaml_permitted_classes
+    end
+
+    after do
+      Dynamoid.config.yaml_permitted_classes = @yaml_permitted_classes_old
+    end
+
+    it 'is [Symbol, Set, Date, Time, DateTime] by default' do
+      expect(Dynamoid.config.yaml_permitted_classes).to eq [Symbol, Set, Date, Time, DateTime]
+    end
+
+    it 'can be changed' do
+      Dynamoid.config.yaml_permitted_classes = [Symbol, Range]
+      expect(Dynamoid.config.yaml_permitted_classes).to eq [Symbol, Range]
+    end
+  end
 end
