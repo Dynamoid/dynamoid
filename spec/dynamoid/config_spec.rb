@@ -52,4 +52,40 @@ describe Dynamoid::Config do
       expect(buffer.string).to match(/\[Aws::DynamoDB::Client 200 .+\] create_table \n/)
     end
   end
+
+  describe 'http_proxy' do
+    let(:http_proxy) { nil }
+
+    before do
+      @http_proxy_old = Dynamoid.config.http_proxy
+      Dynamoid.config.http_proxy = http_proxy
+      Dynamoid.adapter.connect!  # clear cached client
+    end
+
+    after do
+      Dynamoid.config.http_proxy = @http_proxy_old
+      Dynamoid.adapter.connect!  # clear cached client
+    end
+
+    it 'is nil by default' do
+      Dynamoid.config.reset_http_proxy
+      expect(Dynamoid.config.http_proxy).to be_nil
+    end
+
+    context 'when String is provided' do
+      let(:http_proxy) { 'http://localhost:8080' }
+
+      it 'passes http_proxy to a client connection' do
+        expect(Dynamoid.adapter.client.config.http_proxy).to eq 'http://localhost:8080'
+      end
+    end
+
+    context 'when URI is provided' do
+      let(:http_proxy) { URI.parse('http://localhost:8080') }
+
+      it 'passes http_proxy URI to a client connection' do
+        expect(Dynamoid.adapter.client.config.http_proxy).to eq URI.parse('http://localhost:8080')
+      end
+    end
+  end
 end
