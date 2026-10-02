@@ -2,6 +2,8 @@
 
 require 'uri'
 require 'logger'
+require 'date'
+require 'set'
 require 'dynamoid/config/options'
 require 'dynamoid/config/backoff_strategies/constant_backoff'
 require 'dynamoid/config/backoff_strategies/exponential_backoff'
@@ -67,6 +69,9 @@ module Dynamoid
     # Maintain backward compatibility: safe loading was unconditionally
     # introduced in Dynamoid 3.8.0 for Ruby >= 3.1.
     option :use_yaml_unsafe_load, default: Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.1.0')
+    # Default list introduced in Dynamoid 3.8.0; kept for backward
+    # compatibility until the next major version.
+    option :yaml_permitted_classes, default: [Symbol, Set, Date, Time, DateTime]
 
     # The default logger for Dynamoid: either the Rails logger or just stdout.
     #

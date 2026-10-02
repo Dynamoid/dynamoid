@@ -108,9 +108,28 @@ describe Dynamoid::Config do
       end
     end
 
-    it 'is assignable' do
+    it 'can be changed' do
       Dynamoid.config.use_yaml_unsafe_load = true
       expect(Dynamoid.config.use_yaml_unsafe_load).to be true
+    end
+  end
+
+  describe 'yaml_permitted_classes' do
+    before do
+      @yaml_permitted_classes_old = Dynamoid.config.yaml_permitted_classes
+    end
+
+    after do
+      Dynamoid.config.yaml_permitted_classes = @yaml_permitted_classes_old
+    end
+
+    it 'is [Symbol, Set, Date, Time, DateTime] by default' do
+      expect(Dynamoid.config.yaml_permitted_classes).to eq [Symbol, Set, Date, Time, DateTime]
+    end
+
+    it 'can be changed' do
+      Dynamoid.config.yaml_permitted_classes = [Symbol, Range]
+      expect(Dynamoid.config.yaml_permitted_classes).to eq [Symbol, Range]
     end
   end
 end

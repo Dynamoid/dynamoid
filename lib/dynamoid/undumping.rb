@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'yaml'
+
 module Dynamoid
   # @private
   module Undumping
@@ -240,16 +242,39 @@ module Dynamoid
         if @options[:serializer]
           @options[:serializer].load(value)
         elsif Dynamoid.config.use_yaml_unsafe_load
-          if YAML.respond_to?(:unsafe_load)
-            YAML.unsafe_load(value)
-          else
-            YAML.load(value)
-          end
+          yaml_unsafe_load(value)
         else
-          # The classes listed in permitted classes are added to the default
-          # set of "safe loadable" classes:
-          # TrueClass, FalseClass, NilClass, Integer, Float, String, Array, Hash
-          YAML.safe_load(value, permitted_classes: [Symbol, Set, Date, Time, DateTime])
+          yaml_safe_load(value)
+        end
+      end
+
+      private
+
+      # `YAML.unsafe_load` was introduced in Psych 3.3.2 (Ruby 3.0).
+      # `YAML.load` was unsafe until Psych 4.0.0 (Ruby 3.1+).
+      if YAML.respond_to?(:unsafe_load)
+        def yaml_unsafe_load(value)
+          YAML.unsafe_load(value)
+        end
+      else
+        def yaml_unsafe_load(value)
+          YAML.load(value)
+        end
+      end
+
+      # The classes listed in permitted classes are added to the default
+      # set of "safe loadable" classes:
+      # TrueClass, FalseClass, NilClass, Integer, Float, String, Array, Hash
+      #
+      # Permitted classes were accepted as a positional parameter until Psych 3.1.0 (Ruby 2.6),
+      # and as a keyword argument in later versions.
+      if Gem::Version.new(Psych::VERSION) >= Gem::Version.new('3.1.0')
+        def yaml_safe_load(value)
+          YAML.safe_load(value, permitted_classes: Dynamoid.config.yaml_permitted_classes)
+        end
+      else
+        def yaml_safe_load(value)
+          YAML.safe_load(value, Dynamoid.config.yaml_permitted_classes)
         end
       end
     end

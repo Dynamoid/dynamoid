@@ -104,3 +104,6 @@ Listed below are all configuration options.
 * `use_yaml_unsafe_load`: allows deserializing arbitrary classes in
   YAML-serialized fields. Default is `true` on Ruby < 3.1, and `false`
   starting from 3.1
+* `yaml_permitted_classes`: list of additional classes permitted when
+  deserializing YAML-serialized fields. Default is
+  `[Symbol, Set, Date, Time, DateTime]`
