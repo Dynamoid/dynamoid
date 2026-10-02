@@ -44,7 +44,7 @@ module Dynamoid
       }
       BATCH_WRITE_ITEM_REQUESTS_LIMIT = 25
 
-      CONNECTION_CONFIG_OPTIONS = %i[endpoint region http_continue_timeout http_idle_timeout http_open_timeout http_read_timeout].freeze
+      CONNECTION_CONFIG_OPTIONS = %i[endpoint region http_continue_timeout http_idle_timeout http_open_timeout http_read_timeout http_proxy].freeze
 
       # See https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
       # rubocop:disable-next Metrics/CollectionLiteralLength
