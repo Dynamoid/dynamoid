@@ -101,3 +101,6 @@ Listed below are all configuration options.
 * `create_table_on_save`: if `true` then Dynamoid creates a
   corresponding table in DynamoDB at model persisting if the table
   doesn't exist yet. Default is `true`
+* `use_yaml_unsafe_load`: allows deserializing arbitrary classes in
+  YAML-serialized fields. Default is `true` on Ruby < 3.1, and `false`
+  starting from 3.1

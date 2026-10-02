@@ -88,4 +88,29 @@ describe Dynamoid::Config do
       end
     end
   end
+
+  describe 'use_yaml_unsafe_load' do
+    before do
+      @use_yaml_unsafe_load_old = Dynamoid.config.use_yaml_unsafe_load
+    end
+
+    after do
+      Dynamoid.config.use_yaml_unsafe_load = @use_yaml_unsafe_load_old
+    end
+
+    if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.1.0')
+      it 'is true by default' do
+        expect(Dynamoid.config.use_yaml_unsafe_load).to be true
+      end
+    else
+      it 'is false by default' do
+        expect(Dynamoid.config.use_yaml_unsafe_load).to be false
+      end
+    end
+
+    it 'is assignable' do
+      Dynamoid.config.use_yaml_unsafe_load = true
+      expect(Dynamoid.config.use_yaml_unsafe_load).to be true
+    end
+  end
 end

@@ -1412,6 +1412,28 @@ describe 'Dumping' do
       expect(reload(obj).options).to eql(nil)
       expect(raw_attributes(obj)[:options]).to eql(nil)
     end
+
+    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.1.0')
+      it 'loads YAML document safely' do
+        klass = new_class do
+          field :options, :serialized
+        end
+
+        obj = klass.create(options: 1..2)
+
+        expect { reload(obj) }.to raise_error(Psych::DisallowedClass, 'Tried to load unspecified class: Range')
+      end
+    else
+      it 'loads YAML document without validation' do
+        klass = new_class do
+          field :options, :serialized
+        end
+
+        obj = klass.create(options: 1..2)
+
+        expect(reload(obj).options).to eql(1..2)
+      end
+    end
   end
 
   describe 'Custom type field' do
