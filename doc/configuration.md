@@ -1,109 +1,188 @@
-# Configuration
+# Configuration & Runtime
 
-Listed below are all configuration options.
+Dynamoid provides extensive configuration options for AWS credentials, table defaults, retry/backoff policies, connection pooling, and logging.
 
-* `adapter` - useful only for the gem developers to switch to a new
-  adapter. Default and the only available value is `aws_sdk_v3`
-* `namespace` - prefix for table names, default is
-  `dynamoid_#{application_name}_#{environment}` for Rails application
-  and `dynamoid` otherwise
-* `logger` - by default it's a `Rails.logger` in Rails application and
-  `stdout` otherwise. You can disable logging by setting `nil` or
-  `false` values. Set `true` value to use defaults
-* `access_key` - DynamoDB custom access key for AWS credentials, override global
-  AWS credentials if they're present
-* `secret_key` - DynamoDB custom secret key for AWS credentials, override global
-  AWS credentials if they're present
-* `credentials` - DynamoDB custom pre-configured credentials, override global
-  AWS credentials if they're present
-* `region` - DynamoDB custom credentials for AWS, override global AWS
-  credentials if they're present
-* `batch_size` - when you try to load multiple items at once with
-* `batch_get_item` call Dynamoid loads them not with one api call but
-  in chunks. Default is 100 items
-* `capacity_mode` - used at a table creation and means whether a table
-  read/write capacity mode will be on-demand or provisioned. Allowed
-  values are `:on_demand` and `:provisioned`. Default value is `nil` which
-  means provisioned mode will be used.
-* `read_capacity` - is used during table or index creation. Default is 100
-  (units)
-* `write_capacity` - is used during table or index creation. Default is 20
-  (units)
-* `warn_on_scan` - log warnings when scan table. Default is `true`
-* `error_on_scan` - raises an error when scan table. Default is `false`
-* `endpoint` - if provided, it communicates with the DynamoDB listening
-  at the endpoint. This is useful for testing with
-  [DynamoDB Local](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html)
-* `identity_map` - ensures that each object gets loaded only once by
-  keeping every loaded object in a map. Looks up objects using the map
-  when referring to them. Isn't thread safe. Default is `false`.
-  `Use Dynamoid::Middleware::IdentityMap` to clear identity map for each HTTP request
-* `timestamps` - by default Dynamoid sets `created_at` and `updated_at`
-  fields at model creation and updating. You can disable this
-  behavior by setting `false` value
-* `sync_retry_max_times` - when Dynamoid creates or deletes table
-  synchronously it checks for completion specified times. Default is 60
-  (times). It's a bit over 2 minutes by default
-* `sync_retry_wait_seconds` - time to wait between retries. Default is 2
-  (seconds)
-* `convert_big_decimal` - if `true` then Dynamoid converts numbers
-  stored in `Hash` in `raw` field to float. Default is `false`
-* `store_attribute_with_nil_value` - if `true` Dynamoid keeps attribute
-  with `nil` value in a document. Otherwise Dynamoid removes it while
-  saving a document. Default is `nil` which equals behaviour with `false`
-  value.
-* `models_dir` - `dynamoid:create_tables` rake task loads DynamoDB
-  models from this directory. Default is `./app/models`.
-* `application_timezone` - Dynamoid converts all `datetime` fields to
-  specified time zone when loads data from the storage.
-  Acceptable values - `:utc`, `:local` (to use system time zone) and
-  time zone name e.g. `Eastern Time (US & Canada)`. Default is `utc`
-* `dynamodb_timezone` - When a datetime field is stored in string format
-  Dynamoid converts it to specified time zone when saves a value to the
-  storage. Acceptable values - `:utc`, `:local` (to use system time
-  zone) and time zone name e.g. `Eastern Time (US & Canada)`. Default is
-  `utc`
-* `store_datetime_as_string` - if `true` then Dynamoid stores :datetime
-  fields in ISO 8601 string format. Default is `false`
-* `store_date_as_string` - if `true` then Dynamoid stores :date fields
-  in ISO 8601 string format. Default is `false`
-* `store_empty_string_as_nil` - store attribute's empty String value as NULL. Default is `true`
-* `store_boolean_as_native` - if `true` Dynamoid stores boolean fields
-  as native DynamoDB boolean values. Otherwise boolean fields are stored
-  as string values `'t'` and `'f'`. Default is `true`
-* `store_binary_as_native` - if `true` Dynamoid stores binary fields
-  as native DynamoDB binary values. Otherwise binary fields are stored
-  as Base64 encoded string values. Default is `false`
-* `backoff` - is a hash: key is a backoff strategy (symbol), value is
-  parameters for the strategy. Is used in batch operations. Default id
-  `nil`
-* `backoff_strategies`: is a hash and contains all available strategies.
-  Default is `{ constant: ..., exponential: ...}`
-* `log_formatter`: overrides default AWS SDK formatter. There are
-  several canned formatters: `Aws::Log::Formatter.default`,
-  `Aws::Log::Formatter.colored` and `Aws::Log::Formatter.short`. Please
-  look into `Aws::Log::Formatter` AWS SDK documentation in order to
-  provide own formatter.
-* `http_continue_timeout`: The number of seconds to wait for a
-  100-continue HTTP response before sending the request body. Default
-  option value is `nil`. If not specified effected value is `1`
-* `http_idle_timeout`: The number of seconds an HTTP connection is
-  allowed to sit idle before it is considered stale. Default option
-  value is `nil`. If not specified effected value is `5`
-* `http_open_timeout`: The number of seconds to wait when opening a HTTP
-  session. Default option value is `nil`. If not specified effected
-  value is `15`
-* `http_read_timeout`:The number of seconds to wait for HTTP response
-  data. Default option value is `nil`. If not specified effected value
-  is `60`
-* `http_proxy`: A proxy to send requests through. Formatted like
-  `'http://proxy.com:1234'`. Default option value is `nil`
-* `create_table_on_save`: if `true` then Dynamoid creates a
-  corresponding table in DynamoDB at model persisting if the table
-  doesn't exist yet. Default is `true`
-* `use_yaml_unsafe_load`: allows deserializing arbitrary classes in
-  YAML-serialized fields. Default is `true` on Ruby < 3.1, and `false`
-  starting from 3.1
-* `yaml_permitted_classes`: list of additional classes permitted when
-  deserializing YAML-serialized fields. Default is
-  `[Symbol, Set, Date, Time, DateTime]`
+Configuration is typically defined in an initializer (e.g., `config/initializers/dynamoid.rb` in Rails applications) using the `Dynamoid.configure` block:
+
+```ruby
+require 'dynamoid'
+
+Dynamoid.configure do |config|
+  # Table namespacing
+  config.namespace = "myapp_#{Rails.env}"
+
+  # AWS credentials and region
+  config.access_key = ENV.fetch('AWS_ACCESS_KEY_ID', nil)
+  config.secret_key = ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
+  config.region     = ENV['AWS_REGION'] || 'us-west-2'
+end
+```
+
+---
+
+## AWS Configuration & Credentials
+
+### 1. Global AWS Configuration vs. Dynamoid-Specific Credentials
+
+If your project already uses the AWS SDK for Ruby, you can configure AWS globally:
+
+```ruby
+Aws.config.update(
+  region: 'us-west-2',
+  credentials: Aws::Credentials.new(ENV.fetch('AWS_ACCESS_KEY_ID', nil), ENV.fetch('AWS_SECRET_ACCESS_KEY', nil))
+)
+```
+
+Alternatively, if you want AWS credentials to apply exclusively to Dynamoid without overriding global AWS settings, configure them directly inside `Dynamoid.configure`:
+
+```ruby
+Dynamoid.configure do |config|
+  config.access_key = ENV.fetch('DYNAMODB_ACCESS_KEY_ID', nil)
+  config.secret_key = ENV.fetch('DYNAMODB_SECRET_ACCESS_KEY', nil)
+  config.region     = 'us-west-2'
+end
+```
+
+### 2. IAM Roles & Pre-Configured Credentials
+
+To authenticate using IAM roles, AWS STS assume-role, or external credential providers, assign the credentials object directly to `config.credentials`:
+
+```ruby
+credentials = Aws::AssumeRoleCredentials.new(
+  client: Aws::STS::Client.new(region: 'us-west-2'),
+  role_arn: 'arn:aws:iam::123456789012:role/DynamoDBAppRole',
+  role_session_name: 'dynamoid-session'
+)
+
+Dynamoid.configure do |config|
+  config.region = 'us-west-2'
+  config.credentials = credentials
+end
+```
+
+### 3. Local DynamoDB Endpoint (Development & Testing)
+
+To connect to a local DynamoDB instance (such as [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html) or LocalStack), specify `endpoint`:
+
+```ruby
+Dynamoid.configure do |config|
+  config.endpoint = 'http://localhost:8000'
+end
+```
+
+---
+
+## Retry & Backoff Strategies
+
+When running batch operations (such as `.import` or `BatchGetItem`) or high-volume queries, DynamoDB may return unprocessed items if table throughput is exceeded. Dynamoid can automatically retry unprocessed items using a configurable backoff strategy.
+
+### Built-in Strategies: Constant & Exponential
+
+Dynamoid provides two built-in backoff strategies:
+
+```ruby
+# Constant delay: wait 2 seconds between retries
+Dynamoid.configure do |config|
+  config.backoff = { constant: 2.seconds }
+end
+
+# Truncated exponential backoff (recommended for production)
+Dynamoid.configure do |config|
+  config.backoff = { exponential: { base_backoff: 0.2.seconds, ceiling: 10 } }
+end
+
+# Use defaults for a strategy
+Dynamoid.configure do |config|
+  config.backoff = :exponential
+end
+```
+
+### Custom Backoff Strategies
+
+You can register a custom backoff generator:
+
+```ruby
+Dynamoid.configure do |config|
+  config.backoff_strategies[:jitter] = lambda do |n|
+    -> { sleep(rand(n)) }
+  end
+
+  config.backoff = { jitter: 5 }
+end
+```
+
+---
+
+## HTTP Connection & Timeouts
+
+Dynamoid communicates with DynamoDB via HTTP requests. You can fine-tune HTTP timeouts and network proxies:
+
+```ruby
+Dynamoid.configure do |config|
+  config.http_open_timeout     = 5   # Time to wait when opening a connection (seconds)
+  config.http_read_timeout     = 15  # Time to wait for response data (seconds)
+  config.http_idle_timeout     = 5   # Connection idle time before considered stale (seconds)
+  config.http_continue_timeout = 1   # Wait for 100-continue response (seconds)
+  config.http_proxy            = 'http://proxy.corp.example:8080' # Optional proxy
+end
+```
+
+---
+
+## Logging & Debugging
+
+Dynamoid logs all database interactions through its logger. By default, it uses `Rails.logger` in Rails applications, or prints to `$stdout` in standalone Ruby apps.
+
+To inspect raw DynamoDB HTTP requests, payloads, and execution timing, set the log level to `:debug`:
+
+```ruby
+Dynamoid.configure do |config|
+  config.logger.level = Logger::DEBUG
+end
+```
+
+Sample debug log output:
+```text
+D, [2026-10-01T12:00:00.840051 #75059] DEBUG -- : put_item | Request "{\"TableName\":\"myapp_users\",\"Item\":{...}}"
+D, [2026-10-01T12:00:00.842397 #75059] DEBUG -- : (23.4 ms) PUT ITEM - ["myapp_users", {...}, {}]
+```
+
+### Formatting AWS SDK Logs
+
+You can customize AWS SDK formatting using `log_formatter`:
+
+```ruby
+Dynamoid.configure do |config|
+  config.log_formatter = Aws::Log::Formatter.colored
+end
+```
+
+---
+
+## Complete Configuration Reference
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `namespace` | `String` | `"dynamoid_#{app}_#{env}"` | Prefix prepended to all table names. Set to `nil` to disable. |
+| `access_key` | `String` | `nil` | AWS access key ID. |
+| `secret_key` | `String` | `nil` | AWS secret access key. |
+| `credentials` | `Object` | `nil` | Pre-configured AWS credentials object (e.g. `Aws::AssumeRoleCredentials`). |
+| `region` | `String` | `nil` | AWS region (e.g. `'us-west-2'`). |
+| `endpoint` | `String` | `nil` | Custom endpoint URL (e.g. `'http://localhost:8000'`). |
+| `capacity_mode` | `Symbol` | `:provisioned` | Default billing mode (`:provisioned` or `:on_demand`). |
+| `read_capacity` | `Integer` | `100` | Default Read Capacity Units for new tables. |
+| `write_capacity` | `Integer` | `20` | Default Write Capacity Units for new tables. |
+| `warn_on_scan` | `Boolean` | `true` | Log a warning whenever a full-table Scan is performed. |
+| `error_on_scan` | `Boolean` | `false` | Raise `Dynamoid::Errors::ScanError` when a Scan is performed. |
+| `timestamps` | `Boolean` | `true` | Automatically manage `created_at` and `updated_at`. |
+| `create_table_on_save` | `Boolean` | `true` | Automatically create the table in DynamoDB if missing on save. |
+| `models_dir` | `String` | `'./app/models'` | Directory where model classes are located (used by Rake tasks). |
+| `batch_size` | `Integer` | `100` | Chunk size when loading items via `BatchGetItem`. |
+| `backoff` | `Hash, Symbol`| `nil` | Active retry/backoff strategy (`:constant`, `:exponential`). |
+| `application_timezone`| `Symbol, String` | `:utc` | Timezone to convert `datetime` fields to on load. |
+| `store_datetime_as_string` | `Boolean` | `false` | Store `datetime` attributes as ISO-8601 strings. |
+| `store_date_as_string` | `Boolean` | `false` | Store `date` attributes as ISO-8601 strings. |
+| `store_boolean_as_native` | `Boolean` | `true` | Store booleans as native DynamoDB booleans (`BOOL`). |
+| `store_binary_as_native` | `Boolean` | `false` | Store binaries as native DynamoDB binary attributes (`B`). |
+| `store_attribute_with_nil_value` | `Boolean` | `false` | Preserve `nil` attributes in DynamoDB items instead of omitting them. |
+| `logger` | `Logger` | `Rails.logger` or stdout | Logger instance. |
