@@ -142,7 +142,7 @@ When a table has a composite primary key, both keys are required to retrieve a s
 order = Order.find_by_composite_key(1042, 'ord-99812')
 ```
 
-For range finding queries using conditions like `.gt`, `.lt`, and `.between`, see [Query Interface](../usage/query_interface.md).
+For range finding queries using conditions like `.gt`, `.lt`, and `.between`, see [Query Interface](../working_with_data/query_interface.md).
 
 ---
 

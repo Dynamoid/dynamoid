@@ -1,4 +1,4 @@
-# Dynamoid Basics
+# Getting Started with Dynamoid
 
 Dynamoid is an Object-Document Mapper (ODM) for Amazon DynamoDB written in Ruby. It provides a familiar, ActiveRecord-like interface for Rails and standalone Ruby applications, making DynamoDB as intuitive and productive to work with as a traditional relational database—while leveraging the horizontal scale, managed infrastructure, and performance of DynamoDB.
 
@@ -231,8 +231,8 @@ user.name_changed? # => false
 
 Now that you understand the basic document model and lifecycle:
 
-* Configure table names, partition keys, and throughput in [Tables & Primary Keys](setup/tables_and_keys.md).
-* Explore data types, collections, and custom serializers in [Fields & Data Types](setup/fields_and_types.md).
-* Speed up searches on non-key attributes in [Secondary Indexes](setup/secondary_indexes.md).
-* Build relationships between models in [Associations](setup/associations.md).
-* Learn query chaining, scans vs. queries, and pagination in [Query Interface](usage/query_interface.md).
+* Configure table names, partition keys, and throughput in [Tables & Primary Keys](modeling_and_schema/tables_and_keys.md).
+* Explore data types, collections, and custom serializers in [Fields & Data Types](modeling_and_schema/fields_and_types.md).
+* Speed up searches on non-key attributes in [Secondary Indexes](modeling_and_schema/secondary_indexes.md).
+* Build relationships between models in [Associations](modeling_and_schema/associations.md).
+* Learn query chaining, scans vs. queries, and pagination in [Query Interface](working_with_data/query_interface.md).
