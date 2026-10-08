@@ -8,7 +8,7 @@ Dynamoid provides built-in Rake tasks for managing DynamoDB tables and offers st
 
 Dynamoid includes several tasks for database provisioning and connectivity checks:
 
-* `rake dynamoid:create_tables` - Scans your model directory (`config.models_dir`, default `./app/models`), loads all models, and creates any missing tables and secondary indexes in DynamoDB.
+* `rake dynamoid:create_tables` - Scans your model directory (`config.models_dir`, `app/models` by default), loads all models, and creates any missing tables along with their declared secondary indexes (skipping tables that already exist).
 * `rake dynamoid:ping` - Verifies network connectivity and authentication with DynamoDB.
 
 ### Using Rake Tasks in Standalone Applications

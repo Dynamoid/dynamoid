@@ -90,19 +90,19 @@ user = User.new(name: 'Alice', email: 'alice@example.com')
 user.save # Validates attributes and persists the model
 ```
 
-### Why Fields Must Be Explicitly Declared
+### Explicit Field Declarations
 
 Relational databases maintain a table schema that an ORM can inspect to define attribute accessors automatically.
 
 Because DynamoDB is schemaless, there is no database column catalog to inspect—so Dynamoid defines schema at the application layer:
 
-* You explicitly declare each attribute with `field`, specifying its name, optional data type (defaulting to `:string`), and optional defaults.
+* You explicitly declare each field with `field`, specifying its name, optional data type (defaulting to `:string`), and optional defaults.
 * Dynamoid generates reader, writer (`name=`), predicate (`name?`), raw reader (`name_before_type_cast`), and dirty-tracking methods for each declared field.
 * If a DynamoDB item contains attributes that are not declared in your Ruby model, Dynamoid ignores them when loading the item into memory. When updating an existing model, Dynamoid only writes changed attributes, leaving any undeclared attributes on the item in DynamoDB intact.
 
 ## Anatomy of a Dynamoid Model
 
-To declare a model, create a Ruby class, include the `Dynamoid::Document` module, and declare its attributes using the `field` method:
+To declare a model, create a Ruby class, include the `Dynamoid::Document` module, and declare its fields using the `field` method:
 
 ```ruby
 class User
@@ -115,7 +115,7 @@ class User
 end
 ```
 
-Fields default to the `:string` type, so declaring the type for string attributes (`field :name`) is optional.
+Fields default to the `:string` type, so declaring the type for string fields (`field :name`) is optional.
 
 Declaring a field automatically generates reader, writer (`name=`), and predicate (`name?`) methods:
 
@@ -137,13 +137,13 @@ Dynamoid follows *convention over configuration*, so a conventional model only n
 * Timestamps are maintained automatically: Dynamoid generates `created_at` and `updated_at` datetime fields on every model by default.
 
 > [!NOTE]
-> To customize these defaults—such as specifying a custom table name, configuring a custom partition key name or type, or declaring a sort key for a composite primary key—refer to [Tables & Primary Keys](modeling_and_schema/tables_and_keys.md).
+> To customize these defaults—such as specifying a custom table name, configuring a custom partition key name or type, or declaring a sort key for a composite primary key—refer to [Table Mapping & Provisioning](modeling_and_schema/table_mapping_and_provisioning.md).
 
 ## Basic CRUD Operations
 
 Everyday persistence operations mirror ActiveRecord closely:
 
-### Creating and Persisting Records
+### Creating
 
 You can instantiate a model and persist it in two steps, or initialize and save it in a single call:
 
@@ -175,15 +175,15 @@ The bang variants (`save!` and `create!`) raise `Dynamoid::Errors::DocumentNotVa
 > [!NOTE]
 > For advanced persistence patterns—such as bulk imports with `.import`, atomic counters, conditional updates, and optimistic locking—refer to [Persistence & Mutations](working_with_data/persistence_and_mutations.md).
 
-### Reading and Finding Records
+### Reading and Querying
 
-Dynamoid provides methods for both point lookups by primary key and multi-record queries:
+Dynamoid provides methods for both point lookups by primary key and multi-item queries:
 
 ```ruby
 # Look up by simple partition key (raises Dynamoid::Errors::RecordNotFound if missing)
 user = User.find(user_id)
 
-# Find multiple records by primary key in a single request
+# Find multiple items by primary key in a single request
 users = User.find('id1', 'id2')
 users = User.find(['id1', 'id2'])
 
@@ -191,7 +191,7 @@ users = User.find(['id1', 'id2'])
 User.exists?(user_id)                   # => true
 User.exists?(email: 'alice@example.com') # => true
 
-# Query records using criteria chains
+# Query items using criteria chains
 active_users = User.where(active: true).all
 adult        = User.where('age.gte': 18).first
 user         = User.where(email: 'alice@example.com').first
@@ -206,7 +206,7 @@ user = User.find('missing-id', raise_error: false) # => nil
 > [!NOTE]
 > For more query capabilities—including range conditions, attribute projection, consistent reads, and pagination—refer to [Query Interface](working_with_data/query_interface.md).
 
-### Updating Records
+### Updating
 
 Modifying attributes and persisting changes follows the standard patterns:
 
@@ -225,19 +225,19 @@ user.update_attribute(:active, false)
 user.reload
 ```
 
-### Deleting Records
+### Deleting
 
-You can remove individual records or clear matching criteria in bulk:
+You can remove individual items or clear matching criteria in bulk:
 
 ```ruby
-# Destroy an individual record (runs :destroy callbacks)
+# Destroy an individual item (runs :destroy callbacks)
 user.destroy
 user.destroyed? # => true
 
-# Delete an individual record directly (skips callbacks)
+# Delete an individual item directly (skips callbacks)
 user.delete
 
-# Delete all matching records in batch (skips callbacks)
+# Delete all matching items in batch (skips callbacks)
 User.where(active: false).delete_all
 ```
 
@@ -270,7 +270,7 @@ product.errors[:price]       # => ["must be greater than 0"]
 product.errors.full_messages # => ["Sku can't be blank", "Price must be greater than 0"]
 ```
 
-Calling `save` on an invalid model returns `false`, while bang methods (`save!`, `create!`, `update!`) raise `Dynamoid::Errors::DocumentNotValid`:
+Calling `save` on an invalid model returns `false`, while bang methods (`save!`, `create!`, `update_attributes!`) raise `Dynamoid::Errors::DocumentNotValid`:
 
 ```ruby
 product.save  # => false
@@ -353,7 +353,7 @@ user.name_changed?          # => false
 
 For more dirty tracking methods—including reverting changes with `restore_attributes` or inspecting previous changes—refer to the `Dynamoid::Dirty` API documentation.
 
-## Installation & Configuration
+## Installation and Configuration
 
 To add Dynamoid to your application, include the gem in your `Gemfile` and run `bundle install`:
 
@@ -363,9 +363,9 @@ gem 'dynamoid'
 
 In a Rails application, create `config/initializers/dynamoid.rb` depending on your environment:
 
-### Local Development with DynamoDB Local
+### Local Development
 
-For local development and testing without an AWS account, configure a local endpoint with dummy credentials. Using `Rails.env` in `config.namespace` keeps local development and test tables separate:
+For local development and testing without an AWS account, run [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html) (Amazon's downloadable simulator, available via Docker or as a Java executable) and configure a local endpoint with dummy credentials. Using `Rails.env` in `config.namespace` keeps development and test tables isolated:
 
 ```ruby
 Dynamoid.configure do |config|
@@ -377,7 +377,7 @@ Dynamoid.configure do |config|
 end
 ```
 
-### Connecting to AWS
+### AWS Environments
 
 When connecting to Amazon DynamoDB, credentials and region are automatically discovered from standard environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`), AWS profiles, or IAM roles:
 
@@ -398,6 +398,7 @@ Once configured, you can interact with your models directly in `bin/rails consol
 
 Now that you have a solid grasp of Dynamoid's data model, conventions, and lifecycle, you can continue with these essential guides:
 
+* [Table Mapping & Provisioning](modeling_and_schema/table_mapping_and_provisioning.md) — Configure table names, partition keys, sort keys, and provisioning.
 * [Fields & Data Types](modeling_and_schema/fields_and_types.md) — Explore supported data types, collections, and custom serializers.
 * [Query Interface](working_with_data/query_interface.md) — Master criteria chaining, scans versus queries, and pagination.
 * [Persistence & Mutations](working_with_data/persistence_and_mutations.md) — Perform atomic updates, bulk imports, and optimistic locking.

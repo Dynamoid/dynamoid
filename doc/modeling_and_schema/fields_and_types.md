@@ -12,8 +12,6 @@ class User
 end
 ```
 
----
-
 ## Supported Data Types
 
 Dynamoid supports all native DynamoDB attribute types, as well as high-level Ruby types with automatic serialization and type coercion.
@@ -33,8 +31,6 @@ Dynamoid supports all native DynamoDB attribute types, as well as high-level Rub
 | `:raw` | Any (`S`, `N`, `M`, `L`, etc.) | Stores raw Ruby objects without type casting. |
 | `:serialized` | String (`S`) | Serializes Ruby objects to string (default: YAML or custom serializer). |
 | Custom Class | String (`S`) or Number (`N`) | Arbitrary Ruby class implementing serialization methods. |
-
----
 
 ## Detailed Type Configurations
 
@@ -130,18 +126,61 @@ class Preferences
 end
 ```
 
----
+## Automatic Fields (Magic Fields)
 
-## Magic Columns
+Every `Dynamoid::Document` automatically defines three implicit fields:
 
-Every `Dynamoid::Document` automatically includes three magic fields for free:
-* `id` (`:string`) - The default partition key.
-* `created_at` (`:datetime`) - Set automatically when the document is first created.
-* `updated_at` (`:datetime`) - Updated automatically whenever the document is saved.
+* *id* (`:string`) — the default partition key attribute.
+* *created_at* (`:datetime`) — set automatically when the item is first persisted.
+* *updated_at* (`:datetime`) — updated automatically whenever changes are saved.
 
-You can disable timestamps globally via `Dynamoid::Config.timestamps = false` or per-table via `table timestamps: false`.
+### Disabling Timestamps
 
----
+You can disable automatic timestamp management globally across all models in an initializer:
+
+```ruby
+Dynamoid.configure do |config|
+  config.timestamps = false
+end
+```
+
+To disable timestamps for a specific model while leaving them enabled globally, use the `timestamps: false` option in the `table` declaration:
+
+```ruby
+class ReadOnlyEvent
+  include Dynamoid::Document
+
+  table timestamps: false
+
+  field :payload, :string
+end
+```
+
+When `timestamps: false` is configured, Dynamoid omits the automatic `created_at` and `updated_at` fields and does not update them during persistence.
+
+### Suppressing Generated Fields
+
+When `Dynamoid::Document` is included, it automatically declares `id`, `created_at`, and `updated_at`, defining their reader, writer, and predicate methods.
+
+If your model or legacy DynamoDB table should not declare these default fields or generate their accessors, specify them via `:skip_generating_fields` in `table`:
+
+```ruby
+class ExternalItem
+  include Dynamoid::Document
+
+  table skip_generating_fields: %i[id created_at updated_at]
+end
+```
+
+Alternatively, you can remove individual declared or default fields programmatically using `remove_field`:
+
+```ruby
+class CustomRecord
+  include Dynamoid::Document
+
+  remove_field :created_at
+end
+```
 
 ## Field Options
 
@@ -177,8 +216,6 @@ user.firstName  # => "Michael"
 
 Dynamoid automatically defines getter, setter, predicate, and `_before_type_cast` methods for both the original attribute name and the alias.
 
----
-
 ## Type Casting
 
 Values assigned to attributes are automatically coerced to the declared field type:
@@ -211,8 +248,6 @@ user.age_before_type_cast # => "42" (String)
 user.attributes_before_type_cast # => { age: "42" }
 ```
 
----
-
 ## Generated Accessor Methods
 
 For every declared field `name`, Dynamoid dynamically defines four methods on your model:
@@ -221,8 +256,6 @@ For every declared field `name`, Dynamoid dynamically defines four methods on yo
 * **Setter:** `user.name = 'value'` &rarr; Assigns and casts the value, marking the attribute as dirty.
 * **Presence Query:** `user.name?` &rarr; Returns `true` if the attribute is present and not blank.
 * **Raw Reader:** `user.name_before_type_cast` &rarr; Returns the value before type coercion.
-
----
 
 ## Custom Types
 

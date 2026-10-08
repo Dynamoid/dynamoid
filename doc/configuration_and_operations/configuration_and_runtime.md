@@ -18,8 +18,6 @@ Dynamoid.configure do |config|
 end
 ```
 
----
-
 ## AWS Configuration & Credentials
 
 ### 1. Global AWS Configuration vs. Dynamoid-Specific Credentials
@@ -70,7 +68,83 @@ Dynamoid.configure do |config|
 end
 ```
 
----
+## Table Namespaces and Environment Isolation
+
+Because DynamoDB table names are global within each AWS account and region, any two models that resolve to the same table name will access the same physical DynamoDB table.
+
+The `config.namespace` setting prepends a prefix to all table names (joined by an underscore, such as `<namespace>_<table_name>`). How you configure this setting depends directly on your AWS account topology and deployment architecture.
+
+### 1. Shared AWS Account Across Multiple Environments
+
+When multiple application environments (such as `production`, `staging`, `pre-production`, and `qa`) share a single AWS account, configuring a namespace is essential to isolate data and prevent accidental overwrites:
+
+```ruby
+Dynamoid.configure do |config|
+  config.namespace = "myapp_#{Rails.env}"
+end
+```
+
+In Rails applications, Dynamoid automatically configures a default namespace: `dynamoid_<app_name>_#{Rails.env}` (for example, `dynamoid_my_app_development`).
+
+### 2. Dedicated AWS Accounts per Environment
+
+When following the AWS best practice of maintaining separate, dedicated AWS accounts for each environment (for example, separate AWS accounts for production, staging, and development):
+
+* Tables in the production account belong strictly to production; tables in the staging account belong strictly to staging.
+* In this architecture, environment prefixes in table names are often redundant. You can disable the namespace prefix by setting it to `nil`:
+
+```ruby
+Dynamoid.configure do |config|
+  config.namespace = nil # Tables are named cleanly without prefixes: 'users', 'orders'
+end
+```
+
+### 3. Multiple Applications Sharing an AWS Account
+
+When multiple independent applications or microservices share a single AWS account, namespaces prevent table name collisions between services that define identically named models (such as a `User` model in both an authentication service and a billing service):
+
+```ruby
+# In the Billing application
+Dynamoid.configure do |config|
+  config.namespace = "billing_#{Rails.env}" # => 'billing_production_users'
+end
+
+# In the Auth application
+Dynamoid.configure do |config|
+  config.namespace = "auth_#{Rails.env}"    # => 'auth_production_users'
+end
+```
+
+### 4. Shared Development Sandbox Accounts
+
+When engineering teams share a single development AWS account or shared cloud sandbox, developers can isolate their personal tables by incorporating their username into the namespace:
+
+```ruby
+Dynamoid.configure do |config|
+  developer = ENV['DEVELOPER_NAME'] || ENV['USER'] || 'dev'
+  config.namespace = "myapp_#{developer}" # => 'myapp_alice_users'
+end
+```
+
+This allows each engineer to create, populate, and reset tables during local development without interfering with other team members.
+
+### 5. Automated Test Suites and Parallel CI
+
+When running test suites against DynamoDB Local or a shared test AWS account, parallel test processes (such as `parallel_tests` or multiple CI runners) can dynamically set distinct namespaces:
+
+```ruby
+Dynamoid.configure do |config|
+  worker_id = ENV['TEST_ENV_NUMBER'] || Process.pid
+  config.namespace = "myapp_test_#{worker_id}"
+end
+```
+
+Each test worker operates on its own set of isolated tables, preventing test race conditions.
+
+### Namespace Precedence and Bypassing
+
+* *Custom table names* — Specifying `table name: :custom_name` on a model still prepends the configured `config.namespace`.
+* *ARNs* — Specifying `table arn: 'arn:aws:dynamodb:...'` ([Amazon Resource Name](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html)) bypasses `config.namespace` entirely. This is ideal when referencing a shared, centrally managed table in another AWS account or region.
 
 ## Retry & Backoff Strategies
 
@@ -111,8 +185,6 @@ Dynamoid.configure do |config|
 end
 ```
 
----
-
 ## HTTP Connection & Timeouts
 
 Dynamoid communicates with DynamoDB via HTTP requests. You can fine-tune HTTP timeouts and network proxies:
@@ -126,8 +198,6 @@ Dynamoid.configure do |config|
   config.http_proxy            = 'http://proxy.corp.example:8080' # Optional proxy
 end
 ```
-
----
 
 ## Logging & Debugging
 
@@ -156,8 +226,6 @@ Dynamoid.configure do |config|
   config.log_formatter = Aws::Log::Formatter.colored
 end
 ```
-
----
 
 ## Complete Configuration Reference
 

@@ -58,8 +58,13 @@ Documentation is an engineering contract. Never write or update documentation fr
 
 1. **Verify Methods in Source Code:** Search `lib/` for the exact method definition, supported keyword arguments, and defaults.
 2. **Check for Deprecations:** Inspect `git grep "deprecator.warn"` to ensure deprecated methods (e.g., dynamic finders, legacy composite key helpers) are not taught as standard syntax.
-3. **Confirm Raised Exceptions:** Verify the exact error class raised on validation failure, concurrency conflict, or missing keys.
-4. **Distinguish Database Primitives from Library DSL:** Clearly separate what the underlying engine does (e.g., DynamoDB tables, items, attributes) from what the gem does (models, fields, criteria).
+3. **Verify Warning-Free Execution:** Ensure recommended code patterns do not trigger runtime logger warnings (e.g., method redefinition warnings when overriding implicit fields like `:id` or timestamps). Teach official suppression/override options (such as `skip_generating_fields`).
+4. **Confirm Raised Exceptions:** Verify the exact error class raised on validation failure, concurrency conflict, or missing keys.
+5. **Distinguish Database Primitives from Library DSL:** Clearly separate what the underlying engine does (DynamoDB tables, items, attributes) from what the gem does (models, fields, criteria):
+   * Use **item** strictly for DynamoDB storage and database operations.
+   * Use **model** (or model instance) for Ruby classes, in-memory objects, and lifecycle hooks.
+   * Reserve **record** strictly for Fowler's Active Record pattern and Rails `ActiveRecord` comparisons—never use "record" to describe Dynamoid entities.
+   * Use **field** for Ruby class-level declarations and **attribute** for in-memory values and DynamoDB storage.
 
 *Refer to [Ruby & Library Code Documentation Standards](./references/ruby_doc_standards.md) for code snippet conventions.*
 
@@ -69,11 +74,15 @@ Documentation is an engineering contract. Never write or update documentation fr
 Structure the document to guide the developer smoothly without cognitive overload.
 
 1. **Select the Diátaxis Mode:** Determine whether the section is explaining concepts (**Explanation**), providing a step-by-step recipe (**How-To**), or summarizing API contracts (**Reference**).
-2. **Follow Progressive Disclosure:**
+2. **Heading Symmetry & Scope Alignment:** Sibling sections at the same hierarchy level (`##`) must follow parallel, balanced naming (e.g., `## Partition Key` and `## Sort Key`). Avoid mixing architectural concept titles with configuration action verbs at the same level.
+3. **Follow Progressive Disclosure:**
    * Establish the standard 80% use case first (*convention over configuration*).
    * Introduce customizations and options second.
    * Place edge cases, caveats, and complex overrides in dedicated subsections or callouts.
-3. **Realistic Domain Models:** Use realistic domain models (`User`, `Order`, `Product`) with realistic attributes, explicit return values (`# => true`), and expected exceptions.
+4. **Feature-Isolated Snippets & Natural Modeling:**
+   * Strip away unrelated configuration options from code examples (e.g., do not configure custom partition keys in an example demonstrating sort keys).
+   * Omit redundant default arguments in baseline examples (e.g., omit `:string` when `range` defaults to `:string`).
+   * Preserve natural entity identity (e.g., an `Order` model's identity is its partition key, with foreign keys like `customer_id` or timestamps like `placed_at` serving as sort keys).
 
 *Refer to [The Diátaxis Documentation Architecture](./references/diataxis_architecture.md) for structural guidance.*
 
@@ -89,7 +98,7 @@ Audit the text against recognizable AI writing markers to ensure the prose sound
    * Strip empty buzzwords: *seamlessly*, *robust*, *effortlessly*, *game-changer*, *comprehensive suite*.
    * Strip LLM transitions: *delve*, *dive into*, *unpack*, *in today's landscape*, *furthermore*, *moreover*.
    * Strip passive hedging: *it is important to note that*, *rather than being a simple...*. State facts directly.
-5. **Vary Sentence Cadence:** Mix short, punchy statements with longer, explanatory sentences to establish a natural reading rhythm.
+5. **Vary Sentence Cadence & Avoid Repetition:** Mix short, punchy statements with longer, explanatory sentences. Eliminate repetitive verbs in adjacent clauses (*"uses X ... but uses Y"*).
 6. **Link-First Navigation:** Format "Next Steps" and table-of-contents lists with the link first:
    `* [Title](path.md) — Concise summary of the chapter.`
 7. **No Redundant Section Dividers:** Never place `---` lines between `##` or `###` sections. Let headings and vertical whitespace structure the guide.
@@ -104,7 +113,14 @@ Before proposing or committing documentation changes, verify each item:
 
 - [ ] Every method, option, and exception cited exists in the current gem codebase.
 - [ ] No deprecated methods are taught as recommended practices.
-- [ ] The text uses correct domain terminology (*item* vs. *record*, *query operation* vs. *scan operation*).
+- [ ] Recommended code snippets execute cleanly without runtime logger warnings (e.g., method redefinition).
+- [ ] Code snippets isolate the feature under discussion without extraneous, unrelated configuration options.
+- [ ] Baseline snippets omit redundant default arguments (`range :customer_id` before typed `range :placed_at, :datetime`).
+- [ ] Entity domain modeling respects natural identity (primary identifiers as partition keys, foreign keys/timestamps as sort keys).
+- [ ] Sibling headings at the same level maintain parallel, symmetrical naming (`## Partition Key` / `## Sort Key`).
+- [ ] The text uses correct domain terminology: *item* for DynamoDB storage, *model* for Ruby classes/instances, and *record* reserved strictly for Active Record pattern / Rails comparisons.
+- [ ] Class-level *field* declarations are strictly distinguished from in-memory/DynamoDB *attributes*.
+- [ ] Scope is explicitly stated for constraints (partition-level vs. table-wide vs. secondary index uniqueness).
 - [ ] No formulaic `* **Keyword:** text` bullet lists are present.
 - [ ] Technical terms use *italics* or plain text, not bold (`**`).
 - [ ] Table cells are clean plain text without bolding spam.

@@ -6,7 +6,8 @@ Dynamoid supports both types of DynamoDB secondary indexes:
 1. **Global Secondary Index (GSI):** An index with a partition key and an optional sort key that can be different from those on the base table.
 2. **Local Secondary Index (LSI):** An index that has the same partition key as the base table, but a different sort key.
 
----
+> [!NOTE]
+> Unlike base table primary keys, secondary indexes do not enforce uniqueness constraints. Multiple items in the base table can share identical index partition keys and sort keys without conflict or overwriting one another.
 
 ## Defining a Global Secondary Index (GSI)
 

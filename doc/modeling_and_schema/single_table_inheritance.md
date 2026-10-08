@@ -2,8 +2,6 @@
 
 Dynamoid supports Single Table Inheritance (STI) similar to Active Record. STI allows you to represent an inheritance hierarchy of related Ruby classes within a single DynamoDB table.
 
----
-
 ## Defining an STI Hierarchy
 
 To enable STI, declare a `type` field in the base model class:
@@ -35,8 +33,6 @@ dog = Dog.create(name: 'Buddy', bark_volume: 5)
 dog.type # => "Dog"
 ```
 
----
-
 ## Querying and Polymorphism
 
 When querying through the base class, Dynamoid inspects the `type` attribute on each returned item and instantiates the correct Ruby subclass:
@@ -52,11 +48,9 @@ animals = Animal.all
 # => [#<Cat id: "...", name: "Morgan">, #<Dog id: "...", name: "Buddy">]
 ```
 
----
-
 ## Customizing the Inheritance Field
 
-If your DynamoDB table already has an existing attribute named `type` with a different business meaning, or if you prefer a different column name, you can override the discriminator attribute name using the `inheritance_field` option in `table`:
+By default, Dynamoid uses an attribute named `type` as the STI discriminator column. If your DynamoDB table already uses `type` for another domain attribute, or if you prefer a more descriptive attribute name, override the discriminator column name by passing `:inheritance_field` to the `table` method on the base class:
 
 ```ruby
 class Vehicle
@@ -71,7 +65,17 @@ end
 class Truck < Vehicle
   field :payload_capacity_lbs, :integer
 end
+```
+
+All subclasses inherit this table configuration automatically:
+
+```ruby
+Vehicle.inheritance_field # => :vehicle_type
+Truck.inheritance_field   # => :vehicle_type
 
 truck = Truck.create(vin: '1HGCR2F83HA000000')
 truck.vehicle_type # => "Truck"
 ```
+
+> [!NOTE]
+> Like any other attribute, the custom inheritance field must be explicitly declared on the base model using `field :custom_field, :string`.

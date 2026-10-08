@@ -85,19 +85,48 @@ Never use the following empty buzzwords, clichés, and formulaic AI transitions:
 | *It's not just X, it's Y* | Pretentious contrastive framing cliché. | Describe Y directly and accurately. |
 | *Rather than being a simple X...* | Unnecessary negative contrast. | Directly state what the feature is and how it works. |
 
----
-
 ## 4. Elimination of "Meta-Talk"
 
 Do not narrate your own writing process to the reader:
-* **Avoid:** "In this section, we will explore how callbacks work in Dynamoid."
-* **Better:** "Dynamoid integrates `ActiveModel::Callbacks`, providing lifecycle hooks during record persistence."
-* **Avoid:** "As we saw in the previous section about keys..."
-* **Better:** Link directly to the relevant concept or assume the context established earlier in the guide.
-
----
+* *Avoid:* "In this section, we will explore how callbacks work in Dynamoid."
+* *Better:* "Dynamoid integrates `ActiveModel::Callbacks`, providing lifecycle hooks during record persistence."
+* *Avoid:* "As we saw in the previous section about keys..."
+* *Better:* Link directly to the relevant concept or assume the context established earlier in the guide.
 
 ## 5. Precise Technical Precision
 
-* **Match Product Terminology Strictly:** When discussing database primitives, use the engine's exact terms (in DynamoDB: *table*, *item*, *attribute*, *partition key*, *sort key*, *query operation*, *scan operation*). Never mix in alien terms like "record" or "row" when explaining DynamoDB internals.
-* **No False Hand-Waving:** Never describe an operation as "falling back" or "automagically handling" if the database or library actually requires explicit user action or raises an error.
+### Storage & Object Terminology: Item vs. Model vs. Record
+Maintain strict precision when referring to entities across storage and application layers:
+
+* **Item:** The physical unit of data stored in Amazon DynamoDB.
+  * Use **item** when referring to data stored in, queried from, or deleted within DynamoDB tables.
+  * *Examples:* *"stores the item"*, *"multiple items share a partition key"*, *"order items chronologically"*, *"delete expired items"*, *"persists the item in DynamoDB"*.
+  * Never use "record" or "row" when describing DynamoDB storage or database operations.
+
+* **Model (or Model Instance):** The Ruby class that includes `Dynamoid::Document` or an in-memory Ruby object.
+  * Use **model** when referring to class definitions, class methods, in-memory instances, validations, callbacks, and lifecycle hooks.
+  * *Examples:* *"every model maps to a table"*, *"declaring fields on the model"*, *"instantiating a model"*, *"saving a model"*, *"validations on the model"*, *"destroy a model instance"*, *"loading models into memory"*.
+  * Never refer to a Ruby model instance as a "record" (e.g., avoid "saving a record", "validating a record", or "find records").
+
+* **Record:** Strictly reserved for architectural pattern discussions and framework comparisons.
+  * Use **record** ONLY when discussing:
+    * Martin Fowler's abstract *Active Record* design pattern.
+    * The Ruby on Rails `ActiveRecord` framework for architectural comparisons.
+    * Inherited Ruby method and exception names (`user.new_record?`, `Dynamoid::Errors::RecordNotFound`, `RecordNotSaved`).
+    * Relational database tables/rows when explaining architectural differences from DynamoDB.
+  * **Never** use "record" to describe Dynamoid entities, models, or DynamoDB items.
+
+### Library DSL vs. Storage State: Fields vs. Attributes
+Maintain a crisp boundary between model declarations and storage values:
+* **Field:** Ruby class-level schema definitions declared with class macros (`field :title`, `range :placed_at`).
+* **Attribute:** In-memory instance values (`user.attributes`, `user.update_attributes`) and physical DynamoDB storage items/types (*"the `id` attribute is declared as a Number in DynamoDB"*).
+
+### Scope Precision on Constraints
+Always state the exact boundary when explaining uniqueness, sorting, or indexing constraints:
+* **Table-wide uniqueness:** Applies to simple primary keys (partition key alone).
+* **Partition-level uniqueness:** In composite primary key tables, sort keys must be unique *within the same partition key*. Sort keys do not need to be unique table-wide across different partition keys.
+* **Secondary index constraints:** Explicitly clarify that secondary indexes (GSIs) do not enforce uniqueness constraints on either partition or sort keys.
+
+### Sentence-Level Variety & Verb Hygiene
+* Avoid repetitive verbs or stems in adjacent clauses (*"uses `id` as partition key but uses another type"* &rarr; *"declares `id` as partition key but requires another type"*).
+* Never describe operations as "falling back" or "automagically handling" if the database or library actually requires explicit user action or raises an error.
