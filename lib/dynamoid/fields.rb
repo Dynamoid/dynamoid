@@ -183,60 +183,79 @@ module Dynamoid
         self.range_key = name
       end
 
-      # Set table level properties.
+      # Set table-level properties, table name, and partition key configuration.
       #
-      # There are some sensible defaults:
+      # Sensible defaults provided by Dynamoid:
       #
-      # * table name is based on a model class e.g. +users+ for +User+ class
-      # * hash key name - +id+ by default
-      # * hash key type - +string+ by default
-      # * generating timestamp fields +created_at+ and +updated_at+
-      # * billing mode and read/write capacity units
+      # * Table name: inferred from model class name (e.g. +users+ for +User+ class)
+      # * Partition (hash) key name: +:id+
+      # * Partition key type: +:string+
+      # * Capacity mode: +:provisioned+ (or configured globally via +Dynamoid::Config.capacity_mode+)
+      # * Read/write capacity: +100+ / +20+ (or global config)
+      # * Timestamps: generates +created_at+ and +updated_at+ fields (+:datetime+)
       #
-      # The +table+ method can be used to override the defaults:
+      # == Examples
       #
-      # ```
-      # class User
-      #   include Dynamoid::Document
+      # Basic table override:
       #
-      #   table name: :customers, key: :uuid
-      # end
-      # ```
+      #   class Customer
+      #     include Dynamoid::Document
       #
-      # The hash key field is declared by default and a type is a string. If
-      # another type is needed the field should be declared explicitly:
+      #     table name: :clients, key: :client_id
+      #   end
       #
-      # ```
-      # class User
-      #   include Dynamoid::Document
+      # Custom partition key with non-string type:
       #
-      #   field :id, :integer
-      # end
-      # ```
+      #   class User
+      #     include Dynamoid::Document
       #
-      # To declare a new attribute with not-default type as a table hash key a
-      # :key_type option can be used:
+      #     table key: :user_id, key_type: :integer
+      #   end
       #
-      # ```
-      # class User
-      #   include Dynamoid::Document
+      # Customizing the default +:id+ key type:
       #
-      #   table key: :user_id, key_type: :integer
-      # end
-      # ```
+      #   class Product
+      #     include Dynamoid::Document
+      #
+      #     table skip_generating_fields: [:id]
+      #     field :id, :integer
+      #   end
+      #
+      # On-demand billing and TTL:
+      #
+      #   class Session
+      #     include Dynamoid::Document
+      #
+      #     table capacity_mode: :on_demand,
+      #           expires: { field: :ttl, after: 86_400 }
+      #
+      #     field :ttl, :integer
+      #   end
+      #
+      # Using a table from another AWS account:
+      #
+      #   class ExternalRecord
+      #     include Dynamoid::Document
+      #
+      #     table arn: 'arn:aws:dynamodb:us-east-1:123456789012:table/records'
+      #   end
+      #
+      # @note Provisioning options (+read_capacity+, +write_capacity+, +capacity_mode+)
+      #   and TTL (+expires+) only apply when Dynamoid creates a new DynamoDB table.
+      #   Dynamoid does not alter existing tables in DynamoDB.
       #
       # @param options [Hash] options to override default table settings
-      # @option options [Symbol] :name name of a table
-      # @option options [Symbol] :arn table ARN; it allows referring tables in another AWS accounts; has higher priority than the +name+ option
-      # @option options [Symbol] :key name of a hash key attribute
-      # @option options [Symbol] :key_type type of a hash key attribute
-      # @option options [Symbol] :inheritance_field name of an attribute used for STI
-      # @option options [Array<Symbol>] :skip_generating_fields don't generate implicitly methods with given names, e.g. +:id+, +:created_at+, +:updated_at+
-      # @option options [Symbol] :capacity_mode table billing mode - either +provisioned+ or +on_demand+
-      # @option options [Integer] :write_capacity table write capacity units
-      # @option options [Integer] :read_capacity table read capacity units
-      # @option options [true|false] :timestamps whether generate +created_at+ and +updated_at+ fields or not
-      # @option options [Hash] :expires set up a table TTL and should have following structure +{ field: <attriubute name>, after: <seconds> }+
+      # @option options [Symbol, String] :name name of a table
+      # @option options [String] :arn table ARN; allows referring to tables in another AWS account or region (takes precedence over +:name+)
+      # @option options [Symbol] :key name of the partition (hash) key attribute (defaults to +:id+)
+      # @option options [Symbol] :key_type type of the partition key attribute e.g. +:string+, +:integer+, +:number+ (defaults to +:string+)
+      # @option options [Symbol] :capacity_mode billing mode (+:provisioned+ or +:on_demand+)
+      # @option options [Integer] :read_capacity read capacity units for provisioned tables
+      # @option options [Integer] :write_capacity write capacity units for provisioned tables
+      # @option options [Boolean] :timestamps (true) whether to generate and maintain +created_at+ and +updated_at+ fields
+      # @option options [Hash] :expires configure DynamoDB TTL in format +{ field: <attribute_name>, after: <seconds> }+
+      # @option options [Symbol] :inheritance_field name of the discriminator attribute used for STI (defaults to +:type+)
+      # @option options [Array<Symbol>] :skip_generating_fields list of implicit fields to not generate (+:id+, +:created_at+, +:updated_at+)
       #
       # @since 0.4.0
       def table(options)

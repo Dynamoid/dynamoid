@@ -69,21 +69,18 @@ module Dynamoid
       #
       #   User.create_table(table_name: 'users', read_capacity: 200, write_capacity: 40)
       #
-      # Dynamoid creates a table synchronously by default. DynamoDB table
-      # creation is an asynchronous operation and a client should wait until a
-      # table status changes to +ACTIVE+ and a table becomes available. That's
-      # why Dynamoid is polling a table status and returns results only when a
-      # table becomes available.
+      # Dynamoid creates a table asynchronously by default, returning +self+
+      # immediately without waiting for the table to become available.
+      #
+      # To wait until a table is created and available, pass +sync: true+:
+      #
+      #   User.create_table(sync: true)
+      #
+      # When +sync: true+ is specified (or when the model defines secondary
+      # indexes), Dynamoid polls the table status until it becomes available.
       #
       # Polling is configured with +Dynamoid::Config.sync_retry_max_times+ and
-      # +Dynamoid::Config.sync_retry_wait_seconds+ configuration options. If
-      # table creation takes more time than configured waiting time then
-      # Dynamoid stops polling and returns +true+.
-      #
-      # In order to return back asynchronous behaviour and not to wait until a
-      # table is created the +sync: false+ option should be specified.
-      #
-      #   User.create_table(sync: false)
+      # +Dynamoid::Config.sync_retry_wait_seconds+ configuration options.
       #
       # Subsequent method calls for the same table will be ignored.
       #
@@ -100,7 +97,7 @@ module Dynamoid
       # @option options [Hash] :global_secondary_indexes
       # @option options [true|false] :sync specifies should the method call be synchronous and wait until a table is completely created
       #
-      # @return [true|false] Whether a table created successfully
+      # @return [Class] self
       # @since 0.4.0
       def create_table(options = {})
         range_key_hash = if range_key
@@ -131,13 +128,19 @@ module Dynamoid
 
       # Deletes the table for the model.
       #
-      # Dynamoid deletes a table asynchronously and doesn't wait until a table
+      # Dynamoid deletes a table asynchronously by default and doesn't wait until a table
       # is deleted completely.
       #
+      # To wait until the table is deleted, pass +sync: true+:
+      #
+      #   User.delete_table(sync: true)
+      #
       # Subsequent method calls for the same table will be ignored.
+      # @param options [Hash]
+      # @option options [true|false] :sync specifies should the method call be synchronous and wait until a table is completely deleted
       # @return [Model class] self
-      def delete_table
-        Dynamoid.adapter.delete_table(table_name)
+      def delete_table(options = {})
+        Dynamoid.adapter.delete_table(table_name, options)
         self
       end
 

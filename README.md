@@ -14,21 +14,20 @@
 [![Keep-A-Changelog 1.0.0][📗keep-changelog-img]][📗keep-changelog]
 [![Sponsor Project][🖇sponsor-img]][🖇sponsor]
 
-
-A feature-rich and powerful Ruby ORM for Amazon DynamoDB, designed to provide a familiar ActiveRecord-like experience for Ruby applications.
-
+Dynamoid is an Object-Document Mapper (ODM) for Amazon DynamoDB written in Ruby. It provides a familiar Active Record interface for Rails and standalone applications, letting you model, validate, and query DynamoDB items as expressive Ruby objects instead of raw AWS SDK parameter hashes.
 
 ## Key Features
 
-* ActiveRecord-style DSL: Implements an interface and configuration similar to Rails' ActiveRecord.
-* Querying & Persistence: Provides methods for finding, querying, and updating models.
-* Advanced ORM Features: Supports associations, callbacks, validations, Dirty API, optimistic locking, and type casting.
-* Additional Attribute Types: Supports types not natively provided by Amazon DynamoDB, such as `DateTime`, `Time`, and more.
-* Transactions: Supports Amazon DynamoDB transactional operations.
+Dynamoid combines the familiar ergonomics of Rails' Active Record with the unique power of Amazon DynamoDB:
 
+* *Active Record fidelity* — declare models, associations, validations, callbacks, dirty tracking, optimistic locking, and STI following standard Rails conventions.
+* *Convention over configuration* — automatic table naming, UUID partition keys, and automatic timestamps so models work out of the box with minimal setup.
+* *Query interface* — chain queries using ActiveRecord syntax while Dynamoid automatically routes to fast Query operations and selects secondary indexes over full-table Scans.
+* *Native DynamoDB mutations* — perform atomic in-place updates on numbers and collections, conditional writes, and high-throughput bulk imports.
+* *ACID transactions* — coordinate all-or-nothing reads and writes across multiple items and tables with full transactional guarantees.
+* *Transparent attribute serialization* — persist types not native to DynamoDB (`Date`, `DateTime`), serialize objects into strings (YAML by default), and support custom classes implementing dump and load methods.
 
-## Quick start
-
+## Quick Start
 
 ### Installation
 
@@ -38,98 +37,126 @@ Add Dynamoid to your `Gemfile`:
 gem 'dynamoid'
 ```
 
-Or install it using `bundle`:
+Or install it with Bundler:
 
 ```shell
 bundle add dynamoid
 ```
 
-Alternatively, you can install the gem manually:
+### Configuration
 
-```shell
-gem install dynamoid
-```
+Configure Dynamoid in `config/initializers/dynamoid.rb` (for Rails) or during application setup.
 
-
-### Usage
-
-To define a model, include `Dynamoid::Document` and declare your fields. Dynamoid supports ActiveModel validations and automatic timestamps:
-
-```ruby
-class User
-  include Dynamoid::Document
-
-  field :name                        # Type defaults to :string
-  field :email
-  field :age, :integer
-  field :active, :boolean, default: true
-
-  validates :name, presence: true
-  validates :email, format: { with: /@/ }
-end
-```
-
-Once defined, you can interact with your models using a familiar API:
-
-```ruby
-# Create and Save
-user = User.create(name: 'Josh', email: 'josh@example.com')
-
-# Find and Update
-user = User.where(email: 'josh@example.com').first
-user.update_attributes(age: 30)
-
-# Querying
-users = User.where(active: true).all.to_a
-```
-
-
-### Essential Configuration
-
-Minimal connection settings are required. You can configure Dynamoid in several ways, such as in `config/initializers/dynamoid.rb` (for Rails) or directly in your setup:
+For local development and testing without an AWS account, point Dynamoid to [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html):
 
 ```ruby
 require 'dynamoid'
 
 Dynamoid.configure do |config|
-  config.access_key = 'REPLACE_WITH_ACCESS_KEY_ID'
-  config.secret_key = 'REPLACE_WITH_SECRET_ACCESS_KEY'
-  config.region = 'REPLACE_WITH_REGION' # e.g. 'us-west-2'
+  config.namespace  = "my_app_#{defined?(Rails) ? Rails.env : 'development'}"
+  config.endpoint   = 'http://localhost:8000'
+  config.region     = 'us-east-1'
+  config.access_key = 'fake'
+  config.secret_key = 'fake'
 end
 ```
 
+When connecting to Amazon DynamoDB, credentials and region are discovered automatically from environment variables, AWS profiles, or IAM roles:
+
+```ruby
+Dynamoid.configure do |config|
+  config.namespace = "my_app_#{Rails.env}"
+end
+```
+
+### Defining a Model
+
+Include `Dynamoid::Document` in your model class and declare attributes with `field`:
+
+```ruby
+class Order
+  include Dynamoid::Document
+
+  field :customer_id
+  field :status, :string, default: 'pending'
+  field :amount, :number, default: 0
+
+  validates :customer_id, presence: true
+
+  before_save { self.status = status.downcase }
+end
+```
+
+By default, the table name is derived from the pluralized class name (`orders`), the primary key is an auto-generated string UUID named `id`, and timestamps (`created_at`, `updated_at`) are maintained automatically.
+
+### Usage
+
+#### Active Record CRUD
+
+```ruby
+order = Order.create(customer_id: 'cust_101', amount: 95)
+order = Order.find(order.id)
+order.status = 'processing'
+order.save
+order.update_attributes(status: 'completed')
+order.destroy
+```
+
+#### Querying
+
+```ruby
+pending = Order.where(status: 'pending').all
+recent  = Order.where(customer_id: 'cust_101', 'created_at.gte': 1.day.ago).all
+```
+
+#### Atomic In-Place Updates
+
+```ruby
+order = Order.find(order_id)
+order.update(if: { status: 'processing' }) do |updater|
+  updater.set status: 'completed'
+  updater.add amount: 10
+end
+```
+
+#### ACID Transactions
+
+```ruby
+order = Order.find(order_id)
+
+Order.transaction do |t|
+  t.update_attributes(order, status: 'archived')
+  t.create(Order, customer_id: 'cust_102', amount: 50)
+end
+```
 
 ## Documentation
 
-* **API Reference:** Comprehensive documentation for all classes and methods is available on [API Reference](https://dynamoid.github.io/dynamoid/reference/).
-* **User Guides:** For detailed overviews and usage examples of specific features, see the online [User Guides](https://dynamoid.github.io/dynamoid/guides/).
+Comprehensive documentation is available on the project documentation site:
 
+* [User Guides](https://dynamoid.github.io/dynamoid/guides/) — In-depth guides covering schema modeling, querying, persistence, transactions, and operational configuration.
+* [API Reference](https://dynamoid.github.io/dynamoid/reference/) — Complete class and method reference generated from source code documentation.
 
 ## Compatibility
 
-Dynamoid relies on `aws-sdk-dynamodb` (AWS SDK v3) and `activemodel` (>= 4.2). It officially supports Ruby >= 2.3 and Rails >= 4.2.
+Dynamoid requires `aws-sdk-dynamodb` (AWS SDK v3) and `activemodel` (>= 4.2).
 
-Compatibility is tested against the following versions:
-* Ruby: 2.3 - 4.0 (including JRuby 10.x)
-* Rails: 4.2 - 8.1
-
+Continuous integration tests actively verify correctness against:
+* Ruby: 2.3 – 4.0 (including JRuby 10.x)
+* Rails / ActiveModel: 4.2 – 8.1
 
 ## Contributing
 
-We welcome contributions to Dynamoid! Please see our [CONTRIBUTING.md][contributing] guide for details on how to get started. Join us!
-
+Please see [CONTRIBUTING.md][contributing] for details on how to get started.
 
 ## Security
 
-See [SECURITY.md][security].
-
+Please see [SECURITY.md][security] for vulnerability reporting guidelines.
 
 ## License
 
-The gem is available as open source under the terms of
-the [MIT License][license] [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)][license-ref].
+The gem is available as open source under the terms of the [MIT License][license] [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)][license-ref].
 See [LICENSE][license] for the official [Copyright Notice][copyright-notice-explainer].
-
 
 ## Credits
 
