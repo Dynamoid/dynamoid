@@ -29,7 +29,7 @@ Never pass the default argument explicitly in the introductory snippet if the ac
 Always show what the code returns or raises using inline comments:
 
 ```ruby
-# Good: Shows explicit boolean return and object state
+# Good: Shows explicit boolean return and object state (same-line for scalars)
 user = User.new(name: 'Alice')
 user.save # => true
 user.persisted? # => true
@@ -37,6 +37,11 @@ user.persisted? # => true
 # Good: Shows explicit exception class
 user = User.create!(name: '') # Raises Dynamoid::Errors::DocumentNotValid
 ```
+
+Follow these placement rules for `# =>` comments:
+* *Same-line (`expression # => result`)* — use for short scalar returns (integers, booleans, simple strings, symbols) to keep snippets compact and vertically scannable.
+* *Next-line (`# => result`)* — reserve for complex object inspections (`#<...>`), multi-line hashes/arrays, or long outputs that would exceed standard line length.
+
 
 ### Modern, Idiomatic Ruby
 Follow standard Ruby style conventions (2 spaces indentation, frozen string literal awareness, hash syntax with symbols `{ status: :active }`). Avoid deprecated gem APIs or old Ruby paradigms (e.g., avoid legacy dynamic finders `find_by_name`).
@@ -76,3 +81,21 @@ Documentation is a product contract. Before documenting any method, option, or e
 3. **Check for Deprecations:** Verify whether an older method triggers a deprecation warning (`Dynamoid.deprecator.warn`). Never teach deprecated syntax in getting-started or user guides.
 4. **Verify Raised Exceptions:** Confirm the exact exception class raised by inspecting `lib/dynamoid/errors.rb` or the method implementation (e.g., `Dynamoid::Errors::RecordNotFound` vs `RecordNotUnique`).
 5. **Avoid Low-Level SDK Leaks:** When explaining high-level model operations, avoid exposing internal AWS SDK method names (e.g., say "efficient batch delete" rather than "issues a `BatchWriteItem` request") unless specifically discussing adapter internals or performance ceilings.
+
+## 4. Typography & Formatting for Ruby Classes and Data Types
+
+Follow the **Hybrid Rule** to balance precise code semantics with fluid, natural prose:
+
+1. **Conceptual Data Types (Lowercase Plain Text):**
+   When discussing general data structures, shapes, values, or plurals, write natural English nouns:
+   * "nested hashes or arrays"
+   * "stores numbers, strings, and booleans"
+   * "prunes empty strings and empty sets"
+2. **Ruby Classes and Constants (Fixed-Width / Backticks):**
+   When referring to the concrete Ruby class, module, or casting target:
+   * `String`, `Integer`, `Float`, `BigDecimal`, `DateTime`, `Date`, `Set`, `Array`, `Hash`, `IO`, `StringIO`, `File`
+   * Explicit casting targets: *"casts values into `Integer` via `#to_i`"*
+   * Configuration options: *"converts `BigDecimal` values to `Float` via `config.convert_big_decimal`"*
+   * Reference tables: Under `Ruby Class` or `Type` columns, always use backticks (`String`, `Integer`, `BigDecimal`).
+3. **Avoid Capitalized Plain Text in Prose:**
+   Never write unformatted capitalized class names in running text (e.g., "Ruby Set", "open File", "returns Integer"). Words like *Set*, *Date*, *Time*, and *File* collide with ordinary English verbs and nouns, creating visual awkwardness and ambiguity.

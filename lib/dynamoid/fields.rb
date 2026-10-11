@@ -309,7 +309,7 @@ module Dynamoid
 
       # Remove a field declaration
       #
-      # Removes a field from the list of fields and removes all te generated
+      # Removes a field from the list of fields and removes all the generated
       # for a field methods.
       #
       # @param field [Symbol] a field name
@@ -357,6 +357,7 @@ module Dynamoid
     # @param name [Symbol] the name of the field
     # @param value [Object] the value to assign to that field
     # @return [Dynamoid::Document] self
+    # @raise [Dynamoid::Errors::UnknownAttribute] if the attribute is not declared on the model
     #
     # @since 0.2.0
     def write_attribute(name, value)

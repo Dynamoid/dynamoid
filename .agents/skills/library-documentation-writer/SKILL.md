@@ -30,6 +30,15 @@ Before drafting, proposing, or writing any documentation text, enforce these non
 3. **Review Mode & Pre-Flight Self-Audit:**
    * Whenever prompted to **"review"** documentation, do not stop at conversational high-level commentary. Systematically execute the three-pass audit (Code Contract, Architecture, and Human Voice).
    * Before executing any file edit tool or presenting Markdown drafts, mechanically scan the proposed text. If any line matches `* **Keyword:**` or `---` before a heading, rewrite or remove it immediately before outputting.
+4. **ZERO TOLERANCE: Never Output Full Sections During Review (Atomic Paragraphs Only)**
+   * During iterative review and discussion with the user, **never** output whole sections or multiple paragraphs at once.
+   * Always print **strictly only the specific paragraph or code snippet** currently being discussed. Outputting entire surrounding sections creates cognitive overload and obscures targeted feedback.
+5. **ZERO TOLERANCE: Never Amend Existing Git Commits (Always Create New Commits)**
+   * **Never** use `git commit --amend` or propose amending an already existing commit.
+   * Always propose or create a **brand-new commit** for newly reviewed and approved changes. Amending rewrites history and obscures the boundary between previously reviewed code and recent modifications.
+6. **Regenerate HTML Documentation with mdBook:**
+   * After applying any changes or edits to Markdown files in `doc/`, always run `mdbook build` to regenerate the HTML documentation in `book/` and verify that the build succeeds cleanly.
+
 
 ---
 
@@ -94,14 +103,15 @@ Audit the text against recognizable AI writing markers to ensure the prose sound
 1. **No Formulaic Bold Bullets:** Strictly eliminate `* **Keyword:** Explanation` bullet lists. Group related thoughts into natural paragraphs or parallel list items.
 2. **Italics Over Bold for Terms:** When introducing new technical terms, use subtle *italics* (`*primary key*`, `*partition key*`, `*convention over configuration*`) or plain text. Avoid visual bolding noise (`**word**`).
 3. **No Heavy Bold in Tables:** Keep Markdown table cells in clean, plain text. The table headers already identify the columns.
-4. **Apply the Banned Vocabulary List:**
+4. **The Hybrid Rule for Ruby Classes vs. Concepts:** Use lowercase plain text for conceptual data shapes ("nested hashes or arrays", "numbers, strings, and booleans"). Use fixed-width code font (`String`, `Integer`, `BigDecimal`, `Set`) for specific Ruby constants, casting targets, and table type columns. Avoid unformatted capitalized plain text ("Ruby Set", "open File") in prose.
+5. **Apply the Banned Vocabulary List:**
    * Strip empty buzzwords: *seamlessly*, *robust*, *effortlessly*, *game-changer*, *comprehensive suite*.
    * Strip LLM transitions: *delve*, *dive into*, *unpack*, *in today's landscape*, *furthermore*, *moreover*.
    * Strip passive hedging: *it is important to note that*, *rather than being a simple...*. State facts directly.
-5. **Vary Sentence Cadence & Avoid Repetition:** Mix short, punchy statements with longer, explanatory sentences. Eliminate repetitive verbs in adjacent clauses (*"uses X ... but uses Y"*).
-6. **Link-First Navigation:** Format "Next Steps" and table-of-contents lists with the link first:
+6. **Vary Sentence Cadence & Avoid Repetition:** Mix short, punchy statements with longer, explanatory sentences. Eliminate repetitive verbs in adjacent clauses (*"uses X ... but uses Y"*).
+7. **Link-First Navigation:** Format "Next Steps" and table-of-contents lists with the link first:
    `* [Title](path.md) — Concise summary of the chapter.`
-7. **No Redundant Section Dividers:** Never place `---` lines between `##` or `###` sections. Let headings and vertical whitespace structure the guide.
+8. **No Redundant Section Dividers:** Never place `---` lines between `##` or `###` sections. Let headings and vertical whitespace structure the guide.
 
 *Refer to the [Human Technical Voice & Style Guide](./references/human_technical_voice.md) for the full ban list and examples.*
 
@@ -124,7 +134,11 @@ Before proposing or committing documentation changes, verify each item:
 - [ ] No formulaic `* **Keyword:** text` bullet lists are present.
 - [ ] Technical terms use *italics* or plain text, not bold (`**`).
 - [ ] Table cells are clean plain text without bolding spam.
+- [ ] Ruby classes use code font (`String`, `Integer`, `BigDecimal`) while conceptual types use lowercase plain text ("hashes and arrays").
 - [ ] No redundant horizontal rules (`---`) separating section headings.
 - [ ] Banned buzzwords (*seamlessly*, *robust*, *delve*, etc.) are completely absent.
-- [ ] Code snippets are self-contained, syntax-highlighted (`ruby`), and show `# =>` return values.
+- [ ] Code snippets are self-contained, syntax-highlighted (`ruby`), and show `# =>` return values (same-line for scalar outputs, next-line for complex objects).
 - [ ] Relative cross-references and guide links resolve to existing files.
+- [ ] Never amend existing git commits; always create brand-new commits for new changes.
+- [ ] Regenerate HTML documentation with `mdbook build` after modifying guides.
+

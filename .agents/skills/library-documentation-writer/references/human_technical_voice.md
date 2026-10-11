@@ -19,6 +19,16 @@ This document defines the tone, style constraints, and formatting standards for 
 * **Use Italics for Terms:** When introducing a new technical term or concept for the first time, use subtle *italics* (`*primary key*`, *convention over configuration*), or simply keep it in plain text.
 * **Tables:** Do not bold every cell in the first column of Markdown tables. The table header already identifies the column. Use plain text unless emphasizing a critical distinction.
 
+### Ruby Classes vs. Conceptual Data Types (The Hybrid Rule)
+Distinguish clearly between generic English data concepts and specific Ruby code identifiers:
+* **Generic Concepts & Plurals (Plain Text, Lowercase):** When discussing data shapes, values, or conceptual categories in prose, use standard lowercase English nouns:
+  * *Good:* "nested hashes or arrays", "stores numbers, strings, and booleans", "prunes empty strings and sets", "an open file or IO stream".
+  * *Avoid:* "nested `Hash`es or `Array`s", "`String`s become `String`s", "casts into a Ruby Set".
+* **Specific Ruby Classes & Identifiers (Code Font / Backticks):** When referring to the actual Ruby constant, class, module, or explicit casting target, format it in fixed-width font:
+  * *Good:* "casts values into `Integer` via `#to_i`", "numbers reload as `BigDecimal` by default and can be converted to `Float`", "accepts `String`, `StringIO`, or `IO` objects", "returns a `DateTime` adjusted to `config.application_timezone`".
+* **Reference Tables:** Under columns specifying language types (such as `Ruby Class`), use code font (`String`, `Integer`, `BigDecimal`, `Set`, `TrueClass / FalseClass`) to denote the exact Ruby constant.
+* **Avoid Capitalized Plain Text in Prose:** Never write unformatted capitalized class names in running text (e.g., "Ruby Set", "open File", "returns Integer"). Words like *Set*, *Date*, *Time*, and *File* collide with ordinary English verbs and nouns, creating visual awkwardness and ambiguity.
+
 ### Natural Lists vs. AI Bullet Dumps
 * **Never use formulaic bold-prefixed lists:** Strictly avoid lists formatted as:
   ```markdown

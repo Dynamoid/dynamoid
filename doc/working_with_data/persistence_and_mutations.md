@@ -123,7 +123,59 @@ user.update(if: { active: true }) do |u|
 end
 ```
 
----
+## Dirty Attribute Tracking
+
+Dynamoid integrates with `ActiveModel::Dirty` to track in-memory attribute modifications before they are persisted to DynamoDB:
+
+```ruby
+user = User.find('user-101') # Initially, user.name is 'Alex'
+user.name_changed?          # => false
+
+user.name = 'Alexander'
+user.name_changed?          # => true
+user.name_was               # => "Alex"
+user.changes                # => { "name" => ["Alex", "Alexander"] }
+
+user.save
+user.name_changed?          # => false
+```
+
+### In-Place Mutations
+
+Active Model dirty tracking also automatically detects in-place mutations made to mutable Ruby objects (such as mutating strings with `!`, appending to arrays or sets, or altering nested hashes):
+
+```ruby
+user = User.create(name: 'Alice', tags: Set.new(['ruby']))
+
+user.name.upcase!
+user.tags << 'dynamodb'
+
+user.name_changed? # => true
+user.tags_changed? # => true
+
+user.save          # Persists the mutated string and set
+```
+
+### Inspecting and Reverting Changes
+
+To inspect attributes that were changed before the most recent save (such as in `after_save` callbacks):
+
+```ruby
+user.previous_changes # => { "name" => ["Alex", "Alexander"] }
+```
+
+To revert unsaved attribute modifications back to their database values:
+
+```ruby
+user.name = 'Unwanted Change'
+user.restore_name!
+user.name # => "Alexander"
+
+# Or revert all unsaved attributes at once
+user.restore_attributes
+```
+
+For the complete catalog of query helpers, see the `Dynamoid::Dirty` API documentation.
 
 ## Optimistic Locking (Concurrency Control)
 

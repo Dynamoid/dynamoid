@@ -227,6 +227,32 @@ Dynamoid.configure do |config|
 end
 ```
 
+## Document Types & Number Deserialization
+
+DynamoDB stores all numeric values using the wire format type `N` (number). When the AWS SDK for Ruby deserializes document structures (`Map` and `List` attributes), it converts all `N` values into Ruby `BigDecimal` objects to prevent precision loss on arbitrary-precision numbers.
+
+When reading nested maps and untyped structures (such as `:map` and `:raw` fields), all numbers—including integers and floats—are loaded as `BigDecimal` instances (for example, `BigDecimal("42")` and `BigDecimal("3.14")`).
+
+While `BigDecimal` preserves exact numeric precision and supports equality comparison (`BigDecimal("42") == 42`), working with `BigDecimal` inside nested structures can introduce friction:
+* JSON serializers and API encoders may format `BigDecimal` instances as strings rather than numbers.
+* Methods or external libraries with strict type expectations (`val.is_a?(Float)`) fail or require explicit casting.
+* Mathematical calculations where standard Ruby floats are expected require repetitive manual conversions.
+
+To convert numbers inside nested structures automatically upon reload, enable `convert_big_decimal`:
+
+```ruby
+Dynamoid.configure do |config|
+  config.convert_big_decimal = true
+end
+```
+
+When set to `true`, Dynamoid recursively traverses nested hashes and lists in `:map` and `:raw` attributes during undumping, converting every `BigDecimal` value to a Ruby `Float` (`val.to_f`).
+
+> [!NOTE]
+> `config.convert_big_decimal` only affects nested structures undumped via `:map` and `:raw`. It does not convert top-level scalar `:number` attributes, which remain `BigDecimal` per their field type declarations.
+
+For full details on field types and storage semantics, see [Fields & Data Types](../modeling_and_schema/fields_and_types.md).
+
 ## Complete Configuration Reference
 
 | Option | Type | Default | Description |
@@ -253,4 +279,6 @@ end
 | `store_boolean_as_native` | `Boolean` | `true` | Store booleans as native DynamoDB booleans (`BOOL`). |
 | `store_binary_as_native` | `Boolean` | `false` | Store binaries as native DynamoDB binary attributes (`B`). |
 | `store_attribute_with_nil_value` | `Boolean` | `false` | Preserve `nil` attributes in DynamoDB items instead of omitting them. |
+| `store_empty_string_as_nil` | `Boolean` | `true` | Convert empty strings (`""`) to `nil`. |
+| `convert_big_decimal` | `Boolean` | `false` | Recursively convert `BigDecimal` numbers inside `:map` and `:raw` attributes to `Float` upon reload. |
 | `logger` | `Logger` | `Rails.logger` or stdout | Logger instance. |

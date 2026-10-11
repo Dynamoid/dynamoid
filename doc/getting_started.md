@@ -1,4 +1,4 @@
-# Getting Started with Dynamoid
+# Getting Started
 
 Dynamoid is an Object-Document Mapper (ODM) for Amazon DynamoDB written in Ruby. It provides a familiar, ActiveRecord-like interface for Rails and standalone Ruby applications, bringing familiar ORM ergonomics to DynamoDB. Because DynamoDB fundamentally differs from relational databases, Dynamoid adapts the Active Record pattern around DynamoDB's architectural realities and performance trade-offs, while providing an idiomatic Ruby interface for DynamoDB-specific features.
 
@@ -79,7 +79,7 @@ In relational implementations of Active Record (such as ActiveRecord in Rails), 
 |---|---|---|
 | Model class (`User`) | Table (`users`) | Maps to the table; coordinates queries and table-level configuration |
 | Model instance (`user = User.new`) | Item | Represents an individual item in memory and holds its attributes |
-| Field declaration (`field :name`) | Attribute | Defines typed getters, setters, type coercion, and defaults |
+| Field declaration (`field :name`) | Attribute | Defines typed getters, setters, type casting, and defaults |
 | Instance methods (`user.save`, `user.destroy`) | Item operations | Persists, updates, or deletes the individual item in DynamoDB |
 | Class methods (`User.find`, `User.where`) | Table read operations | Performs point lookups (`GetItem`), index queries (`Query`), or scans |
 
@@ -334,25 +334,6 @@ class Order
 end
 ```
 
-## Dirty Attribute Tracking
-
-Dynamoid implements the `ActiveModel::Dirty` interface to track in-memory attribute modifications before they are persisted:
-
-```ruby
-user = User.find('user-101') # Initially, user.name is 'Alex'
-user.name_changed?          # => false
-
-user.name = 'Alexander'
-user.name_changed?          # => true
-user.name_was               # => "Alex"
-user.changes                # => { "name" => ["Alex", "Alexander"] }
-
-user.save
-user.name_changed?          # => false
-```
-
-For more dirty tracking methods—including reverting changes with `restore_attributes` or inspecting previous changes—refer to the `Dynamoid::Dirty` API documentation.
-
 ## Installation and Configuration
 
 To add Dynamoid to your application, include the gem in your `Gemfile` and run `bundle install`:
@@ -399,7 +380,7 @@ Once configured, you can interact with your models directly in `bin/rails consol
 Now that you have a solid grasp of Dynamoid's data model, conventions, and lifecycle, you can continue with these essential guides:
 
 * [Table Mapping & Provisioning](modeling_and_schema/table_mapping_and_provisioning.md) — Configure table names, partition keys, sort keys, and provisioning.
-* [Fields & Data Types](modeling_and_schema/fields_and_types.md) — Explore supported data types, collections, and custom serializers.
+* [Fields & Data Types](modeling_and_schema/fields_and_types.md) — Explore supported data types, collections, and custom types.
 * [Query Interface](working_with_data/query_interface.md) — Master criteria chaining, scans versus queries, and pagination.
 * [Persistence & Mutations](working_with_data/persistence_and_mutations.md) — Perform atomic updates, bulk imports, and optimistic locking.
 
