@@ -42,6 +42,7 @@ module Dynamoid
                        when :serialized then SerializedUndumper
                        when :boolean    then BooleanUndumper
                        when :binary     then BinaryUndumper
+                       # TODO: Support Module as well as Class for custom types and adapters
                        when Class       then CustomTypeUndumper
                        end
 
@@ -61,6 +62,8 @@ module Dynamoid
 
       private
 
+      # TODO: convert_big_decimal could also be used in :array (without :of option)
+      # and convert BigDecimal without a fractional part into Ruby Integer type.
       def undump_hash_value(val)
         case val
         when BigDecimal
@@ -104,6 +107,7 @@ module Dynamoid
     class SetUndumper < Base
       ALLOWED_TYPES = %i[string integer number date datetime serialized].freeze
 
+      # TODO: convert_big_decimal could also be used in :set (:of integer/number)
       def process(set)
         if @options.key?(:of)
           process_typed_collection(set)
@@ -124,6 +128,7 @@ module Dynamoid
       end
 
       def allowed_type?
+        # TODO: Support Module as well as Class for custom types and adapters
         ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Class)
       end
 
@@ -153,6 +158,7 @@ module Dynamoid
         if @options.key?(:of)
           process_typed_collection(array)
         else
+          # TODO: convert_big_decimal could also be applied here for untyped arrays
           array.is_a?(Array) ? array : Array(array)
         end
       end
@@ -169,6 +175,7 @@ module Dynamoid
       end
 
       def allowed_type?
+        # TODO: Support Module as well as Class for custom types and adapters
         ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Class)
       end
 
@@ -238,7 +245,7 @@ module Dynamoid
     end
 
     class SerializedUndumper < Base
-      def process(value)
+      def process(value) # TODO: add per-field options to load safely/unsafely and a whitelist of classes
         if @options[:serializer]
           @options[:serializer].load(value)
         elsif Dynamoid.config.use_yaml_unsafe_load

@@ -37,6 +37,7 @@ module Dynamoid
                      when :raw        then RawDumper
                      when :boolean    then BooleanDumper
                      when :binary     then BinaryDumper
+                     # TODO: Support Module as well as Class for custom types and adapters
                      when Class       then CustomTypeDumper
                      end
 
@@ -135,6 +136,7 @@ module Dynamoid
       end
 
       def allowed_type?
+        # TODO: Support Module as well as Class for custom types and adapters
         ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Class)
       end
 
@@ -165,6 +167,7 @@ module Dynamoid
         if @options.key?(:of)
           process_typed_collection(array)
         else
+          # TODO: could also use DeepSanitizeHelper.deep_sanitize(array)
           array
         end
       end
@@ -186,6 +189,7 @@ module Dynamoid
       end
 
       def allowed_type?
+        # TODO: Support Module as well as Class for custom types and adapters
         ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Class)
       end
 
