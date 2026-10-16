@@ -5,7 +5,6 @@
 - [Modeling & Schema]()
     - [Table Mapping & Provisioning](modeling_and_schema/table_mapping_and_provisioning.md)
     - [Fields & Data Types](modeling_and_schema/fields_and_types.md)
-    - [Secondary Indexes (GSI & LSI)](modeling_and_schema/secondary_indexes.md)
     - [Associations](modeling_and_schema/associations.md)
     - [Single Table Inheritance](modeling_and_schema/single_table_inheritance.md)
 

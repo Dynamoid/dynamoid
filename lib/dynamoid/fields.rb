@@ -176,7 +176,9 @@ module Dynamoid
       #   range :date_of_birth, :date, store_as_string: true
       #
       # @param name [Symbol] a range key attribute name
-      # @param type [Symbol] a range key type (optional)
+      # @param type [Symbol, Class] a scalar range key type (+:string+, +:integer+,
+      #        +:number+, +:date+, +:datetime+, +:binary+, +:serialized+, or a custom
+      #        class serialized as a string; defaults to +:string+)
       # @param options [Hash] type options (optional)
       def range(name, type = :string, options = {})
         field(name, type, options)
@@ -248,7 +250,7 @@ module Dynamoid
       # @option options [Symbol, String] :name name of a table
       # @option options [String] :arn table ARN; allows referring to tables in another AWS account or region (takes precedence over +:name+)
       # @option options [Symbol] :key name of the partition (hash) key attribute (defaults to +:id+)
-      # @option options [Symbol] :key_type type of the partition key attribute e.g. +:string+, +:integer+, +:number+ (defaults to +:string+)
+      # @option options [Symbol, Class] :key_type scalar type of the partition key attribute (+:string+, +:integer+, +:number+, +:date+, +:datetime+, +:binary+, +:serialized+, or a custom class serialized as a string; defaults to +:string+)
       # @option options [Symbol] :capacity_mode billing mode (+:provisioned+ or +:on_demand+)
       # @option options [Integer] :read_capacity read capacity units for provisioned tables
       # @option options [Integer] :write_capacity write capacity units for provisioned tables

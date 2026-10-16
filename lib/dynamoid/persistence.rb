@@ -80,7 +80,9 @@ module Dynamoid
       # indexes), Dynamoid polls the table status until it becomes available.
       #
       # Polling is configured with +Dynamoid::Config.sync_retry_max_times+ and
-      # +Dynamoid::Config.sync_retry_wait_seconds+ configuration options.
+      # +Dynamoid::Config.sync_retry_wait_seconds+ configuration options. If the
+      # retry limit is reached before the table becomes active, Dynamoid logs an
+      # error and returns without raising an exception.
       #
       # Subsequent method calls for the same table will be ignored.
       #
@@ -97,6 +99,7 @@ module Dynamoid
       # @option options [Hash] :global_secondary_indexes
       # @option options [true|false] :sync specifies should the method call be synchronous and wait until a table is completely created
       #
+      # @raise [Dynamoid::Errors::UnsupportedKeyType] if the partition key or sort key field uses a non-scalar type not supported by DynamoDB keys
       # @return [Class] self
       # @since 0.4.0
       def create_table(options = {})
@@ -134,6 +137,11 @@ module Dynamoid
       # To wait until the table is deleted, pass +sync: true+:
       #
       #   User.delete_table(sync: true)
+      #
+      # Polling is configured with +Dynamoid::Config.sync_retry_max_times+ and
+      # +Dynamoid::Config.sync_retry_wait_seconds+ configuration options. If the
+      # retry limit is reached before the table is deleted, Dynamoid logs an
+      # error and returns without raising an exception.
       #
       # Subsequent method calls for the same table will be ignored.
       # @param options [Hash]

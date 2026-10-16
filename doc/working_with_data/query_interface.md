@@ -98,7 +98,45 @@ User.where(organization_id: 'org-1', 'last_name.begins_with': 'Sm').all
 
 DynamoDB allows at most one range condition per query.
 
----
+## Querying with Secondary Indexes
+
+Dynamoid provides two ways to query secondary indexes: *implicit selection* and *explicit selection*.
+
+### 1. Implicit Index Selection
+
+When you query with `.where(...)`, Dynamoid analyzes the query attributes and checks whether they match a declared index with `projected_attributes: :all`. If a matching index is found, Dynamoid automatically executes an efficient DynamoDB `Query` against that index instead of scanning the table:
+
+```ruby
+# Automatically uses the GSI on :email
+user = User.where(email: 'alice@example.com').first
+
+# Automatically uses a composite GSI (category + published_at)
+recent_news = Post.where(category: 'news', 'published_at.gte': 1.week.ago).all
+```
+
+If an index uses `:keys_only` or projects only a subset of attributes, Dynamoid will not select it automatically for general queries because it cannot return fully populated model instances without making a second query back to the base table.
+
+### 2. Explicit Index Selection (`with_index`)
+
+If you want to force Dynamoid to query a specific index (for instance, when multiple indexes share the same keys, or when using an index that projects only keys), use `.with_index`:
+
+```ruby
+posts = Post.where(category: 'tech')
+  .with_index('posts_category_published_at_index')
+  .all
+```
+
+### 3. Controlling Sort Direction
+
+For indexes that include a sort (range) key, you can reverse the sort order using `.scan_index_forward(false)` (descending order):
+
+```ruby
+# Returns posts from newest to oldest
+latest_posts = Post.where(category: 'tech')
+  .with_index('posts_category_published_at_index')
+  .scan_index_forward(false)
+  .all
+```
 
 ## Filter Operators on Non-Key Attributes
 

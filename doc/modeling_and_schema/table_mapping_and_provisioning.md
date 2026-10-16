@@ -1,6 +1,6 @@
 # Table Mapping & Provisioning
 
-In Dynamoid, every model maps to an Amazon DynamoDB table. While Dynamoid provides sensible conventions for table names and primary keys out of the box, you can customize table identity, primary key structure, and provisioning settings using the `table` and `range` methods.
+In Dynamoid, every model maps to an Amazon DynamoDB table. While Dynamoid provides sensible conventions for table names and primary keys out of the box, you can customize table identity, primary keys, secondary indexes, and provisioning settings on the model class.
 
 ## Table Naming
 
@@ -55,7 +55,7 @@ class AuditLog
 end
 ```
 
-DynamoDB table ARNs uniquely identify tables across AWS accounts and follow the format `arn:aws:dynamodb:<region>:<account-id>:table/<table-name>`. When `:arn` is present, it takes precedence over `:name` and ignores the `namespace` configuration option.
+DynamoDB table ARNs uniquely identify tables across AWS accounts and follow the format `arn:aws:dynamodb:<region>:<account-id>:table/<table-name>`.
 
 ## Partition Key
 
@@ -75,7 +75,7 @@ end
 
 ### Supported Types
 
-DynamoDB requires primary key attributes (both partition and sort keys) to be scalar types—complex types such as sets, arrays, and maps cannot serve as keys. Dynamoid supports `:string` (default), `:integer`, `:number`, `:datetime`, and `:date` (as well as `:serialized` and custom types). Attempting to use an unsupported type raises a `Dynamoid::Errors::UnsupportedKeyType` exception.
+DynamoDB requires primary key attributes (both partition and sort keys) to be of a scalar type—complex types such as sets, arrays, and maps cannot serve as keys. Dynamoid supports `:string` (default), `:integer`, `:number`, `:datetime`, and `:date` (as well as `:serialized` and custom types).
 
 For full details on type casting and custom types, see [Fields & Data Types](fields_and_types.md).
 
@@ -114,6 +114,98 @@ The second argument to `range` specifies the sort key's data type, which default
 
 > [!NOTE]
 > Dynamoid associations (`belongs_to`, `has_many`, `has_one`, and `has_and_belongs_to_many`) currently require simple primary keys. If your model uses a composite primary key, manage relationships through explicit queries instead of association macros.
+
+## Secondary Indexes
+
+By default, DynamoDB only supports fast, direct lookups by a table's primary key—filtering by any other attribute requires scanning the entire table. To avoid full-table scans, DynamoDB provides [secondary indexes](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html) (Global Secondary Indexes and Local Secondary Indexes), which establish alternate keys over a subset of item attributes and are updated automatically as items change.
+
+Declaring secondary indexes on a Dynamoid model is optional. Dynamoid uses index declarations to:
+
+* Automatically select and query a matching index instead of scanning the table, or target a declared index explicitly (see [Query Interface](../working_with_data/query_interface.md)).
+* Provision the declared indexes in DynamoDB when Dynamoid creates the table (see [Table Creation and Management](#table-creation-and-management)).
+
+If a table is provisioned externally and your application does not benefit from querying a given index through Dynamoid, you do not need to declare it on the model.
+
+> [!IMPORTANT]
+> Dynamoid only provisions secondary indexes when creating a new table; it does not add, modify, or remove indexes on an existing table in DynamoDB.
+
+### Global Secondary Indexes
+
+A Global Secondary Index defines its own partition key and optional sort key, both of which can differ from the table's primary key. To declare one, call `global_secondary_index` with `:hash_key` and an optional `:range_key`:
+
+```ruby
+class Order
+  include Dynamoid::Document
+
+  field :number
+  field :customer_id
+  field :placed_at, :datetime
+
+  # Partition key only
+  global_secondary_index hash_key: :number
+
+  # Partition key and sort key
+  global_secondary_index hash_key: :customer_id, range_key: :placed_at
+end
+```
+
+Declare the index after the table settings and the fields it references, as Dynamoid resolves the table name and key fields when the index is defined. Like primary keys, index keys must be of a scalar type (see [Supported Types](#supported-types)).
+
+### Local Secondary Indexes
+
+A Local Secondary Index shares the table's partition key and defines an alternate sort key. To declare one, call `local_secondary_index` with `:range_key`:
+
+```ruby
+class Order
+  include Dynamoid::Document
+
+  range :placed_at, :datetime
+
+  field :total, :number
+
+  local_secondary_index range_key: :total
+end
+```
+
+Declare the index after the table settings, primary sort key, and the field it references. The index sort key must be of a scalar type and differ from the table's primary sort key.
+
+### Projected Attributes
+
+In addition to the table's primary key and the index's own keys, a secondary index can store other attributes copied from the item, known as *projected attributes*. Both `global_secondary_index` and `local_secondary_index` accept `:projected_attributes`, which defaults to `:keys_only` (projecting only the table and index keys). You can pass `:all` to copy every attribute from the item, or an array of non-key attribute names (such as `[:total, :status]`) to copy specific attributes:
+
+```ruby
+class Order
+  include Dynamoid::Document
+
+  field :customer_id
+  field :placed_at, :datetime
+
+  global_secondary_index hash_key: :customer_id,
+                         range_key: :placed_at,
+                         projected_attributes: :all
+end
+```
+
+> [!NOTE]
+> Which attributes you project affects how Dynamoid queries the index. In particular, Dynamoid only selects a Global Secondary Index automatically during queries when `projected_attributes: :all` is declared on the index (see [Query Interface](../working_with_data/query_interface.md)).
+
+### Index Naming
+
+By default, Dynamoid generates an index name from the table name and the index key names in the format `<table_name>_index_<hash_key>` or `<table_name>_index_<hash_key>_<range_key>` (for example, `<table_name>_index_customer_id_placed_at`).
+
+To provide your own index name on either index type, pass the `:name` option:
+
+```ruby
+class Order
+  include Dynamoid::Document
+
+  field :number
+
+  global_secondary_index hash_key: :number, name: 'orders_by_number'
+end
+```
+
+Dynamoid uses the provided `:name` as-is without adding a table or namespace prefix. Setting an explicit `:name` is required when an externally provisioned table uses index names that do not follow Dynamoid's convention, and is also useful for giving an index a shorter name to reference in queries.
 
 ## Table Creation and Management
 
@@ -157,18 +249,9 @@ User.create_table(sync: true)
 User.delete_table(sync: true)
 ```
 
-With `sync: true`, Dynamoid polls DynamoDB until the table becomes available (on creation) or is deleted (on deletion). Polling frequency and timeout are governed by two configuration options:
+With `sync: true`, Dynamoid polls DynamoDB until the table becomes available (on creation) or is deleted (on deletion).
 
-```ruby
-Dynamoid.configure do |config|
-  config.sync_retry_wait_seconds = 1  # Delay between status checks (default: 2)
-  config.sync_retry_max_times = 30    # Maximum polling attempts (default: 60)
-end
-```
-
-If the table does not reach the desired state within the configured attempt limit, Dynamoid logs an error and stops polling.
-
-When creating tables, Dynamoid provisions the primary key attributes along with any Global or Local Secondary Indexes declared on the model (see [Secondary Indexes](secondary_indexes.md)).
+When creating tables, Dynamoid provisions the primary key attributes along with any Global or Local Secondary Indexes declared on the model (see [Secondary Indexes](#secondary-indexes)).
 
 > [!NOTE]
 > When a model declares Global or Local Secondary Indexes, Dynamoid automatically creates the table synchronously. DynamoDB allows creating only one table with secondary indexes at a time, so Dynamoid waits for the table and its indexes to become available before returning.
