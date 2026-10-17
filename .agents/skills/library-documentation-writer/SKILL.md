@@ -37,7 +37,7 @@ Before drafting, proposing, or writing any documentation text, enforce these non
    * **Never** use `git commit --amend` or propose amending an already existing commit.
    * Always propose or create a **brand-new commit** for newly reviewed and approved changes. Amending rewrites history and obscures the boundary between previously reviewed code and recent modifications.
 6. **Regenerate HTML Documentation with mdBook:**
-   * After applying any changes or edits to Markdown files in `doc/`, always run `mdbook build` to regenerate the HTML documentation in `book/` and verify that the build succeeds cleanly.
+   * After applying any changes or edits to Markdown files in `doc/`, always run `mdbook build .mdbook` to regenerate the HTML documentation in `book/` and verify that the build succeeds cleanly.
 
 
 ---
@@ -89,9 +89,11 @@ Structure the document to guide the developer smoothly without cognitive overloa
    * Introduce customizations and options second.
    * Place edge cases, caveats, and complex overrides in dedicated subsections or callouts.
 4. **Feature-Isolated Snippets & Natural Modeling:**
+   * Consolidate and minimize the number of model classes introduced within a single guide. Reuse the guide's core domain models across sections (e.g., reusing `Author` and `Book` for options and customizations rather than inventing one-off classes for each snippet). Introduce a new model class only when existing classes cannot naturally illustrate the concept.
    * Strip away unrelated configuration options from code examples (e.g., do not configure custom partition keys in an example demonstrating sort keys).
    * Omit redundant default arguments in baseline examples (e.g., omit `:string` when `range` defaults to `:string`).
    * Preserve natural entity identity (e.g., an `Order` model's identity is its partition key, with foreign keys like `customer_id` or timestamps like `placed_at` serving as sort keys).
+   * Place association macros (`belongs_to`, `has_one`, `has_many`, `has_and_belongs_to_many`) above `field` declarations in model classes to match standard Rails conventions.
 
 *Refer to [The Diátaxis Documentation Architecture](./references/diataxis_architecture.md) for structural guidance.*
 
@@ -126,6 +128,7 @@ Before proposing or committing documentation changes, verify each item:
 - [ ] Recommended code snippets execute cleanly without runtime logger warnings (e.g., method redefinition).
 - [ ] Code snippets isolate the feature under discussion without extraneous, unrelated configuration options.
 - [ ] Baseline snippets omit redundant default arguments (`range :customer_id` before typed `range :placed_at, :datetime`).
+- [ ] Model classes are consolidated across the guide—reusing core classes throughout and introducing new classes only when they more naturally demonstrate a concept.
 - [ ] Entity domain modeling respects natural identity (primary identifiers as partition keys, foreign keys/timestamps as sort keys).
 - [ ] Sibling headings at the same level maintain parallel, symmetrical naming (`## Partition Key` / `## Sort Key`).
 - [ ] The text uses correct domain terminology: *item* for DynamoDB storage, *model* for Ruby classes/instances, and *record* reserved strictly for Active Record pattern / Rails comparisons.
@@ -140,5 +143,5 @@ Before proposing or committing documentation changes, verify each item:
 - [ ] Code snippets are self-contained, syntax-highlighted (`ruby`), and show `# =>` return values (same-line for scalar outputs, next-line for complex objects).
 - [ ] Relative cross-references and guide links resolve to existing files.
 - [ ] Never amend existing git commits; always create brand-new commits for new changes.
-- [ ] Regenerate HTML documentation with `mdbook build` after modifying guides.
+- [ ] Regenerate HTML documentation with `mdbook build .mdbook` after modifying guides.
 

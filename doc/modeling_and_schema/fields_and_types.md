@@ -935,3 +935,5 @@ Dynamoid.configure do |config|
   config.use_yaml_unsafe_load = true
 end
 ```
+
+{{#include ../_includes/feedback.md}}

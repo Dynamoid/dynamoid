@@ -312,3 +312,5 @@ end
 ```
 
 On save, Dynamoid sets the TTL attribute to the current time plus `:after` seconds whenever the attribute value is `nil`.
+
+{{#include ../_includes/feedback.md}}

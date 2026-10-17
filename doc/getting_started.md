@@ -46,6 +46,8 @@ In SQL, a query planner analyzes your `WHERE` clauses and automatically selects 
 
 DynamoDB does not support database-level `JOIN` operations. Instead of normalizing data across tables and joining on foreign keys, relationships must be resolved through separate lookups or by denormalizing related data into a single item.
 
+DynamoDB also does not enforce foreign key constraints or cascading deletes at the storage level. Referential integrity between related items must be managed by the application layer.
+
 ### Transactions
 
 In relational databases, you can open an interactive transaction block (`BEGIN` ... `COMMIT`), read data, run business logic in Ruby, and conditionally commit or roll back.
@@ -384,3 +386,4 @@ Now that you have a solid grasp of Dynamoid's data model, conventions, and lifec
 * [Query Interface](working_with_data/query_interface.md) — Master criteria chaining, scans versus queries, and pagination.
 * [Persistence & Mutations](working_with_data/persistence_and_mutations.md) — Perform atomic updates, bulk imports, and optimistic locking.
 
+{{#include _includes/feedback.md}}

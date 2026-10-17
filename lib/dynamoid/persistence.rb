@@ -1242,6 +1242,20 @@ module Dynamoid
 
       Dynamoid.adapter.delete(self.class.table_name, partition_key_dumped, options)
 
+      # TODO: disassociate_source loads associated models from the database as new instances
+      # rather than updating existing in-memory objects (e.g. via inverse_of).
+      # As a result, reciprocal in-memory associations on already-loaded models are not updated
+      # when an item is deleted.
+      #
+      # Desired behavior:
+      #   author = Author.create(name: 'Ursula K. Le Guin')
+      #   book = author.books.create(title: 'A Wizard of Earthsea')
+      #   author.books.all # caches in memory
+      #
+      #   book.destroy
+      #
+      #   author.books.empty? # => true (currently returns false unless author.reload is called)
+      #   author.books_ids    # => nil (or Set[], currently retains stale IDs in memory)
       self.class.associations.each_key do |name|
         send(name).disassociate_source
       end

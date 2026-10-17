@@ -1,0 +1,6 @@
+[book]
+title = "The Dynamoid Guide"
+src = "../doc"
+
+[build]
+build-dir = "../book"

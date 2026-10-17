@@ -4,12 +4,17 @@ This guide establishes conventions for code snippets, examples, and technical co
 
 ## 1. Code Snippet Principles
 
-### Realistic Domain Models & Natural Identity
-Always model real-world domains (`User`, `Order`, `Product`, `LineItem`, `Account`) with semantic attributes (`email`, `status`, `total_cents`, `created_at`).
+### Realistic Domain Models, Consolidation & Natural Identity
+Always model real-world domains (`User`, `Order`, `Author`, `Book`, `Profile`) with semantic attributes (`email`, `status`, `title`, `placed_at`).
 
-Preserve natural entity identity in examples:
+Consolidate and minimize the number of model classes within a single guide:
+* Reuse the guide's core domain models across sections (e.g., reusing `Author` and `Book` when demonstrating options and customizations rather than inventing one-off classes like `Project` or `Organization` for individual snippets).
+* Introduce a new model class only when existing classes cannot naturally or clearly illustrate a specific concept (such as `Student` and `Course` for a many-to-many relationship, or `Order` for an unbounded time-series GSI).
+
+Preserve natural entity identity and declaration order in examples:
 * An entity's own primary identifier belongs in the partition key (e.g., `id` or `order_id` on `Order`).
 * Sort keys should represent natural child attributes, timestamps (`placed_at`), or foreign keys (`customer_id`), not the entity's primary identity.
+* Place association macros (`belongs_to`, `has_one`, `has_many`, `has_and_belongs_to_many`) above `field` declarations inside model classes so examples match standard Rails conventions.
 
 Ensure snippets are self-contained so developers understand the context without guessing.
 
