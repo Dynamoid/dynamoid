@@ -33,13 +33,13 @@ An item's primary key (both the partition key and sort key) is strictly immutabl
 
 ### Querying and Indexing
 
-In SQL, a query planner analyzes your `WHERE` clauses and automatically selects the best index. DynamoDB has no query planner:
+Relational databases provide an expressive query engine with automated index planning, dynamic sorting, random-access pagination, and server-side aggregation. DynamoDB trades this flexibility for predictable, single-digit millisecond latency at any scale, resulting in several fundamental constraints:
 
 * Fast queries require an equality condition on the *partition key*, optionally refined with range conditions on the *sort key*.
 * To filter efficiently by other attributes, you must define a secondary index (where those attributes serve as the index key) and target that index explicitly by name.
 * Results can only be sorted by the sort key defined on the table or index—there is no arbitrary `ORDER BY` on non-key attributes.
 * Pagination is forward-only. Unlike relational databases that support numeric `OFFSET` to jump to arbitrary pages, DynamoDB only allows traversing results sequentially from one page to the next, with no backward pagination.
-* There are no database-level aggregation functions (`SUM`, `AVG`, `MIN`, `MAX`). Finding totals or summary metrics requires calculating them in application code or maintaining pre-computed counter attributes with atomic increments.
+* There is no `GROUP BY` clause or database-level aggregation (`SUM`, `AVG`, `MIN`, `MAX`). Finding totals or summary metrics requires calculating them in application code or maintaining pre-computed counter attributes with atomic increments.
 * Unlike relational databases that guarantee immediate read-after-write consistency, DynamoDB reads (point lookups and queries) are *eventually consistent* by default—a read right after a write might briefly return stale data. When up-to-date data is required, you can request a *strongly consistent read* to guarantee seeing the latest write.
 
 ### Relationships and Joins
@@ -344,11 +344,20 @@ To add Dynamoid to your application, include the gem in your `Gemfile` and run `
 gem 'dynamoid'
 ```
 
-In a Rails application, create `config/initializers/dynamoid.rb` depending on your environment:
+Next, set up your database connection depending on your environment.
 
 ### Local Development
 
-For local development and testing without an AWS account, run [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html) (Amazon's downloadable simulator, available via Docker or as a Java executable) and configure a local endpoint with dummy credentials. Using `Rails.env` in `config.namespace` keeps development and test tables isolated:
+For local development and automated testing without an AWS account, start [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html) via Docker:
+
+```bash
+docker run --rm -d -p 8000:8000 amazon/dynamodb-local
+```
+
+> [!NOTE]
+> By default, DynamoDB Local runs purely in memory—all tables and data are discarded when the container stops. If you need data to persist between launches, you must explicitly configure DynamoDB Local to write to disk and configure a [Docker volume](https://docs.docker.com/engine/storage/volumes/) to preserve those files on your host machine. For setup instructions, refer to [Deploying DynamoDB Local with Docker](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html).
+
+Then create `config/initializers/dynamoid.rb` to connect to the local container with dummy credentials. Using `Rails.env` in `config.namespace` keeps development and test tables isolated:
 
 ```ruby
 Dynamoid.configure do |config|
@@ -376,14 +385,5 @@ Once configured, you can interact with your models directly in `bin/rails consol
 
 > [!NOTE]
 > For advanced configuration options—including custom credentials, IAM role assumption, HTTP timeouts, and retry backoff strategies—refer to [Configuration & Runtime](configuration_and_operations/configuration_and_runtime.md).
-
-## Next Steps
-
-Now that you have a solid grasp of Dynamoid's data model, conventions, and lifecycle, you can continue with these essential guides:
-
-* [Table Mapping & Provisioning](modeling_and_schema/table_mapping_and_provisioning.md) — Configure table names, partition keys, sort keys, and provisioning.
-* [Fields & Data Types](modeling_and_schema/fields_and_types.md) — Explore supported data types, collections, and custom types.
-* [Query Interface](working_with_data/query_interface.md) — Master criteria chaining, scans versus queries, and pagination.
-* [Persistence & Mutations](working_with_data/persistence_and_mutations.md) — Perform atomic updates, bulk imports, and optimistic locking.
 
 {{#include _includes/feedback.md}}

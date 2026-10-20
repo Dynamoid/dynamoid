@@ -102,7 +102,7 @@ You can also read all unconverted values assigned before type casting by calling
 
 ## General Field Options
 
-The `field` macro accepts configuration options to customize attribute behavior. While type-specific options (such as `of:` and `store_as_string:`) are detailed in [Data Types](#data-types), general options such as `default:` and `alias:` can be applied to any field declaration.
+The `field` macro accepts configuration options to customize attribute behavior. While type-specific options (such as `:of` and `:store_as_string`) are detailed in [Data Types](#data-types), general options such as `:default` and `:alias` can be applied to any field declaration.
 
 ### Default Values
 
@@ -121,7 +121,7 @@ When a default is specified as a callable object (such as a lambda or proc respo
 
 ### Attribute Aliasing
 
-Legacy DynamoDB tables or external systems often use camelCase or uppercase attribute names (such as `firstName` or `ORDER_STATUS`). You can define an idiomatic Ruby snake_case alias using the `alias:` option:
+Legacy DynamoDB tables or external systems often use camelCase or uppercase attribute names (such as `firstName` or `ORDER_STATUS`). You can define an idiomatic Ruby snake_case alias using the `:alias` option:
 
 ```ruby
 class User
@@ -156,9 +156,9 @@ Dynamoid maps declared fields to native [DynamoDB data types](https://docs.aws.a
 | Dynamoid Type | Ruby Class | DynamoDB Type | Description |
 |---|---|---|---|
 | [`:string`](#strings) | `String` | String | UTF-8 text string. |
-| [`:integer`](#integers) | `Integer` | Number | Whole number; truncates non-integer numeric inputs. |
+| [`:integer`](#integers) | `Integer` | Number | Whole number; truncates fractions. |
 | [`:number`](#numbers) | `BigDecimal` | Number | Arbitrary-precision decimal. |
-| [`:boolean`](#booleans) | `TrueClass` / `FalseClass` | Boolean (default) or String | Truth value (`true` or `false`). |
+| [`:boolean`](#booleans) | `TrueClass` / `FalseClass` | Boolean (default) or String | Boolean value (`true` or `false`). |
 | [`:binary`](#binary) | `String` | String (default, Base64) or Binary | Raw binary data. |
 | [`:datetime`](#datetimes) | `DateTime` | Number (default) or String | Timestamp with sub-second precision. |
 | [`:date`](#dates) | `Date` | Number (default) or String | Calendar date without time or time zone. |
@@ -179,11 +179,13 @@ On assignment, Dynamoid casts values into a `String` via `#to_s` (booleans becom
 
 In DynamoDB, strings are persisted as native String attributes, which store Unicode text encoded in UTF-8. Strings assigned in other encodings (such as ISO-8859-1) are transcoded to UTF-8 on save, and reading from DynamoDB returns a UTF-8 string. If a string contains arbitrary binary data that cannot be encoded as UTF-8, saving raises a `JSON::GeneratorError`; use [Binary](#binary) instead.
 
-By default, assigning an empty string (`""`) causes Dynamoid to persist the attribute as `nil` due to `config.store_empty_string_as_nil = true`. To preserve empty strings as distinct values in DynamoDB, set this configuration option to `false`.
+By default, assigning an empty string (`""`) causes Dynamoid to persist the attribute as `nil`. To preserve empty strings in DynamoDB, set `config.store_empty_string_as_nil = false`.
 
 #### Integers
 
-On assignment, Dynamoid casts values into `Integer` via `#to_i`. Type casting converts numeric strings (e.g., `"1abc"` becomes `1`), non-numeric strings (`"abc"` becomes `0`), booleans (`true` becomes `1`, `false` becomes `0`), and floats (which are truncated via `#to_i`). Blank strings (`""` or `" "`), objects without `#to_i`, and non-finite floats (`Float::NAN`, `Float::INFINITY`) cast to `nil`.
+On assignment, Dynamoid casts values into an `Integer` by calling `#to_i` on any object that responds to it, while booleans map explicitly to `1` (`true`) or `0` (`false`). For example, floats are truncated towards zero, numeric strings like `"1abc"` become `1`, and non-numeric strings like `"abc"` become `0`.
+
+Blank strings (`""` or `" "`), non-finite floats (`Float::NAN`, `Float::INFINITY`), and objects that do not respond to `#to_i` cast to `nil`.
 
 In DynamoDB, integers are stored as native Number attributes. When loaded from DynamoDB, attributes are returned as `Integer` (or `nil` if unset).
 
@@ -211,7 +213,7 @@ end
 user = User.create!(active: true)
 
 # DynamoDB item attribute:
-# active => true (Boolean)
+# "active": true (Boolean)
 ```
 
 To store booleans using legacy single-character strings (`'t'` or `'f'`) for compatibility with older tables, set `store_as_native_boolean: false` on the field, or set `config.store_boolean_as_native = false` globally:
@@ -226,7 +228,7 @@ end
 user = User.create!(active: true)
 
 # DynamoDB item attribute:
-# active => "t" (String)
+# "active": "t" (String)
 ```
 
 #### Binary
@@ -245,7 +247,7 @@ end
 user = User.create!(avatar: "\x00\x88\xFF".b)
 
 # DynamoDB item attribute:
-# avatar => "AIj/" (String, Base64-encoded)
+# "avatar": "AIj/" (String, Base64-encoded)
 ```
 
 To store raw binary data natively as DynamoDB Binary attributes, pass `store_as_native_binary: true` on the field, or set `config.store_binary_as_native = true` globally. Native binary fields accept `String`, `StringIO`, or `IO` objects (such as an open `File`) directly:
@@ -263,7 +265,7 @@ File.open("avatar.png", "rb") do |file|
 end
 
 # DynamoDB item attribute:
-# avatar => <raw bytes> (Binary)
+# "avatar": <raw bytes> (Binary)
 ```
 
 When loaded from DynamoDB, binary attributes are always returned as `String` instances with `ASCII-8BIT` (binary) encoding in either storage mode. Objects that are neither strings nor IO objects assigned to binary fields are converted via `#to_s`.
@@ -286,7 +288,7 @@ end
 order = Order.create!(placed_at: "2026-10-11 12:00:00")
 
 # DynamoDB item attribute:
-# placed_at => 1791720000.0 (Number, seconds since Unix epoch)
+# "placed_at": 1791720000.0 (Number, seconds since Unix epoch)
 ```
 
 To store timestamps as human-readable ISO-8601 strings, pass `store_as_string: true` on the field, or set `config.store_datetime_as_string = true` globally. When stored as strings, timestamps are normalized to `config.dynamodb_timezone` (see [Time Zones](#time-zones)):
@@ -301,7 +303,7 @@ end
 order = Order.create!(placed_at: "2026-10-11 12:00:00")
 
 # DynamoDB item attribute:
-# placed_at => "2026-10-11T12:00:00+00:00" (String, ISO-8601)
+# "placed_at": "2026-10-11T12:00:00+00:00" (String, ISO-8601)
 ```
 
 > [!NOTE]
@@ -325,7 +327,7 @@ end
 user = User.create!(birth_date: "1990-05-15")
 
 # DynamoDB item attribute:
-# birth_date => 7439 (Number, integer days since January 1, 1970)
+# "birth_date": 7439 (Number, integer days since January 1, 1970)
 ```
 
 To store dates as formatted ISO-8601 strings (`"YYYY-MM-DD"`), set `store_as_string: true` on the field, or set `config.store_date_as_string = true` globally:
@@ -340,7 +342,7 @@ end
 user = User.create!(birth_date: "1990-05-15")
 
 # DynamoDB item attribute:
-# birth_date => "1990-05-15" (String, ISO-8601)
+# "birth_date": "1990-05-15" (String, ISO-8601)
 ```
 
 ### Collection Types
@@ -351,7 +353,7 @@ Collection types store unique scalar sets, ordered lists, and key-value maps usi
 
 Sets store collections of unique scalar values.
 
-On assignment, Dynamoid casts objects responding to `#to_set` (such as arrays) into a `Set`. When the `of:` option is omitted, elements are kept as-is:
+On assignment, Dynamoid casts objects responding to `#to_set` (such as arrays) into a `Set`. When the `:of` option is omitted, elements are kept as-is:
 
 ```ruby
 class User
@@ -364,10 +366,10 @@ user = User.create!(tags: ["ruby", "aws", "ruby"])
 user.tags # => #<Set: {"ruby", "aws"}>
 
 # DynamoDB item attribute:
-# tags => #<Set: {"ruby", "aws"}> (String Set)
+# "tags": ["ruby", "aws"] (String Set)
 ```
 
-To enforce and cast element types, specify the `of:` option. Supported element types include `:string`, `:integer`, `:number`, `:date`, `:datetime`, `:serialized`, and custom types. Each element is cast to the declared type:
+To enforce and cast element types, specify the `:of` option. Supported element types include `:string`, `:integer`, `:number`, `:date`, `:datetime`, `:serialized`, and custom types. Each element is cast to the declared type:
 
 ```ruby
 class User
@@ -380,7 +382,7 @@ user = User.create!(roles: [:admin, "editor", "admin"])
 user.roles # => #<Set: {"admin", "editor"}>
 
 # DynamoDB item attribute:
-# roles => #<Set: {"admin", "editor"}> (String Set)
+# "roles": ["admin", "editor"] (String Set)
 ```
 
 Element type options can also be provided using a nested Hash, where standard field type options can be specified:
@@ -397,7 +399,7 @@ In DynamoDB, sets are stored as native String Set, Number Set, or Binary Set att
 
 Arrays store ordered collections of elements persisted as native DynamoDB List attributes.
 
-On assignment, Dynamoid casts objects responding to `#to_a` into an `Array` (objects not responding to `#to_a` cast to `nil`). When the `of:` option is omitted, elements are kept as-is:
+On assignment, Dynamoid casts objects responding to `#to_a` into an `Array` (objects not responding to `#to_a` cast to `nil`). When the `:of` option is omitted, elements are kept as-is:
 
 ```ruby
 class User
@@ -410,10 +412,10 @@ user = User.create!(preferences: ["email", "sms"])
 user.preferences # => ["email", "sms"]
 
 # DynamoDB item attribute:
-# preferences => ["email", "sms"] (List)
+# "preferences": ["email", "sms"] (List)
 ```
 
-To enforce and cast element types, specify the `of:` option. Supported element types include `:string`, `:integer`, `:number`, `:date`, `:datetime`, `:serialized`, and custom types. Each element is cast to the declared type:
+To enforce and cast element types, specify the `:of` option. Supported element types include `:string`, `:integer`, `:number`, `:date`, `:datetime`, `:serialized`, and custom types. Each element is cast to the declared type:
 
 ```ruby
 class User
@@ -426,7 +428,7 @@ user = User.create!(scores: ["10", 20.5, 30])
 user.scores # => [10, 20, 30]
 
 # DynamoDB item attribute:
-# scores => [10, 20, 30] (List of Numbers)
+# "scores": [10, 20, 30] (List of Numbers)
 ```
 
 Element type options can also be provided using a nested Hash, where standard field type options can be specified:
@@ -446,7 +448,7 @@ user = User.create!(preferences: [
 ])
 
 # DynamoDB item attribute:
-# preferences => [{ "channel" => "email", "frequency" => "daily" }, { "channel" => "sms", "frequency" => "weekly" }] (List of Maps)
+# "preferences": [{"channel": "email", "frequency": "daily"}, {"channel": "sms", "frequency": "weekly"}] (List of Maps)
 
 user.reload.preferences
 # => [{ "channel" => "email", "frequency" => "daily" }, { "channel" => "sms", "frequency" => "weekly" }]
@@ -470,7 +472,7 @@ end
 user = User.create!(settings: { theme: "dark", language: "en" })
 
 # DynamoDB item attribute:
-# settings => { "theme" => "dark", "language" => "en" } (Map)
+# "settings": {"theme": "dark", "language": "en"} (Map)
 
 user.reload.settings
 # => { theme: "dark", language: "en" }
@@ -484,7 +486,7 @@ user = User.create!(settings: {
 })
 
 # DynamoDB item attribute:
-# settings => { "notifications" => { "email" => true, "sms" => false } } (Map)
+# "settings": {"notifications": {"email": true, "sms": false}} (Map)
 
 user.reload.settings
 # => { notifications: { email: true, sms: false } }
@@ -506,7 +508,7 @@ end
 user = User.create!(metadata: { client: "mobile", config: { retries: 3 }, tags: ["beta", 42] })
 
 # DynamoDB item attribute:
-# metadata => { "client" => "mobile", "config" => { "retries" => 3 }, "tags" => ["beta", 42] } (Map)
+# "metadata": {"client": "mobile", "config": {"retries": 3}, "tags": ["beta", 42]} (Map)
 
 user.reload.metadata
 # => { client: "mobile", config: { retries: 3 }, tags: ["beta", 42] }
@@ -532,13 +534,13 @@ end
 user = User.create!(session_data: { user_id: 123, role: "admin" })
 
 # DynamoDB item attribute:
-# session_data => "---\n:user_id: 123\n:role: admin\n" (String)
+# "session_data": "---\n:user_id: 123\n:role: admin\n" (String)
 
 user.reload.session_data
 # => { user_id: 123, role: "admin" }
 ```
 
-By default, objects are encoded using YAML. You can specify an alternative serializer (such as `JSON` or any object implementing `.dump` and `.load`) via the `serializer:` option:
+By default, objects are encoded using YAML. You can specify an alternative serializer (such as `JSON` or any object implementing `.dump` and `.load`) via the `:serializer` option:
 
 ```ruby
 class User
@@ -550,7 +552,7 @@ end
 user = User.create!(session_data: { user_id: 123, role: "admin" })
 
 # DynamoDB item attribute:
-# session_data => "{\"user_id\":123,\"role\":\"admin\"}" (String)
+# "session_data": "{\"user_id\":123,\"role\":\"admin\"}" (String)
 
 user.reload.session_data
 # => { "user_id" => 123, "role" => "admin" }
@@ -566,7 +568,7 @@ Custom types allow you to use dedicated Ruby classes as field types, mapping dom
 
 Unlike scalar fields (which store disconnected primitives) or `:serialized` (which stores opaque text blobs), custom types may encapsulate business logic, validations, and calculations inside rich Ruby objects while persisting them as native DynamoDB types (such as strings, numbers, maps, or lists).
 
-To declare a custom type, pass the Ruby class directly to `field` instead of a type symbol:
+To declare a custom type, pass the Ruby class directly to `field` instead of a type name:
 
 ```ruby
 class Order
@@ -576,13 +578,15 @@ class Order
 end
 ```
 
-Custom types can also be used in typed arrays and sets with the `of:` option:
+Custom types can also be used in typed arrays and sets with the `:of` option:
 
 ```ruby
 field :price_tiers, :array, of: Money
 ```
 
-On assignment, Dynamoid performs no type casting, preserving the assigned Ruby object in memory as-is. When persisting to DynamoDB, Dynamoid serializes the object by calling `#dynamoid_dump` on the instance, or `Class.dynamoid_dump(object)` if using an adapter (returning a DynamoDB-compatible value such as a string, number, map, or list). When loading from DynamoDB, it reconstructs the Ruby object by calling `Class.dynamoid_load(value)` on the declared field class.
+On assignment, Dynamoid performs no type casting, preserving the assigned Ruby object in memory as-is.
+
+When persisting to DynamoDB, Dynamoid serializes the object by calling `dynamoid_dump` (either on the instance or on the field class), which must return a supported primitive Ruby type (such as a `String`, `Numeric`, `Hash`, or `Array`). When loading from DynamoDB, Dynamoid reconstructs the object by calling `.dynamoid_load` on the declared field class.
 
 Custom types can optionally define a class method `.dynamoid_field_type` returning a Dynamoid field type (such as `:integer`, `:number`, `:datetime`, or `:date`). When this method is not implemented, Dynamoid defaults to `:string`. Dynamoid uses this when creating tables to define a table schema with the corresponding DynamoDB type whenever the field serves as a partition or sort key of a table or its index.
 
@@ -590,7 +594,7 @@ In practice, custom types are usually implemented using one of two patterns: as 
 
 #### Value Objects
 
-A Value Object is an object whose equality is determined by its internal attributes rather than its object identity. Value Objects may encapsulate validation, calculations, and formatting rules directly within their class definition.
+A Value Object is an object whose equality is based on its value rather than its object identity. Value Objects may encapsulate validation, calculations, and formatting rules directly within their class definition.
 
 When you control the class source code, make the class self-serializing by implementing `#dynamoid_dump` on the instance and `.dynamoid_load` on the class:
 
@@ -635,7 +639,7 @@ end
 order = Order.create!(total: Money.new(4999, "USD"))
 
 # DynamoDB item attribute:
-# total => "4999 USD" (String)
+# "total": "4999 USD" (String)
 
 reloaded_order = Order.find(order.id)
 reloaded_order.total
@@ -676,7 +680,7 @@ end
 log = RequestLog.create!(remote_ip: IPAddr.new("192.168.1.1"))
 
 # DynamoDB item attribute:
-# remote_ip => "192.168.1.1" (String)
+# "remote_ip": "192.168.1.1" (String)
 
 reloaded_log = RequestLog.find(log.id)
 reloaded_log.remote_ip
@@ -686,7 +690,7 @@ reloaded_log.remote_ip.ipv4? # => true
 
 #### Change Detection
 
-Dynamoid tracks changes to custom type attributes to determine which fields to update when saving. This includes detecting in-place mutations, where an object's internal state changes without reassigning the attribute (such as `order.total.cents += 100`).
+Dynamoid tracks changes in custom type attributes to determine which fields to update when saving. This includes detecting in-place mutations, where an object's internal state changes without reassigning the attribute (for example, calling a mutating method on a custom object rather than assigning a new instance).
 
 To detect these changes, Dynamoid supports two comparison strategies:
 
@@ -906,7 +910,7 @@ order.placed_at
 # => 2026-10-15T16:00:00-04:00
 
 # DynamoDB item attribute:
-# placed_at => "2026-10-15T20:00:00+00:00" (normalized to UTC)
+# "placed_at": "2026-10-15T20:00:00+00:00" (normalized to UTC)
 
 order.reload.placed_at
 # => 2026-10-15T16:00:00-04:00

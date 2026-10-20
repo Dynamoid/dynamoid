@@ -46,6 +46,7 @@ module Dynamoid
       end
     end
 
+    # TODO: Consider using #to_int, #to_str, and #to_ary methods for type casting as well
     class Base
       def initialize(options)
         @options = options
@@ -66,7 +67,7 @@ module Dynamoid
         when String
           value.dup # TODO: investigate whether we need this copying
         else
-          value.to_s
+          value.to_s # TODO: check if #to_str should be checked first
         end
       end
     end
@@ -178,7 +179,7 @@ module Dynamoid
         if value.is_a?(Array)
           value.dup
         elsif value.respond_to?(:to_a)
-          value.to_a
+          value.to_a # TODO: check if #to_ary should be checked first
         end
       end
 
@@ -317,7 +318,7 @@ module Dynamoid
         elsif value.is_a?(String)
           value.dup
         else
-          value.to_s
+          value.to_s # TODO: check if #to_str should be checked first
         end
       end
     end

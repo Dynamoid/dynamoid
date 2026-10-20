@@ -209,7 +209,7 @@ Dynamoid uses the provided `:name` as-is without adding a table or namespace pre
 
 ## Table Creation and Management
 
-Dynamoid is an application-level ORM, not an infrastructure provisioning tool. In production environments, DynamoDB tables are typically managed using Infrastructure as Code (such as Terraform, AWS CDK, or CloudFormation). Consequently, Dynamoid does not provide schema migrations or alter existing tables. It allows defining basic table properties in model classes and provides utilities to create or delete tables when needed.
+Dynamoid provides utilities to define basic table properties in model classes and create or delete tables programmatically. However, these tools are intended primarily for local development and test suites. Because Dynamoid focuses on application-level data modeling rather than full infrastructure management, it does not alter existing tables or provide schema migrations. In production environments, DynamoDB tables are typically provisioned and maintained using Infrastructure as Code (such as Terraform, AWS CDK, or CloudFormation).
 
 ### Implicit Creation
 
@@ -239,7 +239,7 @@ User.delete_table # => User
 
 Both `create_table` and `delete_table` are asynchronous by default and return immediately without waiting for DynamoDB to finish provisioning or deleting the table.
 
-To wait until the operation completes before continuing, pass `sync: true`:
+To poll DynamoDB and wait until the operation completes, pass `sync: true`:
 
 ```ruby
 # Wait until the table is created and available
@@ -248,8 +248,6 @@ User.create_table(sync: true)
 # Wait until the table is completely deleted
 User.delete_table(sync: true)
 ```
-
-With `sync: true`, Dynamoid polls DynamoDB until the table becomes available (on creation) or is deleted (on deletion).
 
 When creating tables, Dynamoid provisions the primary key attributes along with any Global or Local Secondary Indexes declared on the model (see [Secondary Indexes](#secondary-indexes)).
 

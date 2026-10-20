@@ -106,6 +106,7 @@ module Dynamoid
 
     # set -> set
     class SetDumper < Base
+      # TODO: Allow binary type (when stored as a native binary type)
       ALLOWED_TYPES = %i[string integer number date datetime serialized].freeze
 
       def process(set)
