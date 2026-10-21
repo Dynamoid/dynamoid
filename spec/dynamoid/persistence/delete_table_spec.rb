@@ -26,5 +26,12 @@ RSpec.describe Dynamoid::Persistence do
 
       expect(result).to eq klass
     end
+
+    it 'passes options to adapter' do
+      klass = new_class
+      expect(Dynamoid.adapter).to receive(:delete_table).with(klass.table_name, sync: true)
+
+      klass.delete_table(sync: true)
+    end
   end
 end

@@ -1,0 +1,11 @@
+.hljs-comment,
+.hljs-quote {
+  font-style: normal;
+}
+
+.sidebar code {
+  font-size: unset;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
+  font-weight: 400;
+  line-height: inherit;
+}

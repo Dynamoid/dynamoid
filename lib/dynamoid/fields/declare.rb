@@ -39,6 +39,7 @@ module Dynamoid
         warn_if_method_exists(@name)
         warn_if_method_exists("#{@name}=")
         warn_if_method_exists("#{@name}?")
+        # TODO: Fix trailing question mark; the generated method is name_before_type_cast without '?'
         warn_if_method_exists("#{@name}_before_type_cast?")
       end
 
@@ -48,6 +49,7 @@ module Dynamoid
 
         @source.generated_methods.module_eval do
           define_method(name) { read_attribute(name) }
+          # TODO: Match ActiveModel / ActiveRecord predicate semantics where 0, '0', and '' evaluate to false
           define_method(:"#{name}?") do
             value = read_attribute(name)
             case value
@@ -62,6 +64,16 @@ module Dynamoid
         end
       end
 
+      # TODO: Aliases currently only create Ruby method aliases (reader, writer, predicate, and _before_type_cast).
+      # There is a gap between the declared field name and its alias:
+      # 1. Direct attribute access bypasses method dispatch and does not resolve the alias:
+      #    - read_attribute(alias_name) and model[alias_name] return nil (keyed only by primary name).
+      #    - write_attribute(alias_name, val) and model[alias_name] = val write to attributes[alias_name]
+      #      instead of updating the primary attribute.
+      #    - read_attribute_before_type_cast(alias_name) returns nil.
+      # 2. Dirty tracking methods are not generated for the alias:
+      #    - define_attribute_method is called only for @name, so alias_changed?, alias_was,
+      #      alias_change, etc. raise NoMethodError.
       def generate_instance_methods_for_alias
         # only local variable is visible in `module_eval` block
         name = @name

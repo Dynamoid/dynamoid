@@ -189,6 +189,8 @@ module Dynamoid
       # It loads lazily all the associated models and checks provided
       # conditions. That's why only equality conditions can be specified.
       #
+      # TODO: deprecate
+      #
       # @param args [Hash] A hash of attributes; each must match every returned object's attribute exactly.
       # @return [Dynamoid::Association] the association this method was called on (for chaining purposes)
       # @since 0.2.0
