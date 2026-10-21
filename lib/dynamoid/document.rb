@@ -3,6 +3,29 @@
 module Dynamoid
   # This is the base module for all domain objects that need to be persisted to
   # the database as documents.
+  #
+  # == Single Table Inheritance (STI)
+  #
+  # Dynamoid supports Single Table Inheritance across class hierarchies stored
+  # in the same DynamoDB table. Subclasses share the base table, inherit fields,
+  # and automatically populate an STI type attribute:
+  #
+  #   class Animal
+  #     include Dynamoid::Document
+  #     field :name, :string
+  #     field :type, :string
+  #   end
+  #
+  #   class Dog < Animal
+  #     field :bark_volume, :integer
+  #   end
+  #
+  #   class Cat < Animal
+  #     field :lives, :integer, default: 9
+  #   end
+  #
+  # See {inheritance_field}, {sti_name}, {sti_class_for}, and {abstract_class}
+  # for customization hooks.
   module Document
     extend ActiveSupport::Concern
     include Dynamoid::Components
@@ -46,12 +69,15 @@ module Dynamoid
         options[:capacity_mode] || Dynamoid::Config.capacity_mode
       end
 
-      # Returns the field name used to support STI for this table.
+      # Returns the field name used to store the Single Table Inheritance (STI)
+      # type attribute for this table.
       #
-      # Default field name is +type+ but it can be overrided in the +table+
+      # Default field name is +type+ but it can be overridden in the +table+
       # method call.
       #
       #   User.inheritance_field # => :type
+      #
+      # @return [Symbol] name of the inheritance field
       def inheritance_field
         options[:inheritance_field] || :type
       end
@@ -166,16 +192,61 @@ module Dynamoid
         end
       end
 
+      # Set whether this class is an abstract base class.
+      #
+      # Abstract classes do not store Single Table Inheritance (STI)
+      # type values or scope queries by type.
+      #
+      #   class ApplicationRecord
+      #     include Dynamoid::Document
+      #     self.abstract_class = true
+      #   end
+      #
+      # @return [Boolean]
+      #
+      # TODO: Align abstract_class behavior with Rails (ActiveRecord::Inheritance):
+      #       1. Table name resolution: subclasses of an abstract class should map to their
+      #          own individual tables (i.e. base_class should treat the subclass as a new
+      #          root instead of inheriting the abstract class's table name).
+      #       2. Prevent direct instantiation: instantiating or saving an abstract class
+      #          directly should raise NotImplementedError.
+      #       3. Document abstract_class in doc/modeling_and_schema/single_table_inheritance.md
+      #          once the behavior aligns with Rails and is fully tested.
       attr_accessor :abstract_class
 
+      # Returns true if the class is marked as an abstract class.
+      #
+      # @return [Boolean]
       def abstract_class?
         defined?(@abstract_class) && @abstract_class == true
       end
 
+      # Returns the string identifier stored in the Single Table Inheritance (STI)
+      # type attribute.
+      #
+      # Defaults to the class name. Override this method in subclasses to decouple
+      # the stored type value from the Ruby class name.
+      #
+      #   class Car < Vehicle
+      #     def self.sti_name
+      #       'sedan'
+      #     end
+      #   end
+      #
+      # @return [String]
       def sti_name
         name
       end
 
+      # Resolves a Single Table Inheritance (STI) type string into
+      # the corresponding model class.
+      #
+      # Override this method in the base class to provide custom class mapping
+      # or to resolve renamed or legacy type strings.
+      #
+      # @param type_name [String] type value stored in DynamoDB
+      # @return [Class] the resolved Dynamoid model class
+      # @raise [Dynamoid::Errors::SubclassNotFound] if the class constant cannot be resolved
       def sti_class_for(type_name)
         type_name.constantize
       rescue NameError

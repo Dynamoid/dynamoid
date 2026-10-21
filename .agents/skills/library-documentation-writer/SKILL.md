@@ -36,7 +36,10 @@ Before drafting, proposing, or writing any documentation text, enforce these non
 5. **ZERO TOLERANCE: Never Amend Existing Git Commits (Always Create New Commits)**
    * **Never** use `git commit --amend` or propose amending an already existing commit.
    * Always propose or create a **brand-new commit** for newly reviewed and approved changes. Amending rewrites history and obscures the boundary between previously reviewed code and recent modifications.
-6. **Regenerate HTML Documentation with mdBook:**
+6. **ZERO TOLERANCE: Never Modify or Propose Modifying the Git Index/Stage**
+   * **Never** execute or propose commands that modify the git index or staging area (such as `git add`, `git rm`, `git restore --staged`, `git reset`, or `git update-index`).
+   * Staging files and managing the git index is strictly reserved for the developer.
+7. **Regenerate HTML Documentation with mdBook:**
    * After applying any changes or edits to Markdown files in `doc/`, always run `mdbook build .mdbook` to regenerate the HTML documentation in `book/` and verify that the build succeeds cleanly.
 
 
@@ -142,6 +145,7 @@ Before proposing or committing documentation changes, verify each item:
 - [ ] Banned buzzwords (*seamlessly*, *robust*, *delve*, etc.) are completely absent.
 - [ ] Code snippets are self-contained, syntax-highlighted (`ruby`), and show `# =>` return values (same-line for scalar outputs, next-line for complex objects).
 - [ ] Relative cross-references and guide links resolve to existing files.
+- [ ] Never execute or propose commands that modify the git index or staging area (`git add`, `git rm`, `git reset`, `git restore --staged`).
 - [ ] Never amend existing git commits; always create brand-new commits for new changes.
 - [ ] Regenerate HTML documentation with `mdbook build .mdbook` after modifying guides.
 
