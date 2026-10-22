@@ -6,9 +6,9 @@ module Dynamoid
     class AwsSdkV3
       # Mimics behavior of the yielded object on DynamoDB's update_item API (high level).
       class ItemUpdater
-        ADD    = 'ADD'
-        DELETE = 'DELETE'
-        PUT    = 'PUT'
+        ADD = "ADD"
+        DELETE = "DELETE"
+        PUT = "PUT"
 
         attr_reader :table, :key, :range_key
 
@@ -18,7 +18,7 @@ module Dynamoid
           @range_key = range_key
           @additions = {}
           @deletions = {}
-          @updates   = {}
+          @updates = {}
         end
 
         #

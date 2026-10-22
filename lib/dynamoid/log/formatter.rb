@@ -33,7 +33,7 @@ module Dynamoid
             bold,
             response.context.http_request.body.string,
             reset
-          ].join(' ')
+          ].join(" ")
         end
       end
     end

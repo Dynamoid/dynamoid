@@ -32,7 +32,7 @@ module Dynamoid
             placeholder
           end
 
-          @expression = clauses.join(' , ')
+          @expression = clauses.join(" , ")
         end
       end
     end

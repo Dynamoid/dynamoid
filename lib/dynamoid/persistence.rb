@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require 'bigdecimal'
-require 'securerandom'
-require 'yaml'
+require "bigdecimal"
+require "securerandom"
+require "yaml"
 
-require 'dynamoid/persistence/import'
-require 'dynamoid/persistence/update_fields'
-require 'dynamoid/persistence/upsert'
-require 'dynamoid/persistence/save'
-require 'dynamoid/persistence/inc'
-require 'dynamoid/persistence/update_validations'
-require 'dynamoid/persistence/item_updater_with_dumping'
+require "dynamoid/persistence/import"
+require "dynamoid/persistence/update_fields"
+require "dynamoid/persistence/upsert"
+require "dynamoid/persistence/save"
+require "dynamoid/persistence/inc"
+require "dynamoid/persistence/update_validations"
+require "dynamoid/persistence/item_updater_with_dumping"
 
 # encoding: utf-8
 module Dynamoid
@@ -20,8 +20,8 @@ module Dynamoid
     extend ActiveSupport::Concern
 
     attr_accessor :new_record, :destroyed
-    alias new_record? new_record
-    alias destroyed? destroyed
+    alias_method :new_record?, :new_record
+    alias_method :destroyed?, :destroyed
 
     # @private
     UNIX_EPOCH_DATE = Date.new(1970, 1, 1).freeze
@@ -35,9 +35,9 @@ module Dynamoid
           return @table_name
         end
 
-        base_name = options[:name] || base_class.name.split('::').last.downcase.pluralize
+        base_name = options[:name] || base_class.name.split("::").last.downcase.pluralize
         namespace = Dynamoid::Config.namespace.to_s
-        @table_name = [namespace, base_name].reject(&:empty?).join('_')
+        @table_name = [namespace, base_name].reject(&:empty?).join("_")
       end
 
       # Create a table.
@@ -105,8 +105,8 @@ module Dynamoid
       # @since 0.4.0
       def create_table(options = {})
         range_key_hash = if range_key
-                           { range_key => PrimaryKeyTypeMapping.dynamodb_type(attributes[range_key][:type], attributes[range_key]) }
-                         end
+          {range_key => PrimaryKeyTypeMapping.dynamodb_type(attributes[range_key][:type], attributes[range_key])}
+        end
 
         options = {
           id: hash_key,
@@ -355,10 +355,10 @@ module Dynamoid
         end
 
         UpdateFields.call(self,
-                          partition_key: hash_key_value,
-                          sort_key: range_key_value,
-                          attributes: attrs,
-                          conditions: conditions)
+          partition_key: hash_key_value,
+          sort_key: range_key_value,
+          attributes: attrs,
+          conditions: conditions)
       end
 
       # Update an existing document or create a new one.
@@ -419,10 +419,10 @@ module Dynamoid
         end
 
         Upsert.call(self,
-                    partition_key: hash_key_value,
-                    sort_key: range_key_value,
-                    attributes: attrs,
-                    conditions: conditions)
+          partition_key: hash_key_value,
+          sort_key: range_key_value,
+          attributes: attrs,
+          conditions: conditions)
       end
 
       # Increase a numeric field by specified value.
@@ -530,7 +530,7 @@ module Dynamoid
             end
           end
 
-          options = range_key ? { range_key: range_key } : {}
+          options = range_key ? {range_key: range_key} : {}
           Dynamoid.adapter.delete(table_name, ids, options)
         else
           # given single primary key:
@@ -542,7 +542,7 @@ module Dynamoid
           raise Dynamoid::Errors::MissingHashKey if partition_key.nil?
           raise Dynamoid::Errors::MissingRangeKey if range_key? && sort_key.nil?
 
-          options = sort_key ? { range_key: cast_and_dump(self.range_key, sort_key) } : {}
+          options = sort_key ? {range_key: cast_and_dump(self.range_key, sort_key)} : {}
           partition_key_dumped = cast_and_dump(hash_key, partition_key)
 
           Dynamoid.adapter.delete(table_name, partition_key_dumped, options)
@@ -577,7 +577,7 @@ module Dynamoid
     # @return [Dynamoid::Document] self
     def touch(*names, time: nil)
       if new_record?
-        raise Dynamoid::Errors::Error, 'cannot touch on a new or destroyed record object'
+        raise Dynamoid::Errors::Error, "cannot touch on a new or destroyed record object"
       end
 
       time_to_assign = time || DateTime.now
@@ -960,7 +960,7 @@ module Dynamoid
           # exception may be raised either because of failed user provided conditions
           # or because of conditions on partition and sort keys. We cannot
           # distinguish these two cases.
-          raise Dynamoid::Errors::StaleObjectError.new(self, 'update')
+          raise Dynamoid::Errors::StaleObjectError.new(self, "update")
         end
       end
 
@@ -1104,7 +1104,7 @@ module Dynamoid
       change = read_attribute(attribute) - (attribute_was(attribute) || 0)
 
       run_callbacks :touch do
-        self.class.inc(hash_key, range_value, attribute => change, touch: touch)
+        self.class.inc(hash_key, range_value, attribute => change, :touch => touch)
         clear_attribute_changes(attribute)
       end
 
@@ -1213,12 +1213,12 @@ module Dynamoid
       raise Dynamoid::Errors::MissingHashKey if hash_key.nil?
       raise Dynamoid::Errors::MissingRangeKey if self.class.range_key? && range_value.nil?
 
-      options = range_key ? { range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key]) } : {}
+      options = range_key ? {range_key: Dumping.dump_field(read_attribute(range_key), self.class.attributes[range_key])} : {}
       partition_key_dumped = Dumping.dump_field(hash_key, self.class.attributes[self.class.hash_key])
 
       # Add an optimistic locking check if the lock_version column exists
       if self.class.attributes[:lock_version]
-        conditions = { if: {} }
+        conditions = {if: {}}
         conditions[:if][:lock_version] =
           if changes[:lock_version].nil?
             lock_version
@@ -1239,7 +1239,7 @@ module Dynamoid
       self
     rescue Dynamoid::Errors::ConditionalCheckFailedException
       @destroyed = false
-      raise Dynamoid::Errors::StaleObjectError.new(self, 'delete')
+      raise Dynamoid::Errors::StaleObjectError.new(self, "delete")
     end
   end
 end

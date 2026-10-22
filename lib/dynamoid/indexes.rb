@@ -68,11 +68,11 @@ module Dynamoid
       #         the index; does not work on existing indexes.
       def global_secondary_index(options = {})
         unless options.present?
-          raise Dynamoid::Errors::InvalidIndex, 'empty index definition'
+          raise Dynamoid::Errors::InvalidIndex, "empty index definition"
         end
 
         unless options[:hash_key].present?
-          raise Dynamoid::Errors::InvalidIndex, 'A global secondary index requires a :hash_key to be specified'
+          raise Dynamoid::Errors::InvalidIndex, "A global secondary index requires a :hash_key to be specified"
         end
 
         index_opts = {
@@ -130,7 +130,7 @@ module Dynamoid
       #         +:keys_only+.
       def local_secondary_index(options = {})
         unless options.present?
-          raise Dynamoid::Errors::InvalidIndex, 'empty index definition'
+          raise Dynamoid::Errors::InvalidIndex, "empty index definition"
         end
 
         primary_hash_key = hash_key
@@ -138,13 +138,13 @@ module Dynamoid
         index_range_key = options[:range_key]
 
         unless index_range_key.present?
-          raise Dynamoid::Errors::InvalidIndex, 'A local secondary index ' \
-                                                'requires a :range_key to be specified'
+          raise Dynamoid::Errors::InvalidIndex, "A local secondary index " \
+                                                "requires a :range_key to be specified"
         end
 
         if primary_range_key.present? && index_range_key == primary_range_key
-          raise Dynamoid::Errors::InvalidIndex, 'A local secondary index ' \
-                                                'must use a different :range_key than the primary key'
+          raise Dynamoid::Errors::InvalidIndex, "A local secondary index " \
+                                                "must use a different :range_key than the primary key"
         end
 
         index_opts = options.merge(
@@ -249,8 +249,8 @@ module Dynamoid
       DEFAULT_PROJECTION_TYPE = :keys_only
 
       attr_accessor :name, :dynamoid_class, :type, :hash_key, :range_key,
-                    :hash_key_schema, :range_key_schema, :projected_attributes,
-                    :read_capacity, :write_capacity
+        :hash_key_schema, :range_key_schema, :projected_attributes,
+        :read_capacity, :write_capacity
 
       validate do
         validate_index_type
@@ -261,7 +261,7 @@ module Dynamoid
 
       def initialize(attrs = {})
         unless attrs[:dynamoid_class].present?
-          raise Dynamoid::Errors::InvalidIndex, ':dynamoid_class is required'
+          raise Dynamoid::Errors::InvalidIndex, ":dynamoid_class is required"
         end
 
         @dynamoid_class = attrs[:dynamoid_class]
@@ -293,15 +293,15 @@ module Dynamoid
 
       def validate_projected_attributes
         unless @projected_attributes.is_a?(Array) ||
-               PROJECTION_TYPES.include?(@projected_attributes)
-          errors.add(:projected_attributes, 'Invalid projected attributes specified.')
+            PROJECTION_TYPES.include?(@projected_attributes)
+          errors.add(:projected_attributes, "Invalid projected attributes specified.")
         end
       end
 
       def validate_index_type
         unless @type.present? &&
-               %i[local_secondary global_secondary].include?(@type)
-          errors.add(:type, 'Invalid index :type specified')
+            %i[local_secondary global_secondary].include?(@type)
+          errors.add(:type, "Invalid index :type specified")
         end
       end
 
@@ -324,7 +324,7 @@ module Dynamoid
 
         key_dynamodb_type = dynamodb_type(key_field_attributes[:type], key_field_attributes)
         if PERMITTED_KEY_DYNAMODB_TYPES.include?(key_dynamodb_type)
-          send(:"#{key_param}_schema=", { key_val => key_dynamodb_type })
+          send(:"#{key_param}_schema=", {key_val => key_dynamodb_type})
         else
           errors.add(key_param, "Index :#{key_param} is not a valid key type")
         end

@@ -9,8 +9,8 @@ Create `config/initializers/aws.rb` as follows:
 
 ```ruby
 Aws.config.update(
-  region: 'us-west-2',
-  credentials: Aws::Credentials.new('REPLACE_WITH_ACCESS_KEY_ID', 'REPLACE_WITH_SECRET_ACCESS_KEY'),
+  region: "us-west-2",
+  credentials: Aws::Credentials.new("REPLACE_WITH_ACCESS_KEY_ID", "REPLACE_WITH_SECRET_ACCESS_KEY"),
 )
 ```
 
@@ -19,11 +19,11 @@ overwritten for your entire project, you can specify connection settings
 for Dynamoid only, by setting those in the `Dynamoid.configure` clause:
 
 ```ruby
-require 'dynamoid'
+require "dynamoid"
 Dynamoid.configure do |config|
-  config.access_key = 'REPLACE_WITH_ACCESS_KEY_ID'
-  config.secret_key = 'REPLACE_WITH_SECRET_ACCESS_KEY'
-  config.region = 'us-west-2'
+  config.access_key = "REPLACE_WITH_ACCESS_KEY_ID"
+  config.secret_key = "REPLACE_WITH_SECRET_ACCESS_KEY"
+  config.region = "us-west-2"
 end
 ```
 
@@ -32,18 +32,18 @@ Additionally, if you would like to pass in pre-configured AWS credentials
 elsewhere in your project, etc.), you may do so:
 
 ```ruby
-require 'dynamoid'
+require "dynamoid"
 
 credentials = Aws::AssumeRoleCredentials.new(
   region: region,
   access_key_id: key,
   secret_access_key: secret,
   role_arn: role_arn,
-  role_session_name: 'our-session'
+  role_session_name: "our-session"
 )
 
 Dynamoid.configure do |config|
-  config.region = 'us-west-2'
+  config.region = "us-west-2"
   config.credentials = credentials
 end
 ```
@@ -56,14 +56,14 @@ similar to this somewhere (a Rails initializer would be a great place
 for this if you're using Rails):
 
 ```ruby
-require 'dynamoid'
+require "dynamoid"
 Dynamoid.configure do |config|
   # To namespace tables created by Dynamoid from other tables you might have.
   # Set to nil to avoid namespacing.
-  config.namespace = 'dynamoid_app_development'
+  config.namespace = "dynamoid_app_development"
 
   # [Optional]. If provided, it communicates with the DB listening at the endpoint.
   # This is useful for testing with [DynamoDB Local](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html).
-  config.endpoint = 'http://localhost:3000'
+  config.endpoint = "http://localhost:3000"
 end
 ```

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
-RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
+RSpec.describe Dynamoid::Transactions::Mutation, "#upsert" do
   let(:klass) do
     new_class do
       field :name
@@ -16,35 +16,35 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
     end
   end
 
-  it 'persists a new model if primary key does not exist yet' do
+  it "persists a new model if primary key does not exist yet" do
     klass.create_table
 
     id_new = SecureRandom.uuid
-    obj = klass.new(name: 'Alex')
+    obj = klass.new(name: "Alex")
 
     expect {
       described_class.execute do |txn|
-        txn.upsert klass, id_new, name: 'Alex'
+        txn.upsert klass, id_new, name: "Alex"
       end
     }.to change(klass, :count).by(1)
 
     obj = klass.find(id_new)
-    expect(obj.name).to eql 'Alex'
+    expect(obj.name).to eql "Alex"
   end
 
-  it 'persists changes of already existing model' do
-    obj = klass.create!(name: 'Alex')
+  it "persists changes of already existing model" do
+    obj = klass.create!(name: "Alex")
 
     described_class.execute do |txn|
-      txn.upsert klass, obj.id, name: 'Alex [Updated]'
+      txn.upsert klass, obj.id, name: "Alex [Updated]"
     end
 
     obj_loaded = klass.find(obj.id)
-    expect(obj_loaded.name).to eql 'Alex [Updated]'
+    expect(obj_loaded.name).to eql "Alex [Updated]"
   end
 
   # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-  it 'allows reserved words as attribute names' do
+  it "allows reserved words as attribute names" do
     klass = new_class do
       field :order, :integer
     end
@@ -58,12 +58,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
   end
 
   # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-  it 'allows reserved words as partition key and sort key' do
-    klass = new_class(partition_key: { name: :name, type: :string }) do
+  it "allows reserved words as partition key and sort key" do
+    klass = new_class(partition_key: {name: :name, type: :string}) do
       range :status, :string
       field :age, :integer
     end
-    obj = klass.create!(name: 'Alex', status: 'active', age: 3)
+    obj = klass.create!(name: "Alex", status: "active", age: 3)
 
     described_class.execute do |t|
       t.upsert klass, obj.name, obj.status, age: 4
@@ -72,19 +72,19 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
     expect(obj.reload.age).to eql(4)
   end
 
-  it 'returns nil' do
-    obj = klass.create!(name: 'Alex')
+  it "returns nil" do
+    obj = klass.create!(name: "Alex")
 
     result = true
     described_class.execute do |txn|
-      result = txn.upsert klass, obj.id, name: 'Alex [Updated]'
+      result = txn.upsert klass, obj.id, name: "Alex [Updated]"
     end
 
     expect(result).to eql nil
   end
 
-  it 'cannot be called without attributes to modify' do
-    obj = klass.create!(name: 'Alex')
+  it "cannot be called without attributes to modify" do
+    obj = klass.create!(name: "Alex")
 
     expect {
       described_class.execute do |txn|
@@ -94,7 +94,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
   end
 
   it "raises UnknownAttribute when an attribute name isn't declared as a field" do
-    obj = klass.create!(name: 'Alex')
+    obj = klass.create!(name: "Alex")
 
     expect {
       described_class.execute do |txn|
@@ -103,9 +103,9 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
     }.to raise_error Dynamoid::Errors::UnknownAttribute
   end
 
-  describe 'primary key schema' do
-    context 'simple primary key' do
-      it 'persists a new model' do
+  describe "primary key schema" do
+    context "simple primary key" do
+      it "persists a new model" do
         klass.create_table
         id_new = SecureRandom.uuid
 
@@ -116,19 +116,19 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
         }.to change(klass, :count).by(1)
       end
 
-      it 'persists changes in already persisted model' do
-        obj = klass.create!(name: 'Alex')
+      it "persists changes in already persisted model" do
+        obj = klass.create!(name: "Alex")
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, obj.id, name: 'Alex [Updated]'
+            txn.upsert klass, obj.id, name: "Alex [Updated]"
           end
-        }.to change { klass.find(obj.id).name }.to('Alex [Updated]')
+        }.to change { klass.find(obj.id).name }.to("Alex [Updated]")
       end
     end
 
-    context 'composite key' do
-      it 'persists a new model' do
+    context "composite key" do
+      it "persists a new model" do
         klass_with_composite_key.create_table
         id_new = SecureRandom.uuid
 
@@ -139,53 +139,53 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
         }.to change(klass_with_composite_key, :count).by(1)
       end
 
-      it 'persists changes in already persisted model' do
-        obj = klass_with_composite_key.create!(name: 'Alex', age: 3)
+      it "persists changes in already persisted model" do
+        obj = klass_with_composite_key.create!(name: "Alex", age: 3)
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass_with_composite_key, obj.id, obj.age, name: 'Alex [Updated]'
+            txn.upsert klass_with_composite_key, obj.id, obj.age, name: "Alex [Updated]"
           end
-        }.to change { obj.reload.name }.to('Alex [Updated]')
+        }.to change { obj.reload.name }.to("Alex [Updated]")
       end
     end
   end
 
-  describe 'primary key validation' do
-    context 'simple primary key' do
-      it 'requires partition key to be specified' do
+  describe "primary key validation" do
+    context "simple primary key" do
+      it "requires partition key to be specified" do
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, nil, { name: 'threethree' }
+            txn.upsert klass, nil, {name: "threethree"}
           end
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
     end
 
-    context 'composite key' do
-      it 'requires partition key to be specified' do
+    context "composite key" do
+      it "requires partition key to be specified" do
         expect {
           described_class.execute do |txn|
-            txn.upsert klass_with_composite_key, nil, name: 'Alex'
+            txn.upsert klass_with_composite_key, nil, name: "Alex"
           end
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
 
-      it 'requires sort key to be specified' do
+      it "requires sort key to be specified" do
         id_new = SecureRandom.uuid
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass_with_composite_key, id_new, nil, name: 'Alex'
+            txn.upsert klass_with_composite_key, id_new, nil, name: "Alex"
           end
         }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
       end
     end
   end
 
-  describe 'timestamps' do
-    context 'new model' do
-      it 'sets updated_at only if Config.timestamps=true', config: { timestamps: true } do
+  describe "timestamps" do
+    context "new model" do
+      it "sets updated_at only if Config.timestamps=true", config: {timestamps: true} do
         klass.create_table
         id_new = SecureRandom.uuid
 
@@ -201,7 +201,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
         end
       end
 
-      it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+      it "uses provided values of created_at and updated_at if Config.timestamps=true", config: {timestamps: true} do
         klass.create_table
         id_new = SecureRandom.uuid
 
@@ -218,17 +218,17 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
         end
       end
 
-      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+      it "does not raise error if Config.timestamps=false", config: {timestamps: false} do
         klass.create_table
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, SecureRandom.uuid, name: 'Alex'
+            txn.upsert klass, SecureRandom.uuid, name: "Alex"
           end
         }.not_to raise_error
       end
 
-      it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+      it "does not raise error if no changes and Config.timestamps=false", config: {timestamps: false} do
         klass.create_table
 
         expect {
@@ -239,15 +239,15 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
       end
     end
 
-    context 'already created model' do
-      it 'sets updated_at if Config.timestamps=true', config: { timestamps: true } do
+    context "already created model" do
+      it "sets updated_at if Config.timestamps=true", config: {timestamps: true} do
         obj = klass.create!
 
         travel 1.hour do
           time_now = Time.now
 
           described_class.execute do |txn|
-            txn.upsert klass, obj.id, name: 'Alex [Updated]'
+            txn.upsert klass, obj.id, name: "Alex [Updated]"
           end
 
           obj.reload
@@ -255,7 +255,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
         end
       end
 
-      it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+      it "uses provided values of created_at and updated_at if Config.timestamps=true", config: {timestamps: true} do
         obj = klass.create!
 
         travel 1.hour do
@@ -271,17 +271,17 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
         end
       end
 
-      it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+      it "does not raise error if Config.timestamps=false", config: {timestamps: false} do
         obj = klass.create!
 
         expect {
           described_class.execute do |txn|
-            txn.upsert klass, obj.id, name: 'Alex [Updated]'
+            txn.upsert klass, obj.id, name: "Alex [Updated]"
           end
         }.not_to raise_error
       end
 
-      it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+      it "does not raise error if no changes and Config.timestamps=false", config: {timestamps: false} do
         obj = klass.create!
 
         expect {
@@ -293,112 +293,112 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
     end
   end
 
-  context 'when an issue detected on the DynamoDB side' do
+  context "when an issue detected on the DynamoDB side" do
     # TODO: support conditions
-    it 'rolls back the changes when a specified condition is not satisfied'
+    it "rolls back the changes when a specified condition is not satisfied"
   end
 
-  describe 'callbacks' do
-    it 'does not run any callback' do
+  describe "callbacks" do
+    it "does not run any callback" do
       klass_with_callbacks = new_class do
         field :name
 
-        before_validation { ScratchPad << 'run before_validation' }
-        after_validation { ScratchPad << 'run after_validation' }
+        before_validation { ScratchPad << "run before_validation" }
+        after_validation { ScratchPad << "run after_validation" }
 
-        before_create { ScratchPad << 'run before_create' }
-        after_create { ScratchPad << 'run after_create' }
+        before_create { ScratchPad << "run before_create" }
+        after_create { ScratchPad << "run after_create" }
         around_create :around_create_callback
 
-        before_save { ScratchPad << 'run before_save' }
-        after_save { ScratchPad << 'run after_save' }
+        before_save { ScratchPad << "run before_save" }
+        after_save { ScratchPad << "run after_save" }
         around_save :around_save_callback
 
-        before_destroy { ScratchPad << 'run before_destroy' }
-        after_destroy { ScratchPad << 'run after_destroy' }
+        before_destroy { ScratchPad << "run before_destroy" }
+        after_destroy { ScratchPad << "run after_destroy" }
         around_destroy :around_destroy_callback
 
         def around_create_callback
-          ScratchPad << 'start around_create'
+          ScratchPad << "start around_create"
           yield
-          ScratchPad << 'finish around_create'
+          ScratchPad << "finish around_create"
         end
 
         def around_save_callback
-          ScratchPad << 'start around_save'
+          ScratchPad << "start around_save"
           yield
-          ScratchPad << 'finish around_save'
+          ScratchPad << "finish around_save"
         end
 
         def around_destroy_callback
-          ScratchPad << 'start around_destroy'
+          ScratchPad << "start around_destroy"
           yield
-          ScratchPad << 'finish around_destroy'
+          ScratchPad << "finish around_destroy"
         end
       end
 
       ScratchPad.record []
-      obj = klass_with_callbacks.create!(name: 'Alex')
+      obj = klass_with_callbacks.create!(name: "Alex")
       ScratchPad.clear
 
       described_class.execute do |txn|
-        txn.upsert klass_with_callbacks, obj.id, name: 'Alex [Updated]'
+        txn.upsert klass_with_callbacks, obj.id, name: "Alex [Updated]"
       end
 
-      expect(ScratchPad.recorded).to eql([])
+      expect(ScratchPad.recorded).to be_empty
     end
   end
 
-  it 'uses casted value of partition key and sort key' do
-    klass = new_class(partition_key: { name: :id, type: :integer }) do
+  it "uses casted value of partition key and sort key" do
+    klass = new_class(partition_key: {name: :id, type: :integer}) do
       range :count, :integer
       field :name
     end
 
-    obj = klass.create!(id: 1, count: 42, name: 'Original')
+    obj = klass.create!(id: 1, count: 42, name: "Original")
 
     described_class.execute do |t|
-      t.upsert(klass, '1', '42', name: 'Updated')
+      t.upsert(klass, "1", "42", name: "Updated")
     end
 
-    expect(obj.reload.name).to eql('Updated')
+    expect(obj.reload.name).to eql("Updated")
   end
 
-  it 'uses dumped value of partition key to update item' do
-    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+  it "uses dumped value of partition key to update item" do
+    klass = new_class(partition_key: {name: :published_on, type: :date}) do
       field :name
     end
-    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+    obj = klass.create!(published_on: "2018-10-07".to_date, name: "Alex")
 
     described_class.execute do |txn|
-      txn.upsert klass, obj.published_on, name: 'Alex [Updated]'
+      txn.upsert klass, obj.published_on, name: "Alex [Updated]"
     end
 
-    expect(obj.reload.name).to eql('Alex [Updated]')
+    expect(obj.reload.name).to eql("Alex [Updated]")
   end
 
-  it 'uses dumped value of sort key to update item' do
+  it "uses dumped value of sort key to update item" do
     klass = new_class do
       range :activated_on, :date
       field :name
     end
-    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+    obj = klass.create!(activated_on: Date.today, name: "Alex")
 
     described_class.execute do |txn|
-      txn.upsert klass, obj.id, obj.activated_on, name: 'Alex [Updated]'
+      txn.upsert klass, obj.id, obj.activated_on, name: "Alex [Updated]"
     end
 
-    expect(obj.reload.name).to eql('Alex [Updated]')
+    expect(obj.reload.name).to eql("Alex [Updated]")
   end
 
-  context 'when table arn is specified', remove_constants: [:Payment] do
-    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+  context "when table arn is specified", remove_constants: [:Payment] do
+    it "uses given table ARN in requests instead of a table name", config: {create_table_on_save: false} do
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end
 
   # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-  context 'Global Secondary Index' do
+  context "Global Secondary Index" do
     let(:klass_with_gsi) do
       new_class do
         field :name
@@ -412,8 +412,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
       klass_with_gsi.create_table
     end
 
-    context 'new model' do
-      it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+    context "new model" do
+      it "persists successfuly even if a field declared as a GSI primary key is set to nil" do
         id_new = SecureRandom.uuid
         expect {
           described_class.execute do |t|
@@ -426,23 +426,23 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
         expect(obj.age).to eql 42
       end
 
-      it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+      it "persists successfuly even if a field declared as a GSI sort key is set to nil" do
         id_new = SecureRandom.uuid
         expect {
           described_class.execute do |t|
-            t.upsert klass_with_gsi, id_new, name: 'Alex', age: nil
+            t.upsert klass_with_gsi, id_new, name: "Alex", age: nil
           end
         }.to change(klass_with_gsi, :count).by(1)
 
         obj = klass_with_gsi.find(id_new)
-        expect(obj.name).to eql 'Alex'
+        expect(obj.name).to eql "Alex"
         expect(obj.age).to eql nil
       end
     end
 
-    context 'existing model' do
-      it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
-        obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+    context "existing model" do
+      it "persists successfuly even if a field declared as a GSI primary key is set to nil" do
+        obj = klass_with_gsi.create!(name: "Alex", age: 42)
 
         described_class.execute do |t|
           t.upsert klass_with_gsi, obj.id, name: nil
@@ -451,8 +451,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
         expect(obj.reload.name).to eql nil
       end
 
-      it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
-        obj = klass_with_gsi.create!(name: 'Alex', age: 42)
+      it "persists successfuly even if a field declared as a GSI sort key is set to nil" do
+        obj = klass_with_gsi.create!(name: "Alex", age: 42)
 
         described_class.execute do |t|
           t.upsert klass_with_gsi, obj.id, age: nil
@@ -463,32 +463,32 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#upsert' do
     end
   end
 
-  describe '`store_attribute_with_nil_value` config option' do
+  describe "`store_attribute_with_nil_value` config option" do
     let(:klass) do
       new_class do
         field :age, :integer
       end
     end
 
-    context 'true', config: { store_attribute_with_nil_value: true } do
-      it 'keeps document attribute with nil' do
-        obj = klass.create!(name: 'Alex', age: 42)
+    context "true", config: {store_attribute_with_nil_value: true} do
+      it "keeps document attribute with nil" do
+        obj = klass.create!(name: "Alex", age: 42)
         described_class.execute { |t| t.upsert klass, obj.id, age: nil }
         expect(raw_attributes(obj)).to include(age: nil)
       end
     end
 
-    context 'false', config: { store_attribute_with_nil_value: false } do
-      it 'does not keep document attribute with nil' do
-        obj = klass.create!(name: 'Alex', age: 42)
+    context "false", config: {store_attribute_with_nil_value: false} do
+      it "does not keep document attribute with nil" do
+        obj = klass.create!(name: "Alex", age: 42)
         described_class.execute { |t| t.upsert klass, obj.id, age: nil }
         expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
       end
     end
 
-    context 'by default', config: { store_attribute_with_nil_value: nil } do
-      it 'does not keep document attribute with nil' do
-        obj = klass.create!(name: 'Alex', age: 42)
+    context "by default", config: {store_attribute_with_nil_value: nil} do
+      it "does not keep document attribute with nil" do
+        obj = klass.create!(name: "Alex", age: 42)
         described_class.execute { |t| t.upsert klass, obj.id, age: nil }
         expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
       end

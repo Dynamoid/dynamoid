@@ -1,3 +1,3 @@
 # frozen_string_literal: true
 
-load 'dynamoid/tasks/database.rake'
+load "dynamoid/tasks/database.rake"

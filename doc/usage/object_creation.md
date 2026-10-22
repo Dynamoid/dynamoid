@@ -4,8 +4,8 @@ Dynamoid's syntax is generally very similar to ActiveRecord's. Making
 new objects is simple:
 
 ```ruby
-u = User.new(name: 'Josh')
-u.email = 'josh@joshsymonds.com'
+u = User.new(name: "Josh")
+u.email = "josh@joshsymonds.com"
 u.save
 ```
 
@@ -21,19 +21,19 @@ ActiveRecord's:
 
 ```ruby
 address = u.addresses.create
-address.city = 'Chicago'
+address.city = "Chicago"
 address.save
 ```
 
 To create multiple documents at once:
 
 ```ruby
-User.create([{ name: 'Josh' }, { name: 'Nick' }])
+User.create([{name: "Josh"}, {name: "Nick"}])
 ```
 
 There is an efficient and low-level way to create multiple documents
 (without validation and callbacks running):
 
 ```ruby
-users = User.import([{ name: 'Josh' }, { name: 'Nick' }])
+users = User.import([{name: "Josh"}, {name: "Nick"}])
 ```

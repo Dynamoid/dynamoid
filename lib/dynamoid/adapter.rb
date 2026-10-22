@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'concurrent/atom'
-require 'dynamoid/adapter_plugin/aws_sdk_v3'
+require "concurrent/atom"
+require "dynamoid/adapter_plugin/aws_sdk_v3"
 
 module Dynamoid
   # Adapter's value-add:
@@ -17,7 +17,7 @@ module Dynamoid
 
     def tables
       unless @tables_.value
-        @tables_.swap { |_value, _args| benchmark('Cache Tables') { list_tables || [] } }
+        @tables_.swap { |_value, _args| benchmark("Cache Tables") { list_tables || [] } }
       end
       @tables_.value
     end
@@ -51,7 +51,7 @@ module Dynamoid
     def benchmark(method, *args)
       start = Time.now
       result = yield
-      Dynamoid.logger.debug "(#{((Time.now - start) * 1000.0).round(2)} ms) #{method.to_s.split('_').collect(&:upcase).join(' ')}#{" - #{args.inspect}" unless args.nil? || args.empty?}"
+      Dynamoid.logger.debug "(#{((Time.now - start) * 1000.0).round(2)} ms) #{method.to_s.split("_").collect(&:upcase).join(" ")}#{" - #{args.inspect}" unless args.nil? || args.empty?}"
       result
     end
 
@@ -82,7 +82,7 @@ module Dynamoid
     # @since 0.2.0
     def read(table, ids, options = {}, &blk)
       if ids.respond_to?(:each)
-        batch_get_item({ table => ids }, options, &blk)
+        batch_get_item({table => ids}, options, &blk)
       else
         get_item(table, ids, options)
       end
@@ -100,11 +100,11 @@ module Dynamoid
       range_key = options[:range_key] # array of range keys that matches the ids passed in
       if ids.respond_to?(:each)
         ids = if range_key.respond_to?(:each)
-                # turn ids into array of arrays each element being hash_key, range_key
-                ids.each_with_index.map { |id, i| [id, range_key[i]] }
-              else
-                range_key ? ids.map { |id| [id, range_key] } : ids
-              end
+          # turn ids into array of arrays each element being hash_key, range_key
+          ids.each_with_index.map { |id, i| [id, range_key[i]] }
+        else
+          range_key ? ids.map { |id| [id, range_key] } : ids
+        end
 
         batch_delete_item(table => ids)
       else
@@ -119,13 +119,13 @@ module Dynamoid
     #
     # @since 0.2.0
     def scan(table, query = [], opts = {})
-      benchmark('Scan', table, query) { adapter.scan(table, query, opts) }
+      benchmark("Scan", table, query) { adapter.scan(table, query, opts) }
     end
 
     def create_table(table_name, key, options = {})
       unless tables.include?(table_name)
         result = nil
-        benchmark('Create Table') { result = adapter.create_table(table_name, key, options) }
+        benchmark("Create Table") { result = adapter.create_table(table_name, key, options) }
         tables << table_name
         result
       else
@@ -136,7 +136,7 @@ module Dynamoid
     # @since 0.2.0
     def delete_table(table_name, options = {})
       if tables.include?(table_name)
-        benchmark('Delete Table') { adapter.delete_table(table_name, options) }
+        benchmark("Delete Table") { adapter.delete_table(table_name, options) }
         idx = tables.index(table_name)
         tables.delete_at(idx)
       end

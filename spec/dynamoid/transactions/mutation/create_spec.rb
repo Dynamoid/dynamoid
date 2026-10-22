@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
-RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable RSpec/MultipleDescribes
+RSpec.describe Dynamoid::Transactions::Mutation, "#create" do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -19,163 +19,163 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
   let(:klass_with_validation) do
     new_class do
       field :name
-      validates :name, length: { minimum: 4 }
+      validates :name, length: {minimum: 4}
     end
   end
 
   let(:klass_with_all_callbacks) do
     new_class do
-      before_validation { ScratchPad << 'run before_validation' }
-      after_validation { ScratchPad << 'run after_validation' }
+      before_validation { ScratchPad << "run before_validation" }
+      after_validation { ScratchPad << "run after_validation" }
 
-      before_create { ScratchPad << 'run before_create' }
-      after_create { ScratchPad << 'run after_create' }
+      before_create { ScratchPad << "run before_create" }
+      after_create { ScratchPad << "run after_create" }
       around_create :around_create_callback
 
-      before_save { ScratchPad << 'run before_save' }
-      after_save { ScratchPad << 'run after_save' }
+      before_save { ScratchPad << "run before_save" }
+      after_save { ScratchPad << "run after_save" }
       around_save :around_save_callback
 
       def around_create_callback
-        ScratchPad << 'start around_create'
+        ScratchPad << "start around_create"
         yield
-        ScratchPad << 'finish around_create'
+        ScratchPad << "finish around_create"
       end
 
       def around_save_callback
-        ScratchPad << 'start around_save'
+        ScratchPad << "start around_save"
         yield
-        ScratchPad << 'finish around_save'
+        ScratchPad << "finish around_save"
       end
     end
   end
 
-  it 'persists a new model' do
+  it "persists a new model" do
     klass.create_table
 
     expect {
       described_class.execute do |txn|
-        txn.create klass, name: 'Alex'
+        txn.create klass, name: "Alex"
       end
     }.to change(klass, :count).by(1)
 
     obj = klass.last
-    expect(obj.name).to eql 'Alex'
+    expect(obj.name).to eql "Alex"
   end
 
-  it 'returns a new model' do
+  it "returns a new model" do
     klass.create_table
 
     obj = nil
     described_class.execute do |txn|
-      obj = txn.create klass, name: 'Alex'
+      obj = txn.create klass, name: "Alex"
     end
 
     expect(obj).to be_a(klass)
     expect(obj).to be_persisted
-    expect(obj.name).to eql 'Alex'
+    expect(obj.name).to eql "Alex"
   end
 
-  it 'creates multiple documents' do
+  it "creates multiple documents" do
     klass.create_table
     result = nil
 
     expect {
       described_class.execute do |txn|
-        result = txn.create klass, [{ name: 'Alex' }, { name: 'Michael' }]
+        result = txn.create klass, [{name: "Alex"}, {name: "Michael"}]
       end
     }.to change(klass, :count).by(2)
 
-    expect(klass.pluck(:name)).to contain_exactly('Alex', 'Michael')
+    expect(klass.pluck(:name)).to contain_exactly("Alex", "Michael")
     expect(result.size).to eq 2
     expect(result).to be_all { |obj| obj.is_a? klass }
     expect(result).to be_all(&:persisted?)
-    expect(result.map(&:name)).to contain_exactly('Alex', 'Michael')
+    expect(result.map(&:name)).to contain_exactly("Alex", "Michael")
   end
 
-  context 'when a block specified' do
-    it 'calls a block and passes a model as argument' do
+  context "when a block specified" do
+    it "calls a block and passes a model as argument" do
       klass.create_table
       obj = nil
 
       described_class.execute do |txn|
-        obj = txn.create klass, { name: 'Alex' } do |u|
-          u.name += ' [Updated]'
+        obj = txn.create klass, {name: "Alex"} do |u|
+          u.name += " [Updated]"
         end
       end
 
-      expect(obj.name).to eql 'Alex [Updated]'
+      expect(obj.name).to eql "Alex [Updated]"
     end
 
-    it 'calls a block and passes each model as argument if there are multiple models' do
+    it "calls a block and passes each model as argument if there are multiple models" do
       klass.create_table
       objects = nil
 
       described_class.execute do |txn|
-        objects = txn.create klass, [{ name: 'Alex' }, { name: 'Michael' }] do |u|
-          u.name += ' [Updated]'
+        objects = txn.create klass, [{name: "Alex"}, {name: "Michael"}] do |u|
+          u.name += " [Updated]"
         end
       end
 
-      expect(objects.map(&:name)).to contain_exactly('Alex [Updated]', 'Michael [Updated]')
+      expect(objects.map(&:name)).to contain_exactly("Alex [Updated]", "Michael [Updated]")
     end
   end
 
   # TODO: implement the test later
-  it 'can be called without attributes to modify'
+  it "can be called without attributes to modify"
 
-  describe 'primary key schema' do
-    context 'simple primary key' do
-      it 'persists a model' do
+  describe "primary key schema" do
+    context "simple primary key" do
+      it "persists a model" do
         klass.create_table
 
         expect {
           described_class.execute do |txn|
-            txn.create klass, name: 'Alex'
+            txn.create klass, name: "Alex"
           end
         }.to change(klass, :count).by(1)
       end
     end
 
-    context 'composite key' do
-      it 'persists a model' do
+    context "composite key" do
+      it "persists a model" do
         klass_with_composite_key.create_table
 
         expect {
           described_class.execute do |txn|
-            txn.create klass_with_composite_key, name: 'Alex', age: 3
+            txn.create klass_with_composite_key, name: "Alex", age: 3
           end
         }.to change(klass_with_composite_key, :count).by(1)
       end
     end
   end
 
-  describe 'primary key validation' do
-    context 'composite key' do
-      it 'requires sort key to be specified' do
+  describe "primary key validation" do
+    context "composite key" do
+      it "requires sort key to be specified" do
         klass_with_composite_key.create_table
 
         expect {
           described_class.execute do |txn|
-            txn.create klass_with_composite_key, name: 'Alex', age: nil
+            txn.create klass_with_composite_key, name: "Alex", age: nil
           end
         }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
       end
     end
   end
 
-  describe 'timestamps' do
+  describe "timestamps" do
     before do
       klass.create_table
     end
 
-    it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+    it "sets created_at and updated_at if Config.timestamps=true", config: {timestamps: true} do
       travel 1.hour do
         time_now = Time.now
 
         obj = nil
         described_class.execute do |txn|
-          obj = txn.create klass, name: 'Alex'
+          obj = txn.create klass, name: "Alex"
         end
 
         expect(obj.created_at.to_i).to eql time_now.to_i
@@ -183,7 +183,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       end
     end
 
-    it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+    it "uses provided values of created_at and updated_at if Config.timestamps=true", config: {timestamps: true} do
       travel 1.hour do
         created_at = updated_at = Time.now
 
@@ -197,15 +197,15 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       end
     end
 
-    it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+    it "does not raise error if Config.timestamps=false", config: {timestamps: false} do
       expect {
         described_class.execute do |txn|
-          txn.create klass, name: 'Alex'
+          txn.create klass, name: "Alex"
         end
       }.not_to raise_error
     end
 
-    it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+    it "does not raise error if no changes and Config.timestamps=false", config: {timestamps: false} do
       expect {
         described_class.execute do |txn|
           txn.create klass, {}
@@ -214,17 +214,17 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
     end
   end
 
-  describe 'validation' do
+  describe "validation" do
     before do
       klass_with_validation.create_table
     end
 
-    it 'persists a valid model' do
+    it "persists a valid model" do
       obj = nil
 
       expect {
         described_class.execute do |txn|
-          obj = txn.create(klass_with_validation, name: 'oneone')
+          obj = txn.create(klass_with_validation, name: "oneone")
         end
       }.to change(klass_with_validation, :count).by(1)
 
@@ -232,12 +232,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       expect(obj).not_to be_changed
     end
 
-    it 'does not persist invalid model' do
+    it "does not persist invalid model" do
       obj = nil
 
       expect {
         described_class.execute do |txn|
-          obj = txn.create(klass_with_validation, name: 'one')
+          obj = txn.create(klass_with_validation, name: "one")
         end
       }.not_to change(klass_with_validation, :count)
 
@@ -245,25 +245,25 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       expect(obj).to be_changed
     end
 
-    it 'returns a new model even if it is invalid' do
+    it "returns a new model even if it is invalid" do
       obj = nil
       described_class.execute do |txn|
-        obj = txn.create(klass_with_validation, name: 'one')
+        obj = txn.create(klass_with_validation, name: "one")
       end
 
       expect(obj).to be_a(klass_with_validation)
-      expect(obj.name).to eql 'one'
+      expect(obj.name).to eql "one"
       expect(obj).not_to be_persisted
     end
 
-    it 'does not roll back the whole transaction when a model to be created is invalid' do
+    it "does not roll back the whole transaction when a model to be created is invalid" do
       obj_invalid = nil
       obj_valid = nil
 
       expect {
         described_class.execute do |txn|
-          obj_invalid = txn.create(klass_with_validation, name: 'one')
-          obj_valid = txn.create(klass_with_validation, name: 'twotwo')
+          obj_invalid = txn.create(klass_with_validation, name: "one")
+          obj_valid = txn.create(klass_with_validation, name: "twotwo")
         end
       }.to change(klass_with_validation, :count).by(1)
 
@@ -271,12 +271,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       expect(obj_valid).to be_persisted
 
       obj_valid_loaded = klass_with_validation.find(obj_valid.id)
-      expect(obj_valid_loaded.name).to eql 'twotwo'
+      expect(obj_valid_loaded.name).to eql "twotwo"
     end
   end
 
-  it 'aborts creation and returns false if callback throws :abort' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
+  it "aborts creation and returns false if callback throws :abort" do
+    if ActiveSupport.version < Gem::Version.new("5.0")
       skip "Rails 4.x and below don't support aborting with `throw :abort`"
     end
 
@@ -289,7 +289,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
 
     expect {
       described_class.execute do |txn|
-        obj = txn.create klass, name: 'Alex'
+        obj = txn.create klass, name: "Alex"
       end
     }.not_to change { klass.count }
 
@@ -297,8 +297,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
     expect(obj).to be_changed
   end
 
-  it 'does not roll back the transaction when a model creation aborted by a callback' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
+  it "does not roll back the transaction when a model creation aborted by a callback" do
+    if ActiveSupport.version < Gem::Version.new("5.0")
       skip "Rails 4.x and below don't support aborting with `throw :abort`"
     end
 
@@ -312,13 +312,13 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
     klass_with_callback.create_table
     klass.create_table
 
-    obj_to_save = klass.new(name: 'Michael')
+    obj_to_save = klass.new(name: "Michael")
     obj_to_create = nil
 
     expect {
       described_class.execute do |txn|
         txn.save obj_to_save
-        obj_to_create = txn.create klass_with_callback, name: 'Alex'
+        obj_to_create = txn.create klass_with_callback, name: "Alex"
       end
     }.to change { klass.count }.by(1)
 
@@ -328,13 +328,13 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
     expect(obj_to_create).to be_changed
   end
 
-  it 'rolls back the transaction when id is not unique' do
-    existing = klass.create!(name: 'Alex')
+  it "rolls back the transaction when id is not unique" do
+    existing = klass.create!(name: "Alex")
 
     expect {
       described_class.execute do |txn|
-        txn.create klass, name: 'Alex', id: existing.id
-        txn.create klass, name: 'Michael'
+        txn.create klass, name: "Alex", id: existing.id
+        txn.create klass, name: "Michael"
       end
     }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
 
@@ -342,35 +342,35 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
     expect(klass.all.to_a).to eql [existing]
   end
 
-  it 'is not marked as persisted and is marked as changed when the transaction rolled back' do
+  it "is not marked as persisted and is marked as changed when the transaction rolled back" do
     obj = nil
 
     expect {
       described_class.execute do |txn|
-        obj = txn.create klass, name: 'Alex'
-        raise 'trigger rollback'
+        obj = txn.create klass, name: "Alex"
+        raise "trigger rollback"
       end
-    }.to raise_error('trigger rollback')
+    }.to raise_error("trigger rollback")
 
     expect(obj).not_to be_persisted
     expect(obj).to be_changed
   end
 
-  it 'uses dumped value of partition key to create item' do
-    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+  it "uses dumped value of partition key to create item" do
+    klass = new_class(partition_key: {name: :published_on, type: :date}) do
       field :name
     end
     klass.create_table
 
     described_class.execute do |txn|
-      txn.create klass, published_on: '2018-10-07'.to_date, name: 'Alex'
+      txn.create klass, published_on: "2018-10-07".to_date, name: "Alex"
     end
 
     obj = klass.last
-    expect(obj.name).to eql 'Alex'
+    expect(obj.name).to eql "Alex"
   end
 
-  it 'uses dumped value of sort key to create item' do
+  it "uses dumped value of sort key to create item" do
     klass = new_class do
       range :activated_on, :date
       field :name
@@ -378,21 +378,21 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
     klass.create_table
 
     described_class.execute do |txn|
-      txn.create klass, activated_on: Date.today, name: 'Alex'
+      txn.create klass, activated_on: Date.today, name: "Alex"
     end
 
     obj = klass.last
-    expect(obj.name).to eql 'Alex'
+    expect(obj.name).to eql "Alex"
   end
 
-  describe 'callbacks' do
+  describe "callbacks" do
     before do
       ScratchPad.clear
     end
 
-    it 'runs before_create callback' do
+    it "runs before_create callback" do
       klass_with_callback = new_class do
-        before_create { ScratchPad.record 'run before_create' }
+        before_create { ScratchPad.record "run before_create" }
       end
       klass_with_callback.create_table
 
@@ -400,12 +400,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
         txn.create klass_with_callback
       end
 
-      expect(ScratchPad.recorded).to eql 'run before_create'
+      expect(ScratchPad.recorded).to eql "run before_create"
     end
 
-    it 'runs after_create callback' do
+    it "runs after_create callback" do
       klass_with_callback = new_class do
-        after_create { ScratchPad.record 'run after_create' }
+        after_create { ScratchPad.record "run after_create" }
       end
       klass_with_callback.create_table
 
@@ -413,17 +413,17 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
         txn.create klass_with_callback
       end
 
-      expect(ScratchPad.recorded).to eql 'run after_create'
+      expect(ScratchPad.recorded).to eql "run after_create"
     end
 
-    it 'runs around_create callback' do
+    it "runs around_create callback" do
       klass_with_callback = new_class do
         around_create :around_create_callback
 
         def around_create_callback
-          ScratchPad << 'start around_create'
+          ScratchPad << "start around_create"
           yield
-          ScratchPad << 'finish around_create'
+          ScratchPad << "finish around_create"
         end
       end
       klass_with_callback.create_table
@@ -432,12 +432,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
         txn.create klass_with_callback
       end
 
-      expect(ScratchPad.recorded).to eql ['start around_create', 'finish around_create']
+      expect(ScratchPad.recorded).to eql ["start around_create", "finish around_create"]
     end
 
-    it 'runs before_save callback' do
+    it "runs before_save callback" do
       klass_with_callback = new_class do
-        before_save { ScratchPad.record 'run before_save' }
+        before_save { ScratchPad.record "run before_save" }
       end
       klass_with_callback.create_table
 
@@ -445,12 +445,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
         txn.create klass_with_callback
       end
 
-      expect(ScratchPad.recorded).to eql 'run before_save'
+      expect(ScratchPad.recorded).to eql "run before_save"
     end
 
-    it 'runs after_save callbacks' do
+    it "runs after_save callbacks" do
       klass_with_callback = new_class do
-        after_save { ScratchPad.record 'run after_save' }
+        after_save { ScratchPad.record "run after_save" }
       end
       klass_with_callback.create_table
 
@@ -458,17 +458,17 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
         txn.create klass_with_callback
       end
 
-      expect(ScratchPad.recorded).to eql 'run after_save'
+      expect(ScratchPad.recorded).to eql "run after_save"
     end
 
-    it 'runs around_save callback' do
+    it "runs around_save callback" do
       klass_with_callback = new_class do
         around_save :around_save_callback
 
         def around_save_callback
-          ScratchPad << 'start around_save'
+          ScratchPad << "start around_save"
           yield
-          ScratchPad << 'finish around_save'
+          ScratchPad << "finish around_save"
         end
       end
 
@@ -478,12 +478,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
         txn.create klass_with_callback
       end
 
-      expect(ScratchPad.recorded).to eql ['start around_save', 'finish around_save']
+      expect(ScratchPad.recorded).to eql ["start around_save", "finish around_save"]
     end
 
-    it 'runs before_validation callback' do
+    it "runs before_validation callback" do
       klass_with_callback = new_class do
-        before_validation { ScratchPad.record 'run before_validation' }
+        before_validation { ScratchPad.record "run before_validation" }
       end
       klass_with_callback.create_table
 
@@ -491,12 +491,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
         txn.create klass_with_callback
       end
 
-      expect(ScratchPad.recorded).to eql 'run before_validation'
+      expect(ScratchPad.recorded).to eql "run before_validation"
     end
 
-    it 'runs after_validation callback' do
+    it "runs after_validation callback" do
       klass_with_callback = new_class do
-        after_validation { ScratchPad.record 'run after_validation' }
+        after_validation { ScratchPad.record "run after_validation" }
       end
       klass_with_callback.create_table
 
@@ -504,10 +504,10 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
         txn.create klass_with_callback
       end
 
-      expect(ScratchPad.recorded).to eql 'run after_validation'
+      expect(ScratchPad.recorded).to eql "run after_validation"
     end
 
-    it 'runs callbacks in the proper order' do
+    it "runs callbacks in the proper order" do
       klass_with_all_callbacks.create_table
 
       described_class.execute do |txn|
@@ -515,20 +515,20 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       end
 
       expect(ScratchPad.recorded).to eql [
-        'run before_validation',
-        'run after_validation',
-        'run before_save',
-        'start around_save',
-        'run before_create',
-        'start around_create',
-        'finish around_create',
-        'run after_create',
-        'finish around_save',
-        'run after_save'
+        "run before_validation",
+        "run after_validation",
+        "run before_save",
+        "start around_save",
+        "run before_create",
+        "start around_create",
+        "finish around_create",
+        "run after_create",
+        "finish around_save",
+        "run after_save"
       ]
     end
 
-    it 'runs callbacks immediately' do
+    it "runs callbacks immediately" do
       klass_with_all_callbacks.create_table
       callbacks = nil
 
@@ -540,21 +540,21 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       end
 
       expect(callbacks).to contain_exactly(
-        'run before_validation',
-        'run after_validation',
-        'run before_save',
-        'start around_save',
-        'run before_create',
-        'start around_create',
-        'finish around_create',
-        'run after_create',
-        'finish around_save',
-        'run after_save'
+        "run before_validation",
+        "run after_validation",
+        "run before_save",
+        "start around_save",
+        "run before_create",
+        "start around_create",
+        "finish around_create",
+        "run after_create",
+        "finish around_save",
+        "run after_save"
       )
-      expect(ScratchPad.recorded).to eql []
+      expect(ScratchPad.recorded).to be_empty
     end
 
-    it 'runs after_commit callbacks' do
+    it "runs after_commit callbacks" do
       klass_with_callback = new_class do
         after_commit { ScratchPad << "after_commit #{id}" }
       end
@@ -562,13 +562,13 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       ScratchPad.record []
 
       described_class.execute do |t|
-        t.create(klass_with_callback, id: '1')
+        t.create(klass_with_callback, id: "1")
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_commit 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_commit 1")
     end
 
-    it 'runs after_rollback callbacks when exception is raised and aborts a transaction' do
+    it "runs after_rollback callbacks when exception is raised and aborts a transaction" do
       klass_with_callback = new_class do
         after_rollback { ScratchPad << "after_rollback #{id}" }
       end
@@ -577,47 +577,47 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
 
       begin
         described_class.execute do |t|
-          t.create(klass_with_callback, id: '1')
-          raise 'error'
+          t.create(klass_with_callback, id: "1")
+          raise "error"
         end
-      rescue StandardError => e
-        expect(e.message).to eq('error')
+      rescue => e
+        expect(e.message).to eq("error")
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_rollback 1")
     end
 
-    it 'runs after_rollback callbacks when a transaction is rolled back' do
+    it "runs after_rollback callbacks when a transaction is rolled back" do
       klass_with_callback = new_class do
         after_rollback { ScratchPad << "after_rollback #{id}" }
       end
       klass_with_callback.create_table
 
-      klass.create(id: 'unique_id')
+      klass.create(id: "unique_id")
 
       ScratchPad.record []
 
       begin
         described_class.execute do |t|
-          t.create(klass_with_callback, id: '1')
-          t.create klass, id: 'unique_id' # triggers rollback
+          t.create(klass_with_callback, id: "1")
+          t.create klass, id: "unique_id" # triggers rollback
         end
       rescue Aws::DynamoDB::Errors::TransactionCanceledException
         # ignore
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_rollback 1")
     end
   end
 
-  context 'when table arn is specified', remove_constants: [:Payment] do
-    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+  context "when table arn is specified", remove_constants: [:Payment] do
+    it "uses given table ARN in requests instead of a table name", config: {create_table_on_save: false} do
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end
 
   # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-  context 'Global Secondary Index' do
+  context "Global Secondary Index" do
     let(:klass_with_gsi) do
       new_class do
         field :name
@@ -631,7 +631,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       klass_with_gsi.create_table
     end
 
-    it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+    it "persists successfuly even if a field declared as a GSI primary key is set to nil" do
       expect {
         described_class.execute do |t|
           t.create klass_with_gsi, name: nil, age: 42
@@ -643,20 +643,20 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       expect(obj.age).to eql 42
     end
 
-    it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+    it "persists successfuly even if a field declared as a GSI sort key is set to nil" do
       expect {
         described_class.execute do |t|
-          t.create klass_with_gsi, name: 'Alex', age: nil
+          t.create klass_with_gsi, name: "Alex", age: nil
         end
       }.to change(klass_with_gsi, :count).by(1)
 
       obj = klass_with_gsi.last
-      expect(obj.name).to eql 'Alex'
+      expect(obj.name).to eql "Alex"
       expect(obj.age).to eql nil
     end
   end
 
-  describe '`store_attribute_with_nil_value` config option' do
+  describe "`store_attribute_with_nil_value` config option" do
     let(:klass) do
       new_class do
         field :age, :integer
@@ -667,24 +667,24 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
       klass.create_table
     end
 
-    context 'true', config: { store_attribute_with_nil_value: true } do
-      it 'keeps document attribute with nil' do
+    context "true", config: {store_attribute_with_nil_value: true} do
+      it "keeps document attribute with nil" do
         obj = nil
         described_class.execute { |t| obj = t.create klass, age: nil }
         expect(raw_attributes(obj)).to include(age: nil)
       end
     end
 
-    context 'false', config: { store_attribute_with_nil_value: false } do
-      it 'does not keep document attribute with nil' do
+    context "false", config: {store_attribute_with_nil_value: false} do
+      it "does not keep document attribute with nil" do
         obj = nil
         described_class.execute { |t| obj = t.create klass, age: nil }
         expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
       end
     end
 
-    context 'by default', config: { store_attribute_with_nil_value: nil } do
-      it 'does not keep document attribute with nil' do
+    context "by default", config: {store_attribute_with_nil_value: nil} do
+      it "does not keep document attribute with nil" do
         obj = nil
         described_class.execute { |t| obj = t.create klass, age: nil }
         expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
@@ -693,7 +693,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
   end
 
   # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-  it 'allows reserved words as attribute names' do
+  it "allows reserved words as attribute names" do
     klass = new_class do
       field :name
     end
@@ -701,15 +701,15 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
 
     obj = nil
     described_class.execute do |txn|
-      obj = txn.create klass, name: 'Alex'
+      obj = txn.create klass, name: "Alex"
     end
 
-    expect(obj.reload.name).to eql 'Alex'
+    expect(obj.reload.name).to eql "Alex"
   end
 
   # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-  it 'allows reserved words as partition key and sort key' do
-    klass = new_class(partition_key: { name: :order, type: :string }) do
+  it "allows reserved words as partition key and sort key" do
+    klass = new_class(partition_key: {name: :order, type: :string}) do
       range :connection, :string
       field :name
     end
@@ -717,14 +717,14 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create' do # rubocop:disable 
 
     obj = nil
     described_class.execute do |txn|
-      obj = txn.create klass, order: 'order-1', connection: 'conn-1', name: 'Alex'
+      obj = txn.create klass, order: "order-1", connection: "conn-1", name: "Alex"
     end
 
-    expect(obj.reload.name).to eql 'Alex'
+    expect(obj.reload.name).to eql "Alex"
   end
 end
 
-RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
+RSpec.describe Dynamoid::Transactions::Mutation, "#create!" do
   let(:klass) do
     new_class do
       field :name
@@ -741,133 +741,133 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
   let(:klass_with_validation) do
     new_class do
       field :name
-      validates :name, length: { minimum: 4 }
+      validates :name, length: {minimum: 4}
     end
   end
 
-  it 'persists a new model' do
+  it "persists a new model" do
     klass.create_table
 
     expect {
       described_class.execute do |txn|
-        txn.create! klass, name: 'Alex'
+        txn.create! klass, name: "Alex"
       end
     }.to change(klass, :count).by(1)
 
     obj = klass.last
-    expect(obj.name).to eql 'Alex'
+    expect(obj.name).to eql "Alex"
   end
 
-  it 'returns a new model' do
+  it "returns a new model" do
     klass.create_table
 
     obj = nil
     described_class.execute do |txn|
-      obj = txn.create! klass, name: 'Alex'
+      obj = txn.create! klass, name: "Alex"
     end
 
     expect(obj).to be_a(klass)
     expect(obj).to be_persisted
-    expect(obj.name).to eql 'Alex'
+    expect(obj.name).to eql "Alex"
   end
 
-  it 'creates multiple documents' do
+  it "creates multiple documents" do
     klass.create_table
     result = nil
 
     expect {
       described_class.execute do |txn|
-        result = txn.create! klass, [{ name: 'Alex' }, { name: 'Michael' }]
+        result = txn.create! klass, [{name: "Alex"}, {name: "Michael"}]
       end
     }.to change(klass, :count).by(2)
 
-    expect(klass.pluck(:name)).to contain_exactly('Alex', 'Michael')
+    expect(klass.pluck(:name)).to contain_exactly("Alex", "Michael")
     expect(result.size).to eq 2
     expect(result).to be_all { |obj| obj.is_a? klass }
     expect(result).to be_all(&:persisted?)
-    expect(result.map(&:name)).to contain_exactly('Alex', 'Michael')
+    expect(result.map(&:name)).to contain_exactly("Alex", "Michael")
   end
 
-  context 'when a block specified' do
-    it 'calls a block and passes a model as argument' do
+  context "when a block specified" do
+    it "calls a block and passes a model as argument" do
       klass.create_table
       obj = nil
 
       described_class.execute do |txn|
-        obj = txn.create! klass, { name: 'Alex' } do |u|
-          u.name += ' [Updated]'
+        obj = txn.create! klass, {name: "Alex"} do |u|
+          u.name += " [Updated]"
         end
       end
 
-      expect(obj.name).to eql 'Alex [Updated]'
+      expect(obj.name).to eql "Alex [Updated]"
     end
 
-    it 'calls a block and passes each model as argument if there are multiple models' do
+    it "calls a block and passes each model as argument if there are multiple models" do
       klass.create_table
       objects = nil
 
       described_class.execute do |txn|
-        objects = txn.create! klass, [{ name: 'Alex' }, { name: 'Michael' }] do |u|
-          u.name += ' [Updated]'
+        objects = txn.create! klass, [{name: "Alex"}, {name: "Michael"}] do |u|
+          u.name += " [Updated]"
         end
       end
 
-      expect(objects.map(&:name)).to contain_exactly('Alex [Updated]', 'Michael [Updated]')
+      expect(objects.map(&:name)).to contain_exactly("Alex [Updated]", "Michael [Updated]")
     end
   end
 
-  describe 'primary key schema' do
-    context 'simple primary key' do
-      it 'persists a model' do
+  describe "primary key schema" do
+    context "simple primary key" do
+      it "persists a model" do
         klass.create_table
 
         expect {
           described_class.execute do |txn|
-            txn.create! klass, name: 'Alex'
+            txn.create! klass, name: "Alex"
           end
         }.to change(klass, :count).by(1)
       end
     end
 
-    context 'composite key' do
-      it 'persists a model' do
+    context "composite key" do
+      it "persists a model" do
         klass_with_composite_key.create_table
 
         expect {
           described_class.execute do |txn|
-            txn.create! klass_with_composite_key, name: 'Alex', age: 3
+            txn.create! klass_with_composite_key, name: "Alex", age: 3
           end
         }.to change(klass_with_composite_key, :count).by(1)
       end
     end
   end
 
-  describe 'primary key validation' do
-    context 'composite key' do
-      it 'requires sort key to be specified' do
+  describe "primary key validation" do
+    context "composite key" do
+      it "requires sort key to be specified" do
         klass_with_composite_key.create_table
 
         expect {
           described_class.execute do |txn|
-            txn.create! klass_with_composite_key, name: 'Alex', age: nil
+            txn.create! klass_with_composite_key, name: "Alex", age: nil
           end
         }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
       end
     end
   end
 
-  describe 'timestamps' do
+  describe "timestamps" do
     before do
       klass.create_table
     end
 
-    it 'sets created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+    it "sets created_at and updated_at if Config.timestamps=true", config: {timestamps: true} do
       travel 1.hour do
         time_now = Time.now
 
         obj = nil
         described_class.execute do |txn|
-          obj = txn.create! klass, name: 'Alex'
+          obj = txn.create! klass, name: "Alex"
         end
 
         expect(obj.created_at.to_i).to eql time_now.to_i
@@ -875,7 +875,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
       end
     end
 
-    it 'uses provided values of created_at and updated_at if Config.timestamps=true', config: { timestamps: true } do
+    it "uses provided values of created_at and updated_at if Config.timestamps=true", config: {timestamps: true} do
       travel 1.hour do
         created_at = updated_at = Time.now
 
@@ -889,15 +889,15 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
       end
     end
 
-    it 'does not raise error if Config.timestamps=false', config: { timestamps: false } do
+    it "does not raise error if Config.timestamps=false", config: {timestamps: false} do
       expect {
         described_class.execute do |txn|
-          txn.create! klass, name: 'Alex'
+          txn.create! klass, name: "Alex"
         end
       }.not_to raise_error
     end
 
-    it 'does not raise error if no changes and Config.timestamps=false', config: { timestamps: false } do
+    it "does not raise error if no changes and Config.timestamps=false", config: {timestamps: false} do
       expect {
         described_class.execute do |txn|
           txn.create! klass, {}
@@ -906,17 +906,17 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
     end
   end
 
-  describe 'validation' do
+  describe "validation" do
     before do
       klass_with_validation.create_table
     end
 
-    it 'persists a valid model' do
+    it "persists a valid model" do
       obj = nil
 
       expect {
         described_class.execute do |txn|
-          obj = txn.create!(klass_with_validation, name: 'oneone')
+          obj = txn.create!(klass_with_validation, name: "oneone")
         end
       }.to change(klass_with_validation, :count).by(1)
 
@@ -924,28 +924,28 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
       expect(obj).not_to be_changed
     end
 
-    it 'raise DocumentNotValid when invalid model' do
+    it "raise DocumentNotValid when invalid model" do
       expect {
         described_class.execute do |txn|
-          txn.create!(klass_with_validation, name: 'one')
+          txn.create!(klass_with_validation, name: "one")
         end
       }.to raise_error(Dynamoid::Errors::DocumentNotValid)
     end
 
-    it 'rolls back the whole transaction when a model to be created is invalid' do
+    it "rolls back the whole transaction when a model to be created is invalid" do
       expect {
         expect {
           described_class.execute do |txn|
-            txn.create!(klass_with_validation, name: 'twotwo')
-            txn.create!(klass_with_validation, name: 'one')
+            txn.create!(klass_with_validation, name: "twotwo")
+            txn.create!(klass_with_validation, name: "one")
           end
         }.to raise_error(Dynamoid::Errors::DocumentNotValid)
       }.not_to change(klass_with_validation, :count)
     end
   end
 
-  it 'aborts creation and raises exception if callback throws :abort' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
+  it "aborts creation and raises exception if callback throws :abort" do
+    if ActiveSupport.version < Gem::Version.new("5.0")
       skip "Rails 4.x and below don't support aborting with `throw :abort`"
     end
 
@@ -958,14 +958,14 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
     expect {
       expect {
         described_class.execute do |txn|
-          txn.create! klass, name: 'Alex'
+          txn.create! klass, name: "Alex"
         end
       }.to raise_error(Dynamoid::Errors::RecordNotSaved)
     }.not_to change { klass.count }
   end
 
-  it 'rolls back the transaction when a model creation aborted by a callback' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
+  it "rolls back the transaction when a model creation aborted by a callback" do
+    if ActiveSupport.version < Gem::Version.new("5.0")
       skip "Rails 4.x and below don't support aborting with `throw :abort`"
     end
 
@@ -979,13 +979,13 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
     klass_with_callback.create_table
     klass.create_table
 
-    obj_to_save = klass.new(name: 'Michael')
+    obj_to_save = klass.new(name: "Michael")
 
     expect {
       expect {
         described_class.execute do |txn|
           txn.save obj_to_save
-          txn.create! klass_with_callback, name: 'Alex'
+          txn.create! klass_with_callback, name: "Alex"
         end
       }.to raise_error(Dynamoid::Errors::RecordNotSaved)
     }.not_to change { klass.count }
@@ -994,13 +994,13 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
     expect(obj_to_save).to be_changed
   end
 
-  it 'rolls back the transaction when id is not unique' do
-    existing = klass.create!(name: 'Alex')
+  it "rolls back the transaction when id is not unique" do
+    existing = klass.create!(name: "Alex")
 
     expect {
       described_class.execute do |txn|
-        txn.create! klass, name: 'Alex', id: existing.id
-        txn.create klass, name: 'Michael'
+        txn.create! klass, name: "Alex", id: existing.id
+        txn.create klass, name: "Michael"
       end
     }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
 
@@ -1008,35 +1008,35 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
     expect(klass.all.to_a).to eql [existing]
   end
 
-  it 'is not marked as persisted and is marked as changed when the transaction rolled back' do
+  it "is not marked as persisted and is marked as changed when the transaction rolled back" do
     obj = nil
 
     expect {
       described_class.execute do |txn|
-        obj = txn.create! klass, name: 'Alex'
-        raise 'trigger rollback'
+        obj = txn.create! klass, name: "Alex"
+        raise "trigger rollback"
       end
-    }.to raise_error('trigger rollback')
+    }.to raise_error("trigger rollback")
 
     expect(obj).not_to be_persisted
     expect(obj).to be_changed
   end
 
-  it 'uses dumped value of partition key to create item' do
-    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+  it "uses dumped value of partition key to create item" do
+    klass = new_class(partition_key: {name: :published_on, type: :date}) do
       field :name
     end
     klass.create_table
 
     described_class.execute do |txn|
-      txn.create! klass, published_on: '2018-10-07'.to_date, name: 'Alex'
+      txn.create! klass, published_on: "2018-10-07".to_date, name: "Alex"
     end
 
     obj = klass.last
-    expect(obj.name).to eql 'Alex'
+    expect(obj.name).to eql "Alex"
   end
 
-  it 'uses dumped value of sort key to create item' do
+  it "uses dumped value of sort key to create item" do
     klass = new_class do
       range :activated_on, :date
       field :name
@@ -1044,15 +1044,15 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
     klass.create_table
 
     described_class.execute do |txn|
-      txn.create! klass, activated_on: Date.today, name: 'Alex'
+      txn.create! klass, activated_on: Date.today, name: "Alex"
     end
 
     obj = klass.last
-    expect(obj.name).to eql 'Alex'
+    expect(obj.name).to eql "Alex"
   end
 
-  describe 'callbacks' do
-    it 'runs after_rollback callbacks when exception is raised and aborts a transaction' do
+  describe "callbacks" do
+    it "runs after_rollback callbacks when exception is raised and aborts a transaction" do
       klass_with_callback = new_class do
         after_rollback { ScratchPad << "after_rollback #{id}" }
       end
@@ -1061,47 +1061,47 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
 
       begin
         described_class.execute do |t|
-          t.create!(klass_with_callback, id: '1')
-          raise 'error'
+          t.create!(klass_with_callback, id: "1")
+          raise "error"
         end
-      rescue StandardError => e
-        expect(e.message).to eq('error')
+      rescue => e
+        expect(e.message).to eq("error")
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_rollback 1")
     end
 
-    it 'runs after_rollback callbacks when a transaction is rolled back' do
+    it "runs after_rollback callbacks when a transaction is rolled back" do
       klass_with_callback = new_class do
         after_rollback { ScratchPad << "after_rollback #{id}" }
       end
       klass_with_callback.create_table
 
-      klass.create(id: 'unique_id')
+      klass.create(id: "unique_id")
 
       ScratchPad.record []
 
       begin
         described_class.execute do |t|
-          t.create!(klass_with_callback, id: '1')
-          t.create klass, id: 'unique_id' # triggers rollback
+          t.create!(klass_with_callback, id: "1")
+          t.create klass, id: "unique_id" # triggers rollback
         end
       rescue Aws::DynamoDB::Errors::TransactionCanceledException
         # ignore
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_rollback 1")
     end
   end
 
-  context 'when table arn is specified', remove_constants: [:Payment] do
-    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+  context "when table arn is specified", remove_constants: [:Payment] do
+    it "uses given table ARN in requests instead of a table name", config: {create_table_on_save: false} do
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end
 
   # See https://github.com/Dynamoid/dynamoid/issues/885 for details
-  context 'Global Secondary Index' do
+  context "Global Secondary Index" do
     let(:klass_with_gsi) do
       new_class do
         field :name
@@ -1115,7 +1115,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
       klass_with_gsi.create_table
     end
 
-    it 'persists successfuly even if a field declared as a GSI primary key is set to nil' do
+    it "persists successfuly even if a field declared as a GSI primary key is set to nil" do
       expect {
         described_class.execute do |t|
           t.create! klass_with_gsi, name: nil, age: 42
@@ -1127,20 +1127,20 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
       expect(obj.age).to eql 42
     end
 
-    it 'persists successfuly even if a field declared as a GSI sort key is set to nil' do
+    it "persists successfuly even if a field declared as a GSI sort key is set to nil" do
       expect {
         described_class.execute do |t|
-          t.create! klass_with_gsi, name: 'Alex', age: nil
+          t.create! klass_with_gsi, name: "Alex", age: nil
         end
       }.to change(klass_with_gsi, :count).by(1)
 
       obj = klass_with_gsi.last
-      expect(obj.name).to eql 'Alex'
+      expect(obj.name).to eql "Alex"
       expect(obj.age).to eql nil
     end
   end
 
-  describe '`store_attribute_with_nil_value` config option' do
+  describe "`store_attribute_with_nil_value` config option" do
     let(:klass) do
       new_class do
         field :age, :integer
@@ -1151,24 +1151,24 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#create!' do
       klass.create_table
     end
 
-    context 'true', config: { store_attribute_with_nil_value: true } do
-      it 'keeps document attribute with nil' do
+    context "true", config: {store_attribute_with_nil_value: true} do
+      it "keeps document attribute with nil" do
         obj = nil
         described_class.execute { |t| obj = t.create! klass, age: nil }
         expect(raw_attributes(obj)).to include(age: nil)
       end
     end
 
-    context 'false', config: { store_attribute_with_nil_value: false } do
-      it 'does not keep document attribute with nil' do
+    context "false", config: {store_attribute_with_nil_value: false} do
+      it "does not keep document attribute with nil" do
         obj = nil
         described_class.execute { |t| obj = t.create! klass, age: nil }
         expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)
       end
     end
 
-    context 'by default', config: { store_attribute_with_nil_value: nil } do
-      it 'does not keep document attribute with nil' do
+    context "by default", config: {store_attribute_with_nil_value: nil} do
+      it "does not keep document attribute with nil" do
         obj = nil
         described_class.execute { |t| obj = t.create! klass, age: nil }
         expect(raw_attributes(obj).keys).to contain_exactly(:id, :created_at, :updated_at)

@@ -4,9 +4,9 @@ class Bar
   include Dynamoid::Document
 
   table name: :bar,
-        key: :bar_id,
-        read_capacity: 200,
-        write_capacity:  200
+    key: :bar_id,
+    read_capacity: 200,
+    write_capacity:  200
 
   range :visited_at, :datetime
   field :name

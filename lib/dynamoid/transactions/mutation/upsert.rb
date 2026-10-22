@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'base'
-require_relative 'builders/update_request_builder'
+require_relative "base"
+require_relative "builders/update_request_builder"
 
 module Dynamoid
   module Transactions
@@ -22,9 +22,11 @@ module Dynamoid
           validate_attribute_names!(@model_class, @attributes.keys)
         end
 
-        def on_commit; end
+        def on_commit
+        end
 
-        def on_rollback; end
+        def on_rollback
+        end
 
         def aborted?
           false

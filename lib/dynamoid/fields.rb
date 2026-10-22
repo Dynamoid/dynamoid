@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'dynamoid/fields/declare'
+require "dynamoid/fields/declare"
 
 module Dynamoid
   # All fields on a Dynamoid::Document must be explicitly defined -- if you have fields in the database that are not
@@ -296,7 +296,7 @@ module Dynamoid
       # @param field [Symbol] a field name
       def remove_field(field)
         field = field.to_sym
-        attributes.delete(field) || raise('No such field')
+        attributes.delete(field) || raise("No such field")
 
         # Dirty API
         undefine_attribute_methods
@@ -325,7 +325,7 @@ module Dynamoid
 
     # You can access the attributes of an object directly on its attributes method, which is by default an empty hash.
     attr_accessor :attributes
-    alias raw_attributes attributes
+    alias_method :raw_attributes, :attributes
 
     # Write an attribute on the object.
     #
@@ -360,7 +360,7 @@ module Dynamoid
       attributes[name] = value_casted
       self
     end
-    alias []= write_attribute
+    alias_method :[]=, :write_attribute
 
     # Read an attribute from an object.
     #
@@ -373,7 +373,7 @@ module Dynamoid
     def read_attribute(name)
       attributes[name.to_sym]
     end
-    alias [] read_attribute
+    alias_method :[], :read_attribute
 
     # Return attributes values before type casting.
     #

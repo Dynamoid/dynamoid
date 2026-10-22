@@ -14,7 +14,7 @@ module Dynamoid
       def call
         # Register new field metadata
         @source.attributes = @source.attributes.merge(
-          @name => { type: @type }.merge(@options)
+          @name => {type: @type}.merge(@options)
         )
 
         # Should be called before `define_attribute_methods` method because it
@@ -51,8 +51,8 @@ module Dynamoid
           define_method(:"#{name}?") do
             value = read_attribute(name)
             case value
-            when true        then true
-            when false, nil  then false
+            when true then true
+            when false, nil then false
             else
               !value.nil?
             end

@@ -28,20 +28,20 @@ module Dynamoid
 
     def self.find_undumper(options)
       undumper_class = case options[:type]
-                       when :string     then StringUndumper
-                       when :integer    then IntegerUndumper
-                       when :number     then NumberUndumper
-                       when :set        then SetUndumper
-                       when :array      then ArrayUndumper
-                       when :map        then MapUndumper
-                       when :datetime   then DateTimeUndumper
-                       when :date       then DateUndumper
-                       when :raw        then RawUndumper
-                       when :serialized then SerializedUndumper
-                       when :boolean    then BooleanUndumper
-                       when :binary     then BinaryUndumper
-                       when Class       then CustomTypeUndumper
-                       end
+      when :string then StringUndumper
+      when :integer then IntegerUndumper
+      when :number then NumberUndumper
+      when :set then SetUndumper
+      when :array then ArrayUndumper
+      when :map then MapUndumper
+      when :datetime then DateTimeUndumper
+      when :date then DateUndumper
+      when :raw then RawUndumper
+      when :serialized then SerializedUndumper
+      when :boolean then BooleanUndumper
+      when :binary then BinaryUndumper
+      when Class then CustomTypeUndumper
+      end
 
       if undumper_class.present?
         undumper_class.new(options)
@@ -139,7 +139,7 @@ module Dynamoid
             options[:type] = element_type
           end
         else
-          { type: element_type }
+          {type: element_type}
         end
       end
     end
@@ -184,7 +184,7 @@ module Dynamoid
             options[:type] = element_type
           end
         else
-          { type: element_type }
+          {type: element_type}
         end
       end
     end
@@ -200,10 +200,10 @@ module Dynamoid
         return value if value.is_a?(Date) || value.is_a?(DateTime) || value.is_a?(Time)
 
         use_string_format = if @options[:store_as_string].nil?
-                              Dynamoid.config.store_datetime_as_string
-                            else
-                              @options[:store_as_string]
-                            end
+          Dynamoid.config.store_datetime_as_string
+        else
+          @options[:store_as_string]
+        end
         value = DateTime.iso8601(value).to_time.to_i if use_string_format
         ApplicationTimeZone.at(value)
       end
@@ -212,10 +212,10 @@ module Dynamoid
     class DateUndumper < Base
       def process(value)
         use_string_format = if @options[:store_as_string].nil?
-                              Dynamoid.config.store_date_as_string
-                            else
-                              @options[:store_as_string]
-                            end
+          Dynamoid.config.store_date_as_string
+        else
+          @options[:store_as_string]
+        end
 
         if use_string_format
           Date.iso8601(value)
@@ -242,7 +242,7 @@ module Dynamoid
       # Once we drop support for Rubies older than 2.6 we can remove this condition (with major version bump)!
       # YAML_SAFE_LOAD = minimum_ruby_version.call("2.6")
       # But we don't want to change behavior for Ruby <= 3.0 that has been using the gem, without a major version bump
-      YAML_SAFE_LOAD = minimum_ruby_version.call('3.1')
+      YAML_SAFE_LOAD = minimum_ruby_version.call("3.1")
 
       def process(value)
         if @options[:serializer]
@@ -269,16 +269,16 @@ module Dynamoid
 
       def process(value)
         store_as_boolean = if @options[:store_as_native_boolean].nil?
-                             Dynamoid.config.store_boolean_as_native
-                           else
-                             @options[:store_as_native_boolean]
-                           end
+          Dynamoid.config.store_boolean_as_native
+        else
+          @options[:store_as_native_boolean]
+        end
         if store_as_boolean
           !!value
         elsif STRING_VALUES.include?(value)
-          value == 't'
+          value == "t"
         else
-          raise ArgumentError, 'Boolean column neither true nor false'
+          raise ArgumentError, "Boolean column neither true nor false"
         end
       end
     end
@@ -286,10 +286,10 @@ module Dynamoid
     class BinaryUndumper < Base
       def process(value)
         store_as_binary = if @options[:store_as_native_binary].nil?
-                            Dynamoid.config.store_binary_as_native
-                          else
-                            @options[:store_as_native_binary]
-                          end
+          Dynamoid.config.store_binary_as_native
+        else
+          @options[:store_as_native_binary]
+        end
 
         if store_as_binary
           value.string # expect StringIO here

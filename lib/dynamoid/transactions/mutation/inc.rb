@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'base'
-require_relative 'builders/update_request_builder'
+require_relative "base"
+require_relative "builders/update_request_builder"
 
 module Dynamoid
   module Transactions
@@ -23,9 +23,11 @@ module Dynamoid
           validate_attribute_names!(@model_class, @counters.keys)
         end
 
-        def on_commit; end
+        def on_commit
+        end
 
-        def on_rollback; end
+        def on_rollback
+        end
 
         def aborted?
           false
@@ -47,12 +49,12 @@ module Dynamoid
           builder.range_key = cast_and_dump(@model_class.range_key, @range_key) if @model_class.range_key?
 
           # require primary key to exist
-          builder.add_expression_attribute_name('#_h', @model_class.hash_key)
-          condition_expression = 'attribute_exists(#_h)'
+          builder.add_expression_attribute_name("#_h", @model_class.hash_key)
+          condition_expression = "attribute_exists(#_h)"
 
           if @model_class.range_key?
-            builder.add_expression_attribute_name('#_r', @model_class.range_key)
-            condition_expression += ' AND attribute_exists(#_r)'
+            builder.add_expression_attribute_name("#_r", @model_class.range_key)
+            condition_expression += " AND attribute_exists(#_r)"
           end
           builder.condition_expression = condition_expression
 

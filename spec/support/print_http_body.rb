@@ -11,13 +11,13 @@ class PrintHttpBody < Seahorse::Client::Plugin
   class Handler < Seahorse::Client::Handler
     def call(context)
       if PrintHttpBody.enabled
-        target_header = context.http_request.headers.to_h['x-amz-target']
-        operation_name = target_header.split('.').last
+        target_header = context.http_request.headers.to_h["x-amz-target"]
+        operation_name = target_header.split(".").last
 
         body = context.http_request.body.read
         context.http_request.body.rewind
 
-        request = { operation_name: operation_name, body: JSON.parse(body) }
+        request = {operation_name: operation_name, body: JSON.parse(body)}
         PrintHttpBody.logged_requests << request
       end
 

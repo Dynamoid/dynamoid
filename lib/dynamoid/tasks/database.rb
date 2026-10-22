@@ -9,7 +9,7 @@ module Dynamoid
       # Create any new tables for the models. Existing tables are not
       # modified.
       def create_tables
-        results = { created: [], existing: [] }
+        results = {created: [], existing: []}
         # We can't quite rely on Dynamoid.included_models alone, we need to select only viable models
         Dynamoid.included_models.reject { |m| m.base_class.try(:name).blank? }.uniq(&:table_name).each do |model|
           if Dynamoid.adapter.list_tables.include? model.table_name

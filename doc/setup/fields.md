@@ -101,9 +101,9 @@ elements type:
 class Document
   include Dynamoid::Document
 
-  field :values, :set, of: { serialized: { serializer: JSON } }
-  field :dates, :set, of: { date: { store_as_string: true } }
-  field :datetimes, :set, of: { datetime: { store_as_string: false } }
+  field :values, :set, of: {serialized: {serializer: JSON}}
+  field :dates, :set, of: {date: {store_as_string: true}}
+  field :datetimes, :set, of: {datetime: {store_as_string: false}}
 end
 ```
 
@@ -190,7 +190,7 @@ setter/getter/`<name>?`/`<name>_before_type_cast` methods for both the
 original field name (`firstName`) and the alias (`first_name`).
 
 ```ruby
-user = User.new(first_name: 'Michael')
+user = User.new(first_name: "Michael")
 user.first_name # => 'Michael'
 user.firstName # => 'Michael'
 ```
@@ -204,7 +204,7 @@ class Money
   # ... your business logic ...
 
   def dynamoid_dump
-    'serialized representation as a string'
+    "serialized representation as a string"
   end
 
   def self.dynamoid_load(_serialized_str)

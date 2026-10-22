@@ -53,13 +53,13 @@ transaction. Upsert will update `updated_at` but will not create
 
 ```ruby
 user_id = SecureRandom.uuid
-email = 'bob@bob.bob'
+email = "bob@bob.bob"
 
 User.transaction do |t|
   t.create(User, id: user_id)
   t.create(UserEmail, id: "UserEmail##{email}", user_id: user_id)
-  t.create(Address, id: 'A#2', street: '456')
-  t.upsert(Address, 'A#1', street: '123')
+  t.create(Address, id: "A#2", street: "456")
+  t.upsert(Address, "A#1", street: "123")
 end
 ```
 
@@ -72,7 +72,7 @@ failures will throw `Dynamoid::Errors::DocumentNotValid`.
 
 ```ruby
 user = User.find(1)
-article = Article.new(body: 'New article text', user_id: user.id)
+article = Article.new(body: "New article text", user_id: user.id)
 
 User.transaction do |t|
   t.save(article)
@@ -89,23 +89,23 @@ A model can be updated by providing a model or primary key, and the fields to up
 ```ruby
 User.transaction do |t|
   # change name and title for a user
-  t.update_attributes(user, name: 'bob', title: 'mister')
+  t.update_attributes(user, name: "bob", title: "mister")
 
   # sets the name and title for a user
   # The user is found by id (that equals 1)
-  t.update_fields(User, '1', name: 'bob', title: 'mister')
+  t.update_fields(User, "1", name: "bob", title: "mister")
 
   # sets the name, increments a count and deletes a field
-  t.update_fields(User, '1') do |u|
-    u.set(name: 'bob')
+  t.update_fields(User, "1") do |u|
+    u.set(name: "bob")
     u.add(article_count: 1)
     u.delete(:title)
   end
 
   # adds to a set of integers and deletes from a set of strings
-  t.update_fields(User, '2') do |u|
+  t.update_fields(User, "2") do |u|
     u.add(friend_ids: [1, 2])
-    u.delete(child_names: ['bebe'])
+    u.delete(child_names: ["bebe"])
   end
 end
 ```
@@ -117,15 +117,15 @@ Models can be used or the model class and key can be specified.
 callbacks and validations.
 
 ```ruby
-article = Article.find('1')
+article = Article.find("1")
 tag = article.tag
 
 Article.transaction do |t|
   t.destroy(article)
   t.delete(tag)
 
-  t.delete(Tag, '2') # delete record with hash key '2' if it exists
-  t.delete(Tag, 'key#abcd', 'range#1') # when sort key is required
+  t.delete(Tag, "2") # delete record with hash key '2' if it exists
+  t.delete(Tag, "key#abcd", "range#1") # when sort key is required
 end
 ```
 
@@ -137,14 +137,14 @@ Ignoring validation failures can lead to confusion or bugs so always
 check return status when not using a method with `!`.
 
 ```ruby
-user = User.find('1')
+user = User.find("1")
 user.red = true
 
 User.transaction do |t|
   if t.save(user) # won't raise validation exception
     t.update_fields(UserCount, user.id, count: 5)
   else
-    puts 'ALERT: user not valid, skipping'
+    puts "ALERT: user not valid, skipping"
   end
 end
 ```
@@ -158,7 +158,7 @@ transaction = Dynamoid::Document.transaction
 
 transaction.create(User, id: user_id)
 transaction.create(UserEmail, id: "UserEmail##{email}", user_id: user_id)
-transaction.upsert(Address, 'A#1', street: '123')
+transaction.upsert(Address, "A#1", street: "123")
 
 transaction.commit # changes are persisted in this moment
 ```

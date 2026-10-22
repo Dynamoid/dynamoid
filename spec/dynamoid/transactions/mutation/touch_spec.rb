@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
-RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
+RSpec.describe Dynamoid::Transactions::Mutation, "#touch" do
   let(:klass) do
     new_class
   end
@@ -19,7 +19,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
     end
   end
 
-  it 'sets updated_at to current time' do
+  it "sets updated_at to current time" do
     obj = klass.create!
 
     travel 1.hour do
@@ -30,7 +30,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
     end
   end
 
-  it 'saves updated_at' do
+  it "saves updated_at" do
     obj = klass.create!
 
     travel 1.hour do
@@ -43,7 +43,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
     end
   end
 
-  it 'returns self' do
+  it "returns self" do
     obj = klass.create!
     result = nil
     described_class.execute do |t|
@@ -52,7 +52,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
     expect(result).to eq obj
   end
 
-  it 'supports custom time' do
+  it "supports custom time" do
     obj = klass.create!
 
     time = Time.now + 1.day
@@ -65,7 +65,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
     expect(obj_persisted.updated_at.to_i).to eq(time.to_i)
   end
 
-  it 'supports additional timestamp attributes' do
+  it "supports additional timestamp attributes" do
     klass = new_class do
       field :tagged_at, :datetime
       field :logged_in_at, :datetime
@@ -90,13 +90,13 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
     end
   end
 
-  it 'skips other changed attributes' do
+  it "skips other changed attributes" do
     klass = new_class do
       field :name
     end
 
-    obj = klass.create(name: 'Alex')
-    obj.name = 'Michael'
+    obj = klass.create(name: "Alex")
+    obj.name = "Michael"
 
     travel 1.hour do
       described_class.execute do |t|
@@ -104,18 +104,18 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
       end
 
       obj_persisted = klass.find(obj.id)
-      expect(obj_persisted.name).to eq 'Alex'
+      expect(obj_persisted.name).to eq "Alex"
     end
   end
 
-  it 'skips validations' do
+  it "skips validations" do
     klass_with_validation = new_class do
       field :name
-      validates :name, length: { minimum: 4 }
+      validates :name, length: {minimum: 4}
     end
 
-    obj = klass_with_validation.create(name: 'Theodor')
-    obj.name = 'Mo'
+    obj = klass_with_validation.create(name: "Theodor")
+    obj.name = "Mo"
 
     travel 1.hour do
       described_class.execute do |t|
@@ -127,19 +127,19 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
     end
   end
 
-  it 'raises error for new record' do
+  it "raises error for new record" do
     obj = klass.new
 
     expect {
       described_class.execute do |t|
         t.touch obj
       end
-    }.to raise_error(Dynamoid::Errors::Error, 'cannot touch on a new or destroyed record object')
+    }.to raise_error(Dynamoid::Errors::Error, "cannot touch on a new or destroyed record object")
   end
 
-  describe 'primary key validation' do
-    context 'simple primary key' do
-      it 'requires partition key to be specified' do
+  describe "primary key validation" do
+    context "simple primary key" do
+      it "requires partition key to be specified" do
         obj = klass.create!
         obj.id = nil
         expect {
@@ -148,17 +148,17 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
       end
     end
 
-    context 'composite key' do
-      it 'requires partition key to be specified' do
-        obj = klass_with_composite_key.create!(name: 'Alex')
+    context "composite key" do
+      it "requires partition key to be specified" do
+        obj = klass_with_composite_key.create!(name: "Alex")
         obj.id = nil
         expect {
           described_class.execute { |t| t.touch(obj) }
         }.to raise_error(Dynamoid::Errors::MissingHashKey)
       end
 
-      it 'requires sort key to be specified' do
-        obj = klass_with_composite_key.create!(name: 'Alex')
+      it "requires sort key to be specified" do
+        obj = klass_with_composite_key.create!(name: "Alex")
         obj.name = nil
         expect {
           described_class.execute { |t| t.touch(obj) }
@@ -167,14 +167,14 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
     end
   end
 
-  describe 'callbacks' do
+  describe "callbacks" do
     before do
       ScratchPad.record []
     end
 
-    it 'runs after_touch callbacks' do
+    it "runs after_touch callbacks" do
       klass_with_callbacks = new_class do
-        after_touch { ScratchPad << 'run after_touch' }
+        after_touch { ScratchPad << "run after_touch" }
       end
 
       obj = klass_with_callbacks.create!
@@ -184,17 +184,17 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
         t.touch obj
       end
 
-      expect(ScratchPad.recorded).to include('run after_touch')
+      expect(ScratchPad.recorded).to include("run after_touch")
     end
 
-    it 'skips other callbacks' do
+    it "skips other callbacks" do
       klass_with_callbacks = new_class do
-        before_validation { ScratchPad << 'run before_validation' }
-        after_validation { ScratchPad << 'run after_validation' }
-        before_save { ScratchPad << 'run before_save' }
-        after_save { ScratchPad << 'run after_save' }
-        before_update { ScratchPad << 'run before_update' }
-        after_update { ScratchPad << 'run after_update' }
+        before_validation { ScratchPad << "run before_validation" }
+        after_validation { ScratchPad << "run after_validation" }
+        before_save { ScratchPad << "run before_save" }
+        after_save { ScratchPad << "run after_save" }
+        before_update { ScratchPad << "run before_update" }
+        after_update { ScratchPad << "run after_update" }
       end
 
       obj = klass_with_callbacks.create!
@@ -207,67 +207,67 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
       expect(ScratchPad.recorded).to be_empty
     end
 
-    it 'runs after_commit callbacks' do
+    it "runs after_commit callbacks" do
       klass_with_callback = new_class do
         after_commit { ScratchPad << "after_commit #{id}" }
       end
       klass_with_callback.create_table
-      obj = klass_with_callback.create!(id: '1')
+      obj = klass_with_callback.create!(id: "1")
       ScratchPad.record []
 
       described_class.execute do |t|
         t.touch(obj)
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_commit 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_commit 1")
     end
 
-    it 'runs after_rollback callbacks when exception is raised and aborts a transaction' do
+    it "runs after_rollback callbacks when exception is raised and aborts a transaction" do
       klass_with_callback = new_class do
         after_rollback { ScratchPad << "after_rollback #{id}" }
       end
       klass_with_callback.create_table
-      obj = klass_with_callback.create!(id: '1')
+      obj = klass_with_callback.create!(id: "1")
       ScratchPad.record []
 
       begin
         described_class.execute do |t|
           t.touch(obj)
-          raise 'error'
+          raise "error"
         end
-      rescue StandardError => e
-        expect(e.message).to eq('error')
+      rescue => e
+        expect(e.message).to eq("error")
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_rollback 1")
     end
 
-    it 'runs after_rollback callbacks when a transaction is rolled back' do
+    it "runs after_rollback callbacks when a transaction is rolled back" do
       klass_with_callback = new_class do
         after_rollback { ScratchPad << "after_rollback #{id}" }
       end
       klass_with_callback.create_table
 
-      klass.create(id: 'unique_id')
+      klass.create(id: "unique_id")
 
-      obj = klass_with_callback.create!(id: '1')
+      obj = klass_with_callback.create!(id: "1")
       ScratchPad.record []
 
       begin
         described_class.execute do |t|
           t.touch(obj)
-          t.create klass, id: 'unique_id' # triggers rollback
+          t.create klass, id: "unique_id" # triggers rollback
         end
       rescue Aws::DynamoDB::Errors::TransactionCanceledException
         # ignore
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_rollback 1")
     end
   end
 
-  context 'concurrent deletion' do
-    it 'rolls transaction back for simple primary key' do
+  context "concurrent deletion" do
+    it "rolls transaction back for simple primary key" do
       obj = klass.create!
       klass.find(obj.id).delete
 
@@ -278,8 +278,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
       end.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
     end
 
-    it 'rolls transaction back for composite primary key' do
-      obj = klass_with_composite_key.create!(name: 'Alex')
+    it "rolls transaction back for composite primary key" do
+      obj = klass_with_composite_key.create!(name: "Alex")
       klass_with_composite_key.find(obj.id, range_key: obj.name).delete
 
       expect do
@@ -289,7 +289,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#touch' do
       end.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
     end
 
-    it 'rolls transaction back for composite primary key and sort key of type not supported natively' do
+    it "rolls transaction back for composite primary key and sort key of type not supported natively" do
       obj = klass_with_composite_key_and_custom_type.create!(tags: %w[a b])
       klass_with_composite_key_and_custom_type.find(obj.id, range_key: obj.tags).delete
 

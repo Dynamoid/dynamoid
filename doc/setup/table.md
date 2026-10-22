@@ -30,7 +30,7 @@ have a value yet. Default value is current time + specified seconds.
 class User
   include Dynamoid::Document
 
-  table expires: { field: :ttl, after: 60 }
+  table expires: {field: :ttl, after: 60}
 
   field :ttl, :integer
 end

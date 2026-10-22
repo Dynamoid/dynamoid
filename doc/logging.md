@@ -12,9 +12,9 @@ class User
 end
 
 Dynamoid.config.logger.level = :debug
-Dynamoid.config.endpoint = 'http://localhost:8000'
+Dynamoid.config.endpoint = "http://localhost:8000"
 
-User.create(name: 'Alex')
+User.create(name: "Alex")
 
 # => D, [2019-05-12T20:01:07.840051 #75059] DEBUG -- : put_item | Request "{\"TableName\":\"dynamoid_users\",\"Item\":{\"created_at\":{\"N\":\"1557680467.608749\"},\"updated_at\":{\"N\":\"1557680467.608809\"},\"id\":{\"S\":\"1227eea7-2c96-4b8a-90d9-77b38eb85cd0\"}},\"Expected\":{\"id\":{\"Exists\":false}}}" | Response "{}"
 

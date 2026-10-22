@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-require 'dynamoid/log/formatter'
+require "spec_helper"
+require "dynamoid/log/formatter"
 
 RSpec.describe Dynamoid::Log::Formatter::Debug do
-  describe '#format' do
+  describe "#format" do
     subject { described_class.new }
 
     let(:logger) { Logger.new(buffer) }
@@ -85,8 +85,8 @@ RSpec.describe Dynamoid::Log::Formatter::Debug do
       Dynamoid.adapter.connect!  # clear cached client
     end
 
-    it 'logs request and response JSON body' do
-      new_class(table_name: 'items').create_table
+    it "logs request and response JSON body" do
+      new_class(table_name: "items").create_table
 
       expect(buffer.string).to include(request)
       expect(buffer.string).to match(response_pattern)

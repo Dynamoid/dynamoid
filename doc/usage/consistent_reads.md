@@ -9,5 +9,5 @@ reads are twice as expensive as regular reads for DynamoDB.
 
 ```ruby
 Address.find(address.id, consistent_read: true)  # Find an address, ensure the read is consistent.
-Address.where(city: 'Chicago').consistent.all    # Find all addresses where the city is Chicago, with a consistent read.
+Address.where(city: "Chicago").consistent.all    # Find all addresses where the city is Chicago, with a consistent read.
 ```

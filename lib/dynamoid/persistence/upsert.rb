@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'item_updater_with_casting_and_dumping'
+require_relative "item_updater_with_casting_and_dumping"
 
 module Dynamoid
   module Persistence

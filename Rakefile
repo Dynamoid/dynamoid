@@ -64,6 +64,12 @@ task :default do
   puts "Default task complete."
 end
 
+# Without this, a generated docs/ directory makes Rake resolve the bare
+# name `docs` as an up-to-date file task, so `rake docs` exits 0 having
+# regenerated nothing.
+desc "Generate YARD documentation"
+task docs: "yard"
+
 # simplecov:disable
 ### MONOREPO FAMILY TASKS
 if Dir.exist?(File.join(__dir__, "gems"))
@@ -185,24 +191,24 @@ rescue LoadError
     warn("NOTE: stone_checksums isn't installed, or is disabled for #{RUBY_VERSION} in the current environment")
   end
 end
-require 'bundler/setup'
+require "bundler/setup"
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
   warn e.message
-  warn 'Run `bundle install` to install missing gems'
+  warn "Run `bundle install` to install missing gems"
   exit e.status_code
 end
-load './lib/dynamoid/tasks/database.rake' if defined?(Rails)
+load "./lib/dynamoid/tasks/database.rake" if defined?(Rails)
 
-desc 'alias test task to spec'
+desc "alias test task to spec"
 task test: :spec
 
 ruby_version = Gem::Version.new(RUBY_VERSION)
-minimum_version = ->(version, engine = 'ruby') { ruby_version >= Gem::Version.new(version) && engine == RUBY_ENGINE }
-linting = minimum_version.call('2.7')
+minimum_version = ->(version, engine = "ruby") { ruby_version >= Gem::Version.new(version) && engine == RUBY_ENGINE }
+linting = minimum_version.call("2.7")
 def rubocop_task(warning)
-  desc 'rubocop task stub'
+  desc "rubocop task stub"
   task :rubocop do
     warn warning
   end
@@ -210,9 +216,9 @@ end
 
 if linting
   begin
-    require 'rubocop/rake_task'
+    require "rubocop/rake_task"
     RuboCop::RakeTask.new do |task|
-      task.options = ['-DESP'] # Display the name of the failing cops
+      task.options = ["-DESP"] # Display the name of the failing cops
     end
   rescue LoadError
     rubocop_task("RuboCop is unexpectedly disabled locally for #{RUBY_ENGINE}-#{RUBY_VERSION}. Have you run bundle install?")
@@ -221,8 +227,8 @@ else
   rubocop_task("RuboCop is disabled locally for #{RUBY_ENGINE}-#{RUBY_VERSION}.\nIf you need it locally on #{RUBY_ENGINE}-#{RUBY_VERSION}, run BUNDLE_GEMFILE=gemfiles/style.gemfile bundle install && BUNDLE_GEMFILE=gemfiles/style.gemfile bundle exec rubocop")
 end
 
-require 'yard'
+require "yard"
 YARD::Rake::YardocTask.new do |t|
-  t.files   = ['lib/**/*.rb', 'README.md', 'LICENSE.txt'] # optional
-  t.options = ['-m', 'markdown'] # optional
+  t.files = ["lib/**/*.rb", "README.md", "LICENSE.txt"] # optional
+  t.options = ["-m", "markdown"] # optional
 end

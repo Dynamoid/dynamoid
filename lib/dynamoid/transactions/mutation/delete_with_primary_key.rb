@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'base'
-require_relative 'builders/delete_request_builder'
+require_relative "base"
+require_relative "builders/delete_request_builder"
 
 module Dynamoid
   module Transactions
@@ -20,9 +20,11 @@ module Dynamoid
           validate_primary_key!
         end
 
-        def on_commit; end
+        def on_commit
+        end
 
-        def on_rollback; end
+        def on_rollback
+        end
 
         def aborted?
           false

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
 RSpec.describe Dynamoid::Config do
-  describe 'credentials' do
+  describe "credentials" do
     let(:credentials_new) do
-      Aws::Credentials.new('your_access_key_id', 'your_secret_access_key')
+      Aws::Credentials.new("your_access_key_id", "your_secret_access_key")
     end
 
     before do
@@ -19,15 +19,15 @@ RSpec.describe Dynamoid::Config do
       Dynamoid.adapter.connect!  # clear cached client
     end
 
-    it 'passes credentials to a client connection' do
+    it "passes credentials to a client connection" do
       credentials = Dynamoid.adapter.client.config.credentials
 
-      expect(credentials.access_key_id).to eq 'your_access_key_id'
-      expect(credentials.secret_access_key).to eq 'your_secret_access_key'
+      expect(credentials.access_key_id).to eq "your_access_key_id"
+      expect(credentials.secret_access_key).to eq "your_secret_access_key"
     end
   end
 
-  describe 'log_formatter' do
+  describe "log_formatter" do
     let(:log_formatter) { Aws::Log::Formatter.short }
     let(:logger) { Logger.new(buffer) }
     let(:buffer) { StringIO.new }
@@ -47,7 +47,7 @@ RSpec.describe Dynamoid::Config do
       Dynamoid.adapter.connect!  # clear cached client
     end
 
-    it 'changes logging format' do
+    it "changes logging format" do
       new_class.create_table
       expect(buffer.string).to match(/\[Aws::DynamoDB::Client 200 .+\] create_table \n/)
     end

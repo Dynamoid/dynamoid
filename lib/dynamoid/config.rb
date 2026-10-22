@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'uri'
-require 'logger'
-require 'dynamoid/config/options'
-require 'dynamoid/config/backoff_strategies/constant_backoff'
-require 'dynamoid/config/backoff_strategies/exponential_backoff'
+require "uri"
+require "logger"
+require "dynamoid/config/options"
+require "dynamoid/config/backoff_strategies/constant_backoff"
+require "dynamoid/config/backoff_strategies/exponential_backoff"
 
 module Dynamoid
   # Contains all the basic configuration information required for Dynamoid: both sensible defaults and required fields.
@@ -12,12 +12,12 @@ module Dynamoid
   module Config
     # @since 3.3.1
     DEFAULT_NAMESPACE = if defined?(Rails)
-                          klass = Rails.application.class
-                          app_name = Rails::VERSION::MAJOR >= 6 ? klass.module_parent_name : klass.parent_name
-                          "dynamoid_#{app_name}_#{Rails.env}"
-                        else
-                          'dynamoid'
-                        end
+      klass = Rails.application.class
+      app_name = (Rails::VERSION::MAJOR >= 6) ? klass.module_parent_name : klass.parent_name
+      "dynamoid_#{app_name}_#{Rails.env}"
+    else
+      "dynamoid"
+    end
 
     extend self
 
@@ -25,7 +25,7 @@ module Dynamoid
     include ActiveModel::Observing if defined?(ActiveModel::Observing)
 
     # All the default options.
-    option :adapter, default: 'aws_sdk_v3'
+    option :adapter, default: "aws_sdk_v3"
     option :namespace, default: DEFAULT_NAMESPACE
     option :access_key, default: nil
     option :secret_key, default: nil
@@ -44,7 +44,7 @@ module Dynamoid
     option :sync_retry_wait_seconds, default: 2
     option :convert_big_decimal, default: false
     option :store_attribute_with_nil_value, default: false # keep or ignore attribute with nil value at saving
-    option :models_dir, default: './app/models' # perhaps you keep your dynamoid models in a different directory?
+    option :models_dir, default: "./app/models" # perhaps you keep your dynamoid models in a different directory?
     option :application_timezone, default: :utc # available values - :utc, :local, time zone name like "Hawaii"
     option :dynamodb_timezone, default: :utc # available values - :utc, :local, time zone name like "Hawaii"
     option :store_datetime_as_string, default: false # store Time fields in ISO 8601 string format
@@ -68,7 +68,7 @@ module Dynamoid
     #
     # @since 0.2.0
     def default_logger
-      defined?(Rails) && Rails.respond_to?(:logger) ? Rails.logger : ::Logger.new($stdout)
+      (defined?(Rails) && Rails.respond_to?(:logger)) ? Rails.logger : ::Logger.new($stdout)
     end
 
     # Returns the assigned logger instance.

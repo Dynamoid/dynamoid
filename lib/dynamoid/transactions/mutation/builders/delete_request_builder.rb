@@ -24,7 +24,7 @@ module Dynamoid
           end
 
           def request
-            key = { @model_class.hash_key => @hash_key }
+            key = {@model_class.hash_key => @hash_key}
             key[@model_class.range_key] = @range_key if @model_class.range_key?
 
             {

@@ -40,7 +40,7 @@ jobs:
         run: ./mdbook build # generates ./book directory
 
       - name: Upload Guides Raw Material
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: guides-output
           path: book
@@ -55,7 +55,7 @@ jobs:
 
       # actually, we need only yard gem, not the whole Gemfile.lock
       - name: Setup Ruby & Bundle
-        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
+        uses: ruby/setup-ruby@b1da4809b005e0178fe08a1d57317bffc00b7b4c # v1.332.0
         with:
           bundler-cache: true
 
@@ -63,7 +63,7 @@ jobs:
         run: bundle exec yardoc # generates ./yardoc directory
 
       - name: Upload Guides Raw Material
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: reference-output
           path: yardoc

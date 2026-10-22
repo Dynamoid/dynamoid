@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'until_past_table_status'
+require_relative "until_past_table_status"
 
 module Dynamoid
   # @private
@@ -29,7 +29,7 @@ module Dynamoid
           gs_indexes = options[:global_secondary_indexes]
 
           key_schema = {
-            hash_key_schema: { key => options[:hash_key_type] || :string },
+            hash_key_schema: {key => options[:hash_key_type] || :string},
             range_key_schema: options[:range_key]
           }
           attribute_definitions = build_all_attribute_definitions(
@@ -48,9 +48,9 @@ module Dynamoid
           }
 
           if billing_mode == :on_demand
-            client_opts[:billing_mode] = 'PAY_PER_REQUEST'
+            client_opts[:billing_mode] = "PAY_PER_REQUEST"
           else
-            client_opts[:billing_mode] = 'PROVISIONED'
+            client_opts[:billing_mode] = "PROVISIONED"
             client_opts[:provisioned_throughput] = {
               read_capacity_units: read_capacity,
               write_capacity_units: write_capacity

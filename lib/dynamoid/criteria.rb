@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'dynamoid/criteria/chain'
+require "dynamoid/criteria/chain"
 
 module Dynamoid
   # Allows classes to be queried by where, all, first, and each and return criteria chains.

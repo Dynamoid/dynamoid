@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
-RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:disable RSpec/MultipleDescribes
+RSpec.describe Dynamoid::Transactions::Mutation, "#delete(model)" do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -16,8 +16,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
     end
   end
 
-  it 'deletes a model' do
-    obj = klass.create!(name: 'one')
+  it "deletes a model" do
+    obj = klass.create!(name: "one")
 
     expect {
       described_class.execute do |txn|
@@ -29,8 +29,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
     expect(obj).to be_destroyed
   end
 
-  it 'returns a model' do
-    obj = klass.create!(name: 'one')
+  it "returns a model" do
+    obj = klass.create!(name: "one")
     result = nil
 
     described_class.execute do |txn|
@@ -40,10 +40,10 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
     expect(result).to equal(obj)
   end
 
-  describe 'primary key schemas' do
-    context 'simple primary key' do
-      it 'deletes a model' do
-        obj = klass.create!(name: 'one')
+  describe "primary key schemas" do
+    context "simple primary key" do
+      it "deletes a model" do
+        obj = klass.create!(name: "one")
 
         expect {
           described_class.execute do |txn|
@@ -53,9 +53,9 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
       end
     end
 
-    context 'composite key' do
-      it 'deletes a model' do
-        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+    context "composite key" do
+      it "deletes a model" do
+        obj = klass_with_composite_key.create!(name: "one", age: 1)
 
         expect {
           described_class.execute do |txn|
@@ -66,10 +66,10 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
     end
   end
 
-  describe 'primary key validation' do
-    context 'simple primary key' do
-      it 'requires partition key to be specified' do
-        obj = klass.create!(name: 'one')
+  describe "primary key validation" do
+    context "simple primary key" do
+      it "requires partition key to be specified" do
+        obj = klass.create!(name: "one")
         obj.id = nil
 
         expect {
@@ -80,9 +80,9 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
       end
     end
 
-    context 'composite key' do
-      it 'requires partition key to be specified' do
-        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+    context "composite key" do
+      it "requires partition key to be specified" do
+        obj = klass_with_composite_key.create!(name: "one", age: 1)
         obj.id = nil
 
         expect {
@@ -92,8 +92,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
 
-      it 'requires sort key to be specified' do
-        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+      it "requires sort key to be specified" do
+        obj = klass_with_composite_key.create!(name: "one", age: 1)
         obj.age = nil
 
         expect {
@@ -105,7 +105,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
     end
   end
 
-  describe 'optimistic locking' do
+  describe "optimistic locking" do
     let(:klass) do
       new_class do
         field :name
@@ -113,11 +113,11 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
       end
     end
 
-    it 'rolls back a transaction when concurrent update happens before delete' do
-      obj = klass.create(name: 'Original') # lock_version: 1
+    it "rolls back a transaction when concurrent update happens before delete" do
+      obj = klass.create(name: "Original") # lock_version: 1
 
       obj2 = klass.find(obj.id)
-      obj2.update_attributes!(name: 'Concurrent Update') # lock_version: 1 -> 2
+      obj2.update_attributes!(name: "Concurrent Update") # lock_version: 1 -> 2
 
       expect {
         klass.transaction do |t|
@@ -126,8 +126,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
       }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
     end
 
-    it 'deletes a model if there is no concurrent update' do
-      obj = klass.create!(name: 'Original')
+    it "deletes a model if there is no concurrent update" do
+      obj = klass.create!(name: "Original")
 
       expect {
         klass.transaction do |t|
@@ -136,8 +136,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
       }.to change { klass.exists? obj.id }.from(true).to(false)
     end
 
-    it 'uses the persisted lock_version value and ignores dirty changes' do
-      obj = klass.create!(name: 'Original')
+    it "uses the persisted lock_version value and ignores dirty changes" do
+      obj = klass.create!(name: "Original")
       obj.lock_version = obj.lock_version + 100
 
       expect {
@@ -147,15 +147,15 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
       }.to change { klass.exists? obj.id }.from(true).to(false)
     end
 
-    it 'skips optimistic locking when lock_version is nil' do
-      obj = klass.create(name: 'Original') # lock_version: 1
+    it "skips optimistic locking when lock_version is nil" do
+      obj = klass.create(name: "Original") # lock_version: 1
       obj.update_attributes!(lock_version: nil) # lock_version: 1 -> nil
       expect(obj.reload.lock_version).to be_nil
 
       obj = klass.find(obj.id)
       obj2 = klass.find(obj.id)
 
-      obj.update_attributes!(name: 'Concurrent Update')
+      obj.update_attributes!(name: "Concurrent Update")
 
       expect {
         klass.transaction do |t|
@@ -165,11 +165,11 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
     end
   end
 
-  context 'when an issue detected on the DynamoDB side' do
-    it 'does not roll back the changes when a model to delete was concurrently deleted' do
-      obj1 = klass.create!(name: 'one', id: '1')
-      obj1.id = 'not-existing'
-      obj2 = klass.new(name: 'two', id: '2')
+  context "when an issue detected on the DynamoDB side" do
+    it "does not roll back the changes when a model to delete was concurrently deleted" do
+      obj1 = klass.create!(name: "one", id: "1")
+      obj1.id = "not-existing"
+      obj2 = klass.new(name: "two", id: "2")
 
       described_class.execute do |txn|
         txn.delete obj1
@@ -177,31 +177,31 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
       end
 
       expect(klass.count).to eql 2
-      expect(klass.all.to_a.map(&:id)).to contain_exactly('1', '2')
+      expect(klass.all.to_a.map(&:id)).to contain_exactly("1", "2")
 
       expect(obj1).to be_destroyed
       expect(obj2).to be_persisted
     end
   end
 
-  it 'is not marked as destroyed when the transaction rolled back' do
+  it "is not marked as destroyed when the transaction rolled back" do
     obj = klass.create!
 
     expect {
       described_class.execute do |txn|
         txn.delete obj
-        raise 'trigger rollback'
+        raise "trigger rollback"
       end
-    }.to raise_error('trigger rollback')
+    }.to raise_error("trigger rollback")
 
     expect(obj).not_to be_destroyed
   end
 
-  it 'uses dumped value of partition key to delete item' do
-    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+  it "uses dumped value of partition key to delete item" do
+    klass = new_class(partition_key: {name: :published_on, type: :date}) do
       field :name
     end
-    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+    obj = klass.create!(published_on: "2018-10-07".to_date, name: "Alex")
 
     expect {
       described_class.execute do |txn|
@@ -212,12 +212,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
     expect(klass.exists?(obj.published_on)).to eql false
   end
 
-  it 'uses dumped value of sort key to delete item' do
+  it "uses dumped value of sort key to delete item" do
     klass = new_class do
       range :activated_on, :date
       field :name
     end
-    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+    obj = klass.create!(activated_on: Date.today, name: "Alex")
 
     expect {
       described_class.execute do |txn|
@@ -228,40 +228,40 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
     expect(klass.exists?([[obj.id, obj.activated_on]])).to eql false
   end
 
-  describe 'callbacks' do
-    it 'does not run save, create, update, validation and destroy callbacks' do
+  describe "callbacks" do
+    it "does not run save, create, update, validation and destroy callbacks" do
       klass_with_callbacks = new_class do
-        before_validation { ScratchPad << 'run before_validation' }
-        after_validation { ScratchPad << 'run after_validation' }
+        before_validation { ScratchPad << "run before_validation" }
+        after_validation { ScratchPad << "run after_validation" }
 
-        before_create { ScratchPad << 'run before_create' }
-        after_create { ScratchPad << 'run after_create' }
+        before_create { ScratchPad << "run before_create" }
+        after_create { ScratchPad << "run after_create" }
         around_create :around_create_callback
 
-        before_save { ScratchPad << 'run before_save' }
-        after_save { ScratchPad << 'run after_save' }
+        before_save { ScratchPad << "run before_save" }
+        after_save { ScratchPad << "run after_save" }
         around_save :around_save_callback
 
-        before_destroy { ScratchPad << 'run before_destroy' }
-        after_destroy { ScratchPad << 'run after_destroy' }
+        before_destroy { ScratchPad << "run before_destroy" }
+        after_destroy { ScratchPad << "run after_destroy" }
         around_destroy :around_destroy_callback
 
         def around_create_callback
-          ScratchPad << 'start around_create'
+          ScratchPad << "start around_create"
           yield
-          ScratchPad << 'finish around_create'
+          ScratchPad << "finish around_create"
         end
 
         def around_save_callback
-          ScratchPad << 'start around_save'
+          ScratchPad << "start around_save"
           yield
-          ScratchPad << 'finish around_save'
+          ScratchPad << "finish around_save"
         end
 
         def around_destroy_callback
-          ScratchPad << 'start around_destroy'
+          ScratchPad << "start around_destroy"
           yield
-          ScratchPad << 'finish around_destroy'
+          ScratchPad << "finish around_destroy"
         end
       end
 
@@ -273,80 +273,80 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
         txn.delete obj
       end
 
-      expect(ScratchPad.recorded).to eql([])
+      expect(ScratchPad.recorded).to be_empty
     end
 
-    it 'runs after_commit callbacks' do
+    it "runs after_commit callbacks" do
       klass_with_callback = new_class do
         after_commit { ScratchPad << "after_commit #{id}" }
       end
       klass_with_callback.create_table
-      obj = klass_with_callback.create!(id: '1')
+      obj = klass_with_callback.create!(id: "1")
       ScratchPad.record []
 
       described_class.execute do |t|
         t.delete(obj)
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_commit 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_commit 1")
     end
 
-    it 'runs after_rollback callbacks when exception is raised and aborts a transaction' do
+    it "runs after_rollback callbacks when exception is raised and aborts a transaction" do
       klass_with_callback = new_class do
         after_rollback { ScratchPad << "after_rollback #{id}" }
       end
       klass_with_callback.create_table
-      obj = klass_with_callback.create!(id: '1')
+      obj = klass_with_callback.create!(id: "1")
       ScratchPad.record []
 
       begin
         described_class.execute do |t|
           t.delete(obj)
-          raise 'error'
+          raise "error"
         end
-      rescue StandardError => e
-        expect(e.message).to eq('error')
+      rescue => e
+        expect(e.message).to eq("error")
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_rollback 1")
     end
 
-    it 'runs after_rollback callbacks when a transaction is rolled back' do
+    it "runs after_rollback callbacks when a transaction is rolled back" do
       klass_with_callback = new_class do
         after_rollback { ScratchPad << "after_rollback #{id}" }
       end
       klass_with_callback.create_table
 
-      klass.create!(id: 'unique_id')
+      klass.create!(id: "unique_id")
 
-      obj = klass_with_callback.create!(id: '1')
+      obj = klass_with_callback.create!(id: "1")
       ScratchPad.record []
 
       begin
         described_class.execute do |t|
           t.delete(obj)
-          t.create klass, id: 'unique_id' # triggers rollback
+          t.create klass, id: "unique_id" # triggers rollback
         end
       rescue Aws::DynamoDB::Errors::TransactionCanceledException
         # ignore
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_rollback 1")
     end
   end
 
-  context 'when table arn is specified', remove_constants: [:Payment] do
-    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+  context "when table arn is specified", remove_constants: [:Payment] do
+    it "uses given table ARN in requests instead of a table name", config: {create_table_on_save: false} do
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end
 
   # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-  it 'allows reserved words as partition key and sort key' do
-    klass = new_class(partition_key: { name: :order, type: :string }) do
+  it "allows reserved words as partition key and sort key" do
+    klass = new_class(partition_key: {name: :order, type: :string}) do
       range :connection, :string
     end
-    obj = klass.create!(order: 'order-1', connection: 'conn-1')
+    obj = klass.create!(order: "order-1", connection: "conn-1")
 
     expect {
       described_class.execute do |t|
@@ -356,7 +356,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(model)' do # rubocop:d
   end
 end
 
-RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' do
+RSpec.describe Dynamoid::Transactions::Mutation, "#delete(class, primary key)" do
   let(:klass) do
     new_class do
       field :name
@@ -370,8 +370,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
     end
   end
 
-  it 'deletes a model and accepts a model class and primary key' do
-    obj = klass.create!(name: 'one')
+  it "deletes a model and accepts a model class and primary key" do
+    obj = klass.create!(name: "one")
 
     expect {
       described_class.execute do |txn|
@@ -382,8 +382,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
     expect(klass.exists?(obj.id)).to eql false
   end
 
-  it 'returns nil' do
-    obj = klass.create!(name: 'one')
+  it "returns nil" do
+    obj = klass.create!(name: "one")
 
     result = true
     described_class.execute do |txn|
@@ -393,10 +393,10 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
     expect(result).to eql nil
   end
 
-  describe 'primary key schemas' do
-    context 'simple primary key' do
-      it 'deletes a model' do
-        obj = klass.create!(name: 'one')
+  describe "primary key schemas" do
+    context "simple primary key" do
+      it "deletes a model" do
+        obj = klass.create!(name: "one")
 
         expect {
           described_class.execute do |txn|
@@ -406,9 +406,9 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
       end
     end
 
-    context 'composite key' do
-      it 'deletes a model' do
-        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+    context "composite key" do
+      it "deletes a model" do
+        obj = klass_with_composite_key.create!(name: "one", age: 1)
 
         expect {
           described_class.execute do |txn|
@@ -419,9 +419,9 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
     end
   end
 
-  describe 'primary key validation' do
-    context 'simple primary key' do
-      it 'raises MissingHashKey if partition key is not specified' do
+  describe "primary key validation" do
+    context "simple primary key" do
+      it "raises MissingHashKey if partition key is not specified" do
         expect {
           described_class.execute do |txn|
             txn.delete klass, nil
@@ -430,8 +430,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
       end
     end
 
-    context 'composite key' do
-      it 'raises MissingHashKey if partition key is not specified' do
+    context "composite key" do
+      it "raises MissingHashKey if partition key is not specified" do
         expect {
           described_class.execute do |txn|
             txn.delete klass_with_composite_key, nil, 5
@@ -439,21 +439,21 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
 
-      it 'raises MissingRangeKey if sort key is not specified' do
+      it "raises MissingRangeKey if sort key is not specified" do
         expect {
           described_class.execute do |txn|
-            txn.delete klass_with_composite_key, 'foo', nil
+            txn.delete klass_with_composite_key, "foo", nil
           end
         }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
       end
     end
   end
 
-  context 'when an issue detected on the DynamoDB side' do
-    it 'does not roll back the changes when a model to delete was concurrently deleted' do
-      obj_to_delete = klass.create!(name: 'one', id: '1')
-      obj_to_delete.id = 'not-existing'
-      obj_to_save = klass.new(name: 'two', id: '2')
+  context "when an issue detected on the DynamoDB side" do
+    it "does not roll back the changes when a model to delete was concurrently deleted" do
+      obj_to_delete = klass.create!(name: "one", id: "1")
+      obj_to_delete.id = "not-existing"
+      obj_to_save = klass.new(name: "two", id: "2")
 
       described_class.execute do |txn|
         txn.delete klass, obj_to_delete.id
@@ -461,15 +461,15 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
       end
 
       expect(klass.count).to eql 2
-      expect(klass.all.to_a.map(&:id)).to contain_exactly('1', '2')
+      expect(klass.all.to_a.map(&:id)).to contain_exactly("1", "2")
 
       expect(obj_to_delete).not_to be_destroyed
       expect(obj_to_save).to be_persisted
     end
   end
 
-  it 'uses casted value of partition key and sort key' do
-    klass = new_class(partition_key: { name: :id, type: :integer }) do
+  it "uses casted value of partition key and sort key" do
+    klass = new_class(partition_key: {name: :id, type: :integer}) do
       range :count, :integer
     end
 
@@ -477,16 +477,16 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
 
     expect {
       described_class.execute do |t|
-        t.delete(klass, '1', '42')
+        t.delete(klass, "1", "42")
       end
     }.to change(klass, :count).by(-1)
   end
 
-  it 'uses dumped value of partition key to delete item' do
-    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+  it "uses dumped value of partition key to delete item" do
+    klass = new_class(partition_key: {name: :published_on, type: :date}) do
       field :name
     end
-    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+    obj = klass.create!(published_on: "2018-10-07".to_date, name: "Alex")
 
     expect {
       described_class.execute do |txn|
@@ -497,12 +497,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
     expect(klass.exists?(obj.published_on)).to eql false
   end
 
-  it 'uses dumped value of sort key to delete item' do
+  it "uses dumped value of sort key to delete item" do
     klass = new_class do
       range :activated_on, :date
       field :name
     end
-    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+    obj = klass.create!(activated_on: Date.today, name: "Alex")
 
     expect {
       described_class.execute do |txn|
@@ -513,40 +513,40 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
     expect(klass.exists?([[obj.id, obj.activated_on]])).to eql false
   end
 
-  describe 'callbacks' do
-    it 'does not run any callback' do
+  describe "callbacks" do
+    it "does not run any callback" do
       klass_with_callbacks = new_class do
-        before_validation { ScratchPad << 'run before_validation' }
-        after_validation { ScratchPad << 'run after_validation' }
+        before_validation { ScratchPad << "run before_validation" }
+        after_validation { ScratchPad << "run after_validation" }
 
-        before_create { ScratchPad << 'run before_create' }
-        after_create { ScratchPad << 'run after_create' }
+        before_create { ScratchPad << "run before_create" }
+        after_create { ScratchPad << "run after_create" }
         around_create :around_create_callback
 
-        before_save { ScratchPad << 'run before_save' }
-        after_save { ScratchPad << 'run after_save' }
+        before_save { ScratchPad << "run before_save" }
+        after_save { ScratchPad << "run after_save" }
         around_save :around_save_callback
 
-        before_destroy { ScratchPad << 'run before_destroy' }
-        after_destroy { ScratchPad << 'run after_destroy' }
+        before_destroy { ScratchPad << "run before_destroy" }
+        after_destroy { ScratchPad << "run after_destroy" }
         around_destroy :around_destroy_callback
 
         def around_create_callback
-          ScratchPad << 'start around_create'
+          ScratchPad << "start around_create"
           yield
-          ScratchPad << 'finish around_create'
+          ScratchPad << "finish around_create"
         end
 
         def around_save_callback
-          ScratchPad << 'start around_save'
+          ScratchPad << "start around_save"
           yield
-          ScratchPad << 'finish around_save'
+          ScratchPad << "finish around_save"
         end
 
         def around_destroy_callback
-          ScratchPad << 'start around_destroy'
+          ScratchPad << "start around_destroy"
           yield
-          ScratchPad << 'finish around_destroy'
+          ScratchPad << "finish around_destroy"
         end
       end
 
@@ -558,12 +558,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#delete(class, primary key)' d
         txn.delete klass_with_callbacks, obj.id
       end
 
-      expect(ScratchPad.recorded).to eql([])
+      expect(ScratchPad.recorded).to be_empty
     end
   end
 
-  context 'when table arn is specified', remove_constants: [:Payment] do
-    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+  context "when table arn is specified", remove_constants: [:Payment] do
+    it "uses given table ARN in requests instead of a table name", config: {create_table_on_save: false} do
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end

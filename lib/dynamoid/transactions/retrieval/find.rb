@@ -73,7 +73,7 @@ module Dynamoid
         def action_request_for_single_key
           partition_key = @ids[0]
 
-          key = { @model_class.hash_key => cast_and_dump_attribute(@model_class.hash_key, partition_key) }
+          key = {@model_class.hash_key => cast_and_dump_attribute(@model_class.hash_key, partition_key)}
 
           if @model_class.range_key
             sort_key = @options[:range_key]
@@ -96,11 +96,11 @@ module Dynamoid
               pk_dumped = cast_and_dump_attribute(@model_class.hash_key, pk)
               sk_dumped = cast_and_dump_attribute(@model_class.range_key, sk)
 
-              key = { @model_class.hash_key => pk_dumped, @model_class.range_key => sk_dumped }
+              key = {@model_class.hash_key => pk_dumped, @model_class.range_key => sk_dumped}
             else
               pk_dumped = cast_and_dump_attribute(@model_class.hash_key, id)
 
-              key = { @model_class.hash_key => pk_dumped }
+              key = {@model_class.hash_key => pk_dumped}
             end
 
             {
@@ -128,7 +128,7 @@ module Dynamoid
             message = "Couldn't find #{@model_class.name} with primary key #{primary_key}"
           else
             ids_list = @model_class.range_key ? ids.map { |pk, sk| "(#{pk.inspect},#{sk.inspect})" } : ids.map(&:inspect)
-            message = "Couldn't find all #{@model_class.name.pluralize} with primary keys [#{ids_list.join(', ')}] "
+            message = "Couldn't find all #{@model_class.name.pluralize} with primary keys [#{ids_list.join(", ")}] "
             message += "(found #{items.compact.size} results, but was looking for #{items.size})"
           end
 

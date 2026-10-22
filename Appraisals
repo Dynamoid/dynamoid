@@ -48,6 +48,10 @@ appraise "unlocked_deps" do
   eval_gemfile "modular/coverage.gemfile"
   eval_gemfile "modular/documentation.gemfile"
   eval_gemfile "modular/optional.gemfile"
+  # Development dependencies shunted out of the gemspec - see
+  # gemfiles/modular/shunted.gemfile's own header for exactly which ones
+  # and why.
+  eval_gemfile "modular/shunted.gemfile"
   eval_gemfile "modular/style.gemfile"
   eval_gemfile "modular/x_std_libs.gemfile"
 end
@@ -123,8 +127,8 @@ appraise "templating" do
   eval_gemfile "modular/x_std_libs.gemfile"
 end
 
-appraise 'rails-4-2' do
-  gem 'activemodel', '~> 4.2.0'
+appraise "rails-4-2" do
+  gem "activemodel", "~> 4.2.0"
 
   # Add bigdecimal gem to support Ruby 2.7 and above:
   # https://github.com/rails/rails/issues/34822
@@ -133,86 +137,86 @@ appraise 'rails-4-2' do
   # https://github.com/ruby/bigdecimal#which-version-should-you-select
   #
   # Actually bigdecimal 1.4.x works on all the Ruby versions till Ruby 3.0
-  gem 'bigdecimal', '~> 1.4.0', platform: :mri
+  gem "bigdecimal", "~> 1.4.0", platform: :mri
 end
 
-appraise 'rails-5-0' do
-  gem 'activemodel', '~> 5.0.0'
+appraise "rails-5-0" do
+  gem "activemodel", "~> 5.0.0"
 end
 
-appraise 'rails-5-1' do
-  gem 'activemodel', '~> 5.1.0'
+appraise "rails-5-1" do
+  gem "activemodel", "~> 5.1.0"
 end
 
-appraise 'rails-5-2' do
-  gem 'activemodel', '~> 5.2.0'
+appraise "rails-5-2" do
+  gem "activemodel", "~> 5.2.0"
 end
 
-appraise 'rails-6-0' do
-  gem 'activemodel', '~> 6.0.0'
+appraise "rails-6-0" do
+  gem "activemodel", "~> 6.0.0"
 
   # Since Ruby 3.4 these dependencies are bundled gems so should be specified explicitly.
-  gem 'mutex_m'
-  gem 'base64'
-  gem 'bigdecimal'
+  gem "mutex_m"
+  gem "base64"
+  gem "bigdecimal"
 
   # Since Ruby 4.0 benchmark becomes a bundled gem and should be added into gemspec/Gemfile files
-  gem 'benchmark'
+  gem "benchmark"
 end
 
-appraise 'rails-6-1' do
-  gem 'activemodel', '~> 6.1.0'
+appraise "rails-6-1" do
+  gem "activemodel", "~> 6.1.0"
 
   # Since Ruby 3.4 these dependencies are bundled gems so should be specified explicitly.
-  gem 'mutex_m'
-  gem 'base64'
-  gem 'bigdecimal'
+  gem "mutex_m"
+  gem "base64"
+  gem "bigdecimal"
 
   # Since Ruby 4.0 benchmark becomes a bundled gem and should be added into gemspec/Gemfile files
-  gem 'benchmark'
+  gem "benchmark"
 end
 
-appraise 'rails-7-0' do
-  gem 'activemodel', '~> 7.0.0'
+appraise "rails-7-0" do
+  gem "activemodel", "~> 7.0.0"
 
   # Since Ruby 3.4 these dependencies are bundled gems so should be specified explicitly.
-  gem 'mutex_m'
-  gem 'base64'
-  gem 'bigdecimal'
+  gem "mutex_m"
+  gem "base64"
+  gem "bigdecimal"
 end
 
-appraise 'rails-7-1' do
-  gem 'activemodel', '~> 7.1.0'
+appraise "rails-7-1" do
+  gem "activemodel", "~> 7.1.0"
 
   # Since Ruby 3.4 these dependencies are bundled gems so should be specified explicitly.
-  gem 'mutex_m'
-  gem 'base64'
-  gem 'bigdecimal'
+  gem "mutex_m"
+  gem "base64"
+  gem "bigdecimal"
 end
 
-appraise 'rails-7-2' do
-  gem 'activemodel', '~> 7.2.0'
+appraise "rails-7-2" do
+  gem "activemodel", "~> 7.2.0"
 
   # Since Ruby 3.4 these dependencies are bundled gems so should be specified explicitly.
-  gem 'mutex_m'
-  gem 'base64'
-  gem 'bigdecimal'
+  gem "mutex_m"
+  gem "base64"
+  gem "bigdecimal"
 end
 
-appraise 'rails-8-0' do
-  gem 'activemodel', '~> 8.0.0'
+appraise "rails-8-0" do
+  gem "activemodel", "~> 8.0.0"
 
   # Since Ruby 3.4 these dependencies are bundled gems so should be specified explicitly.
-  gem 'mutex_m'
-  gem 'base64'
-  gem 'bigdecimal'
+  gem "mutex_m"
+  gem "base64"
+  gem "bigdecimal"
 end
 
-appraise 'rails-8-1' do
-  gem 'activemodel', '~> 8.1.0'
+appraise "rails-8-1" do
+  gem "activemodel", "~> 8.1.0"
 
   # Since Ruby 3.4 these dependencies are bundled gems so should be specified explicitly.
-  gem 'mutex_m'
-  gem 'base64'
-  gem 'bigdecimal'
+  gem "mutex_m"
+  gem "base64"
+  gem "bigdecimal"
 end

@@ -8,11 +8,11 @@ Some obvious rules are used, e.g.:
 
 for boolean field:
 ```ruby
-document.boolean_field = 'off'
+document.boolean_field = "off"
 # => false
-document.boolean_field = 'false'
+document.boolean_field = "false"
 # => false
-document.boolean_field = 'some string'
+document.boolean_field = "some string"
 # => true
 ```
 
@@ -20,7 +20,7 @@ or for integer field:
 ```ruby
 document.integer_field = 42.3
 # => 42
-document.integer_field = '42.3'
+document.integer_field = "42.3"
 # => 42
 document.integer_field = true
 # => 1

@@ -1,49 +1,49 @@
 # frozen_string_literal: true
 
-require 'active_support'
-require 'active_support/core_ext/object'
+require "active_support"
+require "active_support/core_ext/object"
 
-require 'spec_helper'
+require "spec_helper"
 
 RSpec.describe Dynamoid::Associations::HasOne do
   let(:magazine) { Magazine.create }
   let(:user) { User.create }
   let(:camel_case) { CamelCase.create }
 
-  it 'considers an association nil/blank if it has no associated record' do
+  it "considers an association nil/blank if it has no associated record" do
     expect(magazine.sponsor).to be_nil
     expect(magazine.sponsor).to be_blank
   end
 
-  it 'considers an association present if it has an associated record' do
+  it "considers an association present if it has an associated record" do
     magazine.sponsor.create
 
     expect(magazine.sponsor).to be_present
   end
 
-  it 'determines target association correctly' do
+  it "determines target association correctly" do
     expect(camel_case.sponsor.send(:target_association)).to eq :camel_case
   end
 
-  it 'returns only one object when associated' do
+  it "returns only one object when associated" do
     magazine.sponsor.create
 
     expect(magazine.sponsor).not_to be_a Array
   end
 
-  it 'delegates equality to its source record' do
+  it "delegates equality to its source record" do
     sponsor = magazine.sponsor.create
 
     expect(magazine.sponsor).to eq sponsor
   end
 
-  it 'is equal from its target record' do
+  it "is equal from its target record" do
     sponsor = magazine.sponsor.create
 
     expect(magazine.sponsor).to eq sponsor
   end
 
-  it 'associates belongs_to automatically' do
+  it "associates belongs_to automatically" do
     sponsor = magazine.sponsor.create
     expect(sponsor.magazine).to eq magazine
     expect(magazine.sponsor).to eq sponsor
@@ -52,25 +52,25 @@ RSpec.describe Dynamoid::Associations::HasOne do
     expect(subscription.customer).to eq user
   end
 
-  describe 'assigning' do
-    context 'belongs to' do
+  describe "assigning" do
+    context "belongs to" do
       let(:magazine) { Magazine.create }
 
-      it 'associates model on this side' do
+      it "associates model on this side" do
         sponsor = Sponsor.create
         magazine.sponsor = sponsor
 
         expect(magazine.sponsor).to eq(sponsor)
       end
 
-      it 'associates model on that side' do
+      it "associates model on that side" do
         sponsor = Sponsor.create
         magazine.sponsor = sponsor
 
         expect(sponsor.magazine).to eq(magazine)
       end
 
-      it 're-associates model on this side' do
+      it "re-associates model on this side" do
         sponsor_old = Sponsor.create
         sponsor_new = Sponsor.create
         magazine.sponsor = sponsor_old
@@ -80,7 +80,7 @@ RSpec.describe Dynamoid::Associations::HasOne do
         end.to change { magazine.sponsor.target }.from(sponsor_old).to(sponsor_new)
       end
 
-      it 're-associates model on that side' do
+      it "re-associates model on that side" do
         sponsor_old = Sponsor.create
         sponsor_new = Sponsor.create
 
@@ -90,7 +90,7 @@ RSpec.describe Dynamoid::Associations::HasOne do
         end.to change { sponsor_new.magazine.target }.from(nil).to(magazine)
       end
 
-      it 'deletes previous model from association' do
+      it "deletes previous model from association" do
         sponsor_old = Sponsor.create
         sponsor_new = Sponsor.create
 
@@ -100,14 +100,14 @@ RSpec.describe Dynamoid::Associations::HasOne do
         end.to change { sponsor_old.magazine.target }.from(magazine).to(nil)
       end
 
-      it 'stores the same object on this side' do
+      it "stores the same object on this side" do
         sponsor = Sponsor.create
         magazine.sponsor = sponsor
 
         expect(magazine.sponsor.target.object_id).to eq(sponsor.object_id)
       end
 
-      it 'does not store the same object on that side' do
+      it "does not store the same object on that side" do
         sponsor = Sponsor.create!
         magazine.sponsor = sponsor
 
@@ -116,8 +116,8 @@ RSpec.describe Dynamoid::Associations::HasOne do
     end
   end
 
-  context 'set to nil' do
-    it 'can be set to nil' do
+  context "set to nil" do
+    it "can be set to nil" do
       magazine = Magazine.create!
 
       expect { magazine.sponsor = nil }.not_to raise_error
@@ -127,7 +127,7 @@ RSpec.describe Dynamoid::Associations::HasOne do
       expect(Magazine.find(magazine.title).sponsor).to eq nil
     end
 
-    it 'overrides previous saved value' do
+    it "overrides previous saved value" do
       sponsor = Sponsor.create!
       magazine = Magazine.create!(sponsor: sponsor)
 
@@ -139,7 +139,7 @@ RSpec.describe Dynamoid::Associations::HasOne do
       }.from(sponsor).to(nil)
     end
 
-    it 'updates association on the other side' do
+    it "updates association on the other side" do
       sponsor = Sponsor.create!
       magazine = Magazine.create!(sponsor: sponsor)
 
@@ -152,8 +152,8 @@ RSpec.describe Dynamoid::Associations::HasOne do
     end
   end
 
-  describe '#delete' do
-    it 'clears association on this side' do
+  describe "#delete" do
+    it "clears association on this side" do
       magazine = Magazine.create
       sponsor = magazine.sponsor.create
 
@@ -162,7 +162,7 @@ RSpec.describe Dynamoid::Associations::HasOne do
       end.to change { magazine.sponsor.target }.from(sponsor).to(nil)
     end
 
-    it 'persists changes on this side' do
+    it "persists changes on this side" do
       magazine = Magazine.create
       sponsor = magazine.sponsor.create
 
@@ -171,17 +171,17 @@ RSpec.describe Dynamoid::Associations::HasOne do
       end.to change { Magazine.find(magazine.title).sponsor.target }.from(sponsor).to(nil)
     end
 
-    context 'belongs to' do
+    context "belongs to" do
       let(:magazine) { Magazine.create }
       let!(:sponsor) { magazine.sponsor.create }
 
-      it 'clears association on that side' do
+      it "clears association on that side" do
         expect do
           magazine.sponsor.delete
         end.to change { sponsor.magazine.target }.from(magazine).to(nil)
       end
 
-      it 'persists changes on that side' do
+      it "persists changes on that side" do
         expect do
           magazine.sponsor.delete
         end.to change { Sponsor.find(sponsor.id).magazine.target }.from(magazine).to(nil)

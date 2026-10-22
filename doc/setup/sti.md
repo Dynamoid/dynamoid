@@ -15,7 +15,7 @@ class Cat < Animal
   field :lives, :integer
 end
 
-cat = Cat.create(name: 'Morgan')
+cat = Cat.create(name: "Morgan")
 animal = Animal.find(cat.id)
 animal.class
 #=> Cat

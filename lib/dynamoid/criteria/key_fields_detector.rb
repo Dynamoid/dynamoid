@@ -8,7 +8,7 @@ module Dynamoid
         def initialize(where_conditions)
           @where_conditions = where_conditions
           @fields_with_operator = where_conditions.keys.map(&:to_s)
-          @fields = where_conditions.keys.map(&:to_s).map { |s| s.split('.').first }
+          @fields = where_conditions.keys.map(&:to_s).map { |s| s.split(".").first }
         end
 
         def contain_only?(field_names)

@@ -64,7 +64,7 @@ module Dynamoid
         target == other
       end
 
-      if ::RUBY_VERSION < '2.7'
+      if ::RUBY_VERSION < "2.7"
         # Delegate methods we don't find directly to the target.
         #
         # @private

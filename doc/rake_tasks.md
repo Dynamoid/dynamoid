@@ -12,7 +12,7 @@ explicitly:
 # Rakefile
 
 Rake::Task.define_task(:environment)
-require 'dynamoid/tasks'
+require "dynamoid/tasks"
 ```
 
 The Rake tasks depend on `:environment` task so it should be declared as

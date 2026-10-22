@@ -17,7 +17,7 @@ module Dynamoid
           counter = 0
           resp = nil
           begin
-            check = { again: true }
+            check = {again: true}
             while check[:again]
               sleep Dynamoid::Config.sync_retry_wait_seconds
               resp = client.describe_table(table_name: table_name)
@@ -53,8 +53,8 @@ module Dynamoid
         def check_table_status?(counter, resp, expect_status)
           status = PARSE_TABLE_STATUS.call(resp)
           again = counter < Dynamoid::Config.sync_retry_max_times &&
-                  status == TABLE_STATUSES[expect_status]
-          { again: again, status: status, counter: counter }
+            status == TABLE_STATUSES[expect_status]
+          {again: again, status: status, counter: counter}
         end
       end
     end

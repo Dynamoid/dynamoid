@@ -17,11 +17,11 @@ module Dynamoid
       def warning_message
         return unless found?
 
-        fields_list = @nonexistent_fields.map { |s| "`#{s}`" }.join(', ')
+        fields_list = @nonexistent_fields.map { |s| "`#{s}`" }.join(", ")
         count = @nonexistent_fields.size
 
-        'where conditions contain nonexistent ' \
-          "field #{'name'.pluralize(count)} #{fields_list}"
+        "where conditions contain nonexistent " \
+          "field #{"name".pluralize(count)} #{fields_list}"
       end
 
       private
@@ -31,7 +31,7 @@ module Dynamoid
       end
 
       def fields_from_conditions
-        @conditions.keys.map { |s| s.to_s.split('.')[0].to_sym }
+        @conditions.keys.map { |s| s.to_s.split(".")[0].to_sym }
       end
 
       def fields_existent

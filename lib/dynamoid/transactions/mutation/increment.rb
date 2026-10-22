@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'base'
-require_relative 'inc'
+require_relative "base"
+require_relative "inc"
 
 module Dynamoid
   module Transactions
@@ -23,7 +23,7 @@ module Dynamoid
             @model.increment(@attribute, @by)
             change = @model.read_attribute(@attribute) - (@model.send(:attribute_was, @attribute) || 0)
 
-            inc_action = Inc.new(@model.class, @model.hash_key, @model.range_value, { @attribute => change, touch: @touch })
+            inc_action = Inc.new(@model.class, @model.hash_key, @model.range_value, {@attribute => change, :touch => @touch})
             inc_action.on_registration
             @action_requests = inc_action.action_requests
           end

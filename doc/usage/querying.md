@@ -4,15 +4,15 @@ Querying can be done in one of the following ways:
 
 ```ruby
 Address.find(address.id)              # Find directly by ID.
-Address.where(city: 'Chicago').all    # Find by any number of matching criteria...
+Address.where(city: "Chicago").all    # Find by any number of matching criteria...
                                       # Though presently only "where" is supported.
-Address.find_by_city('Chicago')       # The same as above, but using ActiveRecord's older syntax.
+Address.find_by_city("Chicago")       # The same as above, but using ActiveRecord's older syntax.
 ```
 
 There is also a way to `#where` with a condition expression:
 
 ```ruby
-Address.where('city = :c', c: 'Chicago')
+Address.where("city = :c", c: "Chicago")
 ```
 
 A condition expression may contain operators (e.g. `<`, `>=`, `<>`),
@@ -32,7 +32,7 @@ attributes in `#where`'s String condition expressions.
 And you can also query on associations:
 
 ```ruby
-u.addresses.where(city: 'Chicago').all
+u.addresses.where(city: "Chicago").all
 ```
 
 But keep in mind that DynamoDB — and document-based storage systems in
@@ -51,8 +51,8 @@ If Dynamoid ignores `nil` value attributes, `null`/`not_null` operators
 should be used in the query:
 
 ```ruby
-Address.where('postcode.null': true)
-Address.where('postcode.not_null': true)
+Address.where("postcode.null": true)
+Address.where("postcode.not_null": true)
 ```
 
 If Dynamoid keeps `nil` value attributes, `eq`/`ne` operators should be
@@ -60,7 +60,7 @@ used instead:
 
 ```ruby
 Address.where(postcode: nil)
-Address.where('postcode.ne': nil)
+Address.where("postcode.ne": nil)
 ```
 
 ## Limits
@@ -162,12 +162,12 @@ operators are available: `gt`, `lt`, `gte`, `lte`, `begins_with`,
 
 ```ruby
 Address.where(latitude: 10_212)
-Address.where('latitude.gt': 10_212)
-Address.where('latitude.lt': 10_212)
-Address.where('latitude.gte': 10_212)
-Address.where('latitude.lte': 10_212)
-Address.where('city.begins_with': 'Lon')
-Address.where('latitude.between': [10_212, 20_000])
+Address.where("latitude.gt": 10_212)
+Address.where("latitude.lt": 10_212)
+Address.where("latitude.gte": 10_212)
+Address.where("latitude.lte": 10_212)
+Address.where("city.begins_with": "Lon")
+Address.where("latitude.between": [10_212, 20_000])
 ```
 
 You are able to filter results on the DynamoDB side and specify
@@ -175,11 +175,11 @@ conditions for non-key fields. Following additional operators are
 available: `in`, `contains`, `not_contains`, `null`, `not_null`:
 
 ```ruby
-Address.where('city.in': %w[London Edinburgh Birmingham])
-Address.where('city.contains': ['on'])
-Address.where('city.not_contains': ['ing'])
-Address.where('postcode.null': false)
-Address.where('postcode.not_null': true)
+Address.where("city.in": %w[London Edinburgh Birmingham])
+Address.where("city.contains": ["on"])
+Address.where("city.not_contains": ["ing"])
+Address.where("postcode.null": false)
+Address.where("postcode.not_null": true)
 ```
 
 **WARNING:** Please take into account that `NULL` and `NOT_NULL`
@@ -198,7 +198,7 @@ class User
   field :name
 end
 
-User.create(name: 'Alex')
+User.create(name: "Alex")
 user = User.project(:name).first
 
 user.id         # => nil

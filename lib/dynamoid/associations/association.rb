@@ -37,7 +37,8 @@ module Dynamoid
       end
 
       # @private
-      def find_target; end
+      def find_target
+      end
 
       # @private
       def target

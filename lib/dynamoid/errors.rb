@@ -18,7 +18,7 @@ module Dynamoid
         if item.is_a? String
           super
         else
-          super("Validation failed: #{item.errors.full_messages.join(', ')}")
+          super("Validation failed: #{item.errors.full_messages.join(", ")}")
         end
       end
     end
@@ -27,7 +27,7 @@ module Dynamoid
       attr_reader :record
 
       def initialize(record)
-        super('Failed to save the item')
+        super("Failed to save the item")
         @record = record
       end
     end
@@ -36,7 +36,7 @@ module Dynamoid
       attr_reader :record
 
       def initialize(record)
-        super('Failed to destroy the item')
+        super("Failed to destroy the item")
         @record = record
       end
     end
@@ -77,7 +77,7 @@ module Dynamoid
       attr_reader :document
 
       def initialize(document)
-        super("Validation failed: #{document.errors.full_messages.join(', ')}")
+        super("Validation failed: #{document.errors.full_messages.join(", ")}")
         @document = document
       end
     end
@@ -103,7 +103,7 @@ module Dynamoid
 
     class ScanProhibited < Error
       def initialize(_msg = nil)
-        super('Scan operations prohibited. Modify Dynamoid::Config.error_on_scan to change this behavior.')
+        super("Scan operations prohibited. Modify Dynamoid::Config.error_on_scan to change this behavior.")
       end
     end
   end

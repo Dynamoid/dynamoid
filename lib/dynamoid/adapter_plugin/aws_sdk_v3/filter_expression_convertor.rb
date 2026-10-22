@@ -33,7 +33,7 @@ module Dynamoid
             end
           end
 
-          @expression = clauses.join(' AND ')
+          @expression = clauses.join(" AND ")
         end
 
         def build_for_hash(hash)
@@ -65,7 +65,7 @@ module Dynamoid
               when :begins_with
                 "begins_with (#{name_placeholder}, #{value_placeholder_for(value)})"
               when :in
-                list = value.map(&method(:value_placeholder_for)).join(' , ')
+                list = value.map(&method(:value_placeholder_for)).join(" , ")
                 "#{name_placeholder} IN (#{list})"
               when :contains
                 "contains (#{name_placeholder}, #{value_placeholder_for(value)})"
@@ -82,14 +82,14 @@ module Dynamoid
           if clauses.empty?
             nil
           else
-            clauses.join(' AND ')
+            clauses.join(" AND ")
           end
         end
 
         def build_for_string(query, placeholders)
           placeholders.each do |(k, v)|
             k = k.to_s
-            k = ":#{k}" unless k.start_with?(':')
+            k = ":#{k}" unless k.start_with?(":")
             @value_placeholders[k] = v
           end
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'bundler/setup'
-require 'dynamoid'
-require 'dynamoid/log/formatter'
+require "bundler/setup"
+require "dynamoid"
+require "dynamoid/log/formatter"
 
 # You can add fixtures and/or initialization code here to make experimenting
 # with your gem easier. You can also use a different console, if you like.
@@ -16,13 +16,13 @@ Dynamoid.configure do |config|
   # DynamoDB local version 2.0.0 and greater AWS_ACCESS_KEY_ID can contain
   # the only letters (A–Z, a–z) and numbers (0–9).
   # See https://hub.docker.com/r/amazon/dynamodb-local
-  config.access_key = 'accesskey'
-  config.secret_key = 'secretkey'
+  config.access_key = "accesskey"
+  config.secret_key = "secretkey"
 
-  config.region = 'us-west-2'
-  config.endpoint = 'http://localhost:8000'
+  config.region = "us-west-2"
+  config.endpoint = "http://localhost:8000"
   config.log_formatter = Dynamoid::Log::Formatter::Compact.new
 end
 
-require 'irb'
+require "irb"
 IRB.start

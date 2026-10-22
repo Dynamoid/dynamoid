@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'base'
-require_relative 'builders/update_request_builder'
+require_relative "base"
+require_relative "builders/update_request_builder"
 
 module Dynamoid
   module Transactions
@@ -93,10 +93,10 @@ module Dynamoid
 
         def action_requests
           request = if @was_new_record
-                      action_request_to_create
-                    else
-                      action_request_to_update
-                    end
+            action_request_to_create
+          else
+            action_request_to_update
+          end
 
           [request]
         end
@@ -115,12 +115,12 @@ module Dynamoid
           attributes_dumped = sanitize_item(attributes_dumped)
 
           # require primary key not to exist yet
-          expression_attribute_names = { '#_h' => @model_class.hash_key }
-          condition = 'attribute_not_exists(#_h)'
+          expression_attribute_names = {"#_h" => @model_class.hash_key}
+          condition = "attribute_not_exists(#_h)"
 
           if @model_class.range_key?
-            expression_attribute_names['#_r'] = @model_class.range_key
-            condition += ' AND attribute_not_exists(#_r)'
+            expression_attribute_names["#_r"] = @model_class.range_key
+            condition += " AND attribute_not_exists(#_r)"
           end
 
           {
@@ -160,16 +160,16 @@ module Dynamoid
 
           if @model_class.attributes[:lock_version]
             lock_version = if @model.changes[:lock_version].nil?
-                             @model.lock_version
-                           else
-                             @model.changes[:lock_version][0]
-                           end
+              @model.lock_version
+            else
+              @model.changes[:lock_version][0]
+            end
 
             # skip concurrency control when lock_version is nil
             if lock_version
-              builder.add_expression_attribute_name('#_lock_version', 'lock_version')
-              builder.add_expression_attribute_value(':lock_version_value', lock_version)
-              builder.condition_expression = '#_lock_version = :lock_version_value'
+              builder.add_expression_attribute_name("#_lock_version", "lock_version")
+              builder.add_expression_attribute_value(":lock_version_value", lock_version)
+              builder.condition_expression = "#_lock_version = :lock_version_value"
             end
           end
 

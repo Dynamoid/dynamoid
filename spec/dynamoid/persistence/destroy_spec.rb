@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-require 'fixtures/persistence'
+require "spec_helper"
+require "fixtures/persistence"
 
 RSpec.describe Dynamoid::Persistence do
-  describe '#destroy' do
+  describe "#destroy" do
     let(:klass) do
       new_class do
         field :name
@@ -18,38 +18,38 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    it 'deletes an item' do
+    it "deletes an item" do
       klass = new_class
       obj = klass.create!
 
       expect { obj.destroy }.to change { klass.exists? obj.id }.from(true).to(false)
     end
 
-    it 'returns self' do
+    it "returns self" do
       klass = new_class
       obj = klass.create!
 
       expect(obj.destroy).to eq obj
     end
 
-    it 'forces #destroyed? predicate to return true' do
+    it "forces #destroyed? predicate to return true" do
       klass = new_class
       obj = klass.create!
 
       expect { obj.destroy }.to change(obj, :destroyed?).from(nil).to(true)
     end
 
-    it 'uses dumped value of partition key to delete item' do
-      klass = new_class(partition_key: { name: :published_on, type: :date })
+    it "uses dumped value of partition key to delete item" do
+      klass = new_class(partition_key: {name: :published_on, type: :date})
 
-      obj = klass.create!(published_on: '2018-10-07'.to_date)
+      obj = klass.create!(published_on: "2018-10-07".to_date)
 
       expect { obj.destroy }.to change {
         klass.where(published_on: obj.published_on).first
       }.to(nil)
     end
 
-    it 'uses dumped value of sort key to delete item' do
+    it "uses dumped value of sort key to delete item" do
       klass = new_class do
         range :activated_on, :date
       end
@@ -61,7 +61,7 @@ RSpec.describe Dynamoid::Persistence do
       }.to(nil)
     end
 
-    it 'does not raise exception when model was concurrently deleted' do
+    it "does not raise exception when model was concurrently deleted" do
       obj = klass.create
       obj2 = klass.find(obj.id)
       obj.delete
@@ -71,26 +71,26 @@ RSpec.describe Dynamoid::Persistence do
       expect(obj2.destroyed?).to eql true
     end
 
-    describe 'primary key validation' do
-      context 'simple primary key' do
-        it 'requires partition key to be specified' do
-          obj = klass.create!(name: 'one')
+    describe "primary key validation" do
+      context "simple primary key" do
+        it "requires partition key to be specified" do
+          obj = klass.create!(name: "one")
           obj.id = nil
 
           expect { obj.destroy }.to raise_exception(Dynamoid::Errors::MissingHashKey)
         end
       end
 
-      context 'composite key' do
-        it 'requires partition key to be specified' do
-          obj = klass_with_composite_key.create!(name: 'one', age: 1)
+      context "composite key" do
+        it "requires partition key to be specified" do
+          obj = klass_with_composite_key.create!(name: "one", age: 1)
           obj.id = nil
 
           expect { obj.destroy }.to raise_exception(Dynamoid::Errors::MissingHashKey)
         end
 
-        it 'requires sort key to be specified' do
-          obj = klass_with_composite_key.create!(name: 'one', age: 1)
+        it "requires sort key to be specified" do
+          obj = klass_with_composite_key.create!(name: "one", age: 1)
           obj.age = nil
 
           expect { obj.destroy }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
@@ -98,7 +98,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'optimistic locking' do
+    context "optimistic locking" do
       let(:klass) do
         new_class do
           field :name
@@ -106,11 +106,11 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      it 'raises Dynamoid::Errors::StaleObjectError when concurrent update happens before delete' do
-        obj = klass.create!(name: 'Original') # lock_version: 1
+      it "raises Dynamoid::Errors::StaleObjectError when concurrent update happens before delete" do
+        obj = klass.create!(name: "Original") # lock_version: 1
         obj2 = klass.find(obj.id)
 
-        obj.update_attributes!(name: 'Concurrent Update') # lock_version: 1 -> 2
+        obj.update_attributes!(name: "Concurrent Update") # lock_version: 1 -> 2
 
         expect {
           obj2.destroy
@@ -119,16 +119,16 @@ RSpec.describe Dynamoid::Persistence do
         expect(obj2.destroyed?).to eql false
       end
 
-      it 'deletes a model if there is no concurrent update' do
-        obj = klass.create!(name: 'Original')
+      it "deletes a model if there is no concurrent update" do
+        obj = klass.create!(name: "Original")
 
         expect {
           obj.destroy
         }.to change { klass.exists? obj.id }.from(true).to(false)
       end
 
-      it 'uses the persisted lock_version value and ignores dirty changes' do
-        obj = klass.create!(name: 'Original')
+      it "uses the persisted lock_version value and ignores dirty changes" do
+        obj = klass.create!(name: "Original")
         obj.lock_version = obj.lock_version + 100
 
         expect {
@@ -137,24 +137,24 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'when model has associations' do
-      context 'when belongs_to association' do
-        context 'when has_many on the other side' do
+    context "when model has associations" do
+      context "when belongs_to association" do
+        context "when has_many on the other side" do
           let!(:source_model) { User.create }
           let!(:target_model) { source_model.camel_case.create }
 
-          it 'disassociates self' do
+          it "disassociates self" do
             expect do
               source_model.destroy
             end.to change { CamelCase.find(target_model.id).users.target }.from([source_model]).to([])
           end
 
-          it 'updates cached ids list in associated model' do
+          it "updates cached ids list in associated model" do
             source_model.destroy
             expect(CamelCase.find(target_model.id).users_ids).to eq nil
           end
 
-          it 'behaves correctly when associated model is linked with several models' do
+          it "behaves correctly when associated model is linked with several models" do
             source_model2 = User.create
             target_model.users << source_model2
 
@@ -164,31 +164,31 @@ RSpec.describe Dynamoid::Persistence do
             expect(CamelCase.find(target_model.id).users_ids).to eq [source_model2.id].to_set
           end
 
-          it 'does not raise exception when foreign key is broken' do
-            source_model.update_attributes!(camel_case_ids: ['fake_id'])
+          it "does not raise exception when foreign key is broken" do
+            source_model.update_attributes!(camel_case_ids: ["fake_id"])
 
             expect { source_model.destroy }.not_to raise_error
-            expect(CamelCase.find(target_model.id).users.target).to eq []
+            expect(CamelCase.find(target_model.id).users.target).to be_empty
           end
         end
 
-        context 'when has_one on the other side' do
+        context "when has_one on the other side" do
           let!(:source_model) { Sponsor.create }
           let!(:target_model) { source_model.camel_case.create }
 
-          it 'disassociates self' do
+          it "disassociates self" do
             expect do
               source_model.destroy
             end.to change { CamelCase.find(target_model.id).sponsor.target }.from(source_model).to(nil)
           end
 
-          it 'updates cached ids list in associated model' do
+          it "updates cached ids list in associated model" do
             source_model.destroy
             expect(CamelCase.find(target_model.id).sponsor_ids).to eq nil
           end
 
-          it 'does not raise exception when foreign key is broken' do
-            source_model.update_attributes!(camel_case_ids: ['fake_id'])
+          it "does not raise exception when foreign key is broken" do
+            source_model.update_attributes!(camel_case_ids: ["fake_id"])
 
             expect { source_model.destroy }.not_to raise_error
             expect(CamelCase.find(target_model.id).sponsor.target).to eq nil
@@ -196,23 +196,23 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'when has_many association' do
+      context "when has_many association" do
         let!(:source_model) { User.create }
         let!(:target_model) { source_model.books.create }
 
-        it 'disassociates self' do
+        it "disassociates self" do
           expect do
             source_model.destroy
           end.to change { Magazine.find(target_model.title).owner.target }.from(source_model).to(nil)
         end
 
-        it 'updates cached ids list in associated model' do
+        it "updates cached ids list in associated model" do
           source_model.destroy
           expect(Magazine.find(target_model.title).owner_ids).to eq nil
         end
 
-        it 'does not raise exception when cached foreign key is broken' do
-          books_ids_new = source_model.books_ids + ['fake_id']
+        it "does not raise exception when cached foreign key is broken" do
+          books_ids_new = source_model.books_ids + ["fake_id"]
           source_model.update_attributes!(books_ids: books_ids_new)
 
           expect { source_model.destroy }.not_to raise_error
@@ -220,44 +220,44 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'when has_one association' do
+      context "when has_one association" do
         let!(:source_model) { User.create }
         let!(:target_model) { source_model.monthly.create }
 
-        it 'disassociates self' do
+        it "disassociates self" do
           expect do
             source_model.destroy
           end.to change { Subscription.find(target_model.id).customer.target }.from(source_model).to(nil)
         end
 
-        it 'updates cached ids list in associated model' do
+        it "updates cached ids list in associated model" do
           source_model.destroy
           expect(Subscription.find(target_model.id).customer_ids).to eq nil
         end
 
-        it 'does not raise exception when cached foreign key is broken' do
-          source_model.update_attributes!(monthly_ids: ['fake_id'])
+        it "does not raise exception when cached foreign key is broken" do
+          source_model.update_attributes!(monthly_ids: ["fake_id"])
 
           expect { source_model.destroy }.not_to raise_error
         end
       end
 
-      context 'when has_and_belongs_to_many association' do
+      context "when has_and_belongs_to_many association" do
         let!(:source_model) { User.create }
         let!(:target_model) { source_model.subscriptions.create }
 
-        it 'disassociates self' do
+        it "disassociates self" do
           expect do
             source_model.destroy
           end.to change { Subscription.find(target_model.id).users.target }.from([source_model]).to([])
         end
 
-        it 'updates cached ids list in associated model' do
+        it "updates cached ids list in associated model" do
           source_model.destroy
           expect(Subscription.find(target_model.id).users_ids).to eq nil
         end
 
-        it 'behaves correctly when associated model is linked with several models' do
+        it "behaves correctly when associated model is linked with several models" do
           source_model2 = User.create
           target_model.users << source_model2
 
@@ -267,8 +267,8 @@ RSpec.describe Dynamoid::Persistence do
           expect(Subscription.find(target_model.id).users_ids).to eq [source_model2.id].to_set
         end
 
-        it 'does not raise exception when foreign key is broken' do
-          subscriptions_ids_new = source_model.subscriptions_ids + ['fake_id']
+        it "does not raise exception when foreign key is broken" do
+          subscriptions_ids_new = source_model.subscriptions_ids + ["fake_id"]
           source_model.update_attributes!(subscriptions_ids: subscriptions_ids_new)
 
           expect { source_model.destroy }.not_to raise_error
@@ -277,61 +277,61 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    describe 'callbacks' do
-      it 'runs before_destroy callback' do
+    describe "callbacks" do
+      it "runs before_destroy callback" do
         klass_with_callback = new_class do
-          before_destroy { print 'run before_destroy' }
+          before_destroy { print "run before_destroy" }
         end
 
         obj = klass_with_callback.create
 
-        expect { obj.destroy }.to output('run before_destroy').to_stdout
+        expect { obj.destroy }.to output("run before_destroy").to_stdout
       end
 
-      it 'runs after_destroy callback' do
+      it "runs after_destroy callback" do
         klass_with_callback = new_class do
-          after_destroy { print 'run after_destroy' }
+          after_destroy { print "run after_destroy" }
         end
 
         obj = klass_with_callback.create
-        expect { obj.destroy }.to output('run after_destroy').to_stdout
+        expect { obj.destroy }.to output("run after_destroy").to_stdout
       end
 
-      it 'runs around_destroy callback' do
+      it "runs around_destroy callback" do
         klass_with_callback = new_class do
           around_destroy :around_destroy_callback
 
           def around_destroy_callback
-            print 'start around_destroy'
+            print "start around_destroy"
             yield
-            print 'finish around_destroy'
+            print "finish around_destroy"
           end
         end
 
         obj = klass_with_callback.create
 
-        expect { obj.destroy }.to output('start around_destroyfinish around_destroy').to_stdout
+        expect { obj.destroy }.to output("start around_destroyfinish around_destroy").to_stdout
       end
 
-      it 'runs callbacks in the proper order' do
+      it "runs callbacks in the proper order" do
         klass_with_all_callbacks = new_class do
-          before_destroy { puts 'run before_destroy' }
-          after_destroy { puts 'run after_destroy' }
+          before_destroy { puts "run before_destroy" }
+          after_destroy { puts "run after_destroy" }
           around_destroy :around_destroy_callback
 
           def around_destroy_callback
-            puts 'start around_destroy'
+            puts "start around_destroy"
             yield
-            puts 'finish around_destroy'
+            puts "finish around_destroy"
           end
         end
 
         # print each message on new line to force RSpec to show meaningful diff
         expected_output = [ # rubocop:disable Style/StringConcatenation
-          'run before_destroy',
-          'start around_destroy',
-          'finish around_destroy',
-          'run after_destroy',
+          "run before_destroy",
+          "start around_destroy",
+          "finish around_destroy",
+          "run after_destroy",
         ].join("\n") + "\n"
 
         obj = klass_with_all_callbacks.create!
@@ -339,8 +339,8 @@ RSpec.describe Dynamoid::Persistence do
         expect { obj.destroy }.to output(expected_output).to_stdout
       end
 
-      it 'aborts destroying and returns false if a before_destroy callback throws :abort' do
-        if ActiveSupport.version < Gem::Version.new('5.0')
+      it "aborts destroying and returns false if a before_destroy callback throws :abort" do
+        if ActiveSupport.version < Gem::Version.new("5.0")
           skip "Rails 4.x and below don't support aborting with `throw :abort`"
         end
 
@@ -358,28 +358,28 @@ RSpec.describe Dynamoid::Persistence do
         expect(obj.destroyed?).to eql nil
       end
 
-      it 'runs before and around callbacks before validating primary key' do
+      it "runs before and around callbacks before validating primary key" do
         klass_with_callbacks_and_composite_key = new_class do
           range :name
 
-          before_destroy { puts 'run before_destroy' }
-          after_destroy { puts 'run after_destroy' }
+          before_destroy { puts "run before_destroy" }
+          after_destroy { puts "run after_destroy" }
           around_destroy :around_destroy_callback
 
           def around_destroy_callback
-            puts 'start around_destroy'
+            puts "start around_destroy"
             yield
-            puts 'finish around_destroy'
+            puts "finish around_destroy"
           end
         end
 
-        obj = klass_with_callbacks_and_composite_key.create!(name: 'John')
+        obj = klass_with_callbacks_and_composite_key.create!(name: "John")
         obj.name = nil
 
         # print each message on new line to force RSpec to show meaningful diff
         expected_output = [ # rubocop:disable Style/StringConcatenation
-          'run before_destroy',
-          'start around_destroy',
+          "run before_destroy",
+          "start around_destroy",
         ].join("\n") + "\n"
 
         expect {
@@ -390,8 +390,8 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'when table arn is specified', remove_constants: [:Payment] do
-      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+    context "when table arn is specified", remove_constants: [:Payment] do
+      it "uses given table ARN in requests instead of a table name", config: {create_table_on_save: false} do
         # Create table manually because CreateTable doesn't accept ARN as a
         # table name. Add namespace to have this table removed automativally.
         table_name = :"#{Dynamoid::Config.namespace}_purchases"
@@ -410,23 +410,23 @@ RSpec.describe Dynamoid::Persistence do
 
         expect {
           payment.destroy
-        }.to send_request_matching(:DeleteItem, { TableName: table.arn })
+        }.to send_request_matching(:DeleteItem, {TableName: table.arn})
       end
     end
 
     # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-    it 'allows reserved words as partition key and sort key' do
-      klass = new_class(partition_key: { name: :order }) do
+    it "allows reserved words as partition key and sort key" do
+      klass = new_class(partition_key: {name: :order}) do
         range :count, :integer
       end
-      obj = klass.create!(order: 'order-1', count: 1)
-      expect { obj.destroy }.to change { klass.exists?(order: 'order-1', count: 1) }.from(true).to(false)
+      obj = klass.create!(order: "order-1", count: 1)
+      expect { obj.destroy }.to change { klass.exists?(order: "order-1", count: 1) }.from(true).to(false)
     end
   end
 
-  describe '#destroy!' do
-    it 'aborts destroying and raises RecordNotDestroyed if a before_destroy callback throws :abort' do
-      if ActiveSupport.version < Gem::Version.new('5.0')
+  describe "#destroy!" do
+    it "aborts destroying and raises RecordNotDestroyed if a before_destroy callback throws :abort" do
+      if ActiveSupport.version < Gem::Version.new("5.0")
         skip "Rails 4.x and below don't support aborting with `throw :abort`"
       end
 

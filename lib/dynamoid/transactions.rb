@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'dynamoid/transactions/retrieval'
-require 'dynamoid/transactions/mutation'
+require "dynamoid/transactions/retrieval"
+require "dynamoid/transactions/mutation"
 
 module Dynamoid
   # The Transactions module provides a way to run blocks of code within a

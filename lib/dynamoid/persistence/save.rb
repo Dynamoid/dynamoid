@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'item_updater_with_dumping'
+require_relative "item_updater_with_dumping"
 
 module Dynamoid
   module Persistence
@@ -62,7 +62,7 @@ module Dynamoid
         if @model.new_record?
           raise Dynamoid::Errors::RecordNotUnique.new(e, @model)
         else
-          raise Dynamoid::Errors::StaleObjectError.new(@model, 'persist')
+          raise Dynamoid::Errors::StaleObjectError.new(@model, "persist")
         end
       end
 
@@ -103,10 +103,10 @@ module Dynamoid
         # in case user changed 'lock_version' manually
         if @model.class.attributes[:lock_version]
           lock_version = if @model.changes[:lock_version]
-                           @model.changes[:lock_version][0]
-                         else
-                           @model.lock_version
-                         end
+            @model.changes[:lock_version][0]
+          else
+            @model.lock_version
+          end
 
           # skip concurrency control when lock_version is nil
           if lock_version

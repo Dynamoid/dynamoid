@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'key_fields_detector'
-require_relative 'nonexistent_fields_detector'
-require_relative 'where_conditions'
+require_relative "key_fields_detector"
+require_relative "nonexistent_fields_detector"
+require_relative "where_conditions"
 
 module Dynamoid
   module Criteria
@@ -248,7 +248,7 @@ module Dynamoid
 
         Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
       end
-      alias destroy_all delete_all
+      alias_method :destroy_all, :delete_all
 
       # Set the record limit.
       #
@@ -618,11 +618,11 @@ module Dynamoid
       end
 
       def issue_scan_warning
-        Dynamoid.logger.warn 'Queries without an index are forced to use scan and are generally much slower than indexed queries!'
+        Dynamoid.logger.warn "Queries without an index are forced to use scan and are generally much slower than indexed queries!"
         Dynamoid.logger.warn "You can index this query by adding index declaration to #{source.to_s.underscore}.rb:"
         Dynamoid.logger.warn "* global_secondary_index hash_key: 'some-name', range_key: 'some-another-name'"
         Dynamoid.logger.warn "* local_secondary_index range_key: 'some-name'"
-        Dynamoid.logger.warn "Not indexed attributes: #{@where_conditions.keys.sort.collect { |name| ":#{name}" }.join(', ')}"
+        Dynamoid.logger.warn "Not indexed attributes: #{@where_conditions.keys.sort.collect { |name| ":#{name}" }.join(", ")}"
       end
 
       def count_via_query
@@ -634,9 +634,9 @@ module Dynamoid
       end
 
       def field_condition(key, value_before_type_casting)
-        name, operator = key.to_s.split('.')
+        name, operator = key.to_s.split(".")
         value = type_cast_condition_parameter(name, value_before_type_casting)
-        operator ||= 'eq'
+        operator ||= "eq"
 
         unless operator.in? ALLOWED_FIELD_OPERATORS
           raise Dynamoid::Errors::Error, "Unsupported operator #{operator} in #{key}"
@@ -647,9 +647,9 @@ module Dynamoid
             # NULL/NOT_NULL operators don't have parameters
             # So { null: true } means NULL check and { null: false } means NOT_NULL one
             # The same logic is used for { not_null: BOOL }
-          when 'null'
+          when "null"
             value ? [:null, nil] : [:not_null, nil]
-          when 'not_null'
+          when "not_null"
             value ? [:not_null, nil] : [:null, nil]
           else
             [operator.to_sym, value]
@@ -688,7 +688,7 @@ module Dynamoid
 
         # Honor STI and :type field if it presents
         if @source.attributes.key?(@source.inheritance_field) &&
-           @key_fields_detector.hash_key.to_sym != @source.inheritance_field.to_sym
+            @key_fields_detector.hash_key.to_sym != @source.inheritance_field.to_sym
           @where_conditions.update_with_hash(sti_condition)
         end
 

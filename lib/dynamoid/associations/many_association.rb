@@ -41,9 +41,9 @@ module Dynamoid
       end
 
       # Alias convenience methods for the associations.
-      alias all records
-      alias count size
-      alias nil? empty?
+      alias_method :all, :records
+      alias_method :count, :size
+      alias_method :nil?, :empty?
 
       # Delegate include? to the records.
       def include?(object)

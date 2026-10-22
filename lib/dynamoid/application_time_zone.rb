@@ -6,7 +6,7 @@ module Dynamoid
     def self.at(value)
       case Dynamoid::Config.application_timezone
       when :utc
-        ActiveSupport::TimeZone['UTC'].at(value).to_datetime
+        ActiveSupport::TimeZone["UTC"].at(value).to_datetime
       when :local
         Time.at(value).to_datetime
       when String

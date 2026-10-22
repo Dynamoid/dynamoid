@@ -53,7 +53,7 @@ rewritten as follows:
 
 ```ruby
 where(dynamo_primary_key_column_name => dynamo_primary_key_value,
-      "#{range_column}.#{range_modifier}" => range_value)
+  "#{range_column}.#{range_modifier}" => range_value)
   .scan_index_forward(false)
 ```
 

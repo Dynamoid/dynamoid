@@ -20,8 +20,8 @@ module Dynamoid
           transact_items = items.map(&:to_h)
           params = {
             transact_items: transact_items,
-            return_consumed_capacity: 'TOTAL',
-            return_item_collection_metrics: 'SIZE'
+            return_consumed_capacity: "TOTAL",
+            return_item_collection_metrics: "SIZE"
           }
           client.transact_write_items(params) # returns this
         end

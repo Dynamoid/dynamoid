@@ -25,20 +25,20 @@ module Dynamoid
 
     def self.find_type_caster(options)
       type_caster_class = case options[:type]
-                          when :string     then StringTypeCaster
-                          when :integer    then IntegerTypeCaster
-                          when :number     then NumberTypeCaster
-                          when :set        then SetTypeCaster
-                          when :array      then ArrayTypeCaster
-                          when :map        then MapTypeCaster
-                          when :datetime   then DateTimeTypeCaster
-                          when :date       then DateTypeCaster
-                          when :raw        then RawTypeCaster
-                          when :serialized then SerializedTypeCaster
-                          when :boolean    then BooleanTypeCaster
-                          when :binary     then BinaryTypeCaster
-                          when Class       then CustomTypeCaster
-                          end
+      when :string then StringTypeCaster
+      when :integer then IntegerTypeCaster
+      when :number then NumberTypeCaster
+      when :set then SetTypeCaster
+      when :array then ArrayTypeCaster
+      when :map then MapTypeCaster
+      when :datetime then DateTimeTypeCaster
+      when :date then DateTypeCaster
+      when :raw then RawTypeCaster
+      when :serialized then SerializedTypeCaster
+      when :boolean then BooleanTypeCaster
+      when :binary then BinaryTypeCaster
+      when Class then CustomTypeCaster
+      end
 
       if type_caster_class.present?
         type_caster_class.new(options)
@@ -59,9 +59,9 @@ module Dynamoid
       def process(value)
         case value
         when true
-          't'
+          "t"
         when false
-          'f'
+          "f"
         when String
           value.dup
         else
@@ -157,7 +157,7 @@ module Dynamoid
             options[:type] = element_type
           end
         else
-          { type: element_type }
+          {type: element_type}
         end
       end
     end
@@ -207,7 +207,7 @@ module Dynamoid
             options[:type] = element_type
           end
         else
-          { type: element_type }
+          {type: element_type}
         end
       end
     end
@@ -233,7 +233,7 @@ module Dynamoid
         elsif value.is_a?(String)
           dt = begin
             DateTime.parse(value)
-          rescue StandardError
+          rescue
             nil
           end
           if dt
@@ -263,7 +263,7 @@ module Dynamoid
         if value.respond_to?(:to_date)
           begin
             value.to_date
-          rescue StandardError
+          rescue
             nil
           end
         end
@@ -278,10 +278,10 @@ module Dynamoid
 
     class BooleanTypeCaster < Base
       def process(value)
-        if value == ''
+        if value == ""
           nil
         else
-          ![false, 'false', 'FALSE', 0, '0', 'f', 'F', 'off', 'OFF'].include? value
+          ![false, "false", "FALSE", 0, "0", "f", "F", "off", "OFF"].include? value
         end
       end
     end

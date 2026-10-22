@@ -317,7 +317,7 @@ module Dynamoid
       inspection = names.map do |name|
         value = read_attribute(name)
         "#{name}: #{value.inspect}"
-      end.join(', ')
+      end.join(", ")
 
       "#<#{self.class.name} #{inspection}>"
     end

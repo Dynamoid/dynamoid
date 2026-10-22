@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'base'
-require_relative 'builders/update_request_builder'
+require_relative "base"
+require_relative "builders/update_request_builder"
 
 module Dynamoid
   module Transactions
@@ -18,7 +18,7 @@ module Dynamoid
 
         def on_registration
           if @model.new_record?
-            raise Dynamoid::Errors::Error, 'cannot touch on a new or destroyed record object'
+            raise Dynamoid::Errors::Error, "cannot touch on a new or destroyed record object"
           end
 
           validate_primary_key!
@@ -35,7 +35,7 @@ module Dynamoid
 
         def on_commit
           attribute_names = @names.map(&:to_s)
-          attribute_names << 'updated_at' if @model.class.timestamps_enabled?
+          attribute_names << "updated_at" if @model.class.timestamps_enabled?
           @model.clear_attribute_changes(attribute_names)
           @model.run_callbacks(:commit)
         end
@@ -62,12 +62,12 @@ module Dynamoid
           builder.range_key = dump(@model.class.range_key, @model.range_value) if @model.class.range_key?
 
           # require primary key to exist
-          builder.add_expression_attribute_name('#_h', @model.class.hash_key)
-          condition_expression = 'attribute_exists(#_h)'
+          builder.add_expression_attribute_name("#_h", @model.class.hash_key)
+          condition_expression = "attribute_exists(#_h)"
 
           if @model.class.range_key?
-            builder.add_expression_attribute_name('#_r', @model.class.range_key)
-            condition_expression += ' AND attribute_exists(#_r)'
+            builder.add_expression_attribute_name("#_r", @model.class.range_key)
+            condition_expression += " AND attribute_exists(#_r)"
           end
           builder.condition_expression = condition_expression
 

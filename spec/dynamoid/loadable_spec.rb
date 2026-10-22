@@ -1,26 +1,26 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
 RSpec.describe Dynamoid::Loadable do
-  describe '.reload' do
+  describe ".reload" do
     let(:address) { Address.create }
-    let(:message) { Message.create(text: 'Nice, supporting datetime range!', time: Time.now.to_datetime) }
-    let(:tweet) { tweet = Tweet.create(tweet_id: 'x', group: 'abc') }
+    let(:message) { Message.create(text: "Nice, supporting datetime range!", time: Time.now.to_datetime) }
+    let(:tweet) { tweet = Tweet.create(tweet_id: "x", group: "abc") }
 
-    it 'reflects persisted changes' do
+    it "reflects persisted changes" do
       klass = new_class do
         field :city
       end
 
-      address = klass.create(city: 'Miami')
+      address = klass.create(city: "Miami")
       copy = klass.find(address.id)
 
-      address.update_attributes(city: 'Chicago')
-      expect(copy.reload.city).to eq 'Chicago'
+      address.update_attributes(city: "Chicago")
+      expect(copy.reload.city).to eq "Chicago"
     end
 
-    it 'reads with strong consistency' do
+    it "reads with strong consistency" do
       klass = new_class do
         field :message
       end
@@ -31,74 +31,74 @@ RSpec.describe Dynamoid::Loadable do
       tweet.reload
     end
 
-    it 'works with range key' do
+    it "works with range key" do
       klass = new_class do
         field :message
         range :group
       end
 
-      tweet = klass.create(group: 'tech')
-      expect(tweet.reload.group).to eq 'tech'
+      tweet = klass.create(group: "tech")
+      expect(tweet.reload.group).to eq "tech"
     end
 
-    it 'uses dumped value of sort key to load document' do
+    it "uses dumped value of sort key to load document" do
       klass = new_class do
         range :activated_on, :date
         field :name
       end
 
-      obj = klass.create!(activated_on: Date.today, name: 'Old value')
+      obj = klass.create!(activated_on: Date.today, name: "Old value")
       obj2 = klass.where(id: obj.id, activated_on: obj.activated_on).first
-      obj2.update_attributes(name: 'New value')
+      obj2.update_attributes(name: "New value")
 
-      expect { obj.reload }.to change { obj.name }.from('Old value').to('New value')
+      expect { obj.reload }.to change { obj.name }.from("Old value").to("New value")
     end
 
     # https://github.com/Dynamoid/dynamoid/issues/564
-    it 'marks model as persisted if not saved model is already persisted and successfuly reloaded' do
+    it "marks model as persisted if not saved model is already persisted and successfuly reloaded" do
       klass = new_class do
         field :message
       end
 
-      object = klass.create(message: 'a')
+      object = klass.create(message: "a")
       copy = klass.new(id: object.id)
 
       expect { copy.reload }.to change { copy.new_record? }.from(true).to(false)
-      expect(copy.message).to eq 'a'
+      expect(copy.message).to eq "a"
     end
 
-    describe 'callbacks' do
-      it 'runs after_initialize callback' do
+    describe "callbacks" do
+      it "runs after_initialize callback" do
         klass_with_callback = new_class do
-          after_initialize { print 'run after_initialize' }
+          after_initialize { print "run after_initialize" }
         end
 
         object = klass_with_callback.create!
 
-        expect { object.reload }.to output('run after_initialize').to_stdout
+        expect { object.reload }.to output("run after_initialize").to_stdout
       end
 
-      it 'runs after_find callback' do
+      it "runs after_find callback" do
         klass_with_callback = new_class do
-          after_find { print 'run after_find' }
+          after_find { print "run after_find" }
         end
 
         object = klass_with_callback.create!
 
-        expect { object.reload }.to output('run after_find').to_stdout
+        expect { object.reload }.to output("run after_find").to_stdout
       end
 
-      it 'runs callbacks in the proper order' do
+      it "runs callbacks in the proper order" do
         klass_with_callback = new_class do
-          after_initialize { print 'run after_initialize' }
-          after_find { print 'run after_find' }
+          after_initialize { print "run after_initialize" }
+          after_find { print "run after_find" }
         end
 
         object = klass_with_callback.create!
 
         expect do
           object.reload
-        end.to output('run after_initializerun after_find').to_stdout
+        end.to output("run after_initializerun after_find").to_stdout
       end
     end
   end

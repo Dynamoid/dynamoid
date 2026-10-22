@@ -45,7 +45,7 @@ module Dynamoid
           end
 
           def request
-            key = { @model_class.hash_key => @hash_key }
+            key = {@model_class.hash_key => @hash_key}
             key[@model_class.range_key] = @range_key if @model_class.range_key?
 
             # Build UpdateExpression and keep names and values placeholders mapping
@@ -53,8 +53,8 @@ module Dynamoid
             update_expression_statements = []
             expression_attribute_names = @extra_attribute_names.dup
             expression_attribute_values = @extra_attribute_values.dup
-            name_placeholder = '#_n0'
-            value_placeholder = ':_v0'
+            name_placeholder = "#_n0"
+            value_placeholder = ":_v0"
 
             unless @attributes_to_set.empty?
               statements = []
@@ -69,7 +69,7 @@ module Dynamoid
                 value_placeholder = value_placeholder.succ
               end
 
-              update_expression_statements << "SET #{statements.join(', ')}"
+              update_expression_statements << "SET #{statements.join(", ")}"
             end
 
             unless @attributes_to_add.empty?
@@ -85,7 +85,7 @@ module Dynamoid
                 value_placeholder = value_placeholder.succ
               end
 
-              update_expression_statements << "ADD #{statements.join(', ')}"
+              update_expression_statements << "ADD #{statements.join(", ")}"
             end
 
             unless @attributes_to_delete.empty?
@@ -101,7 +101,7 @@ module Dynamoid
                 value_placeholder = value_placeholder.succ
               end
 
-              update_expression_statements << "DELETE #{statements.join(', ')}"
+              update_expression_statements << "DELETE #{statements.join(", ")}"
             end
 
             unless @attributes_to_remove.empty?
@@ -116,10 +116,10 @@ module Dynamoid
                 value_placeholder = value_placeholder.succ
               end
 
-              update_expression_statements << "REMOVE #{name_placeholders.join(', ')}"
+              update_expression_statements << "REMOVE #{name_placeholders.join(", ")}"
             end
 
-            update_expression = update_expression_statements.join(' ')
+            update_expression = update_expression_statements.join(" ")
 
             {
               update: {

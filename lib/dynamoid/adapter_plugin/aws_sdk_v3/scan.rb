@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative 'middleware/backoff'
-require_relative 'middleware/limit'
-require_relative 'middleware/start_key'
-require_relative 'filter_expression_convertor'
-require_relative 'projection_expression_convertor'
+require_relative "middleware/backoff"
+require_relative "middleware/limit"
+require_relative "middleware/start_key"
+require_relative "filter_expression_convertor"
+require_relative "projection_expression_convertor"
 
 module Dynamoid
   # @private
@@ -48,8 +48,8 @@ module Dynamoid
 
         def build_request
           # expressions
-          name_placeholder = +'#_a0'
-          value_placeholder = +':_a0'
+          name_placeholder = +"#_a0"
+          value_placeholder = +":_a0"
 
           name_placeholder_sequence = -> { name_placeholder.next!.dup }
           value_placeholder_sequence = -> { value_placeholder.next!.dup }
@@ -82,12 +82,12 @@ module Dynamoid
             :index_name
           ).compact
 
-          request[:table_name]                  = table_name
-          request[:limit]                       = limit                 if limit
-          request[:filter_expression]           = filter_expression     if filter_expression.present?
-          request[:expression_attribute_values] = value_placeholders    if value_placeholders.present?
-          request[:expression_attribute_names]  = name_placeholders     if name_placeholders.present?
-          request[:projection_expression]       = projection_expression if projection_expression.present?
+          request[:table_name] = table_name
+          request[:limit] = limit if limit
+          request[:filter_expression] = filter_expression if filter_expression.present?
+          request[:expression_attribute_values] = value_placeholders if value_placeholders.present?
+          request[:expression_attribute_names] = name_placeholders if name_placeholders.present?
+          request[:projection_expression] = projection_expression if projection_expression.present?
 
           request
         end

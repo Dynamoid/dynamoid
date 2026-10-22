@@ -78,7 +78,7 @@ module Dynamoid
       #   # Find all the tweets using hash key and range key with consistent read
       #   Tweet.find_all([['1', 'red'], ['1', 'green']], consistent_read: true)
       def find_all(ids, options = {})
-        Dynamoid.deprecator.warn('[Dynamoid] .find_all is deprecated! Call .find instead of')
+        Dynamoid.deprecator.warn("[Dynamoid] .find_all is deprecated! Call .find instead of")
 
         _find_all(ids, options)
       end
@@ -100,7 +100,7 @@ module Dynamoid
       #
       # @since 0.2.0
       def find_by_id(id, options = {})
-        Dynamoid.deprecator.warn('[Dynamoid] .find_by_id is deprecated! Call .find instead of')
+        Dynamoid.deprecator.warn("[Dynamoid] .find_by_id is deprecated! Call .find instead of")
 
         _find_by_id(id, options)
       end
@@ -136,26 +136,26 @@ module Dynamoid
         table = Dynamoid.adapter.describe_table(table_name)
 
         items = if Dynamoid.config.backoff
-                  items = []
-                  backoff = nil
-                  Dynamoid.adapter.read(table_name, ids, read_options) do |hash, has_unprocessed_items|
-                    # Cannot use #table_name because it may contain a table ARN, but response contains always a table name
-                    items += hash[table.name]
+          items = []
+          backoff = nil
+          Dynamoid.adapter.read(table_name, ids, read_options) do |hash, has_unprocessed_items|
+            # Cannot use #table_name because it may contain a table ARN, but response contains always a table name
+            items += hash[table.name]
 
-                    if has_unprocessed_items
-                      backoff ||= Dynamoid.config.build_backoff
-                      backoff.call
-                    else
-                      backoff = nil
-                    end
-                  end
-                  items
-                else
-                  items = Dynamoid.adapter.read(table_name, ids, read_options)
+            if has_unprocessed_items
+              backoff ||= Dynamoid.config.build_backoff
+              backoff.call
+            else
+              backoff = nil
+            end
+          end
+          items
+        else
+          items = Dynamoid.adapter.read(table_name, ids, read_options)
 
-                  # Cannot use #table_name because it may contain a table ARN, but response contains always a table name
-                  items ? items[table.name] : []
-                end
+          # Cannot use #table_name because it may contain a table ARN, but response contains always a table name
+          items ? items[table.name] : []
+        end
 
         if items.size == ids.size || !options[:raise_error]
           models = items ? items.map { |i| from_database(i) } : []
@@ -163,7 +163,7 @@ module Dynamoid
           models
         else
           ids_list = range_key ? ids.map { |pk, sk| "(#{pk.inspect},#{sk.inspect})" } : ids.map(&:inspect)
-          message = "Couldn't find all #{name.pluralize} with primary keys [#{ids_list.join(', ')}] "
+          message = "Couldn't find all #{name.pluralize} with primary keys [#{ids_list.join(", ")}] "
           message += "(found #{items.size} results, but was looking for #{ids.size})"
           raise Errors::RecordNotFound, message
         end
@@ -197,7 +197,7 @@ module Dynamoid
       # @param range_key [Scalar value] range key of the object to find
       #
       def find_by_composite_key(hash_key, range_key, options = {})
-        Dynamoid.deprecator.warn('[Dynamoid] .find_by_composite_key is deprecated! Call .find instead of')
+        Dynamoid.deprecator.warn("[Dynamoid] .find_by_composite_key is deprecated! Call .find instead of")
 
         _find_by_id(hash_key, options.merge(range_key: range_key))
       end
@@ -224,7 +224,7 @@ module Dynamoid
       #
       # @return [Array] an array of all matching items
       def find_all_by_composite_key(hash_key, options = {})
-        Dynamoid.deprecator.warn('[Dynamoid] .find_all_composite_key is deprecated! Call .where instead of')
+        Dynamoid.deprecator.warn("[Dynamoid] .find_all_composite_key is deprecated! Call .where instead of")
 
         Dynamoid.adapter.query(table_name, options.merge(hash_value: hash_key)).flat_map { |i| i }.collect do |item|
           from_database(item)
@@ -254,7 +254,7 @@ module Dynamoid
       # @param options [Hash] conditions on range key e.g. +{ "rank.lte": 10 }, query filter, projected keys, scan_index_forward etc.
       # @return [Array] an array of all matching items
       def find_all_by_secondary_index(hash, options = {})
-        Dynamoid.deprecator.warn('[Dynamoid] .find_all_by_secondary_index is deprecated! Call .where instead of')
+        Dynamoid.deprecator.warn("[Dynamoid] .find_all_by_secondary_index is deprecated! Call .where instead of")
 
         range = options[:range] || {}
         hash_key_field, hash_key_value = hash.first
@@ -262,9 +262,9 @@ module Dynamoid
 
         if range_key_field
           range_key_field = range_key_field.to_s
-          range_key_op = 'eq'
-          if range_key_field.include?('.')
-            range_key_field, range_key_op = range_key_field.split('.', 2)
+          range_key_op = "eq"
+          if range_key_field.include?(".")
+            range_key_field, range_key_op = range_key_field.split(".", 2)
           end
         end
 
@@ -307,16 +307,16 @@ module Dynamoid
       # @since 0.2.0
       def method_missing(method, *args)
         # Cannot use Symbol#start_with? because it was introduced in Ruby 2.7, but we support Ruby >= 2.3
-        if method.to_s.start_with?('find')
+        if method.to_s.start_with?("find")
           Dynamoid.deprecator.warn("[Dynamoid] .#{method} is deprecated! Call .where instead of")
 
-          finder = method.to_s.split('_by_').first
-          attributes = method.to_s.split('_by_').last.split('_and_')
+          finder = method.to_s.split("_by_").first
+          attributes = method.to_s.split("_by_").last.split("_and_")
 
           chain = Dynamoid::Criteria::Chain.new(self)
           chain = chain.where({}.tap { |h| attributes.each_with_index { |attr, index| h[attr.to_sym] = args[index] } })
 
-          if finder.include?('all')
+          if finder.include?("all")
             chain.all
           else
             chain.first

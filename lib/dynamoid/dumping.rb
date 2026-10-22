@@ -25,20 +25,20 @@ module Dynamoid
 
     def self.find_dumper(options)
       dumper_class = case options[:type]
-                     when :string     then StringDumper
-                     when :integer    then IntegerDumper
-                     when :number     then NumberDumper
-                     when :set        then SetDumper
-                     when :array      then ArrayDumper
-                     when :map        then MapDumper
-                     when :datetime   then DateTimeDumper
-                     when :date       then DateDumper
-                     when :serialized then SerializedDumper
-                     when :raw        then RawDumper
-                     when :boolean    then BooleanDumper
-                     when :binary     then BinaryDumper
-                     when Class       then CustomTypeDumper
-                     end
+      when :string then StringDumper
+      when :integer then IntegerDumper
+      when :number then NumberDumper
+      when :set then SetDumper
+      when :array then ArrayDumper
+      when :map then MapDumper
+      when :datetime then DateTimeDumper
+      when :date then DateDumper
+      when :serialized then SerializedDumper
+      when :raw then RawDumper
+      when :boolean then BooleanDumper
+      when :binary then BinaryDumper
+      when Class then CustomTypeDumper
+      end
 
       if dumper_class.present?
         dumper_class.new(options)
@@ -152,7 +152,7 @@ module Dynamoid
             options[:type] = element_type
           end
         else
-          { type: element_type }
+          {type: element_type}
         end
       end
     end
@@ -203,7 +203,7 @@ module Dynamoid
             options[:type] = element_type
           end
         else
-          { type: element_type }
+          {type: element_type}
         end
       end
     end
@@ -225,10 +225,10 @@ module Dynamoid
 
       def format_datetime(value, options)
         use_string_format = if options[:store_as_string].nil?
-                              Dynamoid.config.store_datetime_as_string
-                            else
-                              options[:store_as_string]
-                            end
+          Dynamoid.config.store_datetime_as_string
+        else
+          options[:store_as_string]
+        end
 
         if use_string_format
           value_in_time_zone = Dynamoid::DynamodbTimeZone.in_time_zone(value)
@@ -237,7 +237,7 @@ module Dynamoid
           unless value.respond_to?(:to_i) && value.respond_to?(:nsec)
             value = value.to_time
           end
-          BigDecimal(format('%d.%09d', value.to_i, value.nsec))
+          BigDecimal(format("%d.%09d", value.to_i, value.nsec))
         end
       end
     end
@@ -252,10 +252,10 @@ module Dynamoid
 
       def format_date(value, options)
         use_string_format = if options[:store_as_string].nil?
-                              Dynamoid.config.store_date_as_string
-                            else
-                              options[:store_as_string]
-                            end
+          Dynamoid.config.store_date_as_string
+        else
+          options[:store_as_string]
+        end
 
         if use_string_format
           value.to_date.iso8601
@@ -284,10 +284,10 @@ module Dynamoid
       def process(value)
         unless value.nil?
           store_as_boolean = if @options[:store_as_native_boolean].nil?
-                               Dynamoid.config.store_boolean_as_native
-                             else
-                               @options[:store_as_native_boolean]
-                             end
+            Dynamoid.config.store_boolean_as_native
+          else
+            @options[:store_as_native_boolean]
+          end
           if store_as_boolean
             !!value
           else
@@ -301,10 +301,10 @@ module Dynamoid
     class BinaryDumper < Base
       def process(value)
         store_as_binary = if @options[:store_as_native_binary].nil?
-                            Dynamoid.config.store_binary_as_native
-                          else
-                            @options[:store_as_native_binary]
-                          end
+          Dynamoid.config.store_binary_as_native
+        else
+          @options[:store_as_native_binary]
+        end
 
         if store_as_binary
           if value.is_a?(StringIO) || value.is_a?(IO)

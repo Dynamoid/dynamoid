@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
-RSpec.describe Dynamoid::Transactions::Retrieval, '#commit' do
+RSpec.describe Dynamoid::Transactions::Retrieval, "#commit" do
   let(:klass) do
     new_class do
       field :name
     end
   end
 
-  it 'returns found models' do
-    obj1 = klass.create!(name: 'Alex')
-    obj2 = klass.create!(name: 'Michael')
+  it "returns found models" do
+    obj1 = klass.create!(name: "Alex")
+    obj2 = klass.create!(name: "Michael")
 
     transaction = described_class.new
 

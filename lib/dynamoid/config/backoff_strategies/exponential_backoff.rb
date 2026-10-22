@@ -8,7 +8,7 @@ module Dynamoid
       # See https://en.wikipedia.org/wiki/Exponential_backoff
       class ExponentialBackoff
         def self.call(opts = {})
-          opts = { base_backoff: 0.5, ceiling: 3 }.merge(opts)
+          opts = {base_backoff: 0.5, ceiling: 3}.merge(opts)
           base_backoff = opts[:base_backoff]
           ceiling = opts[:ceiling]
 

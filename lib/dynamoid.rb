@@ -1,48 +1,48 @@
 # frozen_string_literal: true
 
-require 'aws-sdk-dynamodb'
-require 'delegate'
-require 'time'
-require 'securerandom'
-require 'set'
-require 'active_support'
-require 'active_support/core_ext'
-require 'active_support/json'
-require 'active_support/inflector'
-require 'active_support/lazy_load_hooks'
-require 'active_support/time_with_zone'
-require 'active_model'
+require "aws-sdk-dynamodb"
+require "delegate"
+require "time"
+require "securerandom"
+require "set"
+require "active_support"
+require "active_support/core_ext"
+require "active_support/json"
+require "active_support/inflector"
+require "active_support/lazy_load_hooks"
+require "active_support/time_with_zone"
+require "active_model"
 
-require 'dynamoid/errors'
-require 'dynamoid/application_time_zone'
-require 'dynamoid/dynamodb_time_zone'
-require 'dynamoid/fields'
-require 'dynamoid/indexes'
-require 'dynamoid/associations'
-require 'dynamoid/persistence'
-require 'dynamoid/dumping'
-require 'dynamoid/undumping'
-require 'dynamoid/type_casting'
-require 'dynamoid/primary_key_type_mapping'
-require 'dynamoid/dirty'
-require 'dynamoid/validations'
-require 'dynamoid/criteria'
-require 'dynamoid/finders'
-require 'dynamoid/identity_map'
-require 'dynamoid/config'
-require 'dynamoid/loadable'
-require 'dynamoid/transactions'
-require 'dynamoid/components'
-require 'dynamoid/document'
-require 'dynamoid/adapter'
+require "dynamoid/errors"
+require "dynamoid/application_time_zone"
+require "dynamoid/dynamodb_time_zone"
+require "dynamoid/fields"
+require "dynamoid/indexes"
+require "dynamoid/associations"
+require "dynamoid/persistence"
+require "dynamoid/dumping"
+require "dynamoid/undumping"
+require "dynamoid/type_casting"
+require "dynamoid/primary_key_type_mapping"
+require "dynamoid/dirty"
+require "dynamoid/validations"
+require "dynamoid/criteria"
+require "dynamoid/finders"
+require "dynamoid/identity_map"
+require "dynamoid/config"
+require "dynamoid/loadable"
+require "dynamoid/transactions"
+require "dynamoid/components"
+require "dynamoid/document"
+require "dynamoid/adapter"
 
-require 'dynamoid/tasks/database'
+require "dynamoid/tasks/database"
 
-require 'dynamoid/middleware/identity_map'
+require "dynamoid/middleware/identity_map"
 require "version_gem"
 require_relative "dynamoid/version"
 
-require 'dynamoid/railtie' if defined?(Rails)
+require "dynamoid/railtie" if defined?(Rails)
 
 module Dynamoid
   extend self
@@ -50,7 +50,7 @@ module Dynamoid
   def configure
     block_given? ? yield(Dynamoid::Config) : Dynamoid::Config
   end
-  alias config configure
+  alias_method :config, :configure
 
   def logger
     Dynamoid::Config.logger
@@ -68,7 +68,7 @@ module Dynamoid
   # @private
   def deprecator
     # all the deprecated behavior will be removed in the next major version
-    @deprecator ||= ActiveSupport::Deprecation.new('4.0', 'Dynamoid')
+    @deprecator ||= ActiveSupport::Deprecation.new("4.0", "Dynamoid")
   end
 end
 

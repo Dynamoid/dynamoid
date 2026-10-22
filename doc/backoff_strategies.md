@@ -18,11 +18,11 @@ one of the built-in ones:
 
 ```ruby
 Dynamoid.configure do |config|
-  config.backoff = { constant: 2.second }
+  config.backoff = {constant: 2.second}
 end
 
 Dynamoid.configure do |config|
-  config.backoff = { exponential: { base_backoff: 0.2.seconds, ceiling: 10 } }
+  config.backoff = {exponential: {base_backoff: 0.2.seconds, ceiling: 10}}
 end
 
 ```
@@ -44,6 +44,6 @@ Dynamoid.configure do |config|
     -> { sleep rand(n) }
   end
 
-  config.backoff = { custom: 10 }
+  config.backoff = {custom: 10}
 end
 ```

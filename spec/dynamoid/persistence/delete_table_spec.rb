@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-require 'fixtures/persistence'
+require "spec_helper"
+require "fixtures/persistence"
 
 RSpec.describe Dynamoid::Persistence do
-  describe 'delete_table' do
-    it 'deletes the table' do
+  describe "delete_table" do
+    it "deletes the table" do
       klass = new_class
       klass.create_table
 
@@ -18,7 +18,7 @@ RSpec.describe Dynamoid::Persistence do
       expect(tables.include?(klass.table_name)).to eq false
     end
 
-    it 'returns self' do
+    it "returns self" do
       klass = new_class
       klass.create_table
 

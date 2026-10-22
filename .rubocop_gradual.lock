@@ -1,0 +1,13 @@
+{
+  "dynamoid.gemspec:2964311530": [
+    [169, 3, 41, "Gemspec/DependencyVersion: Dependency version specification is required.", 1243430837],
+    [171, 3, 39, "Gemspec/DependencyVersion: Dependency version specification is required.", 4001402429],
+    [173, 3, 38, "Gemspec/DependencyVersion: Dependency version specification is required.", 1035714269]
+  ],
+  "lib/dynamoid/persistence.rb:3035251526": [
+    [15, 1, 17, "Lint/MisplacedMagicComment: The `encoding` magic comment is ignored unless placed on the first line (or below a shebang on the first line).", 2211429709]
+  ],
+  "lib/dynamoid/persistence/inc.rb:2077491606": [
+    [9, 49, 14, "Style/OptionalArguments: Optional arguments should appear at the end of the argument list.", 3724155873]
+  ]
+}

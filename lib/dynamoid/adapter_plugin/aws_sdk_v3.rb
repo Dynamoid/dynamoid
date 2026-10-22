@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require_relative 'aws_sdk_v3/query'
-require_relative 'aws_sdk_v3/scan'
-require_relative 'aws_sdk_v3/execute_statement'
-require_relative 'aws_sdk_v3/create_table'
-require_relative 'aws_sdk_v3/batch_get_item'
-require_relative 'aws_sdk_v3/item_updater'
-require_relative 'aws_sdk_v3/table'
-require_relative 'aws_sdk_v3/until_past_table_status'
-require_relative 'aws_sdk_v3/transact'
+require_relative "aws_sdk_v3/query"
+require_relative "aws_sdk_v3/scan"
+require_relative "aws_sdk_v3/execute_statement"
+require_relative "aws_sdk_v3/create_table"
+require_relative "aws_sdk_v3/batch_get_item"
+require_relative "aws_sdk_v3/item_updater"
+require_relative "aws_sdk_v3/table"
+require_relative "aws_sdk_v3/until_past_table_status"
+require_relative "aws_sdk_v3/transact"
 
 module Dynamoid
   # @private
@@ -24,17 +24,17 @@ module Dynamoid
     # https://eregon.me/blog/2019/11/10/the-delegation-challenge-of-ruby27.html
 
     class AwsSdkV3
-      EQ = 'EQ'
-      HASH_KEY  = 'HASH'
-      RANGE_KEY = 'RANGE'
-      STRING_TYPE  = 'S'
-      NUM_TYPE     = 'N'
-      BINARY_TYPE  = 'B'
+      EQ = "EQ"
+      HASH_KEY = "HASH"
+      RANGE_KEY = "RANGE"
+      STRING_TYPE = "S"
+      NUM_TYPE = "N"
+      BINARY_TYPE = "B"
       TABLE_STATUSES = {
-        creating: 'CREATING',
-        updating: 'UPDATING',
-        deleting: 'DELETING',
-        active: 'ACTIVE'
+        creating: "CREATING",
+        updating: "UPDATING",
+        deleting: "DELETING",
+        active: "ACTIVE"
       }.freeze
       PARSE_TABLE_STATUS = lambda { |resp, lookup = :table|
         # lookup is table for describe_table API
@@ -188,15 +188,15 @@ module Dynamoid
 
         while items.present?
           batch = items.shift(BATCH_WRITE_ITEM_REQUESTS_LIMIT)
-          requests = batch.map { |item| { put_request: { item: item } } }
+          requests = batch.map { |item| {put_request: {item: item}} }
 
           response = client.batch_write_item(
             {
               request_items: {
                 table_name => requests
               },
-              return_consumed_capacity: 'TOTAL',
-              return_item_collection_metrics: 'SIZE'
+              return_consumed_capacity: "TOTAL",
+              return_item_collection_metrics: "SIZE"
             }.merge!(options)
           )
 
@@ -272,18 +272,18 @@ module Dynamoid
 
           ids.each_slice(BATCH_WRITE_ITEM_REQUESTS_LIMIT) do |sliced_ids|
             delete_requests = sliced_ids.map do |id|
-              { delete_request: { key: key_stanza(table, *id) } }
+              {delete_request: {key: key_stanza(table, *id)}}
             end
 
-            requests << { table_name => delete_requests }
+            requests << {table_name => delete_requests}
           end
         end
 
         requests.each do |items|
           client.batch_write_item(
             request_items: items,
-            return_consumed_capacity: 'TOTAL',
-            return_item_collection_metrics: 'SIZE'
+            return_consumed_capacity: "TOTAL",
+            return_item_collection_metrics: "SIZE"
           )
         end
       rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
@@ -297,7 +297,7 @@ module Dynamoid
       def transact_read_items(items)
         request = {
           transact_items: items,
-          return_consumed_capacity: 'TOTAL',
+          return_consumed_capacity: "TOTAL",
         }
         client.transact_get_items(request)
       end
@@ -442,8 +442,8 @@ module Dynamoid
         consistent_read = options.delete(:consistent_read)
 
         item = client.get_item(table_name: table_name,
-                               key: key_stanza(table, key, range_key),
-                               consistent_read: consistent_read)[:item]
+          key: key_stanza(table, key, range_key),
+          consistent_read: consistent_read)[:item]
         item ? item_to_hash(item) : nil
       end
 
@@ -469,10 +469,10 @@ module Dynamoid
         raise "non-empty options: #{options}" unless options.empty?
 
         result = client.update_item(table_name: table_name,
-                                    key: key_stanza(table, key, range_key),
-                                    attribute_updates: item_updater.attribute_updates,
-                                    expected: expected_stanza(conditions),
-                                    return_values: 'ALL_NEW')
+          key: key_stanza(table, key, range_key),
+          attribute_updates: item_updater.attribute_updates,
+          expected: expected_stanza(conditions),
+          return_values: "ALL_NEW")
         item_to_hash(result[:attributes])
       rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
         raise Dynamoid::Errors::ConditionalCheckFailedException, e
@@ -556,7 +556,7 @@ module Dynamoid
 
       def query_count(table_name, key_conditions, non_key_conditions, options)
         table = describe_table(table_name)
-        options[:select] = 'COUNT'
+        options[:select] = "COUNT"
 
         Query.new(client, table, key_conditions, non_key_conditions, options).call
           .map(&:count)
@@ -589,7 +589,7 @@ module Dynamoid
 
       def scan_count(table_name, conditions = [], options = {})
         table = describe_table(table_name)
-        options[:select] = 'COUNT'
+        options[:select] = "COUNT"
 
         Scan.new(client, table, conditions, options).call
           .map(&:count)
@@ -604,8 +604,8 @@ module Dynamoid
       # @since 1.0.0
       def truncate(table_name)
         table = describe_table(table_name)
-        hk    = table.hash_key
-        rk    = table.range_key
+        hk = table.hash_key
+        rk = table.range_key
 
         ids = scan(table_name, {}, {}).flat_map { |i| i }.map do |attributes|
           rk ? [attributes[hk], attributes[rk.to_sym]] : attributes[hk]
@@ -646,7 +646,7 @@ module Dynamoid
       # The key hash passed on get_item, put_item, delete_item, update_item, etc
       #
       def key_stanza(table, hash_key, range_key = nil)
-        key = { table.hash_key.to_s => hash_key }
+        key = {table.hash_key.to_s => hash_key}
         key[table.range_key.to_s] = range_key if range_key
         key
       end

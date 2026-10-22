@@ -15,17 +15,17 @@ module Dynamoid
         :number
       when :datetime
         string_format = if options[:store_as_string].nil?
-                          Dynamoid::Config.store_datetime_as_string
-                        else
-                          options[:store_as_string]
-                        end
+          Dynamoid::Config.store_datetime_as_string
+        else
+          options[:store_as_string]
+        end
         string_format ? :string : :number
       when :date
         string_format = if options[:store_as_string].nil?
-                          Dynamoid::Config.store_date_as_string
-                        else
-                          options[:store_as_string]
-                        end
+          Dynamoid::Config.store_date_as_string
+        else
+          options[:store_as_string]
+        end
         string_format ? :string : :number
       else
         raise Errors::UnsupportedKeyType, "#{type} cannot be used as a type of table key attribute"

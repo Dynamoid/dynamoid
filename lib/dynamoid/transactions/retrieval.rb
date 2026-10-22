@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'retrieval/find'
+require_relative "retrieval/find"
 
 module Dynamoid
   module Transactions

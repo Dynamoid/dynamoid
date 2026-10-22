@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
-RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable RSpec/MultipleDescribes
+RSpec.describe Dynamoid::Transactions::Mutation, "#destroy" do # rubocop:disable RSpec/MultipleDescribes
   let(:klass) do
     new_class do
       field :name
@@ -18,20 +18,20 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
 
   let(:klass_with_all_callbacks) do
     new_class do
-      before_destroy { ScratchPad << 'run before_destroy' }
-      after_destroy { ScratchPad << 'run after_destroy' }
+      before_destroy { ScratchPad << "run before_destroy" }
+      after_destroy { ScratchPad << "run after_destroy" }
       around_destroy :around_destroy_callback
 
       def around_destroy_callback
-        ScratchPad << 'start around_destroy'
+        ScratchPad << "start around_destroy"
         yield
-        ScratchPad << 'finish around_destroy'
+        ScratchPad << "finish around_destroy"
       end
     end
   end
 
-  it 'deletes a model' do
-    obj = klass.create!(name: 'one')
+  it "deletes a model" do
+    obj = klass.create!(name: "one")
 
     expect {
       described_class.execute do |txn|
@@ -43,8 +43,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
     expect(obj).to be_destroyed
   end
 
-  it 'returns a model' do
-    obj = klass.create!(name: 'one')
+  it "returns a model" do
+    obj = klass.create!(name: "one")
     result = nil
 
     described_class.execute do |txn|
@@ -54,10 +54,10 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
     expect(result).to equal(obj)
   end
 
-  describe 'primary key schemas' do
-    context 'simple primary key' do
-      it 'deletes a model' do
-        obj = klass.create!(name: 'one')
+  describe "primary key schemas" do
+    context "simple primary key" do
+      it "deletes a model" do
+        obj = klass.create!(name: "one")
 
         expect {
           described_class.execute do |txn|
@@ -67,9 +67,9 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
       end
     end
 
-    context 'composite key' do
-      it 'deletes a model' do
-        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+    context "composite key" do
+      it "deletes a model" do
+        obj = klass_with_composite_key.create!(name: "one", age: 1)
 
         expect {
           described_class.execute do |txn|
@@ -80,10 +80,10 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
     end
   end
 
-  describe 'primary key validation' do
-    context 'simple primary key' do
-      it 'requires partition key to be specified' do
-        obj = klass.create!(name: 'one')
+  describe "primary key validation" do
+    context "simple primary key" do
+      it "requires partition key to be specified" do
+        obj = klass.create!(name: "one")
         obj.id = nil
 
         expect {
@@ -94,9 +94,9 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
       end
     end
 
-    context 'composite key' do
-      it 'requires partition key to be specified' do
-        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+    context "composite key" do
+      it "requires partition key to be specified" do
+        obj = klass_with_composite_key.create!(name: "one", age: 1)
         obj.id = nil
 
         expect {
@@ -106,8 +106,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
         }.to raise_exception(Dynamoid::Errors::MissingHashKey)
       end
 
-      it 'requires sort key to be specified' do
-        obj = klass_with_composite_key.create!(name: 'one', age: 1)
+      it "requires sort key to be specified" do
+        obj = klass_with_composite_key.create!(name: "one", age: 1)
         obj.age = nil
 
         expect {
@@ -119,7 +119,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
     end
   end
 
-  describe 'optimistic locking' do
+  describe "optimistic locking" do
     let(:klass) do
       new_class do
         field :name
@@ -127,11 +127,11 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
       end
     end
 
-    it 'rolls back a transaction when concurrent update happens before delete' do
-      obj = klass.create(name: 'Original') # lock_version: 1
+    it "rolls back a transaction when concurrent update happens before delete" do
+      obj = klass.create(name: "Original") # lock_version: 1
 
       obj2 = klass.find(obj.id)
-      obj2.update_attributes!(name: 'Concurrent Update') # lock_version: 1 -> 2
+      obj2.update_attributes!(name: "Concurrent Update") # lock_version: 1 -> 2
 
       expect {
         klass.transaction do |t|
@@ -140,8 +140,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
       }.to raise_error(Aws::DynamoDB::Errors::TransactionCanceledException)
     end
 
-    it 'deletes a model if there is no concurrent update' do
-      obj = klass.create!(name: 'Original')
+    it "deletes a model if there is no concurrent update" do
+      obj = klass.create!(name: "Original")
 
       expect {
         klass.transaction do |t|
@@ -150,8 +150,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
       }.to change { klass.exists? obj.id }.from(true).to(false)
     end
 
-    it 'uses the persisted lock_version value and ignores dirty changes' do
-      obj = klass.create!(name: 'Original')
+    it "uses the persisted lock_version value and ignores dirty changes" do
+      obj = klass.create!(name: "Original")
       obj.lock_version = obj.lock_version + 100
 
       expect {
@@ -161,15 +161,15 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
       }.to change { klass.exists? obj.id }.from(true).to(false)
     end
 
-    it 'skips optimistic locking when lock_version is nil' do
-      obj = klass.create(name: 'Original') # lock_version: 1
+    it "skips optimistic locking when lock_version is nil" do
+      obj = klass.create(name: "Original") # lock_version: 1
       obj.update_attributes!(lock_version: nil) # lock_version: 1 -> nil
       expect(obj.reload.lock_version).to be_nil
 
       obj = klass.find(obj.id)
       obj2 = klass.find(obj.id)
 
-      obj.update_attributes!(name: 'Concurrent Update')
+      obj.update_attributes!(name: "Concurrent Update")
 
       expect {
         klass.transaction do |t|
@@ -179,11 +179,11 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
     end
   end
 
-  context 'when an issue detected on the DynamoDB side' do
-    it 'does not raise exception and does not roll back the transaction when a model to destroy was concurrently deleted' do
-      obj_to_destroy = klass.create!(name: 'one', id: '1')
-      obj_to_destroy.id = 'not-existing'
-      obj_to_save = klass.new(name: 'two', id: '2')
+  context "when an issue detected on the DynamoDB side" do
+    it "does not raise exception and does not roll back the transaction when a model to destroy was concurrently deleted" do
+      obj_to_destroy = klass.create!(name: "one", id: "1")
+      obj_to_destroy.id = "not-existing"
+      obj_to_save = klass.new(name: "two", id: "2")
 
       expect {
         described_class.execute do |txn|
@@ -194,12 +194,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
 
       expect(obj_to_destroy).to be_destroyed
       expect(obj_to_save).to be_persisted
-      expect(klass.all.to_a.map(&:id)).to contain_exactly('1', obj_to_save.id)
+      expect(klass.all.to_a.map(&:id)).to contain_exactly("1", obj_to_save.id)
     end
   end
 
-  it 'aborts destroying and returns false if callback throws :abort' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
+  it "aborts destroying and returns false if callback throws :abort" do
+    if ActiveSupport.version < Gem::Version.new("5.0")
       skip "Rails 4.x and below don't support aborting with `throw :abort`"
     end
 
@@ -218,8 +218,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
     expect(result).to eql false
   end
 
-  it 'does not roll back the transaction when a destroying of some model aborted by a before_destroy callback' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
+  it "does not roll back the transaction when a destroying of some model aborted by a before_destroy callback" do
+    if ActiveSupport.version < Gem::Version.new("5.0")
       skip "Rails 4.x and below don't support aborting with `throw :abort`"
     end
 
@@ -244,24 +244,24 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
     expect(klass.exists?(obj_to_save.id)).to eql true
   end
 
-  it 'is not marked as destroyed when the transaction rolled back' do
+  it "is not marked as destroyed when the transaction rolled back" do
     obj = klass.create!
 
     expect {
       described_class.execute do |txn|
         txn.destroy obj
-        raise 'trigger rollback'
+        raise "trigger rollback"
       end
-    }.to raise_error('trigger rollback')
+    }.to raise_error("trigger rollback")
 
     expect(obj).not_to be_destroyed
   end
 
-  it 'uses dumped value of partition key to destroy item' do
-    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+  it "uses dumped value of partition key to destroy item" do
+    klass = new_class(partition_key: {name: :published_on, type: :date}) do
       field :name
     end
-    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+    obj = klass.create!(published_on: "2018-10-07".to_date, name: "Alex")
 
     expect(klass.exists?(obj.published_on)).to eql true
 
@@ -272,12 +272,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
     expect(klass.exists?(obj.published_on)).to eql false
   end
 
-  it 'uses dumped value of sort key to destroy item' do
+  it "uses dumped value of sort key to destroy item" do
     klass = new_class do
       range :activated_on, :date
       field :name
     end
-    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+    obj = klass.create!(activated_on: Date.today, name: "Alex")
 
     expect(klass.exists?([[obj.id, obj.activated_on]])).to eql true
 
@@ -288,14 +288,14 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
     expect(klass.exists?([[obj.id, obj.activated_on]])).to eql false
   end
 
-  describe 'callbacks' do
+  describe "callbacks" do
     before do
       ScratchPad.clear
     end
 
-    it 'runs before_destroy callback' do
+    it "runs before_destroy callback" do
       klass_with_callback = new_class do
-        before_destroy { ScratchPad.record 'run before_destroy' }
+        before_destroy { ScratchPad.record "run before_destroy" }
       end
       obj = klass_with_callback.create!
 
@@ -303,12 +303,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
         txn.destroy obj
       end
 
-      expect(ScratchPad.recorded).to eql 'run before_destroy'
+      expect(ScratchPad.recorded).to eql "run before_destroy"
     end
 
-    it 'runs after_destroy callbacks' do
+    it "runs after_destroy callbacks" do
       klass_with_callback = new_class do
-        after_destroy { ScratchPad.record 'run after_destroy' }
+        after_destroy { ScratchPad.record "run after_destroy" }
       end
       obj = klass_with_callback.create!
 
@@ -316,17 +316,17 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
         txn.destroy obj
       end
 
-      expect(ScratchPad.recorded).to eql 'run after_destroy'
+      expect(ScratchPad.recorded).to eql "run after_destroy"
     end
 
-    it 'runs around_destroy callbacks' do
+    it "runs around_destroy callbacks" do
       klass_with_callback = new_class do
         around_destroy :around_destroy_callback
 
         def around_destroy_callback
-          ScratchPad << 'start around_destroy'
+          ScratchPad << "start around_destroy"
           yield
-          ScratchPad << 'finish around_destroy'
+          ScratchPad << "finish around_destroy"
         end
       end
       obj = klass_with_callback.create!
@@ -336,10 +336,10 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
         txn.destroy obj
       end
 
-      expect(ScratchPad.recorded).to eql ['start around_destroy', 'finish around_destroy']
+      expect(ScratchPad.recorded).to eql ["start around_destroy", "finish around_destroy"]
     end
 
-    it 'runs callbacks in the proper order' do
+    it "runs callbacks in the proper order" do
       obj = klass_with_all_callbacks.create!
       ScratchPad.clear
 
@@ -348,14 +348,14 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
       end
 
       expect(ScratchPad.recorded).to eql [
-        'run before_destroy',
-        'start around_destroy',
-        'finish around_destroy',
-        'run after_destroy'
+        "run before_destroy",
+        "start around_destroy",
+        "finish around_destroy",
+        "run after_destroy"
       ]
     end
 
-    it 'runs callbacks immediately' do
+    it "runs callbacks immediately" do
       obj = klass_with_all_callbacks.create!
       ScratchPad.clear
       callbacks = nil
@@ -368,16 +368,16 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
       end
 
       expect(callbacks).to contain_exactly(
-        'run before_destroy',
-        'start around_destroy',
-        'finish around_destroy',
-        'run after_destroy'
+        "run before_destroy",
+        "start around_destroy",
+        "finish around_destroy",
+        "run after_destroy"
       )
-      expect(ScratchPad.recorded).to eql []
+      expect(ScratchPad.recorded).to be_empty
     end
 
-    it 'returns false if :abort is thrown' do
-      if ActiveSupport.version < Gem::Version.new('5.0')
+    it "returns false if :abort is thrown" do
+      if ActiveSupport.version < Gem::Version.new("5.0")
         skip "Rails 4.x and below don't support aborting with `throw :abort`"
       end
 
@@ -394,21 +394,21 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
       expect(result).to eql false
     end
 
-    it 'runs before and around callbacks before validating primary key' do
+    it "runs before and around callbacks before validating primary key" do
       klass_with_callbacks_and_composite_key = new_class do
         range :name
 
-        before_destroy { ScratchPad << 'run before_destroy' }
+        before_destroy { ScratchPad << "run before_destroy" }
         around_destroy :around_destroy_callback
 
         def around_destroy_callback
-          ScratchPad << 'start around_destroy'
+          ScratchPad << "start around_destroy"
           yield
-          ScratchPad << 'finish around_destroy'
+          ScratchPad << "finish around_destroy"
         end
       end
 
-      obj = klass_with_callbacks_and_composite_key.create!(name: 'John')
+      obj = klass_with_callbacks_and_composite_key.create!(name: "John")
       obj.name = nil
 
       expect {
@@ -418,82 +418,82 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
       }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
 
       expect(ScratchPad.recorded).to eql [
-        'run before_destroy',
-        'start around_destroy',
+        "run before_destroy",
+        "start around_destroy",
       ]
     end
 
-    it 'runs after_commit callbacks' do
+    it "runs after_commit callbacks" do
       klass_with_callback = new_class do
         after_commit { ScratchPad << "after_commit #{id}" }
       end
       klass_with_callback.create_table
-      obj = klass_with_callback.create!(id: '1')
+      obj = klass_with_callback.create!(id: "1")
       ScratchPad.record []
 
       described_class.execute do |t|
         t.destroy(obj)
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_commit 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_commit 1")
     end
 
-    it 'runs after_rollback callbacks when exception is raised and aborts a transaction' do
+    it "runs after_rollback callbacks when exception is raised and aborts a transaction" do
       klass_with_callback = new_class do
         after_rollback { ScratchPad << "after_rollback #{id}" }
       end
       klass_with_callback.create_table
-      obj = klass_with_callback.create!(id: '1')
+      obj = klass_with_callback.create!(id: "1")
       ScratchPad.record []
 
       begin
         described_class.execute do |t|
           t.destroy(obj)
-          raise 'error'
+          raise "error"
         end
-      rescue StandardError => e
-        expect(e.message).to eq('error')
+      rescue => e
+        expect(e.message).to eq("error")
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_rollback 1")
     end
 
-    it 'runs after_rollback callbacks when a transaction is rolled back' do
+    it "runs after_rollback callbacks when a transaction is rolled back" do
       klass_with_callback = new_class do
         after_rollback { ScratchPad << "after_rollback #{id}" }
       end
       klass_with_callback.create_table
 
-      klass.create(id: 'unique_id')
+      klass.create(id: "unique_id")
 
-      obj = klass_with_callback.create!(id: '1')
+      obj = klass_with_callback.create!(id: "1")
       ScratchPad.record []
 
       begin
         described_class.execute do |t|
           t.destroy(obj)
-          t.create klass, id: 'unique_id' # triggers rollback
+          t.create klass, id: "unique_id" # triggers rollback
         end
       rescue Aws::DynamoDB::Errors::TransactionCanceledException
         # ignore
       end
 
-      expect(ScratchPad.recorded).to contain_exactly('after_rollback 1')
+      expect(ScratchPad.recorded).to contain_exactly("after_rollback 1")
     end
   end
 
-  context 'when table arn is specified', remove_constants: [:Payment] do
-    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+  context "when table arn is specified", remove_constants: [:Payment] do
+    it "uses given table ARN in requests instead of a table name", config: {create_table_on_save: false} do
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end
 
   # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-  it 'allows reserved words as partition key and sort key' do
-    klass = new_class(partition_key: { name: :order, type: :string }) do
+  it "allows reserved words as partition key and sort key" do
+    klass = new_class(partition_key: {name: :order, type: :string}) do
       range :connection, :string
     end
-    obj = klass.create!(order: 'order-1', connection: 'conn-1')
+    obj = klass.create!(order: "order-1", connection: "conn-1")
 
     expect {
       described_class.execute do |t|
@@ -503,7 +503,7 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy' do # rubocop:disable
   end
 end
 
-RSpec.describe Dynamoid::Transactions::Mutation, '#destroy!' do
+RSpec.describe Dynamoid::Transactions::Mutation, "#destroy!" do
   # The only difference in specs structure between #destroy and #destroy! is missing
   # a section for callbacks here
 
@@ -513,8 +513,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy!' do
     end
   end
 
-  it 'deletes a model' do
-    obj = klass.create!(name: 'one')
+  it "deletes a model" do
+    obj = klass.create!(name: "one")
 
     expect {
       described_class.execute do |txn|
@@ -525,8 +525,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy!' do
     expect(klass.exists?(obj.id)).to eql false
   end
 
-  it 'returns a model' do
-    obj = klass.create!(name: 'one')
+  it "returns a model" do
+    obj = klass.create!(name: "one")
 
     result = nil
     described_class.execute do |txn|
@@ -538,11 +538,11 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy!' do
     expect(result).to be_destroyed
   end
 
-  context 'when an issue detected on the DynamoDB side' do
-    it 'does not raise exception and does not roll back the transaction when a model to destroy was concurrently deleted' do
-      obj_to_destroy = klass.create!(name: 'one', id: '1')
-      obj_to_destroy.id = 'not-existing'
-      obj_to_save = klass.new(name: 'two', id: '2')
+  context "when an issue detected on the DynamoDB side" do
+    it "does not raise exception and does not roll back the transaction when a model to destroy was concurrently deleted" do
+      obj_to_destroy = klass.create!(name: "one", id: "1")
+      obj_to_destroy.id = "not-existing"
+      obj_to_save = klass.new(name: "two", id: "2")
 
       expect {
         described_class.execute do |txn|
@@ -553,12 +553,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy!' do
 
       expect(obj_to_destroy).to be_destroyed
       expect(obj_to_save).to be_persisted
-      expect(klass.all.to_a.map(&:id)).to contain_exactly('1', obj_to_save.id)
+      expect(klass.all.to_a.map(&:id)).to contain_exactly("1", obj_to_save.id)
     end
   end
 
-  it 'aborts destroying and raises RecordNotDestroyed if callback throws :abort' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
+  it "aborts destroying and raises RecordNotDestroyed if callback throws :abort" do
+    if ActiveSupport.version < Gem::Version.new("5.0")
       skip "Rails 4.x and below don't support aborting with `throw :abort`"
     end
 
@@ -578,8 +578,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy!' do
     expect(obj.destroyed?).to eql nil
   end
 
-  it 'rolls back the transaction when a destroying of some model aborted by a before_destroy callback' do
-    if ActiveSupport.version < Gem::Version.new('5.0')
+  it "rolls back the transaction when a destroying of some model aborted by a before_destroy callback" do
+    if ActiveSupport.version < Gem::Version.new("5.0")
       skip "Rails 4.x and below don't support aborting with `throw :abort`"
     end
 
@@ -606,24 +606,24 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy!' do
     expect(klass.exists?(obj_to_save.id)).to eql false
   end
 
-  it 'is not marked as destroyed when the transaction rolled back' do
+  it "is not marked as destroyed when the transaction rolled back" do
     obj = klass.create!
 
     expect {
       described_class.execute do |txn|
         txn.destroy! obj
-        raise 'trigger rollback'
+        raise "trigger rollback"
       end
-    }.to raise_error('trigger rollback')
+    }.to raise_error("trigger rollback")
 
     expect(obj).not_to be_destroyed
   end
 
-  it 'uses dumped value of partition key to destroy item' do
-    klass = new_class(partition_key: { name: :published_on, type: :date }) do
+  it "uses dumped value of partition key to destroy item" do
+    klass = new_class(partition_key: {name: :published_on, type: :date}) do
       field :name
     end
-    obj = klass.create!(published_on: '2018-10-07'.to_date, name: 'Alex')
+    obj = klass.create!(published_on: "2018-10-07".to_date, name: "Alex")
 
     expect(klass.exists?(obj.published_on)).to eql true
 
@@ -634,12 +634,12 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy!' do
     expect(klass.exists?(obj.published_on)).to eql false
   end
 
-  it 'uses dumped value of sort key to destroy item' do
+  it "uses dumped value of sort key to destroy item" do
     klass = new_class do
       range :activated_on, :date
       field :name
     end
-    obj = klass.create!(activated_on: Date.today, name: 'Alex')
+    obj = klass.create!(activated_on: Date.today, name: "Alex")
 
     expect(klass.exists?([[obj.id, obj.activated_on]])).to eql true
 
@@ -650,8 +650,8 @@ RSpec.describe Dynamoid::Transactions::Mutation, '#destroy!' do
     expect(klass.exists?([[obj.id, obj.activated_on]])).to eql false
   end
 
-  context 'when table arn is specified', remove_constants: [:Payment] do
-    it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+  context "when table arn is specified", remove_constants: [:Payment] do
+    it "uses given table ARN in requests instead of a table name", config: {create_table_on_save: false} do
       skip "dynamodb-local doesn't support this and returns 'Cannot do operations on a non-existent table'"
     end
   end

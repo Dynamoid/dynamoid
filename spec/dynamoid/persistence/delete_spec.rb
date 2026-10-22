@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-require 'fixtures/persistence'
+require "spec_helper"
+require "fixtures/persistence"
 
 RSpec.describe Dynamoid::Persistence do
-  describe '.delete' do
+  describe ".delete" do
     let(:klass_with_composite_key) do
       new_class do
         range :age, :integer
@@ -12,14 +12,14 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    it 'deletes an item' do
+    it "deletes an item" do
       klass = new_class
       obj = klass.create!
 
       expect { klass.delete(obj.id) }.to change { klass.exists? obj.id }.from(true).to(false)
     end
 
-    it 'deletes multiple items when given multiple partition keys' do
+    it "deletes multiple items when given multiple partition keys" do
       klass = new_class
       obj1 = klass.create!
       obj2 = klass.create!
@@ -31,7 +31,7 @@ RSpec.describe Dynamoid::Persistence do
       }.to change { klass.where(id: obj2.id).first }.to(nil)
     end
 
-    it 'deletes multiple items when given multiple partition and sort keys' do
+    it "deletes multiple items when given multiple partition and sort keys" do
       obj1 = klass_with_composite_key.create!(age: 1)
       obj2 = klass_with_composite_key.create!(age: 2)
 
@@ -42,21 +42,21 @@ RSpec.describe Dynamoid::Persistence do
       }.to change { klass_with_composite_key.where(id: obj2.id, age: obj2.age).first }.to(nil)
     end
 
-    it 'uses dumped value of partition key to delete item' do
-      klass = new_class(partition_key: { name: :published_on, type: :date })
+    it "uses dumped value of partition key to delete item" do
+      klass = new_class(partition_key: {name: :published_on, type: :date})
 
-      obj = klass.create!(published_on: '2018-10-07'.to_date)
+      obj = klass.create!(published_on: "2018-10-07".to_date)
 
       expect {
         klass.delete(obj.published_on)
       }.to change { klass.where(published_on: obj.published_on).first }.to(nil)
     end
 
-    it 'uses dumped value of partition key to delete item when given multiple primary keys' do
-      klass = new_class(partition_key: { name: :published_on, type: :date })
+    it "uses dumped value of partition key to delete item when given multiple primary keys" do
+      klass = new_class(partition_key: {name: :published_on, type: :date})
 
-      obj1 = klass.create!(published_on: '2018-10-07'.to_date)
-      obj2 = klass.create!(published_on: '2018-10-13'.to_date)
+      obj1 = klass.create!(published_on: "2018-10-07".to_date)
+      obj2 = klass.create!(published_on: "2018-10-13".to_date)
 
       expect {
         expect {
@@ -65,7 +65,7 @@ RSpec.describe Dynamoid::Persistence do
       }.to change { klass.where(published_on: obj2.published_on).first }.to(nil)
     end
 
-    it 'uses dumped value of sort key to delete item' do
+    it "uses dumped value of sort key to delete item" do
       klass = new_class do
         range :activated_on, :date
       end
@@ -77,7 +77,7 @@ RSpec.describe Dynamoid::Persistence do
       }.to change { klass.where(id: obj.id, activated_on: obj.activated_on).first }.to(nil)
     end
 
-    it 'uses dumped value of sort key to delete item when given multiple primary keys' do
+    it "uses dumped value of sort key to delete item when given multiple primary keys" do
       klass = new_class do
         range :activated_on, :date
       end
@@ -92,45 +92,45 @@ RSpec.describe Dynamoid::Persistence do
       }.to change { klass.where(id: obj2.id, activated_on: obj2.activated_on).first }.to(nil)
     end
 
-    it 'does not raise exception when model was concurrently deleted' do
+    it "does not raise exception when model was concurrently deleted" do
       klass = new_class
       klass.create_table
 
-      expect(klass.delete('not-existing-id')).to eql(nil)
+      expect(klass.delete("not-existing-id")).to eql(nil)
     end
 
-    describe 'primary key validation' do
-      context 'simple primary key' do
-        it 'requires partition key to be specified' do
+    describe "primary key validation" do
+      context "simple primary key" do
+        it "requires partition key to be specified" do
           klass = new_class
           expect { klass.delete(nil) }.to raise_exception(Dynamoid::Errors::MissingHashKey)
           expect { klass.delete }.to raise_exception(Dynamoid::Errors::MissingHashKey)
         end
       end
 
-      context 'composite key' do
-        it 'requires partition key to be specified' do
+      context "composite key" do
+        it "requires partition key to be specified" do
           expect { klass_with_composite_key.delete(nil, 1) }.to raise_exception(Dynamoid::Errors::MissingHashKey)
         end
 
-        it 'requires partition key to be specified when given multiple primary keys' do
+        it "requires partition key to be specified when given multiple primary keys" do
           expect { klass_with_composite_key.delete([nil]) }.to raise_exception(Dynamoid::Errors::MissingHashKey)
         end
 
-        it 'requires sort key to be specified' do
-          expect { klass_with_composite_key.delete('abc', nil) }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
-          expect { klass_with_composite_key.delete('abc') }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        it "requires sort key to be specified" do
+          expect { klass_with_composite_key.delete("abc", nil) }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+          expect { klass_with_composite_key.delete("abc") }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
         end
 
-        it 'requires sort key to be specified when given multiple primary keys' do
-          expect { klass_with_composite_key.delete([['abc', nil]]) }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
-          expect { klass_with_composite_key.delete([['abc']]) }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+        it "requires sort key to be specified when given multiple primary keys" do
+          expect { klass_with_composite_key.delete([["abc", nil]]) }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
+          expect { klass_with_composite_key.delete([["abc"]]) }.to raise_exception(Dynamoid::Errors::MissingRangeKey)
         end
       end
     end
 
-    context 'when table arn is specified', remove_constants: [:Payment] do
-      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+    context "when table arn is specified", remove_constants: [:Payment] do
+      it "uses given table ARN in requests instead of a table name", config: {create_table_on_save: false} do
         # Create table manually because CreateTable doesn't accept ARN as a
         # table name. Add namespace to have this table removed automativally.
         table_name = :"#{Dynamoid::Config.namespace}_purchases"
@@ -149,21 +149,21 @@ RSpec.describe Dynamoid::Persistence do
 
         expect {
           Payment.delete(payment.id)
-        }.to send_request_matching(:DeleteItem, { TableName: table.arn })
+        }.to send_request_matching(:DeleteItem, {TableName: table.arn})
       end
     end
 
     # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-    it 'allows reserved words as partition key and sort key' do
-      klass = new_class(partition_key: { name: :order }) do
+    it "allows reserved words as partition key and sort key" do
+      klass = new_class(partition_key: {name: :order}) do
         range :count, :integer
       end
-      obj = klass.create!(order: 'order-1', count: 1)
-      expect { klass.delete('order-1', 1) }.to change { klass.exists?(order: 'order-1', count: 1) }.from(true).to(false)
+      obj = klass.create!(order: "order-1", count: 1)
+      expect { klass.delete("order-1", 1) }.to change { klass.exists?(order: "order-1", count: 1) }.from(true).to(false)
     end
   end
 
-  describe '#delete' do
+  describe "#delete" do
     let(:klass_with_composite_key) do
       new_class do
         range :age, :integer
@@ -171,38 +171,38 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    it 'deletes an item' do
+    it "deletes an item" do
       klass = new_class
       obj = klass.create
 
       expect { obj.delete }.to change { klass.exists? obj.id }.from(true).to(false)
     end
 
-    it 'returns self' do
+    it "returns self" do
       klass = new_class
       obj = klass.create
 
       expect(obj.delete).to eq obj
     end
 
-    it 'forces #destroyed? predicate to return true' do
+    it "forces #destroyed? predicate to return true" do
       klass = new_class
       obj = klass.create!
 
       expect { obj.delete }.to change(obj, :destroyed?).from(nil).to(true)
     end
 
-    it 'uses dumped value of partition key to delete item' do
-      klass = new_class(partition_key: { name: :published_on, type: :date })
+    it "uses dumped value of partition key to delete item" do
+      klass = new_class(partition_key: {name: :published_on, type: :date})
 
-      obj = klass.create!(published_on: '2018-10-07'.to_date)
+      obj = klass.create!(published_on: "2018-10-07".to_date)
 
       expect { obj.delete }.to change {
         klass.where(published_on: obj.published_on).first
       }.to(nil)
     end
 
-    it 'uses dumped value of sort key to delete item' do
+    it "uses dumped value of sort key to delete item" do
       klass = new_class do
         range :activated_on, :date
       end
@@ -214,7 +214,7 @@ RSpec.describe Dynamoid::Persistence do
       }.to(nil)
     end
 
-    it 'does not raise exception when model was concurrently deleted' do
+    it "does not raise exception when model was concurrently deleted" do
       klass = new_class
       obj = klass.create
       obj2 = klass.find(obj.id)
@@ -225,9 +225,9 @@ RSpec.describe Dynamoid::Persistence do
       expect(obj2.destroyed?).to eql true
     end
 
-    describe 'primary key validation' do
-      context 'simple primary key' do
-        it 'requires partition key to be specified' do
+    describe "primary key validation" do
+      context "simple primary key" do
+        it "requires partition key to be specified" do
           klass = new_class
           obj = klass.create!
           obj.id = nil
@@ -236,15 +236,15 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'composite key' do
-        it 'requires partition key to be specified' do
+      context "composite key" do
+        it "requires partition key to be specified" do
           obj = klass_with_composite_key.create!(age: 1)
           obj.id = nil
 
           expect { obj.delete }.to raise_exception(Dynamoid::Errors::MissingHashKey)
         end
 
-        it 'requires sort key to be specified' do
+        it "requires sort key to be specified" do
           obj = klass_with_composite_key.create!(age: 1)
           obj.age = nil
 
@@ -253,7 +253,7 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'optimistic locking' do
+    context "optimistic locking" do
       let(:klass) do
         new_class do
           field :name
@@ -261,11 +261,11 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      it 'raises Dynamoid::Errors::StaleObjectError when concurrent update happens before delete' do
-        obj = klass.create!(name: 'Original') # lock_version: 1
+      it "raises Dynamoid::Errors::StaleObjectError when concurrent update happens before delete" do
+        obj = klass.create!(name: "Original") # lock_version: 1
         obj2 = klass.find(obj.id)
 
-        obj.update_attributes!(name: 'Concurrent Update') # lock_version: 1 -> 2
+        obj.update_attributes!(name: "Concurrent Update") # lock_version: 1 -> 2
 
         expect {
           obj2.delete
@@ -274,16 +274,16 @@ RSpec.describe Dynamoid::Persistence do
         expect(obj2.destroyed?).to eql false
       end
 
-      it 'deletes a model if there is no concurrent update' do
-        obj = klass.create!(name: 'Original')
+      it "deletes a model if there is no concurrent update" do
+        obj = klass.create!(name: "Original")
 
         expect {
           obj.delete
         }.to change { klass.exists? obj.id }.from(true).to(false)
       end
 
-      it 'uses the persisted lock_version value and ignores dirty changes' do
-        obj = klass.create!(name: 'Original')
+      it "uses the persisted lock_version value and ignores dirty changes" do
+        obj = klass.create!(name: "Original")
         obj.lock_version = obj.lock_version + 100
 
         expect {
@@ -292,24 +292,24 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'when model has associations' do
-      context 'when belongs_to association' do
-        context 'when has_many on the other side' do
+    context "when model has associations" do
+      context "when belongs_to association" do
+        context "when has_many on the other side" do
           let!(:source_model) { User.create }
           let!(:target_model) { source_model.camel_case.create }
 
-          it 'disassociates self' do
+          it "disassociates self" do
             expect do
               source_model.delete
             end.to change { CamelCase.find(target_model.id).users.target }.from([source_model]).to([])
           end
 
-          it 'updates cached ids list in associated model' do
+          it "updates cached ids list in associated model" do
             source_model.delete
             expect(CamelCase.find(target_model.id).users_ids).to eq nil
           end
 
-          it 'behaves correctly when associated model is linked with several models' do
+          it "behaves correctly when associated model is linked with several models" do
             source_model2 = User.create
             target_model.users << source_model2
 
@@ -319,31 +319,31 @@ RSpec.describe Dynamoid::Persistence do
             expect(CamelCase.find(target_model.id).users_ids).to eq [source_model2.id].to_set
           end
 
-          it 'does not raise exception when foreign key is broken' do
-            source_model.update_attributes!(camel_case_ids: ['fake_id'])
+          it "does not raise exception when foreign key is broken" do
+            source_model.update_attributes!(camel_case_ids: ["fake_id"])
 
             expect { source_model.delete }.not_to raise_error
-            expect(CamelCase.find(target_model.id).users.target).to eq []
+            expect(CamelCase.find(target_model.id).users.target).to be_empty
           end
         end
 
-        context 'when has_one on the other side' do
+        context "when has_one on the other side" do
           let!(:source_model) { Sponsor.create }
           let!(:target_model) { source_model.camel_case.create }
 
-          it 'disassociates self' do
+          it "disassociates self" do
             expect do
               source_model.delete
             end.to change { CamelCase.find(target_model.id).sponsor.target }.from(source_model).to(nil)
           end
 
-          it 'updates cached ids list in associated model' do
+          it "updates cached ids list in associated model" do
             source_model.delete
             expect(CamelCase.find(target_model.id).sponsor_ids).to eq nil
           end
 
-          it 'does not raise exception when foreign key is broken' do
-            source_model.update_attributes!(camel_case_ids: ['fake_id'])
+          it "does not raise exception when foreign key is broken" do
+            source_model.update_attributes!(camel_case_ids: ["fake_id"])
 
             expect { source_model.delete }.not_to raise_error
             expect(CamelCase.find(target_model.id).sponsor.target).to eq nil
@@ -351,23 +351,23 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'when has_many association' do
+      context "when has_many association" do
         let!(:source_model) { User.create }
         let!(:target_model) { source_model.books.create }
 
-        it 'disassociates self' do
+        it "disassociates self" do
           expect do
             source_model.delete
           end.to change { Magazine.find(target_model.title).owner.target }.from(source_model).to(nil)
         end
 
-        it 'updates cached ids list in associated model' do
+        it "updates cached ids list in associated model" do
           source_model.delete
           expect(Magazine.find(target_model.title).owner_ids).to eq nil
         end
 
-        it 'does not raise exception when cached foreign key is broken' do
-          books_ids_new = source_model.books_ids + ['fake_id']
+        it "does not raise exception when cached foreign key is broken" do
+          books_ids_new = source_model.books_ids + ["fake_id"]
           source_model.update_attributes!(books_ids: books_ids_new)
 
           expect { source_model.delete }.not_to raise_error
@@ -375,44 +375,44 @@ RSpec.describe Dynamoid::Persistence do
         end
       end
 
-      context 'when has_one association' do
+      context "when has_one association" do
         let!(:source_model) { User.create }
         let!(:target_model) { source_model.monthly.create }
 
-        it 'disassociates self' do
+        it "disassociates self" do
           expect do
             source_model.delete
           end.to change { Subscription.find(target_model.id).customer.target }.from(source_model).to(nil)
         end
 
-        it 'updates cached ids list in associated model' do
+        it "updates cached ids list in associated model" do
           source_model.delete
           expect(Subscription.find(target_model.id).customer_ids).to eq nil
         end
 
-        it 'does not raise exception when cached foreign key is broken' do
-          source_model.update_attributes!(monthly_ids: ['fake_id'])
+        it "does not raise exception when cached foreign key is broken" do
+          source_model.update_attributes!(monthly_ids: ["fake_id"])
 
           expect { source_model.delete }.not_to raise_error
         end
       end
 
-      context 'when has_and_belongs_to_many association' do
+      context "when has_and_belongs_to_many association" do
         let!(:source_model) { User.create }
         let!(:target_model) { source_model.subscriptions.create }
 
-        it 'disassociates self' do
+        it "disassociates self" do
           expect do
             source_model.delete
           end.to change { Subscription.find(target_model.id).users.target }.from([source_model]).to([])
         end
 
-        it 'updates cached ids list in associated model' do
+        it "updates cached ids list in associated model" do
           source_model.delete
           expect(Subscription.find(target_model.id).users_ids).to eq nil
         end
 
-        it 'behaves correctly when associated model is linked with several models' do
+        it "behaves correctly when associated model is linked with several models" do
           source_model2 = User.create
           target_model.users << source_model2
 
@@ -422,8 +422,8 @@ RSpec.describe Dynamoid::Persistence do
           expect(Subscription.find(target_model.id).users_ids).to eq [source_model2.id].to_set
         end
 
-        it 'does not raise exception when foreign key is broken' do
-          subscriptions_ids_new = source_model.subscriptions_ids + ['fake_id']
+        it "does not raise exception when foreign key is broken" do
+          subscriptions_ids_new = source_model.subscriptions_ids + ["fake_id"]
           source_model.update_attributes!(subscriptions_ids: subscriptions_ids_new)
 
           expect { source_model.delete }.not_to raise_error
@@ -432,8 +432,8 @@ RSpec.describe Dynamoid::Persistence do
       end
     end
 
-    context 'when table arn is specified', remove_constants: [:Payment] do
-      it 'uses given table ARN in requests instead of a table name', config: { create_table_on_save: false } do
+    context "when table arn is specified", remove_constants: [:Payment] do
+      it "uses given table ARN in requests instead of a table name", config: {create_table_on_save: false} do
         # Create table manually because CreateTable doesn't accept ARN as a
         # table name. Add namespace to have this table removed automativally.
         table_name = :"#{Dynamoid::Config.namespace}_purchases"
@@ -452,17 +452,17 @@ RSpec.describe Dynamoid::Persistence do
 
         expect {
           payment.delete
-        }.to send_request_matching(:DeleteItem, { TableName: table.arn })
+        }.to send_request_matching(:DeleteItem, {TableName: table.arn})
       end
     end
 
     # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-    it 'allows reserved words as partition key and sort key' do
-      klass = new_class(partition_key: { name: :order }) do
+    it "allows reserved words as partition key and sort key" do
+      klass = new_class(partition_key: {name: :order}) do
         range :count, :integer
       end
-      obj = klass.create!(order: 'order-1', count: 1)
-      expect { obj.delete }.to change { klass.exists?(order: 'order-1', count: 1) }.from(true).to(false)
+      obj = klass.create!(order: "order-1", count: 1)
+      expect { obj.delete }.to change { klass.exists?(order: "order-1", count: 1) }.from(true).to(false)
     end
   end
 end

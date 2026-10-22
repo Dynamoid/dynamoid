@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require 'dynamoid/associations/association'
-require 'dynamoid/associations/single_association'
-require 'dynamoid/associations/many_association'
-require 'dynamoid/associations/has_many'
-require 'dynamoid/associations/belongs_to'
-require 'dynamoid/associations/has_one'
-require 'dynamoid/associations/has_and_belongs_to_many'
+require "dynamoid/associations/association"
+require "dynamoid/associations/single_association"
+require "dynamoid/associations/many_association"
+require "dynamoid/associations/has_many"
+require "dynamoid/associations/belongs_to"
+require "dynamoid/associations/has_one"
+require "dynamoid/associations/has_and_belongs_to_many"
 
 module Dynamoid
   # Connects models together through the magic of associations. We enjoy four different kinds of associations presently:

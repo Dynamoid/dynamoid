@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require_relative 'mutation/create'
-require_relative 'mutation/delete_with_primary_key'
-require_relative 'mutation/delete_with_instance'
-require_relative 'mutation/destroy'
-require_relative 'mutation/save'
-require_relative 'mutation/update_fields'
-require_relative 'mutation/update_attributes'
-require_relative 'mutation/upsert'
-require_relative 'mutation/inc'
-require_relative 'mutation/touch'
-require_relative 'mutation/increment'
-require_relative 'mutation/import'
+require_relative "mutation/create"
+require_relative "mutation/delete_with_primary_key"
+require_relative "mutation/delete_with_instance"
+require_relative "mutation/destroy"
+require_relative "mutation/save"
+require_relative "mutation/update_fields"
+require_relative "mutation/update_attributes"
+require_relative "mutation/upsert"
+require_relative "mutation/inc"
+require_relative "mutation/touch"
+require_relative "mutation/increment"
+require_relative "mutation/import"
 
 module Dynamoid
   module Transactions
@@ -105,7 +105,7 @@ module Dynamoid
 
         begin
           yield transaction
-        rescue StandardError => e
+        rescue => e
           transaction.rollback
 
           unless e.is_a?(Dynamoid::Errors::Rollback)
@@ -837,10 +837,10 @@ module Dynamoid
       # @return [Dynamoid::Document] self
       def delete(model_or_model_class, hash_key = nil, range_key = nil)
         action = if model_or_model_class.is_a? Class
-                   DeleteWithPrimaryKey.new(model_or_model_class, hash_key, range_key)
-                 else
-                   DeleteWithInstance.new(model_or_model_class)
-                 end
+          DeleteWithPrimaryKey.new(model_or_model_class, hash_key, range_key)
+        else
+          DeleteWithInstance.new(model_or_model_class)
+        end
         register_action action
       end
 

@@ -17,9 +17,9 @@ module Dynamoid
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
-      attribute_method_suffix '_previously_changed?', '_previous_change'
-      attribute_method_affix prefix: 'restore_', suffix: '!'
+      attribute_method_suffix "_changed?", "_change", "_will_change!", "_was"
+      attribute_method_suffix "_previously_changed?", "_previous_change"
+      attribute_method_affix prefix: "restore_", suffix: "!"
     end
 
     # @private

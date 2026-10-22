@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'base'
-require_relative 'builders/delete_request_builder'
+require_relative "base"
+require_relative "builders/delete_request_builder"
 
 module Dynamoid
   module Transactions
@@ -47,16 +47,16 @@ module Dynamoid
 
           if @model_class.attributes[:lock_version]
             lock_version = if @model.changes[:lock_version].nil?
-                             @model.lock_version
-                           else
-                             @model.changes[:lock_version][0]
-                           end
+              @model.lock_version
+            else
+              @model.changes[:lock_version][0]
+            end
 
             # skip concurrency control when lock_version is nil
             if lock_version
-              builder.add_expression_attribute_name('#_lock_version', 'lock_version')
-              builder.add_expression_attribute_value(':lock_version_value', lock_version)
-              builder.condition_expression = '#_lock_version = :lock_version_value'
+              builder.add_expression_attribute_name("#_lock_version", "lock_version")
+              builder.add_expression_attribute_value(":lock_version_value", lock_version)
+              builder.condition_expression = "#_lock_version = :lock_version_value"
             end
           end
 
