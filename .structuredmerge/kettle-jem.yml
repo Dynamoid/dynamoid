@@ -129,7 +129,7 @@ dependency_conflicts:
 # Set this to a single emoji that represents your gem. Examples: 🪙 🔑 🛠️ 🔮
 # This key is REQUIRED. kettle-jem will abort if it is absent.
 # ENV override: KJ_PROJECT_EMOJI
-project_emoji: ""
+project_emoji: 🧨
 
 # Engines this project supports.
 # List the Ruby engines that your gem targets. kettle-jem uses this to decide

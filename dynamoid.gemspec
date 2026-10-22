@@ -23,8 +23,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Josh Symonds", "Logan Bowers", "Craig Heneveld", "Anatha Kumaran", "Jason Dew", "Luis Arias", "Stefan Neculai", "Philip White", "Peeyush Kumar", "Sumanth Ravipati", "Pascal Corpet", "Brian Glusman", "Peter H. Boling", "Andrew Konchin", "Anantha Kumaran", "Andrés Rojas", "bcoe", "Jon Spalding", "Kishorekumar Neelamegam", "Alexander Lang", "Daniel Marschner", "Lane LaRue", "Michael Patricios", "Stefan", "bonty", "peeyush1234", "Wan", "Agustin Cavilliotti", "Alex Cabrera", "Alex Emelyanov", "Alex Nisnevich", "Amir Manji", "Brenden Kokoszka", "Everett Wetchler", "Gas unknown developer", "NielsKSchjoedt", "Nigel Brookes-Thomas", "Richard Hsu", "Sergey Petrenko", "Tadas Tamosauskas", "Yuichiro Someya", "Alex Ghiculescu", "baloran", "Danilo Cabello", "kokuyouwind", "Kristijan Novoselic", "lulu-ulul", "Micael Nussbaumer", "Ash Tyndall", "Brian Malinconico", "Emma Hyde", "Postmodern", "ryosuke_sato", "Tejas Mandke", "Aaron Allen", "Alex Gascón", "Ankun Yu", "Benjamin Vetter", "Dima", "Jānis Kiršteins", "Michael Miller", "Nigel Gomes", "Remo Mueller", " TheSmartnik", "a5-stable", "Jan Bajena", "Konstantin Kanyuka", "Hiroki Koike", "rahul342", "ta1kt0me", "Tony Spataro", "kiharito", "Maximilian Babescu", "Chris Hobbs", "Dalibor Nasevic", "ndjndj", "Aaron Alberg", "ogidow"]
   spec.email = ["floss@galtzo.com"]
 
-  spec.summary = "💎 Dynamoid is an ORM for Amazon's DynamoDB"
-  spec.description = "💎 Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
+  spec.summary = "🧨 Dynamoid is an ORM for Amazon's DynamoDB"
+  spec.description = "🧨 Dynamoid is an ORM for Amazon's DynamoDB that supports offline development, associations, querying, and everything else you'd expect from an ActiveRecord-style replacement."
   spec.homepage = "https://github.com/Dynamoid/dynamoid"
   spec.licenses = ["MIT"]
   spec.required_ruby_version = ">= 2.3.0"
@@ -62,7 +62,7 @@ Gem::Specification.new do |spec|
   gemspec_root = __dir__
   relative_package_path = lambda do |path|
     prefix = "#{gemspec_root}/"
-    (path[0, prefix.length] == prefix) ? path[prefix.length..-1] : path
+    path[0, prefix.length] == prefix ? path[prefix.length..-1] : path
   end
   enumerate_package_glob = lambda do |glob|
     files = []

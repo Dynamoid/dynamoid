@@ -794,16 +794,10 @@ files:
   README.md:
     recipe: template_source_application_README_md
     action: write
-    dest_sha256: c9c9bcdfbd322183d9fe0fb68fff69108df0e621bbd2148c82aaaf524ad380f0
-    input_fingerprint: dc5a78a2af594ced2399010e66b73b2319f4bd8a042ecd05d71dd787793139ba
+    dest_sha256: cd7fa8daf40603c78f0748f4e44bd01be602605ea0200d767e49943e2fac3c4a
+    input_fingerprint: 2432170b29fe29cad88cb26e5e18b9993768ea3c2d0471363c04c7ed1de6b19a
     template_sources:
     - README.md.example
-  REEK:
-    recipe: template_source_application_REEK
-    action: write
-    input_fingerprint: 94c0f6bef3d84579d3b16484b3c636286eea097301d766b514788db540e7943b
-    template_sources:
-    - REEK
   RUBOCOP.md:
     recipe: template_source_application_RUBOCOP_md
     action: write
@@ -849,8 +843,8 @@ files:
   dynamoid.gemspec:
     recipe: template_source_application_dynamoid_gemspec
     action: write
-    dest_sha256: c9e3c307496f5437722f7c212d1897a41f915672b2f466d11634e3d4acc70ed6
-    input_fingerprint: 344a78d2ae1102721d75c9b90da88e9a8a54f449756db88e517814684bcd10c9
+    dest_sha256: 86891f6c86a19b3ae8adfb922783e1e692aa9bf068c4d860bdd067bfadf09960
+    input_fingerprint: fb74154f70c340fb815f5fa5a255070608fb37c2e28273d50118c790c1aa510e
     template_sources:
     - gem.gemspec.example
   gemfiles/modular/benchmark/r4/v0.5.gemfile:
