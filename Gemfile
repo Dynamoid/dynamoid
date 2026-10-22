@@ -22,7 +22,7 @@ gem 'kettle-family', '~> 1.2', '>= 1.2.97'
 
 
 # Local workspace dependency wiring for *_local.gemfile overrides
-gem "nomono", "~> 1.1", ">= 1.1.4", require: false # ruby >= 3.2.0
+gem "nomono", "~> 1.1", ">= 1.1.14", require: false # ruby >= 3.2.0
 
 
 

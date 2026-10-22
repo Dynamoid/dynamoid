@@ -303,7 +303,8 @@ GEM
     mutex_m (0.3.0)
     nokogiri (1.19.4-x86_64-linux-gnu)
       racc (~> 1.4)
-    nomono (1.1.4)
+    nomono (1.1.14)
+      version_gem (~> 1.1, >= 1.1.15)
     openssl (4.0.2)
     ostruct (0.6.3)
     parallel (1.27.0)
@@ -625,7 +626,7 @@ DEPENDENCIES
   kramdown (~> 2.5, >= 2.5.2)
   kramdown-parser-gfm (~> 1.1)
   mutex_m (~> 0.2)
-  nomono (~> 1.1, >= 1.1.4)
+  nomono (~> 1.1, >= 1.1.14)
   pry (~> 0.14)
   rake (~> 13.0)
   rbs (>= 3.0)
@@ -656,4 +657,4 @@ DEPENDENCIES
   yard-yaml (~> 0.2, >= 0.2.4)
 
 BUNDLED WITH
-  4.0.21
+  4.0.23
