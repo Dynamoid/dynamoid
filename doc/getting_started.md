@@ -92,19 +92,11 @@ user = User.new(name: 'Alice', email: 'alice@example.com')
 user.save # Validates attributes and persists the model
 ```
 
-### Explicit Field Declarations
+### Declaring Models and Fields
 
-Relational databases maintain a table schema that an ORM can inspect to define attribute accessors automatically.
+Relational databases maintain a table schema that an ORM can inspect to define attribute accessors automatically. Because DynamoDB is schemaless, schema is defined at the application layer.
 
-Because DynamoDB is schemaless, there is no database column catalog to inspect—so Dynamoid defines schema at the application layer:
-
-* You explicitly declare each field with `field`, specifying its name, optional data type (defaulting to `:string`), and optional defaults.
-* Dynamoid generates reader, writer (`name=`), predicate (`name?`), raw reader (`name_before_type_cast`), and dirty-tracking methods for each declared field.
-* If a DynamoDB item contains attributes that are not declared in your Ruby model, Dynamoid ignores them when loading the item into memory. When updating an existing model, Dynamoid only writes changed attributes, leaving any undeclared attributes on the item in DynamoDB intact.
-
-## Anatomy of a Dynamoid Model
-
-To declare a model, create a Ruby class, include the `Dynamoid::Document` module, and declare its fields using the `field` method:
+To declare a model, include `Dynamoid::Document` in a Ruby class and declare each attribute with `field`:
 
 ```ruby
 class User
@@ -117,18 +109,16 @@ class User
 end
 ```
 
-Fields default to the `:string` type, so declaring the type for string fields (`field :name`) is optional.
-
-Declaring a field automatically generates reader, writer (`name=`), and predicate (`name?`) methods:
+Fields default to `:string`, so specifying the type for string attributes is optional. Declaring a field automatically generates reader, writer (`name=`), predicate (`name?`), raw reader (`name_before_type_cast`), and dirty-tracking methods:
 
 ```ruby
 user = User.new(name: 'Alice', active: true)
 user.name    # => "Alice"
 user.name = 'Alicia'
-
-# Predicate methods check presence or boolean truthiness
 user.active? # => true
 ```
+
+If a DynamoDB item contains attributes not declared in your Ruby model, Dynamoid ignores them when loading the item into memory. When saving, Dynamoid only writes declared, modified attributes, leaving any undeclared attributes in DynamoDB intact.
 
 ### Conventions and Defaults
 
@@ -335,6 +325,10 @@ class Order
   end
 end
 ```
+
+## Table Creation
+
+Unlike relational databases, DynamoDB is schemaless, so Dynamoid does not use database migration files. By default, new tables are automatically created when a model is saved for the first time, or can be pre-created in batch using a rake task. To learn more, see [Table Creation and Management](modeling_and_schema/table_mapping_and_provisioning.md#table-creation-and-management).
 
 ## Installation and Configuration
 

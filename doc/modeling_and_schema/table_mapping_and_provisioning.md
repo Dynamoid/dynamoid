@@ -24,7 +24,17 @@ Dynamoid.configure do |config|
 end
 ```
 
-With this setting, the `User` model maps to `myapp_production_users`. In Rails applications, Dynamoid sets this default to `dynamoid_<app_name>_#{Rails.env}` (for example, `dynamoid_my_app_development`).
+With this setting, the `User` model maps to `myapp_production_users`.
+
+Without an explicit configuration, Dynamoid applies default namespaces:
+
+```ruby
+# Standalone Ruby:
+User.table_name # => "dynamoid_users"
+
+# In Rails:
+User.table_name # => "dynamoid_myapp_development_users"
+```
 
 > [!TIP]
 > For multi-account architectures, dedicated versus shared account strategies, and developer sandbox isolation, see [Table Namespaces and Environment Isolation](../configuration_and_operations/configuration_and_runtime.md#table-namespaces-and-environment-isolation) in the Configuration guide.
@@ -43,6 +53,9 @@ end
 
 When a custom name is specified, Dynamoid still prefixes it with the configured namespace unless accessed via an ARN.
 
+> [!IMPORTANT]
+> All table configuration options must be specified in a single `table` call. Calling `table` multiple times silently discards previously configured settings.
+
 ### Cross-Account and Shared Tables (ARN)
 
 To connect to a DynamoDB table in another AWS account or region, or to reference an externally managed table without applying a namespace prefix, specify its [Amazon Resource Name (ARN)](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html) via `:arn`:
@@ -57,13 +70,17 @@ end
 
 DynamoDB table ARNs uniquely identify tables across AWS accounts and follow the format `arn:aws:dynamodb:<region>:<account-id>:table/<table-name>`.
 
-## Partition Key
+## Primary Key
+
+In DynamoDB, a primary key uniquely identifies each item in a table. It can be a *simple primary key* consisting solely of a partition key, or a *composite primary key* combining a partition key with a sort key.
+
+### Partition Key
 
 DynamoDB requires every table to declare a *partition key* (historically called a *hash key*). The partition key value determines the physical partition where DynamoDB stores the item, and it must be unique across all items in a table with a simple primary key.
 
 By convention, Dynamoid expects the table's partition key to be named `id` with type `:string`, and automatically declares an `id` field on the model. For string partition keys, Dynamoid automatically generates a UUID string on save if no value has been assigned. When using a numeric partition key, you must provide a value explicitly before saving.
 
-To customize the partition key name and its data type, pass `:key` and `:key_type` to `table`:
+To customize the partition key name and its data type, pass `:key` and `:key_type` to `table` (no separate `field` declaration is needed):
 
 ```ruby
 class User
@@ -73,28 +90,7 @@ class User
 end
 ```
 
-### Supported Types
-
-DynamoDB requires primary key attributes (both partition and sort keys) to be of a scalar type—complex types such as sets, arrays, and maps cannot serve as keys. Dynamoid supports `:string` (default), `:integer`, `:number`, `:datetime`, and `:date` (as well as `:serialized` and custom types).
-
-For full details on type casting and custom types, see [Fields & Data Types](fields_and_types.md).
-
-### Non-Default Type
-
-Dynamoid automatically declares `field :id` as `:string` when `Dynamoid::Document` is included. If your table's `id` attribute is declared as a Number instead, simply redeclaring `field :id, :integer` triggers a warning about overriding existing accessor methods.
-
-To declare a non-default `id` type cleanly without warnings, suppress the automatic `id` field generation using `skip_generating_fields: [:id]` before declaring your custom field:
-
-```ruby
-class User
-  include Dynamoid::Document
-
-  table skip_generating_fields: [:id]
-  field :id, :integer
-end
-```
-
-## Sort Key
+### Sort Key
 
 A *composite primary key* combines a partition key with a *sort key* (historically called a *range key*). In a composite key table, multiple items can share the same partition key value as long as their sort key values differ.
 
@@ -110,10 +106,29 @@ class Order
 end
 ```
 
-The second argument to `range` specifies the sort key's data type, which defaults to `:string` if omitted. Sort keys share the same scalar type restrictions as partition keys.
+The second argument to `range` specifies the sort key's data type, which defaults to `:string` if omitted.
 
 > [!NOTE]
 > Dynamoid associations (`belongs_to`, `has_many`, `has_one`, and `has_and_belongs_to_many`) currently require simple primary keys. If your model uses a composite primary key, manage relationships through explicit queries instead of association macros.
+
+### Supported Key Types
+
+DynamoDB requires primary key attributes (both partition and sort keys) to be of a scalar type—complex types such as sets, arrays, and maps cannot serve as keys. Dynamoid supports `:string` (default), `:integer`, `:number`, `:datetime`, and `:date` (as well as `:serialized` and custom types).
+
+For full details on type casting and custom types, see [Fields & Data Types](fields_and_types.md).
+
+### Custom Partition Key Field
+
+If you need to declare the partition key with the `field` method—such as to configure a non-default type or pass field options like `store_as_string: true`—suppress the automatic `id` field generation using `skip_generating_fields: [:id]` to avoid warnings about overriding existing accessor methods:
+
+```ruby
+class AuditLog
+  include Dynamoid::Document
+
+  table skip_generating_fields: [:id]
+  field :id, :date, store_as_string: true
+end
+```
 
 ## Secondary Indexes
 
@@ -149,7 +164,7 @@ class Order
 end
 ```
 
-Declare the index after the table settings and the fields it references, as Dynamoid resolves the table name and key fields when the index is defined. Like primary keys, index keys must be of a scalar type (see [Supported Types](#supported-types)).
+Declare the index after the table settings and the fields it references, as Dynamoid resolves the table name and key fields when the index is defined. Like primary keys, index keys must be of a scalar type (see [Supported Key Types](#supported-key-types)).
 
 ### Local Secondary Indexes
 
@@ -297,7 +312,7 @@ If omitted on the model, the capacity mode and capacity units fall back to the `
 
 #### Time To Live (TTL)
 
-Dynamoid integrates with DynamoDB's native [Time To Live (TTL)](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html) mechanism to have expired items automatically deleted. To enable it, declare the `expires` option and define a corresponding numeric field (`:integer` or `:number`):
+Dynamoid integrates with DynamoDB's native [Time To Live (TTL)](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html) mechanism to automatically delete expired items. To configure it, pass the `expires` option to `table` and declare a corresponding numeric field (`:integer` or `:number`):
 
 ```ruby
 class Session
@@ -309,6 +324,9 @@ class Session
 end
 ```
 
-On save, Dynamoid sets the TTL attribute to the current time plus `:after` seconds whenever the attribute value is `nil`.
+The `expires` option controls two distinct behaviors:
+
+* *On save* — Dynamoid sets the TTL attribute to the current Unix timestamp plus `:after` seconds whenever the attribute value is `nil`.
+* *On table creation* — Dynamoid enables TTL on the backing DynamoDB table for the specified attribute. If your table is provisioned externally (such as via Terraform or CloudFormation), you must enable TTL on the DynamoDB table in your infrastructure configuration.
 
 {{#include ../_includes/feedback.md}}

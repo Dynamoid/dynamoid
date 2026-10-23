@@ -267,6 +267,7 @@ module Dynamoid
         timestamps_already_declared = Dynamoid::Config.timestamps
 
         # a default 'id' column is created when Dynamoid::Document is included
+        # TODO: support `key_type` without `key:` to have a field defined with default name and given type
         unless attributes.key? hash_key
           remove_field :id
           id_already_declared = false
