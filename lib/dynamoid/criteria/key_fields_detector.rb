@@ -64,6 +64,17 @@ module Dynamoid
       end
 
       # Use table's default range key
+      # TODO: Only match range_key if it uses supported KeyConditionExpression operators:
+      #       :eq, :gt, :gte, :lt, :lte, :between, :begins_with.
+      #       If an unsupported operator is used (e.g. :ne, :in, :contains, :not_contains, :null, :not_null),
+      #       it cannot be used in KeyConditionExpression, and DynamoDB forbids primary key attributes
+      #       in FilterExpression during a Query. Therefore, the query must fall back to a Scan operation.
+      #
+      #       Examples that currently fail with Aws::DynamoDB::Errors::ValidationException:
+      #         Order.where(customer_id: 'cust-1', 'placed_at.ne': '2026-01-01').all
+      #         Order.where(customer_id: 'cust-1', 'placed_at.in': ['2026-01-01', '2026-01-02']).all
+      #         Order.where(customer_id: 'cust-1', 'placed_at.contains': '2026').all
+      #       Expected behavior: fall back to a Scan operation instead of attempting a Query.
       def match_table_and_sort_key
         return unless @query.contain_with_eq_operator?(@source.hash_key)
         return unless @source.range_key
