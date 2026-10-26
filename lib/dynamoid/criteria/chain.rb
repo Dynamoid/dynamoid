@@ -112,6 +112,7 @@ module Dynamoid
       #
       # @return [Dynamoid::Criteria::Chain]
       # @since 0.2.0
+      # TODO: support Range in hash conditions
       def where(conditions, placeholders = nil)
         if conditions.is_a?(Hash)
           where_with_hash(conditions)
@@ -127,6 +128,7 @@ module Dynamoid
       #   Post.where('size.gt' => 1000).consistent
       #
       # @return [Dynamoid::Criteria::Chain]
+      # TODO: warn when a global secondary index is used and read is not consistent
       def consistent
         @consistent_read = true
         self
@@ -234,6 +236,7 @@ module Dynamoid
         ids = []
         ranges = []
 
+        # TODO: fetch only hash_key/range_key and skip all the other
         if @key_fields_detector.key_present?
           Dynamoid.adapter.query(source.table_name, query_key_conditions, query_non_key_conditions, query_options).flat_map { |i| i }.collect do |hash|
             ids << hash[source.hash_key.to_sym]
@@ -367,29 +370,47 @@ module Dynamoid
         self
       end
 
-      # Force the index name to use for queries.
+      # Force a specific secondary index to use for queries or scans.
       #
-      # By default allows the library to select the most appropriate index.
-      # Sometimes you have more than one index which will fulfill your query's
-      # needs. When this case occurs you may want to force an order. This occurs
-      # when you are searching by hash key, but not specifying a range key.
+      # By default, Dynamoid automatically selects the most appropriate index
+      # using the following precedence:
       #
-      # ```
+      # 1. Table partition key and sort key
+      # 2. Table partition key and Local Secondary Index (LSI) sort key
+      # 3. Global Secondary Index (GSI) matching partition key and sort key
+      # 4. Table partition key alone
+      # 5. Global Secondary Index (GSI) matching partition key alone
+      #
+      # Explicit index selection is useful in several scenarios:
+      # - When multiple secondary indexes match the query conditions and you want to ensure a specific index is used.
+      # - When querying an index with partial projection.
+      # - When scanning a sparse index to read only items containing the indexed attribute.
+      #
+      # When querying an index that projects only keys or a subset of attributes, Dynamoid
+      # loads only the projected fields. Non-projected attributes remain +nil+ on instantiated models.
+      #
+      # ```ruby
       # class Comment
       #   include Dynamoid::Document
       #
       #   table key: :post_id
-      #   range_key :author_id
+      #   range :author_id
       #
       #   field :post_date, :datetime
       #
-      #   global_secondary_index name: :time_sorted_comments, hash_key: :post_id, range_key: post_date, projected_attributes: :all
+      #   global_secondary_index name: :time_sorted_comments, hash_key: :post_id, range_key: :post_date, projected_attributes: :all
       # end
       #
+      # # Force a specific index when querying
       # Comment.where(post_id: id).with_index(:time_sorted_comments).scan_index_forward(false)
+      #
+      # # Scan only items present in the index
+      # Comment.with_index(:time_sorted_comments).all
       # ```
       #
-      # @return [Dynamoid::Criteria::Chain]
+      # @param [Symbol, String] index_name name of the secondary index declared on the model
+      # @raise [Dynamoid::Errors::InvalidIndex] if the index does not exist on the model
+      # @return [Dynamoid::Criteria::Chain] self
       def with_index(index_name)
         raise Dynamoid::Errors::InvalidIndex, "Unknown index #{index_name}" unless @source.find_index_by_name(index_name)
 
@@ -461,7 +482,7 @@ module Dynamoid
       #
       # @return [Enumerator::Lazy]
       def find_by_pages(&block)
-        pages.each(&block)
+        pages.each(&block) # TODO: pass block arguments as separate two parameters to prevent descructuring and user can specify a single parameter in a block `find_by_pages {|user|}`
       end
 
       # Select only specified fields.

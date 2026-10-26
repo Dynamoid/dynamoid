@@ -58,6 +58,8 @@ module Dynamoid
         end
       end
 
+      # TODO: Support .find_by_partiql similarly to Rails' .find_by_sql
+
       # Find several models at once.
       #
       # Returns objects found by the given array of ids, either hash keys, or

@@ -2802,6 +2802,12 @@ describe Dynamoid::Criteria::Chain do
         models = chain.with_index(:age_index)
         expect(models.map(&:id)).not_to include 'no age'
       end
+
+      it 'is delegated from the model class' do
+        models = klass_with_global_secondary_index.with_index(:age_index)
+        expect(models).to be_a(described_class)
+        expect(models.map(&:id)).not_to include 'no age'
+      end
     end
   end
 

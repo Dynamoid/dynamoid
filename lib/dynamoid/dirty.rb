@@ -12,6 +12,14 @@ module Dynamoid
   #
   # Documentation:
   # https://api.rubyonrails.org/v4.2/classes/ActiveModel/Dirty.html
+  #
+  # TODO: Track which attributes were loaded when using `project` (similar to Active Record's `select`):
+  # 1. Raise MissingAttributeError when reading an unprojected attribute that has not been assigned.
+  # 2. Properly mark an unprojected attribute as changed when assigning `nil` (or the field's default value).
+  #    Currently, unprojected attributes are initialized to `nil` (or their default) in memory and
+  #    `write_attribute` only triggers `attribute_will_change!` when `old_value != value_casted`.
+  #    As a result, assigning `model.attr = nil` on an unprojected attribute sees `nil == nil`,
+  #    fails to mark it dirty, and `save` silently skips clearing the persisted value in DynamoDB.
   module Dirty
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods
