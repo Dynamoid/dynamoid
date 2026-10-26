@@ -37,6 +37,7 @@ module Dynamoid
                           when :serialized then SerializedTypeCaster
                           when :boolean    then BooleanTypeCaster
                           when :binary     then BinaryTypeCaster
+                          # TODO: Support Module as well as Class for custom types and adapters
                           when Class       then CustomTypeCaster
                           end
 
@@ -45,6 +46,7 @@ module Dynamoid
       end
     end
 
+    # TODO: Consider using #to_int, #to_str, and #to_ary methods for type casting as well
     class Base
       def initialize(options)
         @options = options
@@ -63,9 +65,9 @@ module Dynamoid
         when false
           'f'
         when String
-          value.dup
+          value.dup # TODO: investigate whether we need this copying
         else
-          value.to_s
+          value.to_s # TODO: check if #to_str should be checked first
         end
       end
     end
@@ -84,7 +86,7 @@ module Dynamoid
         elsif !value.respond_to?(:to_i)
           nil
         else
-          value.to_i
+          value.to_i # TODO: check if #to_int should be checked first
         end
       end
     end
@@ -177,7 +179,7 @@ module Dynamoid
         if value.is_a?(Array)
           value.dup
         elsif value.respond_to?(:to_a)
-          value.to_a
+          value.to_a # TODO: check if #to_ary should be checked first
         end
       end
 
@@ -224,6 +226,30 @@ module Dynamoid
       end
     end
 
+    # TODO: In Rails (Active Record with time_zone_aware_attributes), assigning a Time,
+    # DateTime, or a string with an explicit time zone immediately converts the value
+    # into Time.zone (returning an ActiveSupport::TimeWithZone instance in memory).
+    # In contrast, Dynamoid preserves the assigned offset in memory and only converts
+    # into ApplicationTimeZone when undumping from DynamoDB (on reload/find).
+    #
+    # Example (assuming Time.zone / application_timezone = "America/New_York", UTC-4):
+    #
+    # 1. String without timezone:
+    #    order.placed_at = "2026-10-15 16:00:00"
+    #    # Rails:    => 2026-10-15 16:00:00 -04:00 (TimeWithZone)
+    #    # Dynamoid: => 2026-10-15 16:00:00 -04:00 (DateTime)
+    #
+    # 2. String with explicit timezone (+02:00):
+    #    order.placed_at = "2026-10-15 16:00:00 +02:00"
+    #    # Rails:    => 2026-10-15 10:00:00 -04:00 (converted immediately to Time.zone)
+    #    # Dynamoid: => 2026-10-15 16:00:00 +02:00 (preserves +02:00 in memory until reload!)
+    #
+    # 3. Time or DateTime object with explicit timezone:
+    #    order.placed_at = Time.utc(2026, 10, 15, 14, 0, 0) # 14:00 UTC == 10:00 EDT
+    #    # Rails:    => 2026-10-15 10:00:00 -04:00 (converted immediately to Time.zone)
+    #    # Dynamoid: => 2026-10-15 14:00:00 +00:00 (preserves UTC in memory until reload!)
+    #
+    # Consider eagerly converting assigned datetimes into ApplicationTimeZone to align with Rails.
     class DateTimeTypeCaster < Base
       def process(value)
         if !value.respond_to?(:to_datetime)
@@ -237,6 +263,7 @@ module Dynamoid
           if dt
             seconds = string_utc_offset(value) || ApplicationTimeZone.utc_offset
             offset = seconds_to_offset(seconds)
+            # TODO: preserve fractional seconds (dt.sec_fraction) when reconstructing DateTime
             DateTime.new(dt.year, dt.mon, dt.mday, dt.hour, dt.min, dt.sec, offset)
           end
         else
@@ -291,7 +318,7 @@ module Dynamoid
         elsif value.is_a?(String)
           value.dup
         else
-          value.to_s
+          value.to_s # TODO: check if #to_str should be checked first
         end
       end
     end

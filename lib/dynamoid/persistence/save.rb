@@ -18,7 +18,7 @@ module Dynamoid
       def call
         validate_primary_key!
 
-        @model.hash_key = SecureRandom.uuid if @model.hash_key.blank?
+        @model.hash_key = SecureRandom.uuid if @model.hash_key.blank? # TODO check that type is :string (here and in transactions)
 
         return true unless @model.changed?
 

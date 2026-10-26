@@ -49,6 +49,7 @@ module Dynamoid
       #   Document.find(101, range_key: 'archived', consistent_read: true)
       #
       # @since 0.2.0
+      # TODO: Return models in the order of the given ids when multiple ids are provided
       def find(*ids, **options)
         if ids.size == 1 && !ids[0].is_a?(Array)
           _find_by_id(ids[0], options.reverse_merge(raise_error: true))
@@ -56,6 +57,8 @@ module Dynamoid
           _find_all(ids.flatten(1), options.reverse_merge(raise_error: true))
         end
       end
+
+      # TODO: Support .find_by_partiql similarly to Rails' .find_by_sql
 
       # Find several models at once.
       #

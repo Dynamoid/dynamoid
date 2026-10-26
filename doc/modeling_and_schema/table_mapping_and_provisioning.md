@@ -1,0 +1,332 @@
+# Table Mapping & Provisioning
+
+In Dynamoid, every model maps to an Amazon DynamoDB table. While Dynamoid provides sensible conventions for table names and primary keys out of the box, you can customize table identity, primary keys, secondary indexes, and provisioning settings on the model class.
+
+## Table Naming
+
+By default, Dynamoid derives the DynamoDB table name by pluralizing the model class name and prepending the configured namespace:
+
+```ruby
+class User
+  include Dynamoid::Document
+end
+
+User.table_name # => "<namespace>_users"
+```
+
+### Namespaces
+
+To prevent name collisions between environments (such as development, staging, and production) or between different applications sharing an AWS account, configure a global namespace prefix:
+
+```ruby
+Dynamoid.configure do |config|
+  config.namespace = 'myapp_production'
+end
+```
+
+With this setting, the `User` model maps to `myapp_production_users`.
+
+Without an explicit configuration, Dynamoid applies default namespaces:
+
+```ruby
+# Standalone Ruby:
+User.table_name # => "dynamoid_users"
+
+# In Rails:
+User.table_name # => "dynamoid_myapp_development_users"
+```
+
+> [!TIP]
+> For multi-account architectures, dedicated versus shared account strategies, and developer sandbox isolation, see [Table Namespaces and Environment Isolation](../configuration_and_operations/configuration_and_runtime.md#table-namespaces-and-environment-isolation) in the Configuration guide.
+
+### Custom Table Names
+
+To override the inferred table name for a specific model, pass the `:name` option:
+
+```ruby
+class User
+  include Dynamoid::Document
+
+  table name: :legacy_users_table
+end
+```
+
+When a custom name is specified, Dynamoid still prefixes it with the configured namespace unless accessed via an ARN.
+
+> [!IMPORTANT]
+> All table configuration options must be specified in a single `table` call. Calling `table` multiple times silently discards previously configured settings.
+
+### Cross-Account and Shared Tables (ARN)
+
+To connect to a DynamoDB table in another AWS account or region, or to reference an externally managed table without applying a namespace prefix, specify its [Amazon Resource Name (ARN)](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html) via `:arn`:
+
+```ruby
+class AuditLog
+  include Dynamoid::Document
+
+  table arn: 'arn:aws:dynamodb:us-east-1:123456789012:table/corporate_audit_logs'
+end
+```
+
+DynamoDB table ARNs uniquely identify tables across AWS accounts and follow the format `arn:aws:dynamodb:<region>:<account-id>:table/<table-name>`.
+
+## Primary Key
+
+In DynamoDB, a primary key uniquely identifies each item in a table. It can be a *simple primary key* consisting solely of a partition key, or a *composite primary key* combining a partition key with a sort key.
+
+### Partition Key
+
+DynamoDB requires every table to declare a *partition key* (historically called a *hash key*). The partition key value determines the physical partition where DynamoDB stores the item, and it must be unique across all items in a table with a simple primary key.
+
+By convention, Dynamoid expects the table's partition key to be named `id` with type `:string`, and automatically declares an `id` field on the model. For string partition keys, Dynamoid automatically generates a UUID string on save if no value has been assigned. When using a numeric partition key, you must provide a value explicitly before saving.
+
+To customize the partition key name and its data type, pass `:key` and `:key_type` to `table` (no separate `field` declaration is needed):
+
+```ruby
+class User
+  include Dynamoid::Document
+
+  table key: :user_id, key_type: :integer
+end
+```
+
+### Sort Key
+
+A *composite primary key* combines a partition key with a *sort key* (historically called a *range key*). In a composite key table, multiple items can share the same partition key value as long as their sort key values differ.
+
+To declare a sort key, use the `range` class method:
+
+```ruby
+class Order
+  include Dynamoid::Document
+
+  range :placed_at, :datetime
+
+  field :total, :number
+end
+```
+
+The second argument to `range` specifies the sort key's data type, which defaults to `:string` if omitted.
+
+> [!NOTE]
+> Dynamoid associations (`belongs_to`, `has_many`, `has_one`, and `has_and_belongs_to_many`) currently require simple primary keys. If your model uses a composite primary key, manage relationships through explicit queries instead of association macros.
+
+### Supported Key Types
+
+DynamoDB requires primary key attributes (both partition and sort keys) to be of a scalar type—complex types such as sets, arrays, and maps cannot serve as keys. Dynamoid supports `:string` (default), `:integer`, `:number`, `:datetime`, and `:date` (as well as `:serialized` and custom types).
+
+For full details on type casting and custom types, see [Fields & Data Types](fields_and_types.md).
+
+### Custom Partition Key Field
+
+If you need to declare the partition key with the `field` method—such as to configure a non-default type or pass field options like `store_as_string: true`—suppress the automatic `id` field generation using `skip_generating_fields: [:id]` to avoid warnings about overriding existing accessor methods:
+
+```ruby
+class AuditLog
+  include Dynamoid::Document
+
+  table skip_generating_fields: [:id]
+  field :id, :date, store_as_string: true
+end
+```
+
+## Secondary Indexes
+
+By default, DynamoDB only supports fast, direct lookups by a table's primary key—filtering by any other attribute requires scanning the entire table. To avoid full-table scans, DynamoDB provides [secondary indexes](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html) (Global Secondary Indexes and Local Secondary Indexes), which establish alternate keys over a subset of item attributes and are updated automatically as items change.
+
+Declaring secondary indexes on a Dynamoid model is optional. Dynamoid uses index declarations to:
+
+* Automatically select and query a matching index instead of scanning the table, or target a declared index explicitly (see [Query Interface](../working_with_data/query_interface.md)).
+* Provision the declared indexes in DynamoDB when Dynamoid creates the table (see [Table Creation and Management](#table-creation-and-management)).
+
+If a table is provisioned externally and your application does not benefit from querying a given index through Dynamoid, you do not need to declare it on the model.
+
+> [!IMPORTANT]
+> Dynamoid only provisions secondary indexes when creating a new table; it does not add, modify, or remove indexes on an existing table in DynamoDB.
+
+### Global Secondary Indexes
+
+A Global Secondary Index defines its own partition key and optional sort key, both of which can differ from the table's primary key. To declare one, call `global_secondary_index` with `:hash_key` and an optional `:range_key`:
+
+```ruby
+class Order
+  include Dynamoid::Document
+
+  field :number
+  field :customer_id
+  field :placed_at, :datetime
+
+  # Partition key only
+  global_secondary_index hash_key: :number
+
+  # Partition key and sort key
+  global_secondary_index hash_key: :customer_id, range_key: :placed_at
+end
+```
+
+Declare the index after the table settings and the fields it references, as Dynamoid resolves the table name and key fields when the index is defined. Like primary keys, index keys must be of a scalar type (see [Supported Key Types](#supported-key-types)).
+
+### Local Secondary Indexes
+
+A Local Secondary Index shares the table's partition key and defines an alternate sort key. To declare one, call `local_secondary_index` with `:range_key`:
+
+```ruby
+class Order
+  include Dynamoid::Document
+
+  range :placed_at, :datetime
+
+  field :total, :number
+
+  local_secondary_index range_key: :total
+end
+```
+
+Declare the index after the table settings, primary sort key, and the field it references. The index sort key must be of a scalar type and differ from the table's primary sort key.
+
+### Projected Attributes
+
+In addition to the table's primary key and the index's own keys, a secondary index can store other attributes copied from the item, known as *projected attributes*. Both `global_secondary_index` and `local_secondary_index` accept `:projected_attributes`, which defaults to `:keys_only` (projecting only the table and index keys). You can pass `:all` to copy every attribute from the item, or an array of non-key attribute names (such as `[:total, :status]`) to copy specific attributes:
+
+```ruby
+class Order
+  include Dynamoid::Document
+
+  field :customer_id
+  field :placed_at, :datetime
+
+  global_secondary_index hash_key: :customer_id,
+                         range_key: :placed_at,
+                         projected_attributes: :all
+end
+```
+
+> [!NOTE]
+> Which attributes you project affects how Dynamoid queries the index. In particular, Dynamoid only selects a Global Secondary Index automatically during queries when `projected_attributes: :all` is declared on the index (see [Query Interface](../working_with_data/query_interface.md)).
+
+### Index Naming
+
+By default, Dynamoid generates an index name from the table name and the index key names in the format `<table_name>_index_<hash_key>` or `<table_name>_index_<hash_key>_<range_key>` (for example, `<table_name>_index_customer_id_placed_at`).
+
+To provide your own index name on either index type, pass the `:name` option:
+
+```ruby
+class Order
+  include Dynamoid::Document
+
+  field :number
+
+  global_secondary_index hash_key: :number, name: 'orders_by_number'
+end
+```
+
+Dynamoid uses the provided `:name` as-is without adding a table or namespace prefix. Setting an explicit `:name` is required when an externally provisioned table uses index names that do not follow Dynamoid's convention, and is also useful for giving an index a shorter name to reference in queries.
+
+## Table Creation and Management
+
+Dynamoid provides utilities to define basic table properties in model classes and create or delete tables programmatically. However, these tools are intended primarily for local development and test suites. Because Dynamoid focuses on application-level data modeling rather than full infrastructure management, it does not alter existing tables or provide schema migrations. In production environments, DynamoDB tables are typically provisioned and maintained using Infrastructure as Code (such as Terraform, AWS CDK, or CloudFormation).
+
+### Implicit Creation
+
+By default, Dynamoid automatically creates the underlying DynamoDB table the first time a model is saved if the table does not yet exist. This behavior is controlled by the `create_table_on_save` configuration option, which defaults to `true`.
+
+In local development and automated test suites, automatic creation eliminates manual table setup. In production, however, table creation on save is undesirable: Dynamoid configures only basic table properties, and blocking on table creation in AWS introduces multi-second latency to user requests.
+
+To disable auto-creation in production:
+
+```ruby
+Dynamoid.configure do |config|
+  config.create_table_on_save = false
+end
+```
+
+### Explicit Creation and Deletion
+
+You can create and delete tables programmatically using model class methods:
+
+```ruby
+# Create the table in DynamoDB according to the model's schema
+User.create_table # => User
+
+# Delete the table from DynamoDB
+User.delete_table # => User
+```
+
+Both `create_table` and `delete_table` are asynchronous by default and return immediately without waiting for DynamoDB to finish provisioning or deleting the table.
+
+To poll DynamoDB and wait until the operation completes, pass `sync: true`:
+
+```ruby
+# Wait until the table is created and available
+User.create_table(sync: true)
+
+# Wait until the table is completely deleted
+User.delete_table(sync: true)
+```
+
+When creating tables, Dynamoid provisions the primary key attributes along with any Global or Local Secondary Indexes declared on the model (see [Secondary Indexes](#secondary-indexes)).
+
+> [!NOTE]
+> When a model declares Global or Local Secondary Indexes, Dynamoid automatically creates the table synchronously. DynamoDB allows creating only one table with secondary indexes at a time, so Dynamoid waits for the table and its indexes to become available before returning.
+
+To create tables for all declared models at once, run the provided Rake task:
+
+```bash
+rake dynamoid:create_tables
+```
+
+This task scans the directory specified by the `models_dir` configuration option (`app/models` by default), creates any missing tables along with their declared secondary indexes, skips tables that already exist, and reports the results.
+
+### Table Settings
+
+When Dynamoid creates a new table (whether automatically or explicitly), it applies the provisioning and schema settings declared on the model class.
+
+> [!IMPORTANT]
+> Dynamoid does not alter existing tables in DynamoDB.
+
+#### Capacity and Billing Modes
+
+DynamoDB supports two billing modes: *Provisioned* and *On-Demand*. You can configure this per model using the `table` method.
+
+In on-demand mode, AWS dynamically scales throughput to match workload traffic without upfront capacity planning:
+
+```ruby
+class Session
+  include Dynamoid::Document
+
+  table capacity_mode: :on_demand
+end
+```
+
+In provisioned mode, specify dedicated Read Capacity Units (RCUs) and Write Capacity Units (WCUs):
+
+```ruby
+class User
+  include Dynamoid::Document
+
+  table capacity_mode: :provisioned, read_capacity: 500, write_capacity: 200
+end
+```
+
+If omitted on the model, the capacity mode and capacity units fall back to the `capacity_mode`, `read_capacity`, and `write_capacity` global configuration options. When the capacity mode is `:on_demand`, capacity settings are ignored during table creation.
+
+#### Time To Live (TTL)
+
+Dynamoid integrates with DynamoDB's native [Time To Live (TTL)](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html) mechanism to automatically delete expired items. To configure it, pass the `expires` option to `table` and declare a corresponding numeric field (`:integer` or `:number`):
+
+```ruby
+class Session
+  include Dynamoid::Document
+
+  table expires: { field: :ttl, after: 86_400 } # 24 hours in seconds
+
+  field :ttl, :integer
+end
+```
+
+The `expires` option controls two distinct behaviors:
+
+* *On save* — Dynamoid sets the TTL attribute to the current Unix timestamp plus `:after` seconds whenever the attribute value is `nil`.
+* *On table creation* — Dynamoid enables TTL on the backing DynamoDB table for the specified attribute. If your table is provisioned externally (such as via Terraform or CloudFormation), you must enable TTL on the DynamoDB table in your infrastructure configuration.
+
+{{#include ../_includes/feedback.md}}

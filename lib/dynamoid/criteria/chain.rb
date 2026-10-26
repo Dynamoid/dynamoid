@@ -248,7 +248,9 @@ module Dynamoid
 
         Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
       end
-      alias destroy_all delete_all
+      alias destroy_all delete_all # FIXME: #destroy_all should run callbacks
+      # FIXME: #delete_all should return the number of items affected
+      # see https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-destroy_all
 
       # Set the record limit.
       #
