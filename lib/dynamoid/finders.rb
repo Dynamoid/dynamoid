@@ -50,6 +50,8 @@ module Dynamoid
       #
       # @since 0.2.0
       # TODO: Return models in the order of the given ids when multiple ids are provided
+      # TODO: Honor STI when calling `find` on a subclass (verify loaded models are `is_a?(self)`
+      # and raise `RecordNotFound` otherwise, matching Active Record)
       def find(*ids, **options)
         if ids.size == 1 && !ids[0].is_a?(Array)
           _find_by_id(ids[0], options.reverse_merge(raise_error: true))
