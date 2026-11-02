@@ -2,7 +2,7 @@
 
 An *association* is a connection between two Dynamoid models. Most applications work with domain entities that relate to one another: an author writes many books, a user has one profile, or students enroll in multiple courses.
 
-Dynamoid provides class-level association macros—modeled after Rails `ActiveRecord`—to declare *one-to-one*, *one-to-many*, and *many-to-many* relationships between models. Declaring an association tells Dynamoid how two models are connected, automatically generates the underlying foreign key fields, and adds convenience methods to link, query, and delete related models.
+Dynamoid provides class-level association macros—modeled after Rails Active Record—to declare *one-to-one*, *one-to-many*, and *many-to-many* relationships between models. Declaring an association tells Dynamoid how two models are connected, automatically generates the underlying foreign key fields, and adds convenience methods to link, query, and delete related models.
 
 > [!IMPORTANT]
 > Associations are only supported for models with a simple primary key (partition key only). Models that declare a sort key cannot declare associations or be referenced by associations on other models.
@@ -95,7 +95,7 @@ author.destroy
 ```
 
 > [!IMPORTANT]
-> Unlike `ActiveRecord`—where assigning an association only updates an in-memory attribute until `save` is called—modifying an association in Dynamoid immediately saves the changes to DynamoDB. Because association mutation methods (`=`, `<<`, `create`, `delete`, etc.) persist changes by calling `update_attribute`, any unsaved attribute changes pending on either model instance will also be written to DynamoDB.
+> Unlike Active Record—where assigning an association only updates an in-memory attribute until `save` is called—modifying an association in Dynamoid immediately saves the changes to DynamoDB. Models passed to `=` or `<<` must already be persisted so their partition key is present. In addition, because association mutation methods (`=`, `<<`, `create`, `delete`, etc.) persist changes by calling `update_attribute`, any unsaved attribute changes pending on either model instance will also be written to DynamoDB.
 
 ## Types of Associations
 
@@ -403,11 +403,10 @@ To unlink a specific model (or an array of models) from the collection without d
 author.books.delete(book)
 ```
 
-To unlink all associated models without deleting their items from DynamoDB, assign `[]` or `nil`:
+To unlink all associated models without deleting their items from DynamoDB, assign `[]`:
 
 ```ruby
 author.books = []
-author.books = nil
 ```
 
 To unlink all associated models and delete their items from DynamoDB without running callbacks, call `delete_all`:
@@ -534,11 +533,10 @@ To unlink a specific model (or an array of models) from the collection without d
 student.courses.delete(course)
 ```
 
-To unlink all associated models without deleting their items from DynamoDB, assign `[]` or `nil`:
+To unlink all associated models without deleting their items from DynamoDB, assign `[]`:
 
 ```ruby
 student.courses = []
-student.courses = nil
 ```
 
 To unlink all associated models and delete their items from DynamoDB without running callbacks, call `delete_all`:
@@ -658,25 +656,7 @@ The `:foreign_key` option is only supported on `belongs_to`. Because Dynamoid in
 
 When you declare an association on only one model, the relationship is one-directional. For example, if `Book` declares `belongs_to :author` but `Author` does not declare `has_many :books`, you can access `book.author`, but `Author` instances have no `author.books` method.
 
-When you declare corresponding associations on both models—such as `has_many :books` on `Author` and `belongs_to :author` on `Book`—Dynamoid automatically keeps both sides synchronized whenever you link or unlink models from either side:
-
-```ruby
-class Author
-  include Dynamoid::Document
-
-  has_many :books
-
-  field :name
-end
-
-class Book
-  include Dynamoid::Document
-
-  belongs_to :author
-
-  field :title
-end
-```
+When you declare corresponding associations on both models—such as `has_many :books` on `Author` and `belongs_to :author` on `Book`—Dynamoid automatically keeps both sides synchronized whenever you link or unlink models from either side.
 
 Assigning the association on `book` automatically adds `book` to `author.books`:
 
@@ -699,7 +679,7 @@ The same bidirectional synchronization applies to `has_one` paired with `belongs
 
 ### Validating Associations
 
-Unlike Rails `ActiveRecord` and `Mongoid`—where `belongs_to` requires the associated model to be present by default unless `optional: true` is specified—all associations in Dynamoid (including `belongs_to`) are optional by default.
+Unlike Rails Active Record and Mongoid—where `belongs_to` requires the associated model to be present by default unless `optional: true` is specified—all associations in Dynamoid (including `belongs_to`) are optional by default.
 
 To require that an association is present before saving, add a standard `ActiveModel` presence validation on the association name:
 
