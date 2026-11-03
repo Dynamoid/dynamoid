@@ -6,6 +6,7 @@ module Dynamoid
   module Persistence
     # @private
     class Import
+      # TODO: check primary key uniqueness instead of overwriting existing items with the same key
       def self.call(model_class, array_of_attributes)
         new(model_class, array_of_attributes).call
       end

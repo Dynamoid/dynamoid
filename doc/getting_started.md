@@ -25,11 +25,15 @@ How you access data depends directly on these key attributes:
 
 Because Dynamoid provides a familiar ActiveRecord-like interface, it is easy to assume that DynamoDB behaves like a relational database underneath. In practice, several architectural differences shape how you model and query your data.
 
-### Schemas and Primary Keys
+### Schemas, Primary Keys, and Writes
 
 In PostgreSQL or MySQL, table schemas define every column and data type upfront. DynamoDB tables, by contrast, only declare their primary keys at the database level—non-key attributes are schemaless, so adding, renaming, or removing attributes does not require database migrations.
 
-An item's primary key (both the partition key and sort key) is strictly immutable once written. Unlike relational databases where primary key columns can technically be updated in place, changing an item's primary key in DynamoDB requires creating a new item and deleting the original.
+Primary keys also behave differently during writes:
+
+* DynamoDB does not provide auto-incrementing integer sequences (`SERIAL` or `AUTO_INCREMENT`). Dynamoid automatically generates UUIDs for string partition keys, but integer partition keys and sort keys must be assigned by the application.
+* An item's primary key (both the partition key and sort key) is strictly immutable once written. Changing an item's primary key requires creating a new item and deleting the original.
+* Every write, update, and delete operation must target an item by its exact primary key—there is no equivalent to SQL's `UPDATE ... WHERE` or `DELETE ... WHERE` to modify or remove multiple rows matching arbitrary attribute conditions in a single statement.
 
 ### Querying and Indexing
 
@@ -46,13 +50,13 @@ Relational databases provide an expressive query engine with automated index pla
 
 DynamoDB does not support database-level `JOIN` operations. Instead of normalizing data across tables and joining on foreign keys, relationships must be resolved through separate lookups or by denormalizing related data into a single item.
 
-DynamoDB also does not enforce foreign key constraints or cascading deletes at the storage level. Referential integrity between related items must be managed by the application layer.
+DynamoDB also does not enforce foreign key constraints at the storage level. Because the database does not verify that referenced items exist, deleting a target item without updating its references can leave dangling foreign keys, and there is no database-level cascading deletion or nullification (`ON DELETE CASCADE` or `ON DELETE SET NULL`). Referential integrity between related items must be coordinated by the application layer.
 
-### Transactions
+### Transactions and Locking
 
-In relational databases, you can open an interactive transaction block (`BEGIN` ... `COMMIT`), read data, run business logic in Ruby, and conditionally commit or roll back.
+In relational databases, you can open an interactive transaction block (`BEGIN` ... `COMMIT`), acquire a pessimistic lock on rows with `SELECT ... FOR UPDATE`, run business logic in Ruby, and conditionally commit or roll back.
 
-DynamoDB does not support interactive transactions. While it does support multi-item ACID transactions, they must execute as a single, coordinated, all-or-nothing request. You cannot hold a transaction open while application code queries data and decides what to do next.
+DynamoDB does not support interactive transactions or pessimistic locking. While it provides multi-item ACID transactions, they must execute as a single, all-or-nothing request—you cannot hold a transaction or row lock open while application code reads data and decides what to do next. Instead, concurrent updates are coordinated using optimistic locking (`lock_version`), conditional writes, or atomic counter operations.
 
 ### Operational Limits
 
@@ -140,59 +144,29 @@ Everyday persistence operations mirror ActiveRecord closely:
 You can instantiate a model and persist it in two steps, or initialize and save it in a single call:
 
 ```ruby
-# Instantiate a new in-memory model
+# Instantiate a new in-memory model and save it
 user = User.new(name: 'Alice', email: 'alice@example.com')
-user.new_record? # => true
-user.persisted?  # => false
-
-# Persist to DynamoDB
 user.age = 30
-user.save        # => true (or false if validations fail)
-
-user.new_record? # => false
-user.persisted?  # => true
-
-# The partition key is automatically assigned if omitted
-user.id          # => "8b9e6f1a-7b3c-4d5e-9f0a-1b2c3d4e5f6a"
+user.save
 
 # Or instantiate and save in a single call
 user = User.create(name: 'Bob', email: 'bob@example.com', age: 25)
-
-# Bang variants raise an exception on failure instead of returning false
-user = User.create!(name: 'Bob', email: 'bob@example.com', age: 25)
 ```
 
-The bang variants (`save!` and `create!`) raise `Dynamoid::Errors::DocumentNotValid` if validations fail (described in [Validations](#validations)), or `Dynamoid::Errors::RecordNotSaved` if a `before_*` callback cancels persistence by throwing `:abort`.
-
 > [!NOTE]
-> For advanced persistence patterns—such as bulk imports with `.import`, atomic counters, conditional updates, and optimistic locking—refer to [Persistence & Mutations](working_with_data/persistence_and_mutations.md).
+> For advanced persistence patterns—such as bulk imports with `.import`, atomic counters, conditional updates, and optimistic locking—refer to [Persistence](working_with_data/persistence_and_mutations.md).
 
 ### Reading and Querying
 
 Dynamoid provides methods for both point lookups by primary key and multi-item queries:
 
 ```ruby
-# Look up by simple partition key (raises Dynamoid::Errors::RecordNotFound if missing)
+# Look up by primary key
 user = User.find(user_id)
-
-# Find multiple items by primary key in a single request
-users = User.find('id1', 'id2')
-users = User.find(['id1', 'id2'])
-
-# Check existence without loading items into memory
-User.exists?(user_id)                   # => true
-User.exists?(email: 'alice@example.com') # => true
 
 # Query items using criteria chains
 active_users = User.where(active: true).all
 adult        = User.where('age.gte': 18).first
-user         = User.where(email: 'alice@example.com').first
-```
-
-If you prefer `find` to return `nil` instead of raising an exception when an item is not found, pass `raise_error: false`:
-
-```ruby
-user = User.find('missing-id', raise_error: false) # => nil
 ```
 
 > [!NOTE]
@@ -203,128 +177,66 @@ user = User.find('missing-id', raise_error: false) # => nil
 Modifying attributes and persisting changes follows the standard patterns:
 
 ```ruby
-# Update attributes and save in one step (runs validations and callbacks)
+# Update attributes and save in one step
 user.update_attributes(age: 31)
 
 # Or modify attributes directly and call save
 user.age = 31
 user.save
-
-# Update a single attribute directly without running validations
-user.update_attribute(:active, false)
-
-# Reload attributes from DynamoDB
-user.reload
 ```
 
 ### Deleting
 
-You can remove individual items or clear matching criteria in bulk:
+You can remove a loaded model instance or delete an item directly by its primary key:
 
 ```ruby
-# Destroy an individual item (runs :destroy callbacks)
+# Destroy a loaded model (runs destroy callbacks)
 user.destroy
-user.destroyed? # => true
 
-# Delete an individual item directly (skips callbacks)
-user.delete
-
-# Delete all matching items in batch (skips callbacks)
-User.where(active: false).delete_all
+# Or delete an item directly by primary key
+User.delete(user_id)
 ```
 
 ## Validations
 
-Dynamoid includes `ActiveModel::Validations`, providing the full suite of standard Rails validators—including `presence`, `numericality`, `inclusion`, `length`, and `format`, as well as custom validation methods:
+You can declare validation rules on a model to verify its state before it is saved to DynamoDB:
 
 ```ruby
-class Product
+class User
   include Dynamoid::Document
 
-  field :sku
-  field :price, :number
-  field :inventory_count, :integer
-
-  validates :sku, presence: true
-  validates :price, numericality: { greater_than: 0 }
-  validates :inventory_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  field :name
+  validates :name, presence: true
 end
+
+user = User.new
+user.valid?               # => false
+user.errors.full_messages # => ["Name can't be blank"]
+user.save                 # => false
 ```
-
-Checking validity populates the `errors` collection just like in ActiveRecord:
-
-```ruby
-product = Product.new(price: -5)
-product.valid? # => false
-
-product.errors[:sku]         # => ["can't be blank"]
-product.errors[:price]       # => ["must be greater than 0"]
-product.errors.full_messages # => ["Sku can't be blank", "Price must be greater than 0"]
-```
-
-Calling `save` on an invalid model returns `false`, while bang methods (`save!`, `create!`, `update_attributes!`) raise `Dynamoid::Errors::DocumentNotValid`:
-
-```ruby
-product.save  # => false
-product.save! # Raises Dynamoid::Errors::DocumentNotValid
-```
-
-If you need to bypass validations when saving, pass `validate: false`:
-
-```ruby
-product.save(validate: false)
-```
-
-> [!NOTE]
-> Dynamoid does not support uniqueness validations (such as `validates_uniqueness_of`) because DynamoDB cannot enforce uniqueness on non-key attributes without scanning the entire table. Enforce uniqueness using dedicated lookup tables or DynamoDB transactions instead.
 
 ## Lifecycle Callbacks
 
-Dynamoid integrates `ActiveModel::Callbacks`, providing hooks into the persistence lifecycle:
-
-| Lifecycle Phase | Available Hooks |
-|---|---|
-| Validation | `before_validation`, `after_validation` |
-| Save | `before_save`, `around_save`, `after_save` |
-| Create | `before_create`, `around_create`, `after_create` |
-| Update | `before_update`, `around_update`, `after_update` |
-| Destroy | `before_destroy`, `around_destroy`, `after_destroy` |
-| Object State | `after_initialize`, `after_find`, `after_touch` |
-
-Callbacks can be defined with method symbols, blocks, or dedicated callback objects. Throwing `:abort` within any `before_*` callback stops execution and cancels the action:
+You can register callbacks to run logic before, around, or after events in a model's lifecycle (such as `save`, `create`, `update`, and `destroy`):
 
 ```ruby
-class Order
+class User
   include Dynamoid::Document
 
-  field :total, :number
-  field :reference_number
+  field :email
 
-  # Register callbacks with a method symbol:
-  before_save :calculate_totals
-  after_create :notify_warehouse
-  after_destroy :audit_log_deletion
-
-  # Or using a block for short, inline operations:
-  before_validation on: :create do
-    self.reference_number ||= SecureRandom.hex(8).upcase
-  end
+  before_save :normalize_email
 
   private
 
-  def calculate_totals
-    # ...
-  end
-
-  def notify_warehouse
-    # ...
-  end
-
-  def audit_log_deletion
-    # ...
+  def normalize_email
+    self.email = email.downcase if email.present?
   end
 end
 ```
+
+> [!NOTE]
+> For the full list of lifecycle events, execution order, and how to halt operations from a callback, refer to [Callbacks](working_with_data/callbacks.md).
 
 ## Table Creation
 

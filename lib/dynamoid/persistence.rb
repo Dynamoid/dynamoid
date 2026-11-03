@@ -18,6 +18,10 @@ module Dynamoid
   module Persistence
     extend ActiveSupport::Concern
 
+    # TODO: Support Active Record-style optimistic locking configuration:
+    # 1. Custom locking column: `self.locking_column = :custom_version` (instead of hardcoded `:lock_version`)
+    # 2. Global/per-model toggle: `Dynamoid.config.lock_optimistically = false` or `self.lock_optimistically = false`
+
     attr_accessor :new_record, :destroyed
     alias new_record? new_record
     alias destroyed? destroyed
@@ -933,6 +937,7 @@ module Dynamoid
     # @param conditions [Hash] Conditions on model attributes to make a conditional update (optional)
     # @return [Dynamoid::Document] self
     def update!(conditions = {})
+      # TODO: raise Dynamoid::Errors::RecordNotSaved if run_callbacks(:update) was aborted
       run_callbacks(:update) do
         options = {}
         if range_key
@@ -1113,6 +1118,7 @@ module Dynamoid
       increment(attribute, by)
       change = read_attribute(attribute) - (attribute_was(attribute) || 0)
 
+      # TODO: run :touch callbacks only when `touch` option is truthy (not when `touch: nil` or `touch: false`)
       run_callbacks :touch do
         self.class.inc(hash_key, range_value, attribute => change, touch: touch)
         clear_attribute_changes(attribute)

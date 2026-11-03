@@ -10,7 +10,8 @@
 
 - [Working with Data]()
     - [Query Interface](working_with_data/query_interface.md)
-    - [Persistence & Mutations](working_with_data/persistence_and_mutations.md)
+    - [Persistence](working_with_data/persistence_and_mutations.md)
+    - [Callbacks](working_with_data/callbacks.md)
     - [Transactions](working_with_data/transactions.md)
     - [PartiQL](working_with_data/partiql.md)
 

@@ -19,6 +19,7 @@ module Dynamoid
         end
 
         def on_registration
+          # TODO: run :touch callbacks only when `@touch` is truthy (not when `touch: nil` or `touch: false`)
           @model.run_callbacks(:touch) do
             @model.increment(@attribute, @by)
             change = @model.read_attribute(@attribute) - (@model.send(:attribute_was, @attribute) || 0)

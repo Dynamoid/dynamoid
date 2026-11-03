@@ -826,6 +826,40 @@ RSpec.describe Dynamoid::Persistence do
           expect { obj.save }.to output(expected_output).to_stdout
         }.not_to change { klass_with_callbacks.count }
       end
+
+      context 'with conditional options (:if and :unless)' do
+        it 'runs callback only when :if condition with a method name is truthy' do
+          klass_with_callback = new_class do
+            field :name
+            before_save :log_save, if: :name_present?
+
+            def name_present?
+              name.present?
+            end
+
+            def log_save
+              print 'run before_save'
+            end
+          end
+
+          expect { klass_with_callback.new(name: 'Alex').save }.to output('run before_save').to_stdout
+          expect { klass_with_callback.new(name: nil).save }.not_to output.to_stdout
+        end
+
+        it 'runs callback only when :unless condition with a proc is falsy' do
+          klass_with_callback = new_class do
+            field :role
+            after_save :log_save, unless: -> { role == 'guest' }
+
+            def log_save
+              print 'run after_save'
+            end
+          end
+
+          expect { klass_with_callback.new(role: 'admin').save }.to output('run after_save').to_stdout
+          expect { klass_with_callback.new(role: 'guest').save }.not_to output.to_stdout
+        end
+      end
     end
 
     context 'when a callback aborts saving' do
