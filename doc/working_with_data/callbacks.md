@@ -102,6 +102,28 @@ class User
 end
 ```
 
+To cancel a persistence operation from inside a `before_*` callback, call `throw :abort`. Halting the callback chain stops any subsequent callbacks from executing and prevents the write to DynamoDB. Non-bang methods (`save`, `create`, `destroy`) return `false`, while bang methods (`save!`, `create!`, `destroy!`) raise an exception:
+
+```ruby
+class User
+  include Dynamoid::Document
+
+  field :name
+  field :role
+
+  before_destroy :prevent_admin_deletion
+
+  private
+
+  def prevent_admin_deletion
+    throw(:abort) if role == 'admin'
+  end
+end
+
+admin.destroy  # => false
+admin.destroy! # Raises Dynamoid::Errors::RecordNotDestroyed
+```
+
 ## Available Callbacks
 
 ### Validation Callbacks
@@ -269,29 +291,5 @@ When destroying a model (`destroy`), Dynamoid runs the `destroy` callbacks in th
 * `around_destroy` (before `yield`)
 * `around_destroy` (after `yield`)
 * `after_destroy`
-
-## Halting Execution
-
-To cancel a persistence operation from inside any `before_*` callback, call `throw :abort`. Halting the callback chain stops any subsequent callbacks and prevents the write to DynamoDB. Non-bang methods (`save`, `create`, `update_attributes`, `Model.update`, `destroy`) return `false`, whereas bang methods (`save!`, `create!`, `update_attributes!`, `Model.update!`, `destroy!`) raise an exception:
-
-```ruby
-class User
-  include Dynamoid::Document
-
-  field :name
-  field :role
-
-  before_destroy :prevent_admin_deletion
-
-  private
-
-  def prevent_admin_deletion
-    throw(:abort) if role == 'admin'
-  end
-end
-
-admin.destroy  # => false
-admin.destroy! # Raises Dynamoid::Errors::RecordNotDestroyed
-```
 
 {{#include ../_includes/feedback.md}}
