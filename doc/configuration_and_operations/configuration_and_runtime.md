@@ -251,7 +251,7 @@ When set to `true`, Dynamoid recursively traverses nested hashes and lists in `:
 > [!NOTE]
 > `config.convert_big_decimal` only affects nested structures undumped via `:map` and `:raw`. It does not convert top-level scalar `:number` attributes, which remain `BigDecimal` per their field type declarations.
 
-For full details on field types and storage semantics, see [Fields & Data Types](../modeling_and_schema/fields_and_types.md).
+For full details on field types and storage semantics, see [Fields & Data Types](../modeling_and_schema/fields_and_data_types.md).
 
 ## Complete Configuration Reference
 

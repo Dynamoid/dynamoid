@@ -115,7 +115,7 @@ The second argument to `range` specifies the sort key's data type, which default
 
 DynamoDB requires primary key attributes (both partition and sort keys) to be of a scalar type—complex types such as sets, arrays, and maps cannot serve as keys. Dynamoid supports `:string` (default), `:integer`, `:number`, `:datetime`, and `:date` (as well as `:serialized` and custom types).
 
-For full details on type casting and custom types, see [Fields & Data Types](fields_and_types.md).
+For full details on type casting and custom types, see [Fields & Data Types](fields_and_data_types.md).
 
 ### Custom Partition Key Field
 

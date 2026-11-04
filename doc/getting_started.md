@@ -154,7 +154,7 @@ user = User.create(name: 'Bob', email: 'bob@example.com', age: 25)
 ```
 
 > [!NOTE]
-> For advanced persistence patterns—such as bulk imports with `.import`, atomic counters, conditional updates, and optimistic locking—refer to [Persistence](working_with_data/persistence_and_mutations.md).
+> For advanced persistence patterns—such as bulk imports with `.import`, atomic counters, conditional updates, and optimistic locking—refer to [Persistence](working_with_data/persistence.md).
 
 ### Reading and Querying
 

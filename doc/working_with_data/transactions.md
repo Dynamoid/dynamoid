@@ -1,4 +1,4 @@
-# Transactions in Dynamoid
+# Transactions
 
 > [!WARNING]
 > Please note that this API is experimental and can be changed in

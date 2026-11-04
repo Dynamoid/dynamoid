@@ -69,7 +69,7 @@ Distinguish clearly between generic English data concepts and specific Ruby code
 * **Link-First Navigation Lists:** In "Next Steps" or table-of-contents lists, put the link first, followed by an em-dash (`—`) and a concise summary:
   ```markdown
   * [Tables & Primary Keys](tables_and_keys.md) — Configure custom table names, partition keys, and sort keys.
-  * [Fields & Data Types](fields_and_types.md) — Explore supported types, defaults, and custom serializers.
+  * [Fields & Data Types](fields_and_data_types.md) — Explore supported types, defaults, and custom serializers.
   ```
 
 ### Avoid Redundant Horizontal Rules (`---`)

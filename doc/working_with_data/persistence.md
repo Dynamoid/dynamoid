@@ -303,7 +303,7 @@ user.name # => "Alicia"
 ```
 
 > [!NOTE]
-> For custom field types, Dynamoid detects in-place mutations by comparing serialized values or by using `#==` when `comparable: true` is configured (see [Change Detection](../modeling_and_schema/fields_and_types.md#change-detection)).
+> For custom field types, Dynamoid detects in-place mutations by comparing serialized values or by using `#==` when `comparable: true` is configured (see [Change Detection](../modeling_and_schema/fields_and_data_types.md#change-detection)).
 
 ## Optimistic Locking
 
