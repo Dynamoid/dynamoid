@@ -4,6 +4,7 @@ module Dynamoid
   # @private
   class PrimaryKeyTypeMapping
     def self.dynamodb_type(type, options)
+      # TODO: Support Module as well as Class for custom types and adapters
       if type.is_a?(Class)
         type = type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
       end

@@ -18,6 +18,10 @@ module Dynamoid
   module Persistence
     extend ActiveSupport::Concern
 
+    # TODO: Support Active Record-style optimistic locking configuration:
+    # 1. Custom locking column: `self.locking_column = :custom_version` (instead of hardcoded `:lock_version`)
+    # 2. Global/per-model toggle: `Dynamoid.config.lock_optimistically = false` or `self.lock_optimistically = false`
+
     attr_accessor :new_record, :destroyed
     alias new_record? new_record
     alias destroyed? destroyed
@@ -69,21 +73,20 @@ module Dynamoid
       #
       #   User.create_table(table_name: 'users', read_capacity: 200, write_capacity: 40)
       #
-      # Dynamoid creates a table synchronously by default. DynamoDB table
-      # creation is an asynchronous operation and a client should wait until a
-      # table status changes to +ACTIVE+ and a table becomes available. That's
-      # why Dynamoid is polling a table status and returns results only when a
-      # table becomes available.
+      # Dynamoid creates a table asynchronously by default, returning +self+
+      # immediately without waiting for the table to become available.
+      #
+      # To wait until a table is created and available, pass +sync: true+:
+      #
+      #   User.create_table(sync: true)
+      #
+      # When +sync: true+ is specified (or when the model defines secondary
+      # indexes), Dynamoid polls the table status until it becomes available.
       #
       # Polling is configured with +Dynamoid::Config.sync_retry_max_times+ and
-      # +Dynamoid::Config.sync_retry_wait_seconds+ configuration options. If
-      # table creation takes more time than configured waiting time then
-      # Dynamoid stops polling and returns +true+.
-      #
-      # In order to return back asynchronous behaviour and not to wait until a
-      # table is created the +sync: false+ option should be specified.
-      #
-      #   User.create_table(sync: false)
+      # +Dynamoid::Config.sync_retry_wait_seconds+ configuration options. If the
+      # retry limit is reached before the table becomes active, Dynamoid logs an
+      # error and returns without raising an exception.
       #
       # Subsequent method calls for the same table will be ignored.
       #
@@ -100,7 +103,8 @@ module Dynamoid
       # @option options [Hash] :global_secondary_indexes
       # @option options [true|false] :sync specifies should the method call be synchronous and wait until a table is completely created
       #
-      # @return [true|false] Whether a table created successfully
+      # @raise [Dynamoid::Errors::UnsupportedKeyType] if the partition key or sort key field uses a non-scalar type not supported by DynamoDB keys
+      # @return [Class] self
       # @since 0.4.0
       def create_table(options = {})
         range_key_hash = if range_key
@@ -131,13 +135,24 @@ module Dynamoid
 
       # Deletes the table for the model.
       #
-      # Dynamoid deletes a table asynchronously and doesn't wait until a table
+      # Dynamoid deletes a table asynchronously by default and doesn't wait until a table
       # is deleted completely.
       #
+      # To wait until the table is deleted, pass +sync: true+:
+      #
+      #   User.delete_table(sync: true)
+      #
+      # Polling is configured with +Dynamoid::Config.sync_retry_max_times+ and
+      # +Dynamoid::Config.sync_retry_wait_seconds+ configuration options. If the
+      # retry limit is reached before the table is deleted, Dynamoid logs an
+      # error and returns without raising an exception.
+      #
       # Subsequent method calls for the same table will be ignored.
+      # @param options [Hash]
+      # @option options [true|false] :sync specifies should the method call be synchronous and wait until a table is completely deleted
       # @return [Model class] self
-      def delete_table
-        Dynamoid.adapter.delete_table(table_name)
+      def delete_table(options = {})
+        Dynamoid.adapter.delete_table(table_name, options)
         self
       end
 
@@ -549,6 +564,10 @@ module Dynamoid
 
         nil
       end
+
+      # TODO: Implement `execute_partiql(statement, parameters = [])` class method
+      # to execute modifying PartiQL statements (INSERT, UPDATE, DELETE) directly
+      # through the adapter.
     end
 
     # Update document timestamps.
@@ -860,9 +879,9 @@ module Dynamoid
     # collections if attribute is a set.
     #
     # ```
-    # user.update! do |t|
-    #   t.add(age: 1, followers_count: 5)
-    #   t.add(hobbies: ['skying', 'climbing'])
+    # user.update! do |u|
+    #   u.add(age: 1, followers_count: 5)
+    #   u.add(hobbies: ['skying', 'climbing'])
     # end
     # ```
     #
@@ -870,16 +889,16 @@ module Dynamoid
     # substructs one collection from another.
     #
     # ```
-    # user.update! do |t|
-    #   t.delete(hobbies: ['skying'])
+    # user.update! do |u|
+    #   u.delete(hobbies: ['skying'])
     # end
     # ```
     #
     # Operation +set+ just changes an attribute value:
     #
     # ```
-    # user.update! do |t|
-    #   t.set(age: 21)
+    # user.update! do |u|
+    #   u.set(age: 21)
     # end
     # ```
     #
@@ -895,8 +914,8 @@ module Dynamoid
     # Can update a model conditionaly:
     #
     # ```
-    # user.update!(if: { age: 20 }) do |t|
-    #   t.add(age: 1)
+    # user.update!(if: { age: 20 }) do |u|
+    #   u.add(age: 1)
     # end
     # ```
     #
@@ -906,8 +925,8 @@ module Dynamoid
     #
     # ```
     # user = User.create(name: 'Tylor')
-    # user.update!(unless_exists: [:age]) do |t|
-    #   t.set(age: 18)
+    # user.update!(unless_exists: [:age]) do |u|
+    #   u.set(age: 18)
     # end
     # ```
     #
@@ -922,6 +941,7 @@ module Dynamoid
     # @param conditions [Hash] Conditions on model attributes to make a conditional update (optional)
     # @return [Dynamoid::Document] self
     def update!(conditions = {})
+      # TODO: raise Dynamoid::Errors::RecordNotSaved if run_callbacks(:update) was aborted
       run_callbacks(:update) do
         options = {}
         if range_key
@@ -943,8 +963,8 @@ module Dynamoid
 
           update_item_options = options.merge(conditions: conditions)
 
-          new_attrs = Dynamoid.adapter.update_item(table_name, partition_key_dumped, update_item_options) do |t|
-            item_updater = ItemUpdaterWithDumping.new(self.class, t)
+          new_attrs = Dynamoid.adapter.update_item(table_name, partition_key_dumped, update_item_options) do |u|
+            item_updater = ItemUpdaterWithDumping.new(self.class, u)
 
             item_updater.add(lock_version: 1) if self.class.attributes[:lock_version]
 
@@ -952,7 +972,7 @@ module Dynamoid
               item_updater.set(updated_at: DateTime.now.in_time_zone(Time.zone))
             end
 
-            yield t
+            yield u
           end
           load(Undumping.undump_attributes(new_attrs, self.class.attributes))
         rescue Dynamoid::Errors::ConditionalCheckFailedException
@@ -977,9 +997,9 @@ module Dynamoid
     # collections if attribute is a set.
     #
     # ```
-    # user.update do |t|
-    #   t.add(age: 1, followers_count: 5)
-    #   t.add(hobbies: ['skying', 'climbing'])
+    # user.update do |u|
+    #   u.add(age: 1, followers_count: 5)
+    #   u.add(hobbies: ['skying', 'climbing'])
     # end
     # ```
     #
@@ -987,8 +1007,8 @@ module Dynamoid
     # substructs one collection from another.
     #
     # ```
-    # user.update do |t|
-    #   t.delete(hobbies: ['skying'])
+    # user.update do |u|
+    #   u.delete(hobbies: ['skying'])
     # end
     # ```
     #
@@ -996,24 +1016,24 @@ module Dynamoid
     # removed at all:
     #
     # ```
-    # user.update do |t|
-    #   t.delete(age: nil)
+    # user.update do |u|
+    #   u.delete(age: nil)
     # end
     # ```
     #
     # or even without useless value at all:
     #
     # ```
-    # user.update do |t|
-    #   t.delete(:age)
+    # user.update do |u|
+    #   u.delete(:age)
     # end
     # ```
     #
     # Operation +set+ just changes an attribute value:
     #
     # ```
-    # user.update do |t|
-    #   t.set(age: 21)
+    # user.update do |u|
+    #   u.set(age: 21)
     # end
     # ```
     #
@@ -1025,8 +1045,8 @@ module Dynamoid
     # Can update a model conditionaly:
     #
     # ```
-    # user.update(if: { age: 20 }) do |t|
-    #   t.add(age: 1)
+    # user.update(if: { age: 20 }) do |u|
+    #   u.add(age: 1)
     # end
     # ```
     #
@@ -1036,8 +1056,8 @@ module Dynamoid
     #
     # ```
     # user = User.create(name: 'Tylor')
-    # user.update(unless_exists: [:age]) do |t|
-    #   t.set(age: 18)
+    # user.update(unless_exists: [:age]) do |u|
+    #   u.set(age: 18)
     # end
     # ```
     #
@@ -1102,6 +1122,7 @@ module Dynamoid
       increment(attribute, by)
       change = read_attribute(attribute) - (attribute_was(attribute) || 0)
 
+      # TODO: run :touch callbacks only when `touch` option is truthy (not when `touch: nil` or `touch: false`)
       run_callbacks :touch do
         self.class.inc(hash_key, range_value, attribute => change, touch: touch)
         clear_attribute_changes(attribute)
@@ -1231,6 +1252,20 @@ module Dynamoid
 
       Dynamoid.adapter.delete(self.class.table_name, partition_key_dumped, options)
 
+      # TODO: disassociate_source loads associated models from the database as new instances
+      # rather than updating existing in-memory objects (e.g. via inverse_of).
+      # As a result, reciprocal in-memory associations on already-loaded models are not updated
+      # when an item is deleted.
+      #
+      # Desired behavior:
+      #   author = Author.create(name: 'Ursula K. Le Guin')
+      #   book = author.books.create(title: 'A Wizard of Earthsea')
+      #   author.books.all # caches in memory
+      #
+      #   book.destroy
+      #
+      #   author.books.empty? # => true (currently returns false unless author.reload is called)
+      #   author.books_ids    # => nil (or Set[], currently retains stale IDs in memory)
       self.class.associations.each_key do |name|
         send(name).disassociate_source
       end

@@ -1025,6 +1025,43 @@ describe 'Dumping' do
       expect(reload(obj).settings).to eql(foo: { bar: 1 }, baz: [{ foobar: 2 }])
     end
 
+    it 'overwrites duplicate string and symbol keys with the last specified value' do
+      obj1 = klass.create(settings: { 'theme' => 'light', theme: 'dark' })
+      expect(reload(obj1).settings).to eql(theme: 'dark')
+      expect(raw_attributes(obj1)[:settings]).to eql('theme' => 'dark')
+
+      obj2 = klass.create(settings: { theme: 'dark', 'theme' => 'light' })
+      expect(reload(obj2).settings).to eql(theme: 'light')
+      expect(raw_attributes(obj2)[:settings]).to eql('theme' => 'light')
+    end
+
+    it 'stringifies non-string and non-symbol keys in DynamoDB and symbolizes them upon reload' do
+      obj = klass.create(settings: { 1 => 'one', 2.5 => 'two', true => 'three', nested: { 42 => 'answer' } })
+
+      expect(raw_attributes(obj)[:settings]).to eql(
+        '1' => 'one',
+        '2.5' => 'two',
+        'true' => 'three',
+        'nested' => { '42' => 'answer' }
+      )
+      expect(reload(obj).settings).to eql(
+        :"1" => 'one',
+        :"2.5" => 'two',
+        true: 'three',
+        nested: { :"42" => 'answer' }
+      )
+    end
+
+    it 'overwrites duplicate string and non-string keys with the last specified value' do
+      obj1 = klass.create(settings: { '1' => 'first', 1 => 'second' })
+      expect(reload(obj1).settings).to eql(:"1" => 'second')
+      expect(raw_attributes(obj1)[:settings]).to eql('1' => 'second')
+
+      obj2 = klass.create(settings: { 1 => 'second', '1' => 'first' })
+      expect(reload(obj2).settings).to eql(:"1" => 'first')
+      expect(raw_attributes(obj2)[:settings]).to eql('1' => 'first')
+    end
+
     describe 'sanitizing' do
       it 'replaces empty set with nil in Hash' do
         settings = { 'foo' => [].to_set }
@@ -1159,6 +1196,28 @@ describe 'Dumping' do
       expect(reload(obj).name).to eql(nil)
       expect(raw_attributes(obj)[:name]).to eql(nil)
     end
+
+    it 'raises JSON::GeneratorError when saving string with non-UTF-8 bytes' do
+      klass = new_class do
+        field :name, :string
+      end
+
+      binary_value = (+"\x00\x88\xFF").force_encoding('ASCII-8BIT')
+      expect { klass.create(name: binary_value) }.to raise_error(JSON::GeneratorError)
+    end
+
+    it 'saves string in non-UTF-8 encoding and loads it back in UTF-8' do
+      klass = new_class do
+        field :name, :string
+      end
+
+      string = 'café'.encode('ISO-8859-1')
+      obj = klass.create(name: string)
+
+      reloaded = reload(obj)
+      expect(reloaded.name).to eql('café')
+      expect(reloaded.name.encoding).to eql(Encoding::UTF_8)
+    end
   end
 
   describe 'Raw field' do
@@ -1178,6 +1237,33 @@ describe 'Dumping' do
       expect(raw_attributes(obj)[:config]).to eql(
         'acres' => 5, 'trees' => { 'cyprus' => 30 }, 'horses' => %w[Lucky Dummy]
       )
+    end
+
+    it 'stringifies non-string and non-symbol keys in DynamoDB and symbolizes them upon reload' do
+      obj = klass.create(config: { 1 => 'one', 2.5 => 'two', true => 'three', nested: { 42 => 'answer' } })
+
+      expect(raw_attributes(obj)[:config]).to eql(
+        '1' => 'one',
+        '2.5' => 'two',
+        'true' => 'three',
+        'nested' => { '42' => 'answer' }
+      )
+      expect(reload(obj).config).to eql(
+        :"1" => 'one',
+        :"2.5" => 'two',
+        true: 'three',
+        nested: { :"42" => 'answer' }
+      )
+    end
+
+    it 'overwrites duplicate string and non-string keys with the last specified value' do
+      obj1 = klass.create(config: { '1' => 'first', 1 => 'second' })
+      expect(reload(obj1).config).to eql(:"1" => 'second')
+      expect(raw_attributes(obj1)[:config]).to eql('1' => 'second')
+
+      obj2 = klass.create(config: { 1 => 'second', '1' => 'first' })
+      expect(reload(obj2).config).to eql(:"1" => 'first')
+      expect(raw_attributes(obj2)[:config]).to eql('1' => 'first')
     end
 
     it 'stores Array attribute as a List' do

@@ -24,6 +24,22 @@ module Dynamoid
       # @return [Dynamoid::Association] the actual association instance itself
       #
       # @since 0.2.0
+      #
+      # TODO: Consider implementing missing ActiveRecord association options:
+      #   - :dependent (:destroy, :delete_all, :nullify) - cascade deletion of associated models
+      #   - :optional / :required - enforce presence of associated model on belongs_to
+      #   - :autosave - save associated models when the owner model is saved
+      #   - :validate - validate associated models when the owner model is saved
+      #   - :touch - update timestamps on the associated model when this model is saved/destroyed
+      #   - :counter_cache - cache the number of associated models in an integer attribute
+      #   - :primary_key - custom key attribute on the target model
+      #   - callbacks (:before_add, :after_add, :before_remove, :after_remove) - run lifecycle hooks when linking/unlinking collection items
+      #
+      # TODO: Fix association assignment when either source or target is an unpersisted (`new_record?`) model:
+      #   1. Passing an association to `Model.new(assoc: target)` currently calls `update_attribute` (`save(validate: false)`)
+      #      inside `initialize`, unexpectedly persisting the new record to DynamoDB (and bypassing validations in `create!`).
+      #   2. Assigning an unpersisted target model (`source.assoc = Target.new` or `source.assocs << Target.new`) reads
+      #      `target.hash_key` while it is still `nil`, storing `Set[nil]` in the source model's association attribute.
       def initialize(source, name, options)
         @name = name
         @options = options
