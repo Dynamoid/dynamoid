@@ -13,7 +13,6 @@
     - [Persistence](working_with_data/persistence.md)
     - [Callbacks](working_with_data/callbacks.md)
     - [Transactions](working_with_data/transactions.md)
-    - [PartiQL](working_with_data/partiql.md)
 
 - [Configuration & Operations]()
     - [Configuration & Runtime](configuration_and_operations/configuration_and_runtime.md)

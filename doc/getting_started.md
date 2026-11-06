@@ -260,9 +260,6 @@ For local development and automated testing without an AWS account, start [Dynam
 docker run --rm -d -p 8000:8000 amazon/dynamodb-local
 ```
 
-> [!NOTE]
-> By default, DynamoDB Local runs purely in memory—all tables and data are discarded when the container stops. If you need data to persist between launches, you must explicitly configure DynamoDB Local to write to disk and configure a [Docker volume](https://docs.docker.com/engine/storage/volumes/) to preserve those files on your host machine. For setup instructions, refer to [Deploying DynamoDB Local with Docker](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html).
-
 Then create `config/initializers/dynamoid.rb` to connect to the local container with dummy credentials. Using `Rails.env` in `config.namespace` keeps development and test tables isolated:
 
 ```ruby
@@ -274,6 +271,9 @@ Dynamoid.configure do |config|
   config.secret_key = 'fake'
 end
 ```
+
+> [!NOTE]
+> By default, DynamoDB Local runs purely in memory—all tables and data are discarded when the container stops. If you need data to persist between launches, you must explicitly configure DynamoDB Local to write to disk and configure a [Docker volume](https://docs.docker.com/engine/storage/volumes/) to preserve those files on your host machine. For setup instructions, refer to [Deploying DynamoDB Local with Docker](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html).
 
 ### AWS Environments
 

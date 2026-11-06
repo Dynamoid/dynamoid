@@ -474,8 +474,10 @@ end
 # Alice
 ```
 
+For large result sets, `Dynamoid.adapter.execute` automatically handles pagination and streams items lazily as you iterate.
+
 > [!NOTE]
-> Queries executed via `Dynamoid.adapter.execute` return plain Ruby hashes with symbolized keys rather than instantiated `Dynamoid::Document` model instances. In PartiQL statements, table names must match the underlying DynamoDB table name (such as `User.table_name`).
+> Queries executed via `Dynamoid.adapter.execute` return plain Ruby hashes with symbolized keys rather than instantiated `Dynamoid::Document` model instances. In addition, Dynamoid does not type-cast parameter values; non-native types (such as `:datetime` or `:date`) must be manually converted to their underlying storage format (such as numeric Unix epoch timestamps or ISO 8601 strings). In PartiQL statements, table names must match the underlying DynamoDB table name (such as `User.table_name`).
 
 {{#include ../_includes/feedback.md}}
 

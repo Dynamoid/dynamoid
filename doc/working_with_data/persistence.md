@@ -351,4 +351,31 @@ To disable optimistic locking for a specific item, set its `lock_version` to `ni
 user.update_attributes(lock_version: nil)
 ```
 
+## Modifying Items with PartiQL
+
+DynamoDB supports [PartiQL](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html), a SQL-compatible query language that allows inserting, updating, and deleting items using familiar SQL statements. You can execute raw PartiQL modifying statements through the adapter using `Dynamoid.adapter.execute`:
+
+```ruby
+# Insert an item
+Dynamoid.adapter.execute(
+  "INSERT INTO #{User.table_name} VALUE { 'id': ?, 'name': ?, 'age': ? }",
+  ['3a9f7216-4726-4aea-9fbc-8554ae9292cb', 'Alex', 28]
+)
+
+# Update an item
+Dynamoid.adapter.execute(
+  "UPDATE #{User.table_name} SET age = ? WHERE id = ?",
+  [29, '3a9f7216-4726-4aea-9fbc-8554ae9292cb']
+)
+
+# Delete an item
+Dynamoid.adapter.execute(
+  "DELETE FROM #{User.table_name} WHERE id = ?",
+  ['3a9f7216-4726-4aea-9fbc-8554ae9292cb']
+)
+```
+
+> [!NOTE]
+> Modifications executed via `Dynamoid.adapter.execute` bypass Dynamoid's model lifecycle—validations, callbacks, dirty tracking, automatic timestamps, and optimistic locking are skipped. In addition, Dynamoid does not type-cast parameter values; non-native types (such as `:datetime` or `:date`) must be manually converted to their underlying storage format (such as numeric Unix epoch timestamps or ISO 8601 strings). In PartiQL statements, table names must match the underlying DynamoDB table name (such as `User.table_name`).
+
 {{#include ../_includes/feedback.md}}

@@ -564,6 +564,10 @@ module Dynamoid
 
         nil
       end
+
+      # TODO: Implement `execute_partiql(statement, parameters = [])` class method
+      # to execute modifying PartiQL statements (INSERT, UPDATE, DELETE) directly
+      # through the adapter.
     end
 
     # Update document timestamps.
