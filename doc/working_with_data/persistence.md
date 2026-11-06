@@ -173,11 +173,11 @@ User.inc(user_id, age: -1)
 On a loaded model instance, `#update` and `#update!` accept a block combining low-level DynamoDB mutation actions (`set` to assign values, `add` to increment numbers or append to sets, and `delete` to remove set elements or scalar attributes) in a single atomic request:
 
 ```ruby
-user.update! do |t|
-  t.set(name: 'Alicia')
-  t.add(age: 1, tags: %w[admin verified])
-  t.delete(tags: ['guest']) # Removes elements from a set
-  t.delete(:age)            # Removes the attribute completely from the item
+user.update! do |u|
+  u.set(name: 'Alicia')
+  u.add(age: 1, tags: %w[admin verified])
+  u.delete(tags: ['guest']) # Removes elements from a set
+  u.delete(:age)            # Removes the attribute completely from the item
 end
 ```
 
@@ -193,15 +193,15 @@ User.upsert(user_id, { name: 'Alice' }, unless_exists: [:id])
 # => nil (when :id exists)
 
 # Returns false if the condition is not met
-user.update(if: { name: 'Alice' }) do |t|
-  t.set(name: 'Alicia')
-  t.add(age: 1)
+user.update(if: { name: 'Alice' }) do |u|
+  u.set(name: 'Alicia')
+  u.add(age: 1)
 end
 # => false (when name != "Alice")
 
 # Or raises an exception with update!
-user.update!(if: { name: 'Alice' }) do |t|
-  t.set(name: 'Alicia')
+user.update!(if: { name: 'Alice' }) do |u|
+  u.set(name: 'Alicia')
 end
 # Raises Dynamoid::Errors::StaleObjectError (when name != "Alice")
 ```

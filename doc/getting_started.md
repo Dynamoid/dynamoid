@@ -56,13 +56,13 @@ DynamoDB also does not enforce foreign key constraints at the storage level. Bec
 
 In relational databases, you can open an interactive transaction block (`BEGIN` ... `COMMIT`), acquire a pessimistic lock on rows with `SELECT ... FOR UPDATE`, run business logic in Ruby, and conditionally commit or roll back.
 
-DynamoDB does not support interactive transactions or pessimistic locking. While it provides multi-item ACID transactions, they must execute as a single, all-or-nothing request—you cannot hold a transaction or row lock open while application code reads data and decides what to do next. Instead, concurrent updates are coordinated using optimistic locking (`lock_version`), conditional writes, or atomic counter operations.
+DynamoDB does not support interactive transactions or pessimistic locking. While it provides multi-item ACID transactions, they must execute as a single, all-or-nothing request—you cannot hold a transaction or row lock open while application code reads data and decides what to do next. Instead, concurrent updates are coordinated using conditional writes (which enable optimistic locking) or atomic update operations.
 
 ### Operational Limits
 
 DynamoDB also enforces several hard operational limits:
 
-* Items cannot exceed 400 KB in total size, including all attribute names and values combined. Larger payloads or file attachments should be offloaded to external storage like Amazon S3.
+* Items cannot exceed 400 KB in total size, including all attribute names and values combined. Larger payloads or file attachments should be offloaded to external storage.
 * A single query or scan operation returns at most 1 MB of data before pausing, requiring pagination even if a requested item limit has not yet been met.
 * Native batch writes and deletes are capped at 25 items per request, while batch reads and transactions are limited to 100 items.
 

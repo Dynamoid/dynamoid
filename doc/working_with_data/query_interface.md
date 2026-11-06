@@ -12,9 +12,7 @@ query.each do |user|
 end
 ```
 
-### Example Models
-
-Throughout this guide, code examples refer to the following models:
+Code examples throughout this guide refer to the following models:
 
 ```ruby
 class User
@@ -37,7 +35,7 @@ end
 
 The `User` model represents a simple primary key table using Dynamoid's default `id` partition key. The `OrderItem` model represents a composite primary key table: `table key: :order_id` declares a custom partition key (without needing an explicit `field` call), and `range :position, :integer` defines the sort key. For details on declaring primary keys, see [Partition Key](../modeling_and_schema/table_mapping_and_provisioning.md#partition-key).
 
-## Retrieving Items from the Database
+## Retrieving Items
 
 Dynamoid provides finder methods to look up individual items by primary key or iterate over collections from a table.
 
@@ -143,11 +141,6 @@ users = User.where(name: 'Alice', active: true).all
 
 Dynamoid automatically type-casts condition values based on the model's declared field types.
 
-> [!NOTE]
-> Hash conditions only support top-level attributes. To reference nested elements of Map or List attributes (such as `address.city` or `tags[0]`), use [string conditions](#string-conditions).
-
-### Predicate Operators
-
 To express conditions other than equality, append an operator to the attribute name using dot notation (`attribute.operator`):
 
 ```ruby
@@ -175,6 +168,9 @@ Dynamoid supports the following predicate operators:
 In DynamoDB, an absent attribute is distinct from an attribute whose value is `NULL`. The `null` operator (`'active.null': true`) uses DynamoDB's `attribute_not_exists` function, matching items where the attribute does not exist. In contrast, passing `where(active: nil)` checks equality against DynamoDB's `NULL` data type, matching only items where the attribute explicitly exists with a stored `NULL` value.
 
 Because Dynamoid omits `nil` attributes when persisting documents by default, use `'active.null': true` to find items where an attribute was left unset.
+
+> [!NOTE]
+> Hash conditions only support top-level attributes. To reference nested elements of Map or List attributes (such as `address.city` or `tags[0]`), use [string conditions](#string-conditions).
 
 ### String Conditions
 
@@ -365,7 +361,7 @@ User.where(active: true).pluck(:id, :name)
 
 Unlike `project`, `pluck` immediately executes the query and returns an `Array`. Because it skips model instantiation and lifecycle tracking, `pluck` is significantly faster and uses less memory when extracting data for exports or analytical processing.
 
-## Limiting Items
+## Limiting Results
 
 Dynamoid provides two methods to limit query results depending on your application's needs: `scan_limit` (to keep read costs strictly bounded) and `record_limit` (to retrieve a specific number of matching items).
 

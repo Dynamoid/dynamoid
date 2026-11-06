@@ -126,8 +126,6 @@ admin.destroy! # Raises Dynamoid::Errors::RecordNotDestroyed
 
 ## Available Callbacks
 
-### Validation Callbacks
-
 The `validation` callbacks (`before_validation` and `after_validation`) run whenever a model is validated via `valid?` or before saving (`save`, `create`, `update_attributes`, and `Model.update`):
 
 ```ruby
@@ -140,8 +138,6 @@ class User
   after_validation :log_validation_errors
 end
 ```
-
-### Save Callbacks
 
 The `save` callbacks (`before_save`, `around_save`, and `after_save`) run whenever a model is saved (`save`, `create`, `update_attributes`, and `Model.update`), regardless of whether it is a new model or an already-persisted one:
 
@@ -157,8 +153,6 @@ class User
 end
 ```
 
-### Create Callbacks
-
 The `create` callbacks (`before_create`, `around_create`, and `after_create`) run only when a new model is persisted to DynamoDB for the first time (`save` on a new instance, or `create`):
 
 ```ruby
@@ -172,8 +166,6 @@ class User
   after_create :send_welcome_email
 end
 ```
-
-### Update Callbacks
 
 The `update` callbacks (`before_update`, `around_update`, and `after_update`) run when an existing model is updated (`save` on a persisted instance, `update_attributes`, `Model.update`, or an atomic `#update` block):
 
@@ -189,8 +181,6 @@ class User
 end
 ```
 
-### Destroy Callbacks
-
 The `destroy` callbacks (`before_destroy`, `around_destroy`, and `after_destroy`) run when a model is destroyed via `destroy`:
 
 ```ruby
@@ -205,8 +195,6 @@ class User
 end
 ```
 
-### Initialize and Find Callbacks
-
 The `initialize` and `find` callbacks (`after_initialize` and `after_find`) run when models are instantiated in memory: `after_initialize` runs whenever a model is instantiated (via `new` or when loaded from DynamoDB), and `after_find` runs when a model is loaded from DynamoDB:
 
 ```ruby
@@ -220,8 +208,6 @@ class User
 end
 ```
 
-### Touch Callbacks
-
 The `touch` callback (`after_touch`) runs after a model's timestamps are updated via `touch`:
 
 ```ruby
@@ -233,8 +219,6 @@ class User
   after_touch :expire_fragment_cache
 end
 ```
-
-### Commit and Rollback Callbacks
 
 The `commit` and `rollback` callbacks (`after_commit` and `after_rollback`) run only when a model is mutated inside a [Write Transaction](transactions.md)—`after_commit` runs after the transaction succeeds, and `after_rollback` runs if the transaction fails or is rolled back:
 

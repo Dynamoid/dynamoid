@@ -875,9 +875,9 @@ module Dynamoid
     # collections if attribute is a set.
     #
     # ```
-    # user.update! do |t|
-    #   t.add(age: 1, followers_count: 5)
-    #   t.add(hobbies: ['skying', 'climbing'])
+    # user.update! do |u|
+    #   u.add(age: 1, followers_count: 5)
+    #   u.add(hobbies: ['skying', 'climbing'])
     # end
     # ```
     #
@@ -885,16 +885,16 @@ module Dynamoid
     # substructs one collection from another.
     #
     # ```
-    # user.update! do |t|
-    #   t.delete(hobbies: ['skying'])
+    # user.update! do |u|
+    #   u.delete(hobbies: ['skying'])
     # end
     # ```
     #
     # Operation +set+ just changes an attribute value:
     #
     # ```
-    # user.update! do |t|
-    #   t.set(age: 21)
+    # user.update! do |u|
+    #   u.set(age: 21)
     # end
     # ```
     #
@@ -910,8 +910,8 @@ module Dynamoid
     # Can update a model conditionaly:
     #
     # ```
-    # user.update!(if: { age: 20 }) do |t|
-    #   t.add(age: 1)
+    # user.update!(if: { age: 20 }) do |u|
+    #   u.add(age: 1)
     # end
     # ```
     #
@@ -921,8 +921,8 @@ module Dynamoid
     #
     # ```
     # user = User.create(name: 'Tylor')
-    # user.update!(unless_exists: [:age]) do |t|
-    #   t.set(age: 18)
+    # user.update!(unless_exists: [:age]) do |u|
+    #   u.set(age: 18)
     # end
     # ```
     #
@@ -959,8 +959,8 @@ module Dynamoid
 
           update_item_options = options.merge(conditions: conditions)
 
-          new_attrs = Dynamoid.adapter.update_item(table_name, partition_key_dumped, update_item_options) do |t|
-            item_updater = ItemUpdaterWithDumping.new(self.class, t)
+          new_attrs = Dynamoid.adapter.update_item(table_name, partition_key_dumped, update_item_options) do |u|
+            item_updater = ItemUpdaterWithDumping.new(self.class, u)
 
             item_updater.add(lock_version: 1) if self.class.attributes[:lock_version]
 
@@ -968,7 +968,7 @@ module Dynamoid
               item_updater.set(updated_at: DateTime.now.in_time_zone(Time.zone))
             end
 
-            yield t
+            yield u
           end
           load(Undumping.undump_attributes(new_attrs, self.class.attributes))
         rescue Dynamoid::Errors::ConditionalCheckFailedException
@@ -993,9 +993,9 @@ module Dynamoid
     # collections if attribute is a set.
     #
     # ```
-    # user.update do |t|
-    #   t.add(age: 1, followers_count: 5)
-    #   t.add(hobbies: ['skying', 'climbing'])
+    # user.update do |u|
+    #   u.add(age: 1, followers_count: 5)
+    #   u.add(hobbies: ['skying', 'climbing'])
     # end
     # ```
     #
@@ -1003,8 +1003,8 @@ module Dynamoid
     # substructs one collection from another.
     #
     # ```
-    # user.update do |t|
-    #   t.delete(hobbies: ['skying'])
+    # user.update do |u|
+    #   u.delete(hobbies: ['skying'])
     # end
     # ```
     #
@@ -1012,24 +1012,24 @@ module Dynamoid
     # removed at all:
     #
     # ```
-    # user.update do |t|
-    #   t.delete(age: nil)
+    # user.update do |u|
+    #   u.delete(age: nil)
     # end
     # ```
     #
     # or even without useless value at all:
     #
     # ```
-    # user.update do |t|
-    #   t.delete(:age)
+    # user.update do |u|
+    #   u.delete(:age)
     # end
     # ```
     #
     # Operation +set+ just changes an attribute value:
     #
     # ```
-    # user.update do |t|
-    #   t.set(age: 21)
+    # user.update do |u|
+    #   u.set(age: 21)
     # end
     # ```
     #
@@ -1041,8 +1041,8 @@ module Dynamoid
     # Can update a model conditionaly:
     #
     # ```
-    # user.update(if: { age: 20 }) do |t|
-    #   t.add(age: 1)
+    # user.update(if: { age: 20 }) do |u|
+    #   u.add(age: 1)
     # end
     # ```
     #
@@ -1052,8 +1052,8 @@ module Dynamoid
     #
     # ```
     # user = User.create(name: 'Tylor')
-    # user.update(unless_exists: [:age]) do |t|
-    #   t.set(age: 18)
+    # user.update(unless_exists: [:age]) do |u|
+    #   u.set(age: 18)
     # end
     # ```
     #
