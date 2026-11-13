@@ -1,0 +1,9 @@
+[book]
+title = "The Dynamoid Guide"
+src = "../doc"
+
+[build]
+build-dir = "../book"
+
+[output.html]
+additional-css = ["theme/custom.css"]
