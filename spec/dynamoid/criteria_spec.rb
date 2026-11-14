@@ -189,6 +189,17 @@ describe Dynamoid::Criteria do
     expect(actual).to match_array(objects)
   end
 
+  it 'supports querying with .with_index method' do
+    klass = new_class do
+      field :age, :integer
+
+      global_secondary_index hash_key: :age, name: :age_index, projected_attributes: :all
+    end
+
+    objects = klass.create([{ age: 20 }, { age: nil }])
+    expect(klass.with_index(:age_index).all.to_a).to eq [objects[0]]
+  end
+
   it 'supports .delete_all method' do
     klass = new_class do
       field :age, :integer
