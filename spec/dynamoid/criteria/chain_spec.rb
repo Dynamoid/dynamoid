@@ -1778,6 +1778,21 @@ describe Dynamoid::Criteria::Chain do
       }.to send_request_matching(:BatchWriteItem)
     end
 
+    it 'returns the number of deleted items' do
+      klass = new_class do
+        field :title
+      end
+
+      klass.create!(title: 'Doc #1')
+      klass.create!(title: 'Doc #1')
+      klass.create!(title: 'Doc #2')
+
+      chain = described_class.new(klass).where(title: 'Doc #1')
+
+      expect(chain.delete_all).to eq(2)
+      expect(chain.delete_all).to eq(0)
+    end
+
     context 'when some conditions specified' do
       it 'deletes only proper items' do
         klass = new_class do

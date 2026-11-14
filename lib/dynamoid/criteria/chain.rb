@@ -230,6 +230,8 @@ module Dynamoid
       # deletes them in batch with +BatchWriteItem+ operation. +BatchWriteItem+
       # is limited by request size and items count so it's quite possible the
       # deletion will require several +BatchWriteItem+ calls.
+      #
+      # @return [Integer] the number of deleted items
       def delete_all
         ids = []
         ranges = []
@@ -247,6 +249,7 @@ module Dynamoid
         end
 
         Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
+        ids.size
       end
       alias destroy_all delete_all
 
