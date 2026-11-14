@@ -70,7 +70,7 @@ user = User.new
 user.email # => nil
 user.email? # => false
 
-user.email = "ada@example.com"
+user.email = 'ada@example.com'
 user.email # => "ada@example.com"
 user.email? # => true
 ```
@@ -283,7 +283,7 @@ class Order
   field :placed_at, :datetime
 end
 
-order = Order.create!(placed_at: "2026-10-11 12:00:00")
+order = Order.create!(placed_at: '2026-10-11 12:00:00')
 
 # DynamoDB item attribute:
 # "placed_at": 1791720000.0 (Number, seconds since Unix epoch)
@@ -298,7 +298,7 @@ class Order
   field :placed_at, :datetime, store_as_string: true
 end
 
-order = Order.create!(placed_at: "2026-10-11 12:00:00")
+order = Order.create!(placed_at: '2026-10-11 12:00:00')
 
 # DynamoDB item attribute:
 # "placed_at": "2026-10-11T12:00:00+00:00" (String, ISO-8601)
@@ -322,7 +322,7 @@ class User
   field :birth_date, :date
 end
 
-user = User.create!(birth_date: "1990-05-15")
+user = User.create!(birth_date: '1990-05-15')
 
 # DynamoDB item attribute:
 # "birth_date": 7439 (Number, integer days since January 1, 1970)
@@ -337,7 +337,7 @@ class User
   field :birth_date, :date, store_as_string: true
 end
 
-user = User.create!(birth_date: "1990-05-15")
+user = User.create!(birth_date: '1990-05-15')
 
 # DynamoDB item attribute:
 # "birth_date": "1990-05-15" (String, ISO-8601)
@@ -360,7 +360,7 @@ class User
   field :tags, :set
 end
 
-user = User.create!(tags: ["ruby", "aws", "ruby"])
+user = User.create!(tags: ['ruby', 'aws', 'ruby'])
 user.tags # => #<Set: {"ruby", "aws"}>
 
 # DynamoDB item attribute:
@@ -376,7 +376,7 @@ class User
   field :roles, :set, of: :string
 end
 
-user = User.create!(roles: [:admin, "editor", "admin"])
+user = User.create!(roles: [:admin, 'editor', 'admin'])
 user.roles # => #<Set: {"admin", "editor"}>
 
 # DynamoDB item attribute:
@@ -406,7 +406,7 @@ class User
   field :preferences, :array
 end
 
-user = User.create!(preferences: ["email", "sms"])
+user = User.create!(preferences: ['email', 'sms'])
 user.preferences # => ["email", "sms"]
 
 # DynamoDB item attribute:
@@ -422,7 +422,7 @@ class User
   field :scores, :array, of: :integer
 end
 
-user = User.create!(scores: ["10", 20.5, 30])
+user = User.create!(scores: ['10', 20.5, 30])
 user.scores # => [10, 20, 30]
 
 # DynamoDB item attribute:
@@ -467,7 +467,7 @@ class User
   field :settings, :map
 end
 
-user = User.create!(settings: { theme: "dark", language: "en" })
+user = User.create!(settings: { theme: 'dark', language: 'en' })
 
 # DynamoDB item attribute:
 # "settings": {"theme": "dark", "language": "en"} (Map)
@@ -503,7 +503,7 @@ class User
   field :metadata, :raw
 end
 
-user = User.create!(metadata: { client: "mobile", config: { retries: 3 }, tags: ["beta", 42] })
+user = User.create!(metadata: { client: 'mobile', config: { retries: 3 }, tags: ['beta', 42] })
 
 # DynamoDB item attribute:
 # "metadata": {"client": "mobile", "config": {"retries": 3}, "tags": ["beta", 42]} (Map)
@@ -529,7 +529,7 @@ class User
   field :session_data, :serialized
 end
 
-user = User.create!(session_data: { user_id: 123, role: "admin" })
+user = User.create!(session_data: { user_id: 123, role: 'admin' })
 
 # DynamoDB item attribute:
 # "session_data": "---\n:user_id: 123\n:role: admin\n" (String)
@@ -547,7 +547,7 @@ class User
   field :session_data, :serialized, serializer: JSON
 end
 
-user = User.create!(session_data: { user_id: 123, role: "admin" })
+user = User.create!(session_data: { user_id: 123, role: 'admin' })
 
 # DynamoDB item attribute:
 # "session_data": "{\"user_id\":123,\"role\":\"admin\"}" (String)
@@ -600,7 +600,7 @@ When you control the class source code, make the class self-serializing by imple
 class Money
   attr_reader :cents, :currency
 
-  def initialize(cents, currency = "USD")
+  def initialize(cents, currency = 'USD')
     @cents = cents.to_i
     @currency = currency.to_s
   end
@@ -610,7 +610,7 @@ class Money
   end
 
   def self.dynamoid_load(string)
-    cents, currency = string.to_s.split(" ")
+    cents, currency = string.to_s.split(' ')
     new(cents, currency)
   end
 
@@ -634,7 +634,7 @@ class Order
   field :total, Money
 end
 
-order = Order.create!(total: Money.new(4999, "USD"))
+order = Order.create!(total: Money.new(4999, 'USD'))
 
 # DynamoDB item attribute:
 # "total": "4999 USD" (String)
@@ -653,7 +653,7 @@ When using classes from the Ruby standard library (`IPAddr`, `URI`) or third-par
 An adapter implements both `.dynamoid_dump(object)` and `.dynamoid_load(serialized_value)` as class methods:
 
 ```ruby
-require "ipaddr"
+require 'ipaddr'
 
 class IPAddrAdapter
   def self.dynamoid_dump(ip)
@@ -675,7 +675,7 @@ class RequestLog
   field :remote_ip, IPAddrAdapter
 end
 
-log = RequestLog.create!(remote_ip: IPAddr.new("192.168.1.1"))
+log = RequestLog.create!(remote_ip: IPAddr.new('192.168.1.1'))
 
 # DynamoDB item attribute:
 # "remote_ip": "192.168.1.1" (String)
@@ -724,10 +724,10 @@ end
 
 user = User.new
 
-user.age = "35"
+user.age = '35'
 user.age # => 35
 
-user.active = "false"
+user.active = 'false'
 user.active # => false
 ```
 
@@ -738,7 +738,7 @@ When validation fails or when re-rendering user input in web forms, you often ne
 Dynamoid preserves this uncast input:
 
 ```ruby
-user = User.new(age: "invalid_number")
+user = User.new(age: 'invalid_number')
 
 user.age                                   # => 0
 user.age_before_type_cast                  # => "invalid_number"
