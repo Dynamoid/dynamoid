@@ -379,7 +379,7 @@ describe Dynamoid::Fields do
 
           def baz?; end
 
-          def foobar_before_type_cast?; end
+          def foobar_before_type_cast; end
         end
       end
 
@@ -417,7 +417,7 @@ describe Dynamoid::Fields do
       end
 
       it 'warns about <name>_before_type_cast' do
-        message = 'Method foobar_before_type_cast? generated for the field foobar overrides already existing method'
+        message = 'Method foobar_before_type_cast generated for the field foobar overrides already existing method'
         expect(Dynamoid.logger).to receive(:warn).with(message)
 
         new_class(module: module_with_methods) do
