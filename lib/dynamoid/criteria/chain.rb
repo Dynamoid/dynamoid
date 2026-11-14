@@ -251,7 +251,20 @@ module Dynamoid
         Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
         ids.size
       end
-      alias destroy_all delete_all
+
+      # Destroys all the models by instantiating each model and calling
+      # +#destroy+ on it, running +destroy+ callbacks.
+      #
+      #   Post.where(links_count: 2).destroy_all
+      #
+      # If called without criteria then it destroys all the models in a table.
+      #
+      #   Post.destroy_all
+      #
+      # @return [Array<Dynamoid::Document>] the collection of models that were destroyed
+      def destroy_all
+        records.to_a.each(&:destroy)
+      end
 
       # Set the record limit.
       #
