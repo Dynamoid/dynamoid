@@ -37,7 +37,7 @@ module Dynamoid
                      when :raw        then RawDumper
                      when :boolean    then BooleanDumper
                      when :binary     then BinaryDumper
-                     when Class       then CustomTypeDumper
+                     when Module      then CustomTypeDumper
                      end
 
       if dumper_class.present?
@@ -135,7 +135,7 @@ module Dynamoid
       end
 
       def allowed_type?
-        ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Class)
+        ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Module)
       end
 
       def element_type
@@ -186,7 +186,7 @@ module Dynamoid
       end
 
       def allowed_type?
-        ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Class)
+        ALLOWED_TYPES.include?(element_type) || element_type.is_a?(Module)
       end
 
       def element_type

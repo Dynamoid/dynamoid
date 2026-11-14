@@ -161,6 +161,18 @@ RSpec.describe Dynamoid::Persistence do
           klass.create_table
           expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
         end
+
+        it 'maps module custom type adapter to String by default' do
+          klass = new_class(partition_key: { name: :id, type: PersistenceSpec::UserModuleAdapter })
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+        end
+
+        it 'uses specified type on module adapter if .dynamoid_field_type method declared' do
+          klass = new_class(partition_key: { name: :id, type: PersistenceSpec::UserWithAgeModuleAdapter })
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('N')
+        end
       end
 
       it 'does not support :array' do
@@ -388,6 +400,24 @@ RSpec.describe Dynamoid::Persistence do
 
         it 'uses specified type if .dynamoid_field_type method declared' do
           klass = new_class(sort_key_type: PersistenceSpec::UserWithAge) do |options|
+            range :prop, options[:sort_key_type]
+          end
+          klass.create_table
+
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('N')
+        end
+
+        it 'maps module custom type adapter to String by default' do
+          klass = new_class(sort_key_type: PersistenceSpec::UserModuleAdapter) do |options|
+            range :prop, options[:sort_key_type]
+          end
+          klass.create_table
+
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+        end
+
+        it 'uses specified type on module adapter if .dynamoid_field_type method declared' do
+          klass = new_class(sort_key_type: PersistenceSpec::UserWithAgeModuleAdapter) do |options|
             range :prop, options[:sort_key_type]
           end
           klass.create_table

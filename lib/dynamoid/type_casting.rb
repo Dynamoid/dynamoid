@@ -37,7 +37,7 @@ module Dynamoid
                           when :serialized then SerializedTypeCaster
                           when :boolean    then BooleanTypeCaster
                           when :binary     then BinaryTypeCaster
-                          when Class       then CustomTypeCaster
+                          when Module      then CustomTypeCaster
                           end
 
       if type_caster_class.present?

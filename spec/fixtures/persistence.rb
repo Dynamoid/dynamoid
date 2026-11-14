@@ -44,4 +44,28 @@ module PersistenceSpec
       :number
     end
   end
+
+  module UserModuleAdapter
+    def self.dynamoid_dump(user)
+      user.name
+    end
+
+    def self.dynamoid_load(string)
+      User.new(string.to_s)
+    end
+  end
+
+  module UserWithAgeModuleAdapter
+    def self.dynamoid_dump(user)
+      user.age
+    end
+
+    def self.dynamoid_load(string)
+      UserWithAge.new(string.to_i)
+    end
+
+    def self.dynamoid_field_type
+      :number
+    end
+  end
 end

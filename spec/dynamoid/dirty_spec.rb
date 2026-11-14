@@ -727,6 +727,22 @@ describe Dynamoid::Dirty do
           ]
         )
       end
+
+      it 'detects in-place modifying of a Set element when custom type is specified as a module' do
+        klass = new_class do
+          field :users, :set, of: DirtySpec::UserWithEqualityModuleAdapter
+        end
+
+        obj = klass.create!(users: [DirtySpec::UserWithEquality.new(+'Alex')])
+        obj.users.map { |u| u.name.upcase! }
+
+        expect(obj.changes).to eq(
+          'users' => [
+            Set[DirtySpec::UserWithEquality.new('Alex')],
+            Set[DirtySpec::UserWithEquality.new('ALEX')]
+          ]
+        )
+      end
     end
 
     context 'with array type' do
@@ -749,6 +765,38 @@ describe Dynamoid::Dirty do
         obj.names.each(&:upcase!)
 
         expect(obj.changes).to eq('names' => [%w[Alex], %w[ALEX]])
+      end
+
+      it 'detects in-place modifying of an Array element of custom type' do
+        klass = new_class do
+          field :users, :array, of: DirtySpec::UserWithEquality
+        end
+
+        obj = klass.create!(users: [DirtySpec::UserWithEquality.new(+'Alex')])
+        obj.users.each { |u| u.name.upcase! }
+
+        expect(obj.changes).to eq(
+          'users' => [
+            [DirtySpec::UserWithEquality.new('Alex')],
+            [DirtySpec::UserWithEquality.new('ALEX')]
+          ]
+        )
+      end
+
+      it 'detects in-place modifying of an Array element when custom type is specified as a module' do
+        klass = new_class do
+          field :users, :array, of: DirtySpec::UserWithEqualityModuleAdapter
+        end
+
+        obj = klass.create!(users: [DirtySpec::UserWithEquality.new(+'Alex')])
+        obj.users.each { |u| u.name.upcase! }
+
+        expect(obj.changes).to eq(
+          'users' => [
+            [DirtySpec::UserWithEquality.new('Alex')],
+            [DirtySpec::UserWithEquality.new('ALEX')]
+          ]
+        )
       end
     end
 
@@ -806,13 +854,11 @@ describe Dynamoid::Dirty do
       it 'detects in-place modifying' do
         obj = klass_with_custom_type.create!(user: DirtySpec::User.new(+'Alex'))
         obj.user.name.upcase!
-        ScratchPad.record []
 
         old_value, new_value = obj.changes['user']
 
         expect(old_value.name).to eq 'Alex'
         expect(new_value.name).to eq 'ALEX'
-        expect(ScratchPad.recorded).to eq([])
       end
 
       it 'detects in-place modifying when custom type is safely comparable' do
@@ -835,10 +881,7 @@ describe Dynamoid::Dirty do
 
       it 'reports no in-place changes when field is not modified' do
         obj = klass_with_custom_type.create!(user: DirtySpec::User.new('Alex'))
-
-        ScratchPad.record []
         expect(obj.changes['user']).to eq(nil)
-        expect(ScratchPad.recorded).to eq([])
       end
 
       it 'reports no in-place changes when field is not modified and custom type is safely comparable' do
@@ -853,6 +896,69 @@ describe Dynamoid::Dirty do
         expect(record[0]).to eq('==')
         expect(record[1]).to equal(obj.user)
         expect(record[2]).to eq(obj.user) # an implicit 'from-database' copy
+      end
+
+      it 'detects in-place modifying when custom type is specified as a module' do
+        klass = new_class do
+          field :user, DirtySpec::UserModuleAdapter
+        end
+
+        obj = klass.create!(user: DirtySpec::User.new(+'Alex'))
+        obj.user.name.upcase!
+
+        old_value, new_value = obj.changes['user']
+
+        expect(old_value.name).to eq 'Alex'
+        expect(new_value.name).to eq 'ALEX'
+      end
+
+      it 'detects in-place modifying when custom type is specified as a module and is safely comparable' do
+        klass = new_class do
+          field :user, DirtySpec::UserWithEqualityModuleAdapter, comparable: true
+        end
+
+        obj = klass.create!(user: DirtySpec::UserWithEquality.new(+'Alex'))
+        obj.user.name.upcase!
+        ScratchPad.record []
+
+        old_value, new_value = obj.changes['user']
+
+        expect(old_value.name).to eq 'Alex'
+        expect(new_value.name).to eq 'ALEX'
+
+        expect(ScratchPad.recorded.size).to eq(1)
+        record = ScratchPad.recorded[0]
+
+        expect(record[0]).to eq('==')
+        expect(record[1]).to equal(new_value)
+        expect(record[2]).to equal(old_value)
+      end
+
+      it 'reports no in-place changes when field is not modified and custom type is specified as a module' do
+        klass = new_class do
+          field :user, DirtySpec::UserModuleAdapter
+        end
+
+        obj = klass.create!(user: DirtySpec::User.new('Alex'))
+        expect(obj.changes['user']).to eq(nil)
+      end
+
+      it 'reports no in-place changes when field is not modified and custom type is specified as a module and is safely comparable' do
+        klass = new_class do
+          field :user, DirtySpec::UserWithEqualityModuleAdapter, comparable: true
+        end
+
+        obj = klass.create!(user: DirtySpec::UserWithEquality.new('Alex'))
+        ScratchPad.record []
+
+        expect(obj.changes['user']).to eq(nil)
+
+        expect(ScratchPad.recorded.size).to eq(1)
+        record = ScratchPad.recorded[0]
+
+        expect(record[0]).to eq('==')
+        expect(record[1]).to equal(obj.user)
+        expect(record[2]).to eq(obj.user)
       end
     end
   end
