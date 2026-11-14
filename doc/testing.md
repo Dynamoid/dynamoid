@@ -47,8 +47,6 @@ Because DynamoDB does not support rollbackable transactions, test suites cannot 
 To provision missing tables once before the test suite starts (or only for specific models when running a subset of tests), call `create_tables`:
 
 ```ruby
-require 'dynamoid/test_helper'
-
 Dynamoid::TestHelper.create_tables
 Dynamoid::TestHelper.create_tables(User, Post)
 ```
@@ -71,8 +69,6 @@ Dynamoid::TestHelper.drop_tables
 In projects using RSpec, configure table lifecycle hooks in `spec/support/dynamoid.rb` (or `spec/spec_helper.rb`):
 
 ```ruby
-require 'dynamoid/test_helper'
-
 RSpec.configure do |config|
   config.before(:suite) do
     Dynamoid::TestHelper.drop_tables
@@ -90,8 +86,6 @@ end
 In projects using Minitest, add the equivalent lifecycle hooks to `test/test_helper.rb`:
 
 ```ruby
-require 'dynamoid/test_helper'
-
 Dynamoid::TestHelper.drop_tables
 Dynamoid::TestHelper.create_tables
 
