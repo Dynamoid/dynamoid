@@ -197,18 +197,6 @@ jobs:
             gemfile: rails_5_1
           - ruby: "jruby"
             gemfile: rails_5_2
-          - ruby: "jruby"       # Rails 8.0 requires Ruby >= 3.2 but current JRuby (9.4.9.0) compatible with Ruby 3.1
-            gemfile: rails_8_0
-
-        include:
-          - ruby: "jruby-9.3.15.0"
-            gemfile: rails_4_2
-          - ruby: "jruby-9.3.15.0"
-            gemfile: rails_5_0
-          - ruby: "jruby-9.3.15.0"
-            gemfile: rails_5_1
-          - ruby: "jruby-9.3.15.0"
-            gemfile: rails_5_2
 
     name: ${{ matrix.gemfile }}, Ruby ${{ matrix.ruby }}
 
