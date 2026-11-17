@@ -38,4 +38,24 @@ module DirtySpec
       @name.hash
     end
   end
+
+  module UserModuleAdapter
+    def self.dynamoid_dump(user)
+      user.name
+    end
+
+    def self.dynamoid_load(string)
+      User.new(string.to_s)
+    end
+  end
+
+  module UserWithEqualityModuleAdapter
+    def self.dynamoid_dump(user)
+      user.name
+    end
+
+    def self.dynamoid_load(string)
+      UserWithEquality.new(string.to_s)
+    end
+  end
 end

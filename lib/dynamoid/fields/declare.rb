@@ -39,7 +39,7 @@ module Dynamoid
         warn_if_method_exists(@name)
         warn_if_method_exists("#{@name}=")
         warn_if_method_exists("#{@name}?")
-        warn_if_method_exists("#{@name}_before_type_cast?")
+        warn_if_method_exists("#{@name}_before_type_cast")
       end
 
       def generate_instance_methods

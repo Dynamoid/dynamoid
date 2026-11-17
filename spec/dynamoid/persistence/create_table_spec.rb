@@ -115,6 +115,40 @@ RSpec.describe Dynamoid::Persistence do
         expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
       end
 
+      describe ':binary' do
+        it 'maps :binary to String' do
+          klass = new_class(partition_key: { name: :id, type: :binary })
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+        end
+
+        it 'maps :binary to Binary if field option :store_as_native_binary is true' do
+          klass = new_class(partition_key: { name: :id, type: :binary, options: { store_as_native_binary: true } })
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('B')
+        end
+
+        it 'maps :binary to String if field option :store_as_native_binary is false' do
+          klass = new_class(partition_key: { name: :id, type: :binary, options: { store_as_native_binary: false } })
+          klass.create_table
+          expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+        end
+
+        context 'when field option :store_as_native_binary is nil' do
+          it 'maps :binary to Binary if :store_binary_as_native is true', config: { store_binary_as_native: true } do
+            klass = new_class(partition_key: { name: :id, type: :binary, options: { store_as_native_binary: nil } })
+            klass.create_table
+            expect(raw_attribute_types(klass.table_name)['id']).to eql('B')
+          end
+
+          it 'maps :binary to String if :store_binary_as_native is false', config: { store_binary_as_native: false } do
+            klass = new_class(partition_key: { name: :id, type: :binary, options: { store_as_native_binary: nil } })
+            klass.create_table
+            expect(raw_attribute_types(klass.table_name)['id']).to eql('S')
+          end
+        end
+      end
+
       describe 'custom type' do
         it 'maps custom type to String by default' do
           klass = new_class(partition_key: { name: :id, type: PersistenceSpec::User })
@@ -291,6 +325,55 @@ RSpec.describe Dynamoid::Persistence do
         klass.create_table
 
         expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+      end
+
+      describe ':binary' do
+        it 'maps :binary to String' do
+          klass = new_class do
+            range :prop, :binary
+          end
+          klass.create_table
+
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+        end
+
+        it 'maps :binary to Binary if field option :store_as_native_binary is true' do
+          klass = new_class do
+            range :prop, :binary, store_as_native_binary: true
+          end
+          klass.create_table
+
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('B')
+        end
+
+        it 'maps :binary to String if field option :store_as_native_binary is false' do
+          klass = new_class do
+            range :prop, :binary, store_as_native_binary: false
+          end
+          klass.create_table
+
+          expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+        end
+
+        context 'when field option :store_as_native_binary is nil' do
+          it 'maps :binary to Binary if :store_binary_as_native is true', config: { store_binary_as_native: true } do
+            klass = new_class do
+              range :prop, :binary, store_as_native_binary: nil
+            end
+            klass.create_table
+
+            expect(raw_attribute_types(klass.table_name)['prop']).to eql('B')
+          end
+
+          it 'maps :binary to String if :store_binary_as_native is false', config: { store_binary_as_native: false } do
+            klass = new_class do
+              range :prop, :binary, store_as_native_binary: nil
+            end
+            klass.create_table
+
+            expect(raw_attribute_types(klass.table_name)['prop']).to eql('S')
+          end
+        end
       end
 
       describe 'custom type' do

@@ -753,8 +753,8 @@ Instead of querying a secondary index by foreign key, Dynamoid caches the partit
 
 This storage strategy involves two deliberate simplifications:
 
-* *Sets for all associations* — to keep the implementation uniform across all macros, Dynamoid uses a `<association>_ids` set attribute even for `has_one` and `belongs_to` associations, where the set holds only a single partition key.
-* *Simple primary keys only* — because DynamoDB sets can only store scalar values, cached IDs only store partition keys. Models with composite primary keys (partition key and sort key) cannot declare or participate in associations.
+* *Sets for all associations* — `has_one` and `belongs_to` also use an `<association>_ids` set attribute, holding a single partition key.
+* *Simple primary keys only* — because DynamoDB sets only hold scalar values, models with composite primary keys cannot use associations.
 
 For `Author` (`has_many :books`) and `Book` (`belongs_to :author`), linking models stores the following attributes on their DynamoDB items:
 
@@ -774,9 +774,9 @@ book.author_id # => "f41a8c..."
 
 Storing the foreign key as a scalar attribute is necessary if you plan to index it with a Global Secondary Index, as DynamoDB does not allow indexing Set attributes.
 
-Relying on cached IDs rather than secondary indexes creates two distinct trade-offs:
+Relying on cached IDs rather than secondary indexes creates two trade-offs:
 
-* *Item size growth* — every linked model adds an ID to the parent item's `<association>_ids` set. For high-cardinality relationships, this expands the item's payload, consumes more read and write capacity, and can eventually hit DynamoDB's hard 400 KB item size limit.
-* *Outdated cached IDs* — because references are maintained entirely by Dynamoid in application code, deleting an item outside Dynamoid (or via class-level `Model.delete(id)`) leaves stale, orphaned IDs in the associated model's cached set.
+* *Item size growth* — each linked model adds an ID to `<association>_ids`, increasing payload size toward the 400 KB item limit.
+* *Outdated cached IDs* — deleting an item outside Dynamoid (or via `Model.delete(id)`) leaves stale IDs in the associated model's set.
 
 {{#include ../_includes/feedback.md}}

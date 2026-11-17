@@ -4,7 +4,7 @@ module Dynamoid
   # @private
   class PrimaryKeyTypeMapping
     def self.dynamodb_type(type, options)
-      if type.is_a?(Class)
+      if type.is_a?(Module)
         type = type.respond_to?(:dynamoid_field_type) ? type.dynamoid_field_type : :string
       end
 
@@ -27,6 +27,13 @@ module Dynamoid
                           options[:store_as_string]
                         end
         string_format ? :string : :number
+      when :binary
+        native_binary = if options[:store_as_native_binary].nil?
+                          Dynamoid::Config.store_binary_as_native
+                        else
+                          options[:store_as_native_binary]
+                        end
+        native_binary ? :binary : :string
       else
         raise Errors::UnsupportedKeyType, "#{type} cannot be used as a type of table key attribute"
       end

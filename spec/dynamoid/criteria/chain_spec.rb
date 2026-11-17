@@ -1778,6 +1778,21 @@ describe Dynamoid::Criteria::Chain do
       }.to send_request_matching(:BatchWriteItem)
     end
 
+    it 'returns the number of deleted items' do
+      klass = new_class do
+        field :title
+      end
+
+      klass.create!(title: 'Doc #1')
+      klass.create!(title: 'Doc #1')
+      klass.create!(title: 'Doc #2')
+
+      chain = described_class.new(klass).where(title: 'Doc #1')
+
+      expect(chain.delete_all).to eq(2)
+      expect(chain.delete_all).to eq(0)
+    end
+
     context 'when some conditions specified' do
       it 'deletes only proper items' do
         klass = new_class do
@@ -2012,6 +2027,93 @@ describe Dynamoid::Criteria::Chain do
           }.to send_request_matching(:BatchWriteItem, { RequestItems: { table.arn => anything } })
         end
       end
+    end
+  end
+
+  describe '#destroy_all' do
+    it 'destroys matching models when conditions are specified' do
+      klass = new_class do
+        field :title
+      end
+
+      document1 = klass.create!(title: 'Doc #1')
+      klass.create!(title: 'Doc #2')
+      document3 = klass.create!(title: 'Doc #3')
+
+      chain = described_class.new(klass).where(title: 'Doc #2')
+
+      expect { chain.destroy_all }.to change { klass.count }.by(-1)
+      expect(klass.all).to contain_exactly(document1, document3)
+    end
+
+    it 'destroys all models when there are no conditions' do
+      klass = new_class
+
+      3.times { klass.create! }
+      chain = described_class.new(klass)
+
+      expect { chain.destroy_all }.to change { klass.count }.from(3).to(0)
+    end
+
+    it 'returns an array of destroyed models' do
+      klass = new_class do
+        field :title
+      end
+
+      doc1 = klass.create!(title: 'Doc #1')
+      doc2 = klass.create!(title: 'Doc #1')
+      klass.create!(title: 'Doc #2')
+
+      chain = described_class.new(klass).where(title: 'Doc #1')
+      result = chain.destroy_all
+
+      expect(result).to contain_exactly(doc1, doc2)
+      expect(result).to all(be_destroyed)
+    end
+
+    it 'runs destroy callbacks on each model' do
+      ScratchPad.record []
+
+      klass = new_class do
+        field :title
+
+        before_destroy { ScratchPad << "before_destroy: #{title}" }
+        after_destroy { ScratchPad << "after_destroy: #{title}" }
+      end
+
+      klass.create!(title: 'Doc #1')
+      klass.create!(title: 'Doc #2')
+
+      chain = described_class.new(klass)
+      chain.destroy_all
+
+      expect(ScratchPad.recorded).to contain_exactly(
+        'before_destroy: Doc #1',
+        'after_destroy: Doc #1',
+        'before_destroy: Doc #2',
+        'after_destroy: Doc #2'
+      )
+    end
+
+    it 'does not delete a model when before_destroy callback throws :abort' do
+      if ActiveSupport.version < Gem::Version.new('5.0')
+        skip "Rails 4.x and below don't support aborting with `throw :abort`"
+      end
+
+      klass = new_class do
+        field :deletable, :boolean
+
+        before_destroy { throw(:abort) unless deletable }
+      end
+
+      kept = klass.create!(deletable: false)
+      deleted = klass.create!(deletable: true)
+
+      chain = described_class.new(klass)
+      result = chain.destroy_all
+
+      expect(result).to contain_exactly(kept, deleted)
+      expect(klass.all.to_a).to eq([kept])
     end
   end
 

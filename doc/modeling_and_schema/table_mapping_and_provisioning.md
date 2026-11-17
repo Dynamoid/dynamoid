@@ -303,9 +303,6 @@ class Session
 end
 ```
 
-The `expires` option controls two distinct behaviors:
-
-* *On save* — Dynamoid sets the TTL attribute to the current Unix timestamp plus `:after` seconds whenever the attribute value is `nil`.
-* *On table creation* — Dynamoid enables TTL on the backing DynamoDB table for the specified attribute. If your table is provisioned externally (such as via Terraform or CloudFormation), you must enable TTL on the DynamoDB table in your infrastructure configuration.
+When saving a model, `expires` sets the TTL attribute to the current Unix timestamp plus `:after` seconds whenever the attribute value is `nil`. When creating the table, Dynamoid also enables TTL on the backing DynamoDB table for the specified attribute (if the table is provisioned externally, such as via Terraform or CloudFormation, you must enable TTL in your infrastructure configuration).
 
 {{#include ../_includes/feedback.md}}

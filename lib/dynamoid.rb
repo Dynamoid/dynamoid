@@ -44,6 +44,8 @@ require 'dynamoid/middleware/identity_map'
 require 'dynamoid/railtie' if defined?(Rails)
 
 module Dynamoid
+  autoload :TestHelper, 'dynamoid/test_helper'
+
   extend self # rubocop:disable Style/ModuleFunction
 
   def configure

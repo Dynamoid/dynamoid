@@ -758,6 +758,15 @@ describe Dynamoid::Fields, 'Type casting' do # rubocop:disable RSpec/DescribeMet
         user = DumpingSpecs::UserValue.new('John')
         expect(klass.new(user: user).user).to eq user
       end
+
+      it 'supports a module as an adapter' do
+        klass = new_class do
+          field :user, DumpingSpecs::UserValueModuleAdapter
+        end
+
+        user = DumpingSpecs::UserValue.new('John')
+        expect(klass.new(user: user).user).to eq user
+      end
     end
   end
 

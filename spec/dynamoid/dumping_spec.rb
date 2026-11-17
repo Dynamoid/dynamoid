@@ -678,6 +678,18 @@ describe 'Dumping' do
           expect(reload(obj).values).to eql(Set.new([user]))
           expect(raw_attributes(obj)[:values]).to eql(Set.new(['John']))
         end
+
+        it 'supports a module as a custom type adapter' do
+          klass = new_class do
+            field :values, :set, of: DumpingSpecs::UserValueModuleAdapter
+          end
+
+          user = DumpingSpecs::UserValue.new('John')
+          obj = klass.create(values: Set.new([user]))
+
+          expect(reload(obj).values).to eql(Set.new([user]))
+          expect(raw_attributes(obj)[:values]).to eql(Set.new(['John']))
+        end
       end
 
       context 'when specified type is not supported' do
@@ -945,6 +957,18 @@ describe 'Dumping' do
         it 'uses custom dumping mechanizm' do
           user = DumpingSpecs::User.new('John')
           obj = class_with_typed_array.create(values: [user])
+
+          expect(reload(obj).values).to eql([user])
+          expect(raw_attributes(obj)[:values]).to eql(['John'])
+        end
+
+        it 'supports a module as a custom type adapter' do
+          klass = new_class do
+            field :values, :array, of: DumpingSpecs::UserValueModuleAdapter
+          end
+
+          user = DumpingSpecs::UserValue.new('John')
+          obj = klass.create(values: [user])
 
           expect(reload(obj).values).to eql([user])
           expect(raw_attributes(obj)[:values]).to eql(['John'])
@@ -1475,6 +1499,19 @@ describe 'Dumping' do
       end
 
       it 'dumps and loads custom type' do
+        user = DumpingSpecs::UserValue.new('John')
+        obj = klass.create(user: user)
+
+        expect(obj.user).to eql(user)
+        expect(reload(obj).user).to eql(user)
+        expect(raw_attributes(obj)[:user]).to eql('John')
+      end
+
+      it 'supports a module as an adapter' do
+        klass = new_class do
+          field :user, DumpingSpecs::UserValueModuleAdapter
+        end
+
         user = DumpingSpecs::UserValue.new('John')
         obj = klass.create(user: user)
 

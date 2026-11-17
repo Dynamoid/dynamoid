@@ -308,7 +308,7 @@ module Dynamoid
         # symbolized keys - wrap it into HashWithIndifferentAccess.
         value_wrapped = value.with_indifferent_access
         value_wrapped != value_from_database
-      elsif !type_options[:type].is_a?(Class) || type_options[:comparable]
+      elsif !type_options[:type].is_a?(Module) || type_options[:comparable]
         # common case
         value != value_from_database
       else
@@ -340,7 +340,7 @@ module Dynamoid
           # IO objects (used for the binary type) cannot be duplicated as well.
           value
         when Array
-          if of.is_a? Class
+          if of.is_a? Module
             # custom type
             value.map { |e| dup_attribute(e, type: of) }
           else
@@ -349,7 +349,7 @@ module Dynamoid
         when Set
           Set.new(value.map { |e| dup_attribute(e, type: of) })
         else
-          if type.is_a? Class
+          if type.is_a? Module
             # custom type
             dump = Dumping.dump_field(value, type_options)
             Undumping.undump_field(dump.deep_dup, type_options)

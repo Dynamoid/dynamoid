@@ -854,6 +854,36 @@ describe Dynamoid::Dirty do
         expect(record[1]).to equal(obj.user)
         expect(record[2]).to eq(obj.user) # an implicit 'from-database' copy
       end
+
+      it 'detects in-place modifying when custom type is specified as a module' do
+        klass = new_class do
+          field :user, DirtySpec::UserModuleAdapter
+        end
+
+        obj = klass.create!(user: DirtySpec::User.new(+'Alex'))
+        obj.user.name.upcase!
+
+        old_value, new_value = obj.changes['user']
+
+        expect(old_value.name).to eq 'Alex'
+        expect(new_value.name).to eq 'ALEX'
+      end
+
+      it 'detects in-place modifying of an Array element when custom type is specified as a module' do
+        klass = new_class do
+          field :users, :array, of: DirtySpec::UserWithEqualityModuleAdapter
+        end
+
+        obj = klass.create!(users: [DirtySpec::UserWithEquality.new(+'Alex')])
+        obj.users.each { |u| u.name.upcase! }
+
+        expect(obj.changes).to eq(
+          'users' => [
+            [DirtySpec::UserWithEquality.new('Alex')],
+            [DirtySpec::UserWithEquality.new('ALEX')]
+          ]
+        )
+      end
     end
   end
 
