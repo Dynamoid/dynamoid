@@ -10,16 +10,13 @@ DynamoDB stores data in *tables*, which contain *items* (analogous to rows or do
 
 Unlike relational databases, DynamoDB tables do not enforce a column schema. The table definition specifies only the *primary key*, which uniquely identifies each item. All other attributes are dynamic—different items in the same table can carry different attributes, and an attribute only exists on an item when assigned a value.
 
-The primary key is composed of one or two attributes:
-
-* A *simple primary key* consists of a single attribute serving as the *partition key* (historically called a *hash key*). The value of this attribute must be unique across the entire table.
-* A *composite primary key* is composed of two attributes: a *partition key* attribute and a *sort key* attribute (historically called a *range key*). The combination of both values forms the unique item identifier—multiple items can share the same partition key value as long as their sort key values differ.
+A primary key can be either simple or composite. A *simple primary key* consists of a single *partition key* attribute (historically called a *hash key*), whose value must be unique across the entire table. A *composite primary key* combines a *partition key* with a *sort key* (historically called a *range key*); together they uniquely identify an item, so multiple items can share the same partition key value as long as their sort key values differ.
 
 How you access data depends directly on these key attributes:
 
 * A *point lookup* retrieves a single item directly by its primary key.
 * A *query operation* retrieves items matching an exact partition key, optionally filtered by sort key conditions.
-* A *scan operation* reads every item in the table whenever a search does not specify a partition key.
+* A *scan operation* reads every item in the table when no partition key is specified.
 
 ## Key Differences from Relational Databases
 
@@ -31,20 +28,20 @@ In PostgreSQL or MySQL, table schemas define every column and data type upfront.
 
 Primary keys also behave differently during writes:
 
-* DynamoDB does not provide auto-incrementing integer sequences (`SERIAL` or `AUTO_INCREMENT`). Dynamoid automatically generates UUIDs for string partition keys, but integer partition keys and sort keys must be assigned by the application.
-* An item's primary key (both the partition key and sort key) is strictly immutable once written. Changing an item's primary key requires creating a new item and deleting the original.
-* Every write, update, and delete operation must target an item by its exact primary key—there is no equivalent to SQL's `UPDATE ... WHERE` or `DELETE ... WHERE` to modify or remove multiple rows matching arbitrary attribute conditions in a single statement.
+* DynamoDB does not auto-generate primary keys or sequences; key values must always be provided on write.
+* Primary keys are immutable once written; changing a key requires creating a new item and deleting the original.
+* Updates and deletes must target an exact primary key—there is no equivalent to `UPDATE ... WHERE` or `DELETE ... WHERE`.
 
 ### Querying and Indexing
 
 Relational databases provide an expressive query engine with automated index planning, dynamic sorting, random-access pagination, and server-side aggregation. DynamoDB trades this flexibility for predictable, single-digit millisecond latency at any scale, resulting in several fundamental constraints:
 
 * Fast queries require an equality condition on the *partition key*, optionally refined with range conditions on the *sort key*.
-* To filter efficiently by other attributes, you must define a secondary index (where those attributes serve as the index key) and target that index explicitly by name.
-* Results can only be sorted by the sort key defined on the table or index—there is no arbitrary `ORDER BY` on non-key attributes.
-* Pagination is forward-only. Unlike relational databases that support numeric `OFFSET` to jump to arbitrary pages, DynamoDB only allows traversing results sequentially from one page to the next, with no backward pagination.
-* There is no `GROUP BY` clause or database-level aggregation (`SUM`, `AVG`, `MIN`, `MAX`). Finding totals or summary metrics requires calculating them in application code or maintaining pre-computed counter attributes with atomic increments.
-* Unlike relational databases that guarantee immediate read-after-write consistency, DynamoDB reads (point lookups and queries) are *eventually consistent* by default—a read right after a write might briefly return stale data. When up-to-date data is required, you can request a *strongly consistent read* to guarantee seeing the latest write.
+* Filtering efficiently by other attributes requires defining a secondary index with those attributes as the index key.
+* Results can only be sorted by the sort key—there is no arbitrary `ORDER BY` on non-key attributes.
+* Result sets are traversed forward using cursors—there is no numeric `OFFSET` to skip a given number of items.
+* There is no `GROUP BY` or server-side aggregation (`SUM`, `AVG`, `MIN`, `MAX`); totals must be computed in application code.
+* Reads are *eventually consistent* by default and may briefly return stale data after a write unless you request a *strongly consistent read*.
 
 ### Relationships and Joins
 
@@ -62,9 +59,9 @@ DynamoDB does not support interactive transactions or pessimistic locking. While
 
 DynamoDB also enforces several hard operational limits:
 
-* Items cannot exceed 400 KB in total size, including all attribute names and values combined. Larger payloads or file attachments should be offloaded to external storage.
-* A single query or scan operation returns at most 1 MB of data before pausing, requiring pagination even if a requested item limit has not yet been met.
-* Native batch writes and deletes are capped at 25 items per request, while batch reads and transactions are limited to 100 items.
+* An item cannot exceed 400 KB in total size ([including attribute names and values](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/CapacityUnitCalculations.html)).
+* A single query or scan request returns at most 1 MB of data per page.
+* Batch writes and deletes are capped at 25 items per request; batch reads and transactions are capped at 100 items.
 
 ## The Active Record Pattern in Dynamoid
 
@@ -126,11 +123,11 @@ If a DynamoDB item contains attributes not declared in your Ruby model, Dynamoid
 
 ### Conventions and Defaults
 
-Dynamoid follows *convention over configuration*, so a conventional model only needs to declare its fields:
+Dynamoid follows *convention over configuration*, so a model only needs to declare its fields:
 
-* Table names are automatically derived from the pluralized class name (`User` &rarr; `users`), prefixed by any configured namespace (`config.namespace`).
-* The primary key defaults to a partition key named `id` of type `string`. When saving a new model, Dynamoid assigns an auto-generated UUID string if no `id` is specified.
-* Timestamps are maintained automatically: Dynamoid generates `created_at` and `updated_at` datetime fields on every model by default.
+* Table names are derived from the pluralized class name (`User` &rarr; `users`) and prefixed with `config.namespace`.
+* The primary key defaults to a string partition key named `id`, populated with a random UUID on save if unset.
+* Models automatically include and maintain `created_at` and `updated_at` datetime fields.
 
 > [!NOTE]
 > To customize these defaults—such as specifying a custom table name, configuring a custom partition key name or type, or declaring a sort key for a composite primary key—refer to [Table Mapping & Provisioning](modeling_and_schema/table_mapping_and_provisioning.md).

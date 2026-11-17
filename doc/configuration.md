@@ -207,18 +207,20 @@ config.namespace = nil
 User.table_name # => "users"
 ```
 
-How you configure `config.namespace` depends on your AWS account architecture:
+When multiple environments (e.g. staging and production) share an AWS account, include the environment name in `config.namespace` to prevent table collisions:
 
-* *Shared AWS accounts* — when development, test, and staging environments share an AWS account, dynamic namespaces prevent data collisions:
-  ```ruby
-  config.namespace = "myapp_#{ENV.fetch('APP_ENV', 'development')}"
-  ```
-* *Dedicated AWS accounts* — when production and staging run in separate AWS accounts (the recommended AWS security architecture), table name prefixes are redundant. Setting `config.namespace = nil` keeps table names simple (`users`, `orders`).
-* *Parallel test runners* — when executing tests concurrently across multiple workers (such as `parallel_tests` or multiple CI containers), incorporate the process or worker ID to isolate tables:
-  ```ruby
-  worker_id = ENV['TEST_ENV_NUMBER'] || Process.pid
-  config.namespace = "myapp_test_#{worker_id}"
-  ```
+```ruby
+config.namespace = "myapp_#{ENV.fetch('APP_ENV', 'development')}"
+```
+
+When each environment runs in a dedicated AWS account, table name prefixes are redundant—setting `config.namespace = nil` keeps table names simple (`users`, `orders`).
+
+When a test suite is split and run in parallel across multiple processes, include a process ID in `config.namespace` so each process uses its own tables:
+
+```ruby
+worker_id = ENV['TEST_ENV_NUMBER'] || Process.pid
+config.namespace = "myapp_test_#{worker_id}"
+```
 
 For model-level table name overrides and ARN mapping, see [Table Mapping & Provisioning](modeling_and_schema/table_mapping_and_provisioning.md).
 
