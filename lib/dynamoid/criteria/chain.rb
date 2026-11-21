@@ -230,6 +230,8 @@ module Dynamoid
       # deletes them in batch with +BatchWriteItem+ operation. +BatchWriteItem+
       # is limited by request size and items count so it's quite possible the
       # deletion will require several +BatchWriteItem+ calls.
+      #
+      # @return [Integer] the number of deleted items
       def delete_all
         ids = []
         ranges = []
@@ -247,8 +249,22 @@ module Dynamoid
         end
 
         Dynamoid.adapter.delete(source.table_name, ids, range_key: ranges.presence)
+        ids.size
       end
-      alias destroy_all delete_all
+
+      # Destroys all the models by instantiating each model and calling
+      # +#destroy+ on it, running +destroy+ callbacks.
+      #
+      #   Post.where(links_count: 2).destroy_all
+      #
+      # If called without criteria then it destroys all the models in a table.
+      #
+      #   Post.destroy_all
+      #
+      # @return [Array<Dynamoid::Document>] the collection of models that were destroyed
+      def destroy_all
+        records.to_a.each(&:destroy)
+      end
 
       # Set the record limit.
       #
@@ -458,8 +474,12 @@ module Dynamoid
       # ```
       #
       # @return [Enumerator::Lazy]
-      def find_by_pages(&block)
-        pages.each(&block)
+      def find_by_pages
+        return to_enum(:find_by_pages).lazy unless block_given?
+
+        pages.each do |(models, options)|
+          yield models, options
+        end
       end
 
       # Select only specified fields.

@@ -5,12 +5,13 @@ module Dynamoid
     extend ActiveSupport::Concern
 
     def self.clear
-      Dynamoid.included_models.each { |m| m.identity_map.clear }
+      Thread.current[:dynamoid_identity_map]&.clear
     end
 
     module ClassMethods
       def identity_map
-        @identity_map ||= {}
+        Thread.current[:dynamoid_identity_map] ||= {}
+        Thread.current[:dynamoid_identity_map][self] ||= {}
       end
 
       # @private

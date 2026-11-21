@@ -239,6 +239,92 @@ describe Dynamoid::Fields do
         address.deliverable = true
         expect(address).to be_deliverable
       end
+
+      it 'return false when numeric attributes are nil or zero' do
+        klass = new_class do
+          field :count, :integer
+          field :price, :number
+        end
+
+        obj = klass.new
+        expect(obj.count?).to be false
+        expect(obj.price?).to be false
+
+        obj.count = 0
+        obj.price = 0
+        expect(obj.count?).to be false
+        expect(obj.price?).to be false
+
+        obj.count = '0'
+        obj.price = '0.0'
+        expect(obj.count?).to be false
+        expect(obj.price?).to be false
+      end
+
+      it 'return true when numeric attributes are non-zero' do
+        klass = new_class do
+          field :count, :integer
+          field :price, :number
+        end
+
+        obj = klass.new(count: 1, price: 0.5)
+        expect(obj.count?).to be true
+        expect(obj.price?).to be true
+
+        obj = klass.new(count: -1, price: -0.5)
+        expect(obj.count?).to be true
+        expect(obj.price?).to be true
+      end
+
+      it 'return false when string attributes are nil, empty, or whitespace-only' do
+        address.city = nil
+        expect(address.city?).to be false
+
+        address.city = ''
+        expect(address.city?).to be false
+
+        address.city = '   '
+        expect(address.city?).to be false
+      end
+
+      it 'return true when string attributes are present' do
+        address.city = 'Chicago'
+        expect(address.city?).to be true
+
+        address.city = '0'
+        expect(address.city?).to be true
+      end
+
+      it 'return false when collection attributes are nil or empty' do
+        klass = new_class do
+          field :tags, :set
+          field :items, :array
+          field :settings, :map
+        end
+
+        obj = klass.new
+        expect(obj.tags?).to be false
+        expect(obj.items?).to be false
+        expect(obj.settings?).to be false
+
+        obj = klass.new(tags: Set.new, items: [], settings: {})
+        expect(obj.tags?).to be false
+        expect(obj.items?).to be false
+        expect(obj.settings?).to be false
+      end
+
+      it 'return true when collection attributes are not empty' do
+        klass = new_class do
+          field :tags, :set
+          field :items, :array
+          field :settings, :map
+        end
+
+        obj = klass.new(tags: Set['a'], items: ['a'], settings: { a: 1 })
+        expect(obj.tags?).to be true
+        expect(obj.items?).to be true
+        expect(obj.settings?).to be true
+      end
     end
 
     context 'with default values for fields' do
@@ -379,7 +465,7 @@ describe Dynamoid::Fields do
 
           def baz?; end
 
-          def foobar_before_type_cast?; end
+          def foobar_before_type_cast; end
         end
       end
 
@@ -417,7 +503,7 @@ describe Dynamoid::Fields do
       end
 
       it 'warns about <name>_before_type_cast' do
-        message = 'Method foobar_before_type_cast? generated for the field foobar overrides already existing method'
+        message = 'Method foobar_before_type_cast generated for the field foobar overrides already existing method'
         expect(Dynamoid.logger).to receive(:warn).with(message)
 
         new_class(module: module_with_methods) do

@@ -70,7 +70,7 @@ user = User.new
 user.email # => nil
 user.email? # => false
 
-user.email = "ada@example.com"
+user.email = 'ada@example.com'
 user.email # => "ada@example.com"
 user.email? # => true
 ```
@@ -283,7 +283,7 @@ class Order
   field :placed_at, :datetime
 end
 
-order = Order.create!(placed_at: "2026-10-11 12:00:00")
+order = Order.create!(placed_at: '2026-10-11 12:00:00')
 
 # DynamoDB item attribute:
 # "placed_at": 1791720000.0 (Number, seconds since Unix epoch)
@@ -298,7 +298,7 @@ class Order
   field :placed_at, :datetime, store_as_string: true
 end
 
-order = Order.create!(placed_at: "2026-10-11 12:00:00")
+order = Order.create!(placed_at: '2026-10-11 12:00:00')
 
 # DynamoDB item attribute:
 # "placed_at": "2026-10-11T12:00:00+00:00" (String, ISO-8601)
@@ -322,7 +322,7 @@ class User
   field :birth_date, :date
 end
 
-user = User.create!(birth_date: "1990-05-15")
+user = User.create!(birth_date: '1990-05-15')
 
 # DynamoDB item attribute:
 # "birth_date": 7439 (Number, integer days since January 1, 1970)
@@ -337,7 +337,7 @@ class User
   field :birth_date, :date, store_as_string: true
 end
 
-user = User.create!(birth_date: "1990-05-15")
+user = User.create!(birth_date: '1990-05-15')
 
 # DynamoDB item attribute:
 # "birth_date": "1990-05-15" (String, ISO-8601)
@@ -360,7 +360,7 @@ class User
   field :tags, :set
 end
 
-user = User.create!(tags: ["ruby", "aws", "ruby"])
+user = User.create!(tags: ['ruby', 'aws', 'ruby'])
 user.tags # => #<Set: {"ruby", "aws"}>
 
 # DynamoDB item attribute:
@@ -376,7 +376,7 @@ class User
   field :roles, :set, of: :string
 end
 
-user = User.create!(roles: [:admin, "editor", "admin"])
+user = User.create!(roles: [:admin, 'editor', 'admin'])
 user.roles # => #<Set: {"admin", "editor"}>
 
 # DynamoDB item attribute:
@@ -406,7 +406,7 @@ class User
   field :preferences, :array
 end
 
-user = User.create!(preferences: ["email", "sms"])
+user = User.create!(preferences: ['email', 'sms'])
 user.preferences # => ["email", "sms"]
 
 # DynamoDB item attribute:
@@ -422,7 +422,7 @@ class User
   field :scores, :array, of: :integer
 end
 
-user = User.create!(scores: ["10", 20.5, 30])
+user = User.create!(scores: ['10', 20.5, 30])
 user.scores # => [10, 20, 30]
 
 # DynamoDB item attribute:
@@ -467,7 +467,7 @@ class User
   field :settings, :map
 end
 
-user = User.create!(settings: { theme: "dark", language: "en" })
+user = User.create!(settings: { theme: 'dark', language: 'en' })
 
 # DynamoDB item attribute:
 # "settings": {"theme": "dark", "language": "en"} (Map)
@@ -503,7 +503,7 @@ class User
   field :metadata, :raw
 end
 
-user = User.create!(metadata: { client: "mobile", config: { retries: 3 }, tags: ["beta", 42] })
+user = User.create!(metadata: { client: 'mobile', config: { retries: 3 }, tags: ['beta', 42] })
 
 # DynamoDB item attribute:
 # "metadata": {"client": "mobile", "config": {"retries": 3}, "tags": ["beta", 42]} (Map)
@@ -529,7 +529,7 @@ class User
   field :session_data, :serialized
 end
 
-user = User.create!(session_data: { user_id: 123, role: "admin" })
+user = User.create!(session_data: { user_id: 123, role: 'admin' })
 
 # DynamoDB item attribute:
 # "session_data": "---\n:user_id: 123\n:role: admin\n" (String)
@@ -547,7 +547,7 @@ class User
   field :session_data, :serialized, serializer: JSON
 end
 
-user = User.create!(session_data: { user_id: 123, role: "admin" })
+user = User.create!(session_data: { user_id: 123, role: 'admin' })
 
 # DynamoDB item attribute:
 # "session_data": "{\"user_id\":123,\"role\":\"admin\"}" (String)
@@ -600,7 +600,7 @@ When you control the class source code, make the class self-serializing by imple
 class Money
   attr_reader :cents, :currency
 
-  def initialize(cents, currency = "USD")
+  def initialize(cents, currency = 'USD')
     @cents = cents.to_i
     @currency = currency.to_s
   end
@@ -610,7 +610,7 @@ class Money
   end
 
   def self.dynamoid_load(string)
-    cents, currency = string.to_s.split(" ")
+    cents, currency = string.to_s.split(' ')
     new(cents, currency)
   end
 
@@ -634,7 +634,7 @@ class Order
   field :total, Money
 end
 
-order = Order.create!(total: Money.new(4999, "USD"))
+order = Order.create!(total: Money.new(4999, 'USD'))
 
 # DynamoDB item attribute:
 # "total": "4999 USD" (String)
@@ -653,7 +653,7 @@ When using classes from the Ruby standard library (`IPAddr`, `URI`) or third-par
 An adapter implements both `.dynamoid_dump(object)` and `.dynamoid_load(serialized_value)` as class methods:
 
 ```ruby
-require "ipaddr"
+require 'ipaddr'
 
 class IPAddrAdapter
   def self.dynamoid_dump(ip)
@@ -675,7 +675,7 @@ class RequestLog
   field :remote_ip, IPAddrAdapter
 end
 
-log = RequestLog.create!(remote_ip: IPAddr.new("192.168.1.1"))
+log = RequestLog.create!(remote_ip: IPAddr.new('192.168.1.1'))
 
 # DynamoDB item attribute:
 # "remote_ip": "192.168.1.1" (String)
@@ -692,10 +692,10 @@ Dynamoid tracks changes in custom type attributes to determine which fields to u
 
 To detect these changes, Dynamoid supports two comparison strategies:
 
-* *Serialized comparison (default)* — Dynamoid serializes the attribute value and compares the serialized result against the database state. This works out of the box without requiring the custom type to implement `#==`. The trade-off is performance: serializing values whenever checking for changes (such as calling `changed?` or saving) incurs extra overhead.
-* *In-memory comparison* — Dynamoid compares the Ruby objects directly in memory using `#==`, skipping serialization entirely.
+* *Serialized comparison (default)* — serializes the attribute value and compares the result against the database state.
+* *In-memory comparison* — compares the Ruby objects directly in memory using `#==`.
 
-To enable in-memory comparison, pass `comparable: true` in the field declaration:
+Serialized comparison works out of the box without requiring `#==`, but serializing values whenever checking for changes (such as calling `changed?` or saving) incurs extra overhead. To enable in-memory comparison instead, pass `comparable: true` in the field declaration:
 
 ```ruby
 class Order
@@ -724,10 +724,10 @@ end
 
 user = User.new
 
-user.age = "35"
+user.age = '35'
 user.age # => 35
 
-user.active = "false"
+user.active = 'false'
 user.active # => false
 ```
 
@@ -738,7 +738,7 @@ When validation fails or when re-rendering user input in web forms, you often ne
 Dynamoid preserves this uncast input:
 
 ```ruby
-user = User.new(age: "invalid_number")
+user = User.new(age: 'invalid_number')
 
 user.age                                   # => 0
 user.age_before_type_cast                  # => "invalid_number"
@@ -841,20 +841,21 @@ The following table catalogs all configuration options that govern attribute ser
 
 ### Historical Background
 
-Several storage configuration options exist because Amazon DynamoDB's data model evolved significantly after its initial release in 2012. As DynamoDB introduced new capabilities, Dynamoid added configuration options to adopt the new database behavior while preserving backward compatibility for existing data:
+Several storage configuration options exist because Amazon DynamoDB's data model evolved significantly after its initial release in 2012. As DynamoDB introduced new capabilities, Dynamoid added configuration options to adopt the new database behavior while preserving backward compatibility for existing data.
 
-* *The Original 2012 Data Model* — DynamoDB launched supporting only strings and numbers, with binary data added later that year. It had no concept of booleans, nulls, lists, or maps. Dynamoid originally stored booleans as `'t'` and `'f'` strings, and omitted or removed attributes assigned `nil`.
-* *Document Types & Null Values (October 2014)* — AWS introduced native booleans, explicit nulls, lists, and maps. Dynamoid introduced `store_boolean_as_native` to support native booleans while maintaining compatibility with legacy data, and `store_attribute_with_nil_value` to optionally persist explicit null attributes.
-* *Empty String Support (May 2020)* — DynamoDB originally rejected empty strings, so Dynamoid automatically converted empty strings to `nil`. After DynamoDB added support for empty strings in 2020, Dynamoid introduced `store_empty_string_as_nil` (defaulting to `true` for backward compatibility) to allow applications to persist empty strings as-is.
+When DynamoDB launched in 2012, it supported only strings and numbers (with binary data added later that year) and had no concept of booleans, nulls, lists, or maps. Dynamoid originally stored booleans as `'t'` and `'f'` strings, and omitted or removed attributes assigned `nil`.
+
+In October 2014, DynamoDB added native booleans, explicit nulls, and document types (lists and maps). Dynamoid added `store_boolean_as_native` to support native booleans while maintaining compatibility with legacy data, and `store_attribute_with_nil_value` to optionally persist explicit null attributes.
+
+In May 2020, DynamoDB added support for empty strings. Because DynamoDB originally rejected empty strings, Dynamoid had always converted them to `nil`. Dynamoid introduced `store_empty_string_as_nil` (defaulting to `true` for backward compatibility) so applications can opt into persisting empty strings as-is.
 
 ### Nil Attributes
 
 When a model attribute has a `nil` value, Dynamoid can store it in DynamoDB in two ways: by omitting the attribute entirely, or by persisting an explicit `NULL` value. By default, Dynamoid omits or removes attributes with `nil` values, preserving the original DynamoDB behavior from before native `NULL` support was added.
 
-Omitting `NULL` attributes provides two advantages:
+Omitting `nil` attributes saves storage and throughput: because both attribute names and values contribute to item size in DynamoDB, writing explicit `NULL` values increases payload size and consumes extra read and write capacity.
 
-* *Storage and throughput efficiency* — In DynamoDB, attribute names and values both contribute to item size. Storing explicit `NULL` values increases item size and consumes additional read and write throughput, whereas omitting `nil` attributes conserves capacity.
-* *Index compatibility and sparse indexes* — DynamoDB index keys (partition keys and sort keys for tables and secondary indexes) only support String, Number, or Binary types; they strictly prohibit `NULL`. Persisting an explicit `NULL` to an indexed attribute causes DynamoDB to raise a `ValidationException`. Omitting `nil` attributes prevents this error automatically and enables sparse secondary indexes.
+Omitting `nil` attributes is also required for secondary index keys. DynamoDB index keys only accept String, Number, or Binary values and reject `NULL`—persisting an explicit `NULL` to an indexed attribute raises an error. Omitting `nil` attributes avoids this error and allows secondary indexes to act as sparse indexes.
 
 If your application or external integrations require explicit null values, enable `store_attribute_with_nil_value`:
 
@@ -889,12 +890,7 @@ user.reload.settings
 
 ### Time Zones
 
-For `:datetime` fields, Dynamoid is time zone-aware and separates the time zone used in your application from the time zone used for database storage:
-
-* `Dynamoid.config.application_timezone` (default `:utc`) — controls how `DateTime` instances are presented in your application (`:utc`, `:local`, or a named zone like `"America/New_York"`). In Rails applications, set this to `:local` or `Time.zone.name`.
-* `Dynamoid.config.dynamodb_timezone` (default `:utc`) — controls the time zone used when writing timestamps to DynamoDB as ISO-8601 strings.
-
-Strings without an explicit time zone offset are interpreted in `application_timezone`, normalized to `dynamodb_timezone` when stored, and converted back to `application_timezone` when loaded:
+For `:datetime` fields, Dynamoid separates the time zone used in your application from the time zone used when storing timestamps as ISO-8601 strings in DynamoDB, configured via [`application_timezone` and `dynamodb_timezone`](../configuration.md#configapplication_timezone-and-configdynamodb_timezone):
 
 ```ruby
 Dynamoid.configure do |config|
@@ -902,20 +898,20 @@ Dynamoid.configure do |config|
   config.dynamodb_timezone = :utc
   config.store_datetime_as_string = true
 end
-
-order = Order.create!(placed_at: '2026-10-15 16:00:00')
-
-order.placed_at
-# => 2026-10-15T16:00:00-04:00
-
-# DynamoDB item attribute:
-# "placed_at": "2026-10-15T20:00:00+00:00" (normalized to UTC)
-
-order.reload.placed_at
-# => 2026-10-15T16:00:00-04:00
 ```
 
-When storing timestamps as strings, Dynamoid normalizes values to `dynamodb_timezone` (UTC by default). Because ISO-8601 strings sort alphabetically, uniform normalization ensures range queries (`between`, `gt`, `lt`) and chronological sorting work reliably. (Numeric timestamps are stored as epoch seconds and are inherently UTC.)
+Strings without an explicit time zone offset are interpreted in `application_timezone` when assigned, normalized to `dynamodb_timezone` when stored, and converted back to `application_timezone` when loaded:
+
+```ruby
+order = Order.create!(placed_at: '2026-10-15 16:00:00')
+order.placed_at        # => 2026-10-15T16:00:00-04:00
+order.reload.placed_at # => 2026-10-15T16:00:00-04:00
+
+# DynamoDB item attribute:
+# "placed_at": "2026-10-15T20:00:00+00:00"
+```
+
+When storing timestamps as strings, Dynamoid normalizes values to `dynamodb_timezone` (UTC by default). Because ISO-8601 strings sort alphabetically, uniform normalization ensures range queries (`between`, `gt`, `lt`) and chronological sorting work reliably.
 
 ### YAML Deserialization
 

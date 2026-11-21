@@ -73,6 +73,16 @@ module DumpingSpecs
     end
   end
 
+  module UserValueModuleAdapter
+    def self.dynamoid_dump(user)
+      user.name
+    end
+
+    def self.dynamoid_load(string)
+      UserValue.new(string.to_s)
+    end
+  end
+
   class UserValueToArrayAdapter
     def self.dynamoid_dump(user)
       user.name.split

@@ -39,7 +39,7 @@ module Dynamoid
         warn_if_method_exists(@name)
         warn_if_method_exists("#{@name}=")
         warn_if_method_exists("#{@name}?")
-        warn_if_method_exists("#{@name}_before_type_cast?")
+        warn_if_method_exists("#{@name}_before_type_cast")
       end
 
       def generate_instance_methods
@@ -54,7 +54,11 @@ module Dynamoid
             when true        then true
             when false, nil  then false
             else
-              !value.nil?
+              if value.respond_to?(:zero?)
+                !value.zero?
+              else
+                !value.blank?
+              end
             end
           end
           define_method(:"#{name}=") { |value| write_attribute(name, value) }
