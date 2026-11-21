@@ -474,8 +474,12 @@ module Dynamoid
       # ```
       #
       # @return [Enumerator::Lazy]
-      def find_by_pages(&block)
-        pages.each(&block)
+      def find_by_pages
+        return to_enum(:find_by_pages).lazy unless block_given?
+
+        pages.each do |(models, options)|
+          yield models, options
+        end
       end
 
       # Select only specified fields.

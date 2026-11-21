@@ -1605,6 +1605,27 @@ describe Dynamoid::Criteria::Chain do
       )
     end
 
+    it 'passes models and metadata as separate arguments to a block' do
+      klass = new_class
+      obj = klass.create!
+
+      yielded_args = nil
+      klass.find_by_pages do |*args|
+        yielded_args = args
+      end
+
+      expect(yielded_args).to eq([[obj], { last_evaluated_key: nil }])
+    end
+
+    it 'returns a lazy Enumerator if called without a block' do
+      klass = new_class
+      obj = klass.create!
+
+      enumerator = klass.find_by_pages
+      expect(enumerator).to be_an(Enumerator::Lazy)
+      expect(enumerator.to_a).to eq([[[obj], { last_evaluated_key: nil }]])
+    end
+
     it 'returns :last_evaluated_key which may be used to restart iteration' do
       klass = new_class do
         field :name
